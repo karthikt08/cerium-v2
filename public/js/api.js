@@ -25,6 +25,7 @@ export function daysBetween(a, b) {
   return Math.round((parseDateStr(b) - parseDateStr(a)) / 86400000);
 }
 export function termsToDays(terms) {
+  if (terms === 'Due on receipt') return 0;
   const m = /(\d+)/.exec(String(terms || ''));
   return m ? Number(m[1]) : 15;
 }
