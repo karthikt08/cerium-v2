@@ -626,6 +626,12 @@ export function openDb(file) {
       const trialDaysRemaining = Math.max(0, trialDaysTotal - usedDays);
 
       let effectivePlanStatus = user.plan_status;
+      const recurring = subscriptionForUser.get(userId);
+      if (recurring && ['active','charged'].includes(recurring.status) && Date.now() >= recurring.start_at * 1000 && effectivePlanStatus !== 'active') {
+        const end = recurring.current_end && recurring.current_end > Date.now() ? recurring.current_end : Date.now() + 32 * 86400000;
+        q.setUserPlan.run('pro','active',recurring.subscription_id,end,Date.now(),userId);
+        effectivePlanStatus = 'active';
+      }
       if (effectivePlanStatus === 'active') {
         if (user.subscription_expires_at && user.subscription_expires_at < Date.now()) {
           effectivePlanStatus = 'expired';
@@ -996,9 +1002,9 @@ export function openDb(file) {
       if (!row) return false;
       // Never grant access based on checkout callback alone; confirmed provider events determine status.
       subscriptionUpdate.run(status, currentEnd, id);
-      if (status === 'active' || status === 'charged') {
+      if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000) {
         q.setUserPlan.run('pro', 'active', id, currentEnd || Date.now() + 32 * 86400000, Date.now(), row.user_id);
-      } else if (['cancelled','halted','expired'].includes(status)) {
+      } else if (['cancelled','halted','expired'].includes(status) && (row.start_at * 1000 <= Date.now())) {
         q.setUserPlan.run('expired', 'expired', id, currentEnd || Date.now(), Date.now(), row.user_id);
       }
       return true;
