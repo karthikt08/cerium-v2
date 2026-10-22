@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>About — CERIUM</title>
 <meta name="description" content="Cerium is a simple workspace for contractors and small service businesses in the US and India. Learn why we built it and who is behind it.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,10 +18,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
 .pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
 .w{max-width:1160px;margin:0 auto;padding:0 24px}
-.rg,.gl{position:fixed;left:0;top:0;pointer-events:none}
-.rg{z-index:60;transition:transform .12s ease-out,opacity .3s}.rg i{display:block;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid var(--ac);border-radius:50%;transition:transform .25s,background .25s}
-.rg i.bg{transform:scale(1.9);background:color-mix(in srgb,var(--ac) 14%,transparent)}
-.gl{z-index:-1;transition:transform .6s ease-out,opacity .4s}.gl i{display:block;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 16%,transparent),transparent 65%)}
 .hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
 .lg{display:flex;align-items:center;gap:10px;font-size:23px}
 .hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
@@ -28,7 +26,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
 .pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .hw{position:relative}
-.hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
 .hero{position:relative;padding-top:40px;padding-bottom:56px}
 .ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
 .pg h1{font-size:clamp(2.4rem,5vw,4rem);max-width:15em;margin-top:20px}
@@ -47,8 +44,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
 .li{font-weight:600}.pg .li:hover{color:var(--ac)}.pg .btn .s{display:none}.pg [hidden]{display:none!important}
 @media(max-width:720px){.hd{gap:16px}.hd nav{display:none}.hd>.lg{margin-right:auto}.pg .btn .l{display:none}.pg .btn .s{display:inline}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.sc{padding-top:72px}}
-@media(hover:none){.rg,.gl{display:none}}
-@media(prefers-reduced-motion:reduce){.pg *{animation:none!important;transition:none!important}.ul path{stroke-dashoffset:0}.rg,.gl{display:none}}
 @keyframes up{from{opacity:0;transform:translateY(22px)}}@keyframes dr{to{stroke-dashoffset:0}}
 
 /* ---------- About page only ---------- */
@@ -58,20 +53,14 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .cd:hover{transform:translateY(-6px);border-color:var(--ac);box-shadow:0 30px 50px -30px var(--ac)}
 .cd h3{font-size:1.5rem;letter-spacing:-.02em;margin:24px 0 12px}.cd p{margin:0;color:var(--mut)}
 .vs{min-height:84px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pl i{font:600 13px var(--bf);font-style:normal;padding:9px 16px;border-radius:99px;box-shadow:inset 0 0 0 1.5px var(--ln);animation:lt 6s calc(var(--i)*1.2s) infinite}
-.tg{font:600 13px var(--bf);padding:10px 14px;border-radius:14px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--ln)}
-.dsh{flex:1;min-width:24px;height:2px;background:repeating-linear-gradient(90deg,var(--ac) 0 8px,transparent 8px 16px);background-size:16px 2px;animation:mv .8s linear infinite}
-.fd{display:flex;gap:28px;align-items:center;margin-top:40px}
-.fd:hover{transform:none;border-color:var(--ln);box-shadow:none}
-.fd h3{font-size:1.9rem;margin:0}
-.fd .role{margin:6px 0 14px;color:var(--mut);font-weight:600}
-.fd .bio{margin:0;max-width:36em}
-.lk{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.av{width:48px;height:48px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 15px var(--bf)}
-.av.big{width:96px;height:96px;font-size:30px;flex:none}
-.photo{width:96px;height:96px;border-radius:50%;object-fit:cover;flex:none}
-.nt{margin:20px 0 0;padding:16px 20px;border:1px solid var(--ln);border-left:4px solid var(--ac);border-radius:14px;background:var(--wh);color:var(--mut);font-size:15.5px}.nt b{color:var(--ink)}
-.en{margin-top:96px;background:#0c1729;color:#f4f6fa;position:relative;overflow:hidden}
+.fd{display:flex;gap:36px;align-items:center}
+.av.big{width:96px;height:96px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:36px;font-weight:700;font-family:var(--hf);flex:none}
+.role{margin:4px 0 16px;color:var(--ac);font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase}
+.bio{font-size:1.12rem;color:var(--ink);max-width:32em;margin:0 0 20px}
+.lk{display:flex;gap:12px;flex-wrap:wrap}
+.nt{margin-top:48px;padding:18px 24px;border-radius:18px;background:#e0e8ff;color:#13286e;font-size:14.5px;border-left:4px solid var(--ac)}
+.nt b{color:var(--ink)}
+.en{margin-top:112px;background:#0c1729;color:#f4f6fa;position:relative;overflow:hidden}
 .en::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:56px 56px}
 .ei{position:relative;padding-top:80px;padding-bottom:80px}
 .en h2{font-size:clamp(2.2rem,5vw,3.9rem)}.en .ac{color:#9db2ff}.tp{color:#b9c4dc;font-size:1.12rem;max-width:30em;margin:20px 0 32px}
@@ -83,11 +72,10 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 </head>
 <body>
 <div class="pg" id="pg">
-<div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
-<div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
+
 <header class="w hd">
-<a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a>
-<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+<a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM</a>
+<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html" aria-current="page" style="color:var(--ink);font-weight:600">About</a><a href="contact.html">Contact</a></nav>
 <div style="display:flex;gap:10px;align-items:center">
   <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
   <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
@@ -101,24 +89,24 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 
 <section class="sc">
 <p class="ey">Why we built it</p>
-<h2>Less paperwork. More time on the job.</h2>
+<h2 data-rv>Less paperwork. More time on the job.</h2>
 <p class="sb">Many small crews run on text messages, sticky notes, and memory. Leads get lost, invoices go out late, and it is hard to know who has paid. Cerium gives you one clear page that answers three questions every morning: who to call, who owes you, and what is next.</p>
 </section>
 
 <section class="sc">
 <p class="ey">What we believe</p>
-<h2>Simple. Fair. Yours.</h2>
+<h2 data-rv>Simple. Fair. Yours.</h2>
 <div class="gr">
-<article class="cd"><div class="vs pl"><i style="--i:0">Leads</i><i style="--i:1">Follow-ups</i><i style="--i:2">Invoices</i><i style="--i:3">Payments</i></div><h3>Simple on purpose</h3><p>Leads, follow-ups, invoices, payments, and review requests. That is it. No long setup and no features you will never use.</p></article>
-<article class="cd"><div class="vs"><span class="tg">15 days free</span><i class="dsh"></i><span class="tg">then $20/month</span></div><h3>One fair price</h3><p>Cerium is launching soon. When it opens, you get 15 days free. Then it is one plan at $20 a month. Join the waitlist to be first in line.</p></article>
-<article class="cd"><div class="vs"><span class="tg">Your data</span><i class="dsh"></i><span class="tg">Delete anytime</span></div><h3>Your data stays yours</h3><p>Connecting your bank is optional and read-only, and we never see your bank password. You can export or delete your data anytime.</p></article>
+<article class="cd" data-rv style="--i:0"><div class="vs pl"><i style="--i:0">Leads</i><i style="--i:1">Follow-ups</i><i style="--i:2">Invoices</i><i style="--i:3">Payments</i></div><h3>Simple on purpose</h3><p>Leads, follow-ups, invoices, payments, and review requests. That is it. No long setup and no features you will never use.</p></article>
+<article class="cd" data-rv style="--i:1"><div class="vs"><span class="tg">15 days free</span><i class="dsh"></i><span class="tg">then $20/month</span></div><h3>One fair price</h3><p>Cerium is launching soon. When it opens, you get 15 days free. Then it is one plan at $20 a month. Join the waitlist to be first in line.</p></article>
+<article class="cd" data-rv style="--i:2"><div class="vs"><span class="tg">Your data</span><i class="dsh"></i><span class="tg">Delete anytime</span></div><h3>Your data stays yours</h3><p>Connecting your bank is optional and read-only, and we never see your bank password. You can export or delete your data anytime.</p></article>
 </div>
 </section>
 
 <section class="sc">
 <p class="ey">Who is behind Cerium</p>
-<h2>Meet the founder.</h2>
-<article class="cd fd">
+<h2 data-rv>Meet the founder.</h2>
+<article class="cd fd" data-rv style="--i:3">
 <!-- EDIT: to use a photo, delete the next line and put this instead: <img class="photo" src="karthik.jpg" alt="Karthik Thyagarajulu"> -->
 <span class="av big" aria-hidden="true">KT</span>
 <div>
@@ -129,17 +117,17 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <div class="lk"><a class="btn gh sm" href="https://www.linkedin.com/in/karthiktiitk/" target="_blank" rel="noopener">LinkedIn</a><a class="btn gh sm" href="contact.html">Get in touch</a></div>
 </div>
 </article>
-<p class="nt"><b>Good to know:</b> Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
+<p class="nt" data-rv style="--i:4"><b>Good to know:</b> Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
 </section>
 
 <section class="en"><div class="w ei">
-<h2>Put your whole business on <span class="ac">one page.</span></h2>
+<h2 data-rv>Put your whole business on <span class="ac">one page.</span></h2>
 <p class="tp">Leads, follow-ups, invoices, and payments in one simple workspace. Try it free for 15 days.</p>
 <a class="btn" href="signup.html">Join the waitlist<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
 </div></section>
 </main>
 <footer class="ft">
-<div><a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
+<div><a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
 <div><h5>Product</h5><a href="index.html#benefits">Benefits</a><a href="index.html#pricing">Pricing</a><a href="pricing.html">Pricing</a><a href="signup.html">Free Trial</a><a href="app.html">Workspace</a><a href="login.html">Log in</a></div>
 <div><h5>Company</h5><a href="about.html" aria-current="page">About</a><a href="contact.html">Contact</a></div>
 <div><h5>Legal</h5><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>

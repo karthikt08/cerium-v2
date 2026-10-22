@@ -22,6 +22,8 @@ cerium-*.json
 
 # Dependencies and logs
 node_modules/
+output/
+.playwright-cli/
 npm-debug.log*
 *.log
 .DS_Store

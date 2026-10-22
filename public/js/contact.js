@@ -1,15 +1,4 @@
 // Scripts for the contact page (moved out of contact.html so the page can block inline scripts).
-(function(){
-  var gl=document.getElementById('gl'),rg=document.getElementById('rg'),ri=document.getElementById('ri');
-  if(!matchMedia('(hover:hover)').matches||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  var q=0,p;
-  addEventListener('mousemove',function(e){p=e;if(q)return;q=requestAnimationFrame(function(){
-    q=0;var t='translate('+p.clientX+'px,'+p.clientY+'px)';
-    gl.style.transform=t;rg.style.transform=t;gl.style.opacity=1;rg.style.opacity=1;
-    ri.className=(p.target.closest&&p.target.closest('a,button,label'))?'bg':'';
-  })});
-  document.documentElement.addEventListener('mouseleave',function(){gl.style.opacity=0;rg.style.opacity=0});
-})();
 /* Contact form: opens the visitor's email app with the message ready. */
 (function(){
   var f=document.getElementById('cf'),s=document.getElementById('fs');

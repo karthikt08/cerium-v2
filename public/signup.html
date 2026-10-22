@@ -6,10 +6,11 @@
 <title>Start Free Trial — CERIUM</title>
 <meta name="description" content="Start your 15-day free trial with Cerium. Leads, follow-ups, invoices, bank matching, and reviews in one simple workspace.">
 <meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/spatial.css">
 <style>
 body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
@@ -17,7 +18,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
 .pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
 .w{max-width:1160px;margin:0 auto;padding:0 24px}
-.rg,.gl{position:fixed;left:0;top:0;pointer-events:none}
 .hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
 .lg{display:flex;align-items:center;gap:10px;font-size:23px}
 .hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
@@ -26,7 +26,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg .btn.sm{min-height:44px;padding:0 20px;font-size:14.5px}
 .pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .hw{position:relative}
-.hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
 .ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
 .pg h1{font-size:clamp(2.4rem,5vw,3.8rem);max-width:15em;margin-top:16px}
 .ac{position:relative;color:var(--ac);white-space:nowrap}
@@ -57,20 +56,14 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 @media(max-width:900px){.au{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){.hd nav{display:none}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}}
 </style>
+<link rel="stylesheet" href="css/spatial.css">
 </head>
 <body class="auth-page">
 <div class="pg" id="pg">
-<div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
-<div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
 
 <header class="w hd">
   <a class="lg" href="index.html">
-    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-      <rect width="30" height="30" rx="9" fill="#0c1729"/>
-      <path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-      <circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/>
-      <circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/>
-    </svg>
+    <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
     CERIUM
   </a>
   <nav aria-label="Main">
@@ -90,7 +83,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
     <p class="ld">Start your full 15-day trial today. Leads, callbacks, invoices, bank matches, and customer reviews in one place. No credit card required to begin.</p>
   </div>
 
-  <div class="acard">
+  <div class="acard" data-rv>
     <h2>Start Free Trial</h2>
     <p class="sub">15 days free · Instant access · Export or cancel anytime</p>
 
@@ -139,12 +132,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <footer class="ft">
   <div>
     <a class="lg" href="index.html">
-      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="9" fill="#0c1729"/>
-        <path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-        <circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/>
-        <circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/>
-      </svg>
+      <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
       CERIUM
     </a>
     <p>The daily workspace for independent contractors and service crews.</p>

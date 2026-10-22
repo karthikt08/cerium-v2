@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Workspace — CERIUM</title>
 <meta name="description" content="Cerium Workspace — Know who to call, who owes you, and what's next. Leads, follow-ups, invoices, payments, and review requests in one simple page.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,9 +15,6 @@
 </head>
 <body>
 <div class="pg" id="pg">
-  <!-- Custom Trailing Ring Cursor & Ambient Radial Spotlight Glow -->
-  <div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
-  <div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
   <div class="grid-bg" aria-hidden="true"></div>
 
   <!-- ======================================================================
@@ -27,12 +26,7 @@
   <section class="welcome-screen" id="welcome-screen">
     <header class="welcome-top">
       <a class="lg" href="#welcome-screen" data-action="show-welcome">
-        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-          <rect width="30" height="30" rx="9" fill="#0c1729"/>
-          <path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-          <circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/>
-          <circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/>
-        </svg>
+        <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
         CERIUM
       </a>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -44,7 +38,7 @@
 
     <div class="welcome-center">
       <!-- Left: Inspiring Greeting, Quote & "Let's Get In" CTA -->
-      <div class="welcome-hero-card">
+      <div class="welcome-hero-card" data-rv>
         <div class="luck-pill">
           <i aria-hidden="true"></i>
           <span id="welcome-luck-text">Wishing you great luck &amp; smooth jobs today!</span>
@@ -80,7 +74,7 @@
       </div>
 
       <!-- Right: Morning 3-Question Snapshot & Direct Tab Jumpers -->
-      <aside class="brief-preview-card" aria-label="Morning Snapshot">
+      <aside class="brief-preview-card" data-rv aria-label="Morning Snapshot">
         <div class="brief-preview-inner">
           <p class="ey" style="color:#9db2ff">Today’s 3-Second Brief</p>
           <h2 style="font-size:clamp(1.55rem,2.6vw,2.05rem);margin-top:6px;color:#fff">
@@ -144,12 +138,7 @@
     <aside class="app-sidebar" aria-label="Workspace Navigation">
       <div class="sb-brand-row">
         <a class="lg" href="#view-today" data-action="switch-tab" data-tab="today">
-          <svg width="28" height="28" viewBox="0 0 30 30" aria-hidden="true">
-            <rect width="30" height="30" rx="9" fill="#0c1729"/>
-            <path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-            <circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/>
-            <circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/>
-          </svg>
+          <img src="img/cerium-logo-28.png" width="28" height="28" alt="" aria-hidden="true">
           CERIUM
         </a>
         <button class="btn gh xs" type="button" data-action="show-welcome" title="Return to Morning Welcome Screen">Launchpad</button>
@@ -1004,8 +993,8 @@
 </div>
 
 <script src="js/cursor.js"></script>
-<script src="js/api.js"></script>
-<script src="js/billing.js"></script>
-<script src="js/app.js"></script>
+<script type="module" src="js/api.js"></script>
+<script type="module" src="js/billing.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

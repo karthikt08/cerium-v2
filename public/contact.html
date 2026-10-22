@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contact — CERIUM</title>
 <meta name="description" content="Questions about Cerium? Email us or send a message.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,10 +18,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
 .pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
 .w{max-width:1160px;margin:0 auto;padding:0 24px}
-.rg,.gl{position:fixed;left:0;top:0;pointer-events:none}
-.rg{z-index:60;transition:transform .12s ease-out,opacity .3s}.rg i{display:block;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid var(--ac);border-radius:50%;transition:transform .25s,background .25s}
-.rg i.bg{transform:scale(1.9);background:color-mix(in srgb,var(--ac) 14%,transparent)}
-.gl{z-index:-1;transition:transform .6s ease-out,opacity .4s}.gl i{display:block;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 16%,transparent),transparent 65%)}
 .hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
 .lg{display:flex;align-items:center;gap:10px;font-size:23px}
 .hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
@@ -28,7 +26,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
 .pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .hw{position:relative}
-.hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
 .hero{position:relative;padding-top:40px;padding-bottom:56px}
 .ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
 .pg h1{font-size:clamp(2.4rem,5vw,4rem);max-width:15em;margin-top:20px}
@@ -47,8 +44,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
 .li{font-weight:600}.pg .li:hover{color:var(--ac)}.pg .btn .s{display:none}.pg [hidden]{display:none!important}
 @media(max-width:720px){.hd{gap:16px}.hd nav{display:none}.hd>.lg{margin-right:auto}.pg .btn .l{display:none}.pg .btn .s{display:inline}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.sc{padding-top:72px}}
-@media(hover:none){.rg,.gl{display:none}}
-@media(prefers-reduced-motion:reduce){.pg *{animation:none!important;transition:none!important}.ul path{stroke-dashoffset:0}.rg,.gl{display:none}}
 @keyframes up{from{opacity:0;transform:translateY(22px)}}@keyframes dr{to{stroke-dashoffset:0}}
 
 /* ---------- Contact page only ---------- */
@@ -80,11 +75,10 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 </head>
 <body>
 <div class="pg" id="pg">
-<div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
-<div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
+
 <header class="w hd">
-<a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a>
-<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+<a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM</a>
+<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html" aria-current="page" style="color:var(--ink);font-weight:600">Contact</a></nav>
 <div style="display:flex;gap:10px;align-items:center">
   <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
   <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
@@ -100,13 +94,13 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <section class="ct">
 <div class="cl">
 <!-- EDIT: change the email address here, and in the form below (the action="mailto:..." part) -->
-<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><div><h3>Email</h3><p>Best for questions about your account or billing.</p><a class="tl" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a></div></article>
-<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><div><h3>LinkedIn</h3><p>Connect with the founder.</p><a class="tl" href="https://www.linkedin.com/in/karthiktiitk/" target="_blank" rel="noopener">Karthik Thyagarajulu</a></div></article>
+<article class="cd ci" data-rv style="--i:0"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><div><h3>Email</h3><p>Best for questions about your account or billing.</p><a class="tl" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a></div></article>
+<article class="cd ci" data-rv style="--i:1"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><div><h3>LinkedIn</h3><p>Connect with the founder.</p><a class="tl" href="https://www.linkedin.com/in/karthiktiitk/" target="_blank" rel="noopener">Karthik Thyagarajulu</a></div></article>
 <!-- EDIT: only keep this promise if you can keep it -->
-<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><div><h3>Reply time</h3><p>We usually reply within <span class="todo">2 business days</span>.</p></div></article>
+<article class="cd ci" data-rv style="--i:2"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><div><h3>Reply time</h3><p>We usually reply within <span class="todo">2 business days</span>.</p></div></article>
 </div>
 
-<div class="fmc">
+<div class="fmc" data-rv style="--i:1">
 <h2>Send a message</h2>
 <!-- This form opens the visitor's email app with the message ready. It does not need a server. -->
 <form class="fm" id="cf" action="mailto:cerium.founders@gmail.com" method="post" enctype="text/plain">
@@ -124,7 +118,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 </section>
 </main>
 <footer class="ft">
-<div><a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
+<div><a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
 <div><h5>Product</h5><a href="index.html#benefits">Benefits</a><a href="index.html#pricing">Pricing</a><a href="pricing.html">Pricing</a><a href="signup.html">Free Trial</a><a href="app.html">Workspace</a><a href="login.html">Log in</a></div>
 <div><h5>Company</h5><a href="about.html">About</a><a href="contact.html" aria-current="page">Contact</a></div>
 <div><h5>Legal</h5><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>

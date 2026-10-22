@@ -1,0 +1,106 @@
+/* Home page only. Linked AFTER spatial.css. */
+.pg.home{--hf:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;--vi:#7c3aed}
+
+/* ---------- headings with life ---------- */
+.pg.home h1,.pg.home h2{font-weight:700;letter-spacing:-.045em}
+.pg.home h1{font-size:clamp(2.6rem,5.6vw,4.7rem)}
+.wd{display:inline-block;animation:wd-up .85s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.12s + var(--i,0)*.06s)}
+@keyframes wd-up{from{opacity:0;transform:translateY(.6em) rotate(2deg)}}
+@keyframes sheen{to{background-position:-220% 0}}
+/* the blue phrase: a flowing blue-to-violet gradient, a soft glow and a hand-drawn underline */
+.pg.home .ac,.pg.home .en .ac{position:relative;display:inline-block;white-space:nowrap;font-weight:800;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 10px 18px rgba(124,58,237,.28))}
+.pg.home .en .ac{background-image:linear-gradient(100deg,#9db2ff 0%,#c4b5fd 35%,#f0abfc 65%,#9db2ff 100%);filter:drop-shadow(0 8px 22px rgba(167,139,250,.35))}
+.wd.ac{animation:wd-up .85s cubic-bezier(.2,.8,.2,1) both,sheen 7s linear infinite;animation-delay:calc(.12s + var(--i,0)*.06s),0s}
+.pg.home .ul path{stroke:url(#ug)!important;stroke-width:5}
+.pg.home .ul{filter:drop-shadow(0 6px 8px rgba(124,58,237,.35))}
+/* highlighter swipe behind a few words */
+.hl{position:relative;z-index:0;white-space:nowrap}
+.hl::before{content:"";position:absolute;z-index:-1;left:-.1em;right:-.1em;bottom:.06em;height:.4em;border-radius:.25em;background:linear-gradient(90deg,rgba(124,58,237,.3),rgba(217,70,239,.22));transform-origin:left center;transition:transform .9s .5s cubic-bezier(.2,.8,.2,1)}
+/* headings further down the page: the text is always visible; the words pop up and the highlighter sweeps in when they scroll into view */
+.rv-on [data-rv]:not(.in) .wd{animation:none}
+.rv-on [data-rv]:not(.in) .hl::before{transform:scaleX(0)}
+.rv-on [data-rv].in .wd{animation:wd-pop .75s cubic-bezier(.3,1.5,.5,1) both;animation-delay:calc(var(--i,0)*.07s)}
+.rv-on [data-rv].in .wd.ac{animation:wd-pop .75s cubic-bezier(.3,1.5,.5,1) both,sheen 7s linear infinite;animation-delay:calc(var(--i,0)*.07s),0s}
+@keyframes wd-pop{from{transform:translateY(.38em)}}
+@media print{.rv-on [data-rv] .hl::before{transform:none}}
+/* small live touches */
+.pg.home .ey::before{display:inline-block;content:"";width:9px;height:9px;border-radius:50%;background:var(--vi);animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(124,58,237,.5)}70%,100%{box-shadow:0 0 0 11px rgba(124,58,237,0)}}
+.pg.home .cd h3{position:relative;display:inline-block}
+.pg.home .cd h3::after{content:"";position:absolute;left:0;bottom:-.2em;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,#4263eb,#a855f7);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.pg.home .cd:hover h3::after{width:100%}
+
+/* ---------- live preview: layout that does not move when you click ---------- */
+.pg.home .mk{background:#ffffff!important;border:1px solid var(--ln);position:relative;z-index:2;box-shadow:0 32px 72px -24px rgba(12,23,41,.2),0 0 0 1px rgba(12,23,41,.04);transition:transform .35s ease-out,box-shadow .35s ease-out;animation:preview-float 6s ease-in-out infinite alternate}
+.pg.home .mk:hover{animation-play-state:paused;box-shadow:0 38px 80px -20px rgba(12,23,41,.24),0 0 0 1px rgba(47,91,255,.12)}
+.pg.home .tb{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin:-4px -4px 14px;padding:8px 12px 10px;border-bottom:1px solid var(--ln);background:#fafbfe;border-radius:14px 14px 0 0}
+.pg.home .tb i{width:10px;height:10px;border-radius:50%;background:var(--ln);display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+.pg.home .tb i:nth-child(1){background:#ff5f56}
+.pg.home .tb i:nth-child(2){background:#ffbd2e}
+.pg.home .tb i:nth-child(3){background:#27c93f}
+.pg.home .tb span{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:3.5px 12px;border-radius:8px;border:1px solid var(--ln);background:#fff;font-size:12px;font-weight:500;letter-spacing:-.01em;box-shadow:0 1px 2px rgba(12,23,41,.03);transition:border-color .2s,box-shadow .2s}
+.pg.home .tb span:hover{border-color:color-mix(in srgb,var(--ac) 40%,var(--ln));box-shadow:0 2px 6px rgba(12,23,41,.06)}
+.pg.home .tb b{color:var(--ink);font-weight:600}
+.pg.home .sts div{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:10px 14px;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s ease,box-shadow .25s ease}
+.pg.home .sts div:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--ac) 45%,var(--ln));box-shadow:0 4px 10px -3px rgba(12,23,41,.08)}
+.pg.home .pn{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:10px 14px;margin-top:8px}
+.pg.home .pn label,.pg.home .pn p{padding:8px 6px;border-radius:8px;transition:background .2s ease,transform .2s ease}
+.pg.home .pn label:hover,.pg.home .pn p:hover{background:rgba(255,255,255,.7);transform:translateX(1px)}
+.pg.home .mc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;border:1px solid rgba(47,91,255,.25);transition:background .35s ease,border-color .35s ease,box-shadow .35s ease}
+.pg.home .mc.matched{background:#d9f2e4;border-color:rgba(5,96,58,.3);color:#05603a}
+.pg.home .mc>span{grid-row:1/3;display:block;min-height:3.6em}
+.pg.home .mc button{grid-column:2;min-width:140px;border:1px solid transparent;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease}
+.pg.home .mc button:hover{transform:translateY(-1px);box-shadow:0 4px 10px -3px rgba(12,23,41,.2)}
+.pg.home .mc button:active{transform:scale(.97)}
+.pg.home .pn p b{min-width:5.5em;text-align:right}
+@media(max-width:480px){.pg.home .mc{grid-template-columns:1fr}.pg.home .mc>span{grid-row:auto}.pg.home .mc button{grid-column:1}}
+
+/* ---------- card animations: entrance reveal, spatial lift & live widgets ---------- */
+.pg.home .cd{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s cubic-bezier(.2,.8,.2,1),border-color .35s ease;will-change:transform}
+.pg.home .cd:hover{transform:translateY(-2px) scale(1.006)!important;border-color:color-mix(in srgb,var(--ac) 45%,var(--ln))!important;box-shadow:0 16px 36px -16px rgba(47,91,255,.18),0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent)!important}
+
+.rv-on .cd[data-rv]:not(.in){opacity:0;transform:translateY(32px)}
+.rv-on .cd[data-rv].in{animation:card-reveal .75s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*.12s)}
+.rv-on .pr[data-rv]:not(.in){opacity:0;transform:translateY(28px)}
+.rv-on .pr[data-rv].in{animation:card-reveal .8s .15s cubic-bezier(.2,.8,.2,1) both}
+
+@keyframes card-reveal{
+  0%{opacity:0;transform:translateY(32px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* card widget hover animations */
+.pg.home .cd:hover .pl i{box-shadow:inset 0 0 0 1.5px var(--ac);transform:translateY(-1px);transition:all .25s ease}
+.pg.home .cd:hover .vs .c{transform:scale(1.04);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.pg.home .cd:hover .tg{box-shadow:inset 0 0 0 1px var(--ac),0 4px 12px -3px rgba(47,91,255,.2);transition:all .25s ease}
+.pg.home .cd:hover .dsh{animation:mv .4s linear infinite}
+.pg.home .cd:hover .sr i{animation:star-pop .6s calc(var(--i)*.08s) ease-in-out infinite}
+@keyframes star-pop{0%,100%{transform:scale(1)}50%{transform:scale(1.25) rotate(-8deg);filter:drop-shadow(0 2px 6px rgba(47,91,255,.45))}}
+
+.pg.home .pr{transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.pg.home .pr:hover{transform:translateY(-2px);box-shadow:0 24px 50px -20px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12)}
+.pg.home .pr .c.g{animation:badge-pulse 2.8s ease-in-out infinite}
+@keyframes badge-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* ---------- "who it is for" strip ---------- */
+.pg.home .mq{padding:0;overflow:visible}
+.mtv{overflow:hidden;padding:20px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.pg.home .mt{padding-right:48px;font-size:clamp(1.2rem,2.2vw,1.6rem);font-weight:600;color:#3a4256}
+.pg.home .mt span::after{background:var(--vi);width:7px;height:7px}
+.mq:hover .mt{animation-play-state:paused}
+
+@media(prefers-reduced-motion:reduce){
+  .mt [aria-hidden]{display:none}
+  .pg.home .ey::before{animation:none}
+  .hl::before{transition:none}
+  .pg.home .cd, .pg.home .pr, .pg.home .cd[data-rv], .pg.home .pr[data-rv], .pg.home .mk{animation:none!important;transition:none!important;transform:none!important;opacity:1!important}
+}
+
+/* small screens: header buttons stay on one line, big numbers do not run into each other */
+.pg.home .hd .btn{white-space:nowrap}
+@media(max-width:480px){
+  .pg.home .hd{padding-left:14px;gap:8px}
+  .pg.home .hd .btn.sm{padding:0 14px;font-size:14px}
+  .pg.home .hd>div{gap:8px!important}
+  .pg.home .sts b{font-size:1.2rem}
+}
