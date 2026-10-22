@@ -635,6 +635,12 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
       const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
+      const plan = await rzp.getPlan(config.razorpayPlanId);
+      if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
+          Number(plan.item?.amount) !== config.priceCents ||
+          plan.item?.currency !== config.currency) {
+        return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
+      }
       const created = await rzp.createSubscription({ planId: config.razorpayPlanId, startAt, notes: { userId: user.id } });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       db.createSubscription(user.id, created.id, startAt);
