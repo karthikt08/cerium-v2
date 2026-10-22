@@ -422,7 +422,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
     res.cookie(config.sessionCookie, session.token, { ...cookieBase, maxAge: config.sessionDays * DAY });
 
-    const target = workspaceReturnTarget(note.r) || '/app.html';
+    const target = workspaceReturnTarget(note.r) || (note.i === 'join' ? '/app.html#settings' : '/app.html');
     res.redirect(303, target);
   });
 
