@@ -14,6 +14,7 @@
     "gen-secret": "node scripts/gen-secret.js",
     "export": "node scripts/export-waitlist.js",
     "check:secrets": "node scripts/check-secrets.js",
+    "preview:export": "node scripts/build-preview.mjs",
     "backup": "node scripts/backup.js"
   },
   "dependencies": {

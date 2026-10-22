@@ -74,6 +74,9 @@ Open your browser to: **http://localhost:3000**
 | `npm run export` | Exports waitlist and member data as a clean CSV |
 | `npm run backup` | Creates an atomic backup copy of the SQLite database and trims backups older than 30 days |
 | `npm run check:secrets` | Scans all repository files to prevent committing API keys or secrets |
+| `npm run preview:export` | Builds `output/cerium-preview.html`, a disposable offline demo of the rebuilt workspace |
+
+See [workspace rebuild and verification](docs/workspace-rebuild.md) for the new interface, regression fixes, and testing scope.
 
 ---
 

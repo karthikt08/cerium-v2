@@ -24,6 +24,7 @@ function daysBetween(a, b) {
 }
 
 function termsToDays(terms) {
+  if (terms === 'Due on receipt') return 0;
   const m = /(\d+)/.exec(String(terms || ''));
   return m ? Number(m[1]) : 15;
 }
@@ -146,6 +147,10 @@ export function openDb(file) {
       created_at       TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS invoices_user ON invoices (user_id);
+    -- A durable sequence keeps invoice identifiers unique across workspaces and deletions.
+    CREATE TABLE IF NOT EXISTS invoice_numbers (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    INSERT OR IGNORE INTO invoice_numbers (id)
+      SELECT MAX(1000, COALESCE(MAX(CAST(id AS INTEGER)), 0)) FROM invoices;
 
     CREATE TABLE IF NOT EXISTS bank_transactions (
       id                   TEXT PRIMARY KEY,
@@ -302,7 +307,8 @@ export function openDb(file) {
     purgeSessions: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
 
     // Leads
-    getLeads: db.prepare('SELECT * FROM leads WHERE user_id = ? ORDER BY created_at DESC'),
+    getLeads: db.prepare('SELECT * FROM leads WHERE user_id = ? ORDER BY created_at DESC, rowid DESC'),
+    getLead: db.prepare('SELECT * FROM leads WHERE id = ? AND user_id = ?'),
     insertLead: db.prepare(`
       INSERT INTO leads (id, user_id, name, phone, email, address, source, stage, value, next_follow_up, notes, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -344,7 +350,7 @@ export function openDb(file) {
     // Invoices
     getInvoices: db.prepare('SELECT * FROM invoices WHERE user_id = ? ORDER BY created_at DESC'),
     getInvoice: db.prepare('SELECT * FROM invoices WHERE id = ? AND user_id = ?'),
-    countInvoices: db.prepare('SELECT COUNT(*) AS count FROM invoices WHERE user_id = ?'),
+    nextInvoiceNumber: db.prepare('INSERT INTO invoice_numbers DEFAULT VALUES'),
     insertInvoice: db.prepare(`
       INSERT INTO invoices (id, user_id, customer_name, customer_email, customer_address, job_title, issue_date, terms, due_date, status, items_json, total, notes, paid_at, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -396,7 +402,7 @@ export function openDb(file) {
       WHERE id = ? AND user_id = ?
     `),
     sendReview: db.prepare('UPDATE reviews SET status = ?, last_sent_at = ? WHERE id = ? AND user_id = ?'),
-    completeReview: db.prepare("UPDATE reviews SET status = 'Reviewed', rating = 5 WHERE id = ? AND user_id = ?"),
+    completeReview: db.prepare("UPDATE reviews SET status = 'Reviewed' WHERE id = ? AND user_id = ?"),
     deleteReview: db.prepare('DELETE FROM reviews WHERE id = ? AND user_id = ?'),
 
     // Messages
@@ -765,15 +771,17 @@ export function openDb(file) {
     },
 
     updateLead(userId, leadId, updates) {
+      const previous = q.getLead.get(leadId, userId);
+      if (!previous) return { ok: true };
       const now = todayStr();
       q.updateLead.run(
         updates.name, updates.phone, updates.email, updates.address, updates.source,
         updates.stage, updates.value, updates.nextFollowUp, updates.notes,
         now, leadId, userId
       );
-      if (updates.stage === 'Done' && updates.name) {
+      if (updates.stage === 'Done' && previous.stage !== 'Done') {
         const revId = 'RV-' + randomBytes(4).toString('hex');
-        q.insertReview.run(revId, userId, updates.name, updates.phone || null, updates.email || null, updates.notes || 'Completed Service Job', now, 'Not Asked', null, null, '', now);
+        q.insertReview.run(revId, userId, updates.name || previous.name, updates.phone ?? previous.phone, updates.email ?? previous.email, updates.notes || previous.notes || 'Completed Service Job', now, 'Not Asked', null, null, '', now);
       }
       return { ok: true };
     },
@@ -821,8 +829,7 @@ export function openDb(file) {
         { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: Number(payload.amount) || 0 },
       ];
       const total = items.reduce((s, it) => s + (Number(it.qty) || 1) * (Number(it.rate) || 0), 0);
-      const count = q.countInvoices.get(userId).count;
-      const id = String(1001 + count);
+      const id = String(q.nextInvoiceNumber.run().lastInsertRowid);
       const inv = {
         id,
         customerName: (payload.customerName || '').trim(),
@@ -831,7 +838,7 @@ export function openDb(file) {
         jobTitle: (payload.jobTitle || '').trim(),
         issueDate: payload.issueDate || today,
         terms,
-        dueDate: payload.dueDate || addDays(today, termsToDays(terms)),
+        dueDate: payload.dueDate || addDays(payload.issueDate || today, termsToDays(terms)),
         status: payload.status || 'Sent',
         items,
         total,
@@ -909,6 +916,11 @@ export function openDb(file) {
         today, 'Sent', today, null, '', today
       );
       return { id };
+    },
+
+    updateReview(userId, id, updates) {
+      q.updateReview.run(updates.customerName, updates.customerPhone, updates.customerEmail, updates.jobTitle, id, userId);
+      return { ok: true };
     },
 
     sendReviewRequest(userId, id) {
