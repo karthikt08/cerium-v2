@@ -80,11 +80,16 @@ export function buildConfig(env = process.env) {
   const razorpayKeyId = get('RAZORPAY_KEY_ID');
   const razorpayKeySecret = get('RAZORPAY_KEY_SECRET');
   const razorpayWebhookSecret = get('RAZORPAY_WEBHOOK_SECRET');
+  const razorpayPlanId = get('RAZORPAY_PLAN_ID');
   const razorpayConfigured =
     razorpayKeyId.length > 0 &&
     razorpayKeySecret.length > 0 &&
     !PLACEHOLDER.test(razorpayKeyId) &&
     !PLACEHOLDER.test(razorpayKeySecret);
+
+  const subscriptionsConfigured = razorpayConfigured &&
+    /^plan_[A-Za-z0-9]+$/.test(razorpayPlanId) &&
+    razorpayWebhookSecret.length >= 16 && !PLACEHOLDER.test(razorpayWebhookSecret);
 
   let priceCents = 2000;
   if (get('PRICE_CENTS')) {
@@ -94,8 +99,10 @@ export function buildConfig(env = process.env) {
   const currency = get('CURRENCY') || 'USD';
 
   if (!razorpayConfigured) {
-    warnings.push('Razorpay credentials are not configured or using placeholders. Billing will operate in test simulation mode.');
+    warnings.push('Razorpay credentials are missing. Recurring billing is disabled; no simulation payments are available.');
   }
+
+  if (!subscriptionsConfigured) warnings.push('Recurring subscriptions require RAZORPAY_PLAN_ID and RAZORPAY_WEBHOOK_SECRET. Checkout is disabled until configured.');
 
   // ---- SESSION_SECRET: signs the short note kept while a person is at Google and cookie notes
   let sessionSecret = get('SESSION_SECRET');
@@ -169,7 +176,9 @@ export function buildConfig(env = process.env) {
     razorpayKeyId,
     razorpayKeySecret,
     razorpayWebhookSecret,
+    razorpayPlanId,
     razorpayConfigured,
+    subscriptionsConfigured,
     priceCents,
     currency,
     sessionSecret,
