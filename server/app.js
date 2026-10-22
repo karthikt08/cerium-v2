@@ -47,7 +47,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   const cookieBase = { httpOnly: true, secure: config.cookieSecure, sameSite: 'lax', path: '/' };
 
-  const rzp = razorpay || (config.razorpayConfigured ? makeRazorpay(config) : makeRazorpay({ keyId: 'mock_key', keySecret: 'mock_secret', webhookSecret: 'mock_webhook' }));
+  const rzp = razorpay || makeRazorpay(config);
 
   const app = express();
   app.disable('x-powered-by');
@@ -60,7 +60,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         useDefaults: false,
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
+          scriptSrc: ["'self'", 'https://checkout.razorpay.com'],
           frameSrc: ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com'],
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
@@ -119,6 +119,15 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       }
       try {
         const event = JSON.parse(req.body.toString('utf8'));
+        const subscription = event.payload?.subscription?.entity;
+        if (subscription && typeof subscription.id === 'string' && subscription.id.startsWith('sub_')) {
+          const status = String(subscription.status || '');
+          const allowed = ['authenticated','active','charged','pending','halted','cancelled','expired','completed'];
+          if (allowed.includes(status)) {
+            const normalized = status === 'completed' ? 'expired' : status;
+            db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
+          }
+        }
         if (event.event === 'payment.captured' || event.event === 'order.paid') {
           const payment = event.payload && event.payload.payment && event.payload.payment.entity;
           if (payment) {
@@ -413,7 +422,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
     res.cookie(config.sessionCookie, session.token, { ...cookieBase, maxAge: config.sessionDays * DAY });
 
-    const target = workspaceReturnTarget(note.r) || '/app.html';
+    const target = workspaceReturnTarget(note.r) || (note.i === 'join' ? '/app.html#settings' : '/app.html');
     res.redirect(303, target);
   });
 
@@ -615,86 +624,70 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     res.json({ ok: true });
   });
 
-  // Billing & Subscriptions API
-  api.post('/billing/order', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+  // Recurring subscription consent: a saved authorization is required before any automatic debit.
+  api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+    if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
+    const user = db.getUserById(req.session.userId);
+    const existing = db.getUserSubscription(user.id);
+    if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
+    }
     try {
-      const order = await rzp.createOrder({
-        amount: config.priceCents,
-        currency: config.currency,
-        receipt: `cerium-${Date.now()}`.slice(0, 40),
-        notes: { userId: req.session.userId, email: req.session.email },
-      });
-      db.insertPayment({
-        userId: req.session.userId,
-        sub: req.session.sub || null,
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
-      });
-      res.json({
-        keyId: config.razorpayKeyId || 'rzp_test_placeholder',
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        email: req.session.email,
-        name: req.session.name,
-      });
+      // Trial begins when account is created. Use its original end date, not a fresh 15 days.
+      const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
+      const plan = await rzp.getPlan(config.razorpayPlanId);
+      if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
+          Number(plan.item?.amount) !== config.priceCents ||
+          plan.item?.currency !== config.currency) {
+        return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
+      }
+      const created = await rzp.createSubscription({ planId: config.razorpayPlanId, startAt, notes: { userId: user.id } });
+      if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
+      db.createSubscription(user.id, created.id, startAt);
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: config.priceCents, currency: config.currency });
     } catch (err) {
-      console.error('[billing] order creation failed:', err.message);
-      res.status(500).json({ error: 'billing_service_unavailable' });
+      console.error('[billing] subscription creation failed:', err.message);
+      return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
     }
   });
 
-  api.post('/billing/verify', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body || {};
-    const row = db.getPaymentByOrder(razorpay_order_id);
-    if (!row || row.userId !== req.session.userId) {
-      return res.status(404).json({ error: 'order_not_found' });
+  api.post('/billing/subscription/verify', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+    const { razorpay_subscription_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    const saved = db.getSubscription(razorpay_subscription_id);
+    if (!saved || saved.user_id !== req.session.userId) return res.status(404).json({ error: 'subscription_not_found' });
+    if (!rzp.verifySubscription({ subscriptionId: razorpay_subscription_id, paymentId: razorpay_payment_id, signature: razorpay_signature })) return res.status(400).json({ error: 'invalid_signature' });
+    try {
+      const remote = await rzp.getSubscription(razorpay_subscription_id);
+      const status = String(remote.status || '');
+      if (['authenticated','active','pending','charged'].includes(status)) {
+        db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
+        return res.json({ verified: true, status });
+      }
+      return res.status(409).json({ verified: false, status, message: 'Subscription is not authorized yet.' });
+    } catch {
+      return res.status(502).json({ error: 'billing_service_unavailable' });
     }
-    const ok = rzp.verifyPayment({
-      orderId: row.razorpayOrderId,
-      paymentId: razorpay_payment_id,
-      signature: razorpay_signature,
-    });
-    if (ok) {
-      db.markPaid({
-        orderId: row.razorpayOrderId,
-        paymentId: razorpay_payment_id,
-        amount: row.amount,
-        currency: row.currency,
-      });
-    }
-    res.status(ok ? 200 : 400).json({ verified: ok, planStatus: ok ? 'active' : 'unpaid' });
   });
 
-  api.post('/billing/simulate-test-payment', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    if (config.isProd && config.razorpayConfigured) {
-      return res.status(403).json({ error: 'forbidden_in_production' });
+  api.post('/billing/subscription/cancel', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+    const saved = db.getUserSubscription(req.session.userId);
+    if (!saved || ['cancelled','expired'].includes(saved.status)) return res.status(409).json({ error: 'no_active_subscription' });
+    try {
+      const remote = await rzp.cancelSubscription(saved.subscription_id, false);
+      if (remote.status === 'cancelled') db.updateSubscription(saved.subscription_id, 'cancelled');
+      res.json({ status: remote.status });
+    } catch (err) {
+      res.status(502).json({ error: 'cancellation_failed', message: 'Cancellation could not be confirmed. Please contact support.' });
     }
-    const { orderId } = req.body || {};
-    const row = db.getPaymentByOrder(orderId);
-    if (!row || row.userId !== req.session.userId) {
-      return res.status(404).json({ error: 'order_not_found' });
-    }
-    const fakePaymentId = 'pay_sim_' + randomToken(12);
-    db.markPaid({
-      orderId: row.razorpayOrderId,
-      paymentId: fakePaymentId,
-      amount: row.amount,
-      currency: row.currency,
-    });
-    res.json({ verified: true, planStatus: 'active' });
   });
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({
-      planStatus: ws ? ws.account.planStatus : 'trial',
-      trialDaysRemaining: ws ? ws.account.trialDaysRemaining : 15,
-      monthlyPrice: 20,
-      currency: 'USD',
-    });
+    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured) });
   });
+
+  // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
+  api.post(['/billing/order','/billing/verify','/billing/simulate-test-payment'], requireSession, (req,res) => res.status(410).json({ error: 'legacy_billing_disabled' }));
 
   // Data Export & Account Deletion (Privacy compliance)
   api.get('/me/export', writeLimiter, requireSession, (req, res) => {
@@ -718,7 +711,17 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   });
 
   // Complete account and data deletion
-  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
+  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+    const subscription = db.getUserSubscription(req.session.userId);
+    if (subscription && !['cancelled','expired','halted'].includes(subscription.status)) {
+      try {
+        const cancelled = await rzp.cancelSubscription(subscription.subscription_id, false);
+        if (cancelled.status !== 'cancelled') return res.status(409).json({ error: 'cancel_subscription_first', message: 'Recurring billing could not be cancelled. Please cancel it in Settings before deleting your account.' });
+        db.updateSubscription(subscription.subscription_id, 'cancelled');
+      } catch {
+        return res.status(502).json({ error: 'billing_cancellation_failed', message: 'Could not confirm cancellation of recurring charges. Your account has not been deleted.' });
+      }
+    }
     db.deleteAccount(req.session.sub || req.session.userId);
     res.clearCookie(config.sessionCookie, cookieBase);
     res.json({ deleted: true });

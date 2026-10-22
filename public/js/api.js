@@ -272,6 +272,15 @@ export const CeriumAPI = {
   },
 
   // Billing & Subscriptions
+  async createRecurringSubscription() {
+    return request('/api/billing/subscription', { method: 'POST' });
+  },
+  async verifyRecurringSubscription(data) {
+    return request('/api/billing/subscription/verify', { method: 'POST', body: JSON.stringify(data) });
+  },
+  async cancelRecurringSubscription() {
+    return request('/api/billing/subscription/cancel', { method: 'POST' });
+  },
   async createBillingOrder() {
     return request('/api/billing/order', { method: 'POST' });
   },

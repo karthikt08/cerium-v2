@@ -128,3 +128,14 @@ In production:
 4. Point `DATABASE_PATH` to a persistent mounted volume (e.g. `/data/cerium.db`).
 5. Set `TRUST_PROXY=1` when behind a reverse proxy or load balancer.
 6. Verify your site with `npm run check:secrets` and `npm test` before going live.
+
+## Recurring 15-day trial authorization
+
+1. In Razorpay, create a **monthly subscription plan** for **USD 20.00**, interval **1 month**. Confirm Razorpay supports the currency and recurring mandate for the countries/cards you will serve.
+2. Configure `RAZORPAY_PLAN_ID=plan_...` alongside your Razorpay API key, secret and webhook secret. The app validates the plan's live amount, currency, and interval before starting checkout.
+3. Enable verified subscription webhook events (`subscription.authenticated`, `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.halted`, `subscription.completed`) at `/webhooks/razorpay`. Subscription state is persisted on the server; do not edit the browser's state to activate an account.
+4. Registration starts the 15-day trial immediately. In Workspace → Settings, the customer **explicitly authorizes** a recurring mandate for the existing trial end date. Without authorization, the service **does not charge automatically**. An authorization is not a charge and does not upgrade the workspace immediately.
+5. After the free trial, the provider charges the authorized subscription every month. In Workspace → Settings the customer can cancel the subscription. Account deletion first cancels the mandate or safely fails without deleting the account.
+6. The `/api/billing/order`, `/api/billing/verify`, and simulated payment routes are disabled for customers. Never use test keys to collect real payments.
+
+**Launch gate:** Configure the provider, test with sandbox subscription authorization and webhook deliveries, verify price/currency/renewal date, and test cancellation and charge failures. Until configured, the checkout returns an explicit unavailable error; **no live automatic billing is enabled by this GitHub change alone**. Note: the current trial remains accessible without a payment method; it is not an automatic enrollment into paid billing.
