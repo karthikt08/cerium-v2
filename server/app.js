@@ -711,7 +711,17 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   });
 
   // Complete account and data deletion
-  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
+  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+    const subscription = db.getUserSubscription(req.session.userId);
+    if (subscription && !['cancelled','expired','halted'].includes(subscription.status)) {
+      try {
+        const cancelled = await rzp.cancelSubscription(subscription.subscription_id, false);
+        if (cancelled.status !== 'cancelled') return res.status(409).json({ error: 'cancel_subscription_first', message: 'Recurring billing could not be cancelled. Please cancel it in Settings before deleting your account.' });
+        db.updateSubscription(subscription.subscription_id, 'cancelled');
+      } catch {
+        return res.status(502).json({ error: 'billing_cancellation_failed', message: 'Could not confirm cancellation of recurring charges. Your account has not been deleted.' });
+      }
+    }
     db.deleteAccount(req.session.sub || req.session.userId);
     res.clearCookie(config.sessionCookie, cookieBase);
     res.json({ deleted: true });
