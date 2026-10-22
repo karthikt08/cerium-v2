@@ -145,15 +145,21 @@
         <button class="btn gh xs" type="button" data-action="show-welcome" title="Return to Morning Welcome Screen">Launchpad</button>
       </div>
 
-      <div>
-        <p class="sb-section-label">Daily Operations</p>
-        <nav class="sb-nav" role="tablist" aria-label="Primary Workspace Tabs">
+      <div class="sb-groups" role="navigation" aria-label="Workspace sections">
+        <div class="sb-group">
+          <p class="sb-section-label">Overview</p>
+          <nav class="sb-nav" role="tablist" aria-label="Overview">
           <button class="sb-tab nav-tab active" type="button" role="tab" aria-selected="true" data-tab="today">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
             <span>Morning Overview</span>
             <span class="badge" id="nav-badge-today">0</span>
           </button>
 
+          </nav>
+        </div>
+        <div class="sb-group">
+          <p class="sb-section-label">Customers</p>
+          <nav class="sb-nav" role="tablist" aria-label="Customers">
           <button class="sb-tab nav-tab" type="button" role="tab" aria-selected="false" data-tab="leads">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
             <span>Leads Pipeline</span>
@@ -166,6 +172,11 @@
             <span class="badge" id="nav-badge-followups">0</span>
           </button>
 
+          </nav>
+        </div>
+        <div class="sb-group">
+          <p class="sb-section-label">Money</p>
+          <nav class="sb-nav" role="tablist" aria-label="Money">
           <button class="sb-tab nav-tab" type="button" role="tab" aria-selected="false" data-tab="invoices">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             <span>Invoices &amp; PDF</span>
@@ -178,17 +189,21 @@
             <span class="badge" id="nav-badge-bank">0</span>
           </button>
 
+          </nav>
+        </div>
+        <div class="sb-group">
+          <p class="sb-section-label">Reputation</p>
+          <nav class="sb-nav" role="tablist" aria-label="Reputation">
           <button class="sb-tab nav-tab" type="button" role="tab" aria-selected="false" data-tab="reviews">
             <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>Customer Reviews</span>
             <span class="badge" id="nav-badge-reviews">0</span>
           </button>
         </nav>
-      </div>
-
-      <div>
+        </div>
+        <div class="sb-group">
         <p class="sb-section-label">Workspace</p>
-        <nav class="sb-nav">
+        <nav class="sb-nav" role="tablist" aria-label="Workspace settings">
           <button class="sb-tab nav-tab" type="button" role="tab" aria-selected="false" data-tab="messages">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
             <span>Contact Founders</span>
@@ -198,9 +213,11 @@
             <span>Account &amp; Data</span>
           </button>
         </nav>
+        </div>
       </div>
 
       <div class="sb-footer">
+        <button class="side-link" type="button" data-action="logout">Sign out</button>
         <button class="side-link" type="button" data-action="open-modal" data-modal="donate-modal">♥ Support Cerium</button>
         <div class="sb-trial-box" role="button" tabindex="0" data-action="switch-tab" data-tab="account">
           <b><i aria-hidden="true"></i> <span id="header-trial-text">15 days left in free trial</span></b>
@@ -229,7 +246,6 @@
           <button class="btn gh sm" type="button" data-action="show-welcome">☀ Morning Launchpad</button>
           <button class="btn sm" type="button" data-action="open-modal" data-modal="new-lead-modal">+ New Lead</button>
           <button class="btn gh sm" type="button" data-action="open-modal" data-modal="new-invoice-modal">+ Invoice</button>
-          <button class="btn gh sm" type="button" data-action="logout" title="Sign out of your session">Sign Out</button>
           <button class="av-btn" type="button" data-action="switch-tab" data-tab="account" title="Account Settings">
             <span class="av" id="header-av-initials">KT</span>
             <span id="header-av-name">Karthik T.</span>
@@ -250,7 +266,7 @@
               <h1 class="view-title">
                 Good luck today, <span id="today-greet-name">Karthik</span>. Here’s <span class="ac">your game plan.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span>
               </h1>
-              <p class="view-sub">Everything organized into three clear columns: who to call today, who owes you, and what job or review is next.</p>
+              <p class="view-sub">Your customers, payments, and next actions in one place.</p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn gh sm" type="button" data-action="open-modal" data-modal="new-followup-modal">+ Add Callback</button>
@@ -282,13 +298,14 @@
             </article>
           </div>
 
-          <!-- 3-Pillar Bento Grid: 1. Who to Call | 2. Who Owes You | 3. What's Next -->
+          <div class="section-heading"><h2>Needs your attention</h2><p>Follow up, collect payments, and close the loop with customers.</p></div>
+          <!-- Daily work queue -->
           <div class="pillars-grid">
             <!-- Pillar 1: Who to call -->
             <article class="cd">
               <div class="cd-hd">
                 <div>
-                  <span class="sub-label">Pillar 1 · Who to call</span>
+                  <span class="sub-label">Customers</span>
                   <h3>Follow-ups due today</h3>
                 </div>
                 <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="followups">All →</button>
@@ -300,7 +317,7 @@
             <article class="cd">
               <div class="cd-hd">
                 <div>
-                  <span class="sub-label">Pillar 2 · Who owes you</span>
+                  <span class="sub-label">Payments</span>
                   <h3>Open &amp; overdue invoices</h3>
                 </div>
                 <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="invoices">All →</button>
@@ -312,7 +329,7 @@
             <article class="cd">
               <div class="cd-hd">
                 <div>
-                  <span class="sub-label">Pillar 3 · What’s next</span>
+                  <span class="sub-label">Reputation</span>
                   <h3>Ask finished jobs for a review</h3>
                 </div>
                 <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="reviews">All →</button>
