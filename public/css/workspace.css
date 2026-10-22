@@ -1,8 +1,9 @@
 /* Product layer: the landing page's type and palette, tuned for daily work. */
-html body { background:#f5f6fa; }
+html body { background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fixed; }
 .pg { --bg:#f5f6fa; --wh:#fff; --ink:#18202f; --mut:#687386; --ln:#e3e7ef; --ac:#4263eb; font-size:14px; }
-.pg::before { background:radial-gradient(ellipse at 60% 0,rgba(126,112,240,.07),transparent 55%); transform:none; }
-.pg .grid-bg,.pg .sp-cur,.pg .ul { display:none!important; }
+.pg::before { background:radial-gradient(34% 38% at calc(18% + var(--px,0)*16%) calc(14% + var(--py,0)*12%),rgba(117,83,255,.22),transparent 70%),radial-gradient(38% 36% at calc(84% + var(--px,0)*12%) calc(62% + var(--py,0)*14%),rgba(237,124,255,.16),transparent 70%),radial-gradient(30% 30% at 40% 95%,rgba(89,203,219,.14),transparent 70%); }
+.pg .grid-bg { display:block!important; }
+.pg .ul { display:none!important; }
 .pg h1,.pg h2,.pg h3 { line-height:1.25; }
 .pg .ac { text-shadow:none; }
 .pg .workspace-shell { grid-template-columns:232px minmax(0,1fr); }
