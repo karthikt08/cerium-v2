@@ -1,5 +1,20 @@
 # CERIUM — Unified Production Platform & Web Workspace
 
+## Latest uploaded V2 demo
+
+The user's uploaded **Webapp V2** has been repaired and refined in [`demos/webapp-v2/`](demos/webapp-v2/). Version **2.2.0** rebuilds the launchpad in the glass/lavender theme, unifies action buttons and filters, removes the Launchpad button beside the logo, and renames Morning Overview to Overview. Cursor shadow and card motion are retained.
+
+```sh
+cd demos/webapp-v2
+npm start
+```
+
+Open `http://localhost:8080/app.html`, or download [`preview.html`](demos/webapp-v2/preview.html) for a self-contained preview. Run `npm test` in that folder for the 49 regression checks. See the [demo README](demos/webapp-v2/README.md) and [verification notes](demos/webapp-v2/QA.md).
+
+This uploaded version is a standalone local demonstration with simulated banking and billing. Its records stay in browser storage. The original server application remains in the repository root.
+
+---
+
 **Cerium** is a unified, production-ready web platform and operations workspace designed for independent trade contractors, service businesses, and small crews.
 
 It merges the marketing landing suite, authentication system, operations web application, and premium subscription billing into one unified software product.
