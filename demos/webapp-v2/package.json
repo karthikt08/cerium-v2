@@ -1,0 +1,24 @@
+{
+  "name": "cerium-webapp-v2",
+  "version": "2.2.0",
+  "description": "Cerium Contractor Operations Software Demo (Apex Roofing & Construction)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "contractor",
+    "operations",
+    "crm",
+    "invoicing",
+    "bank-reconciliation",
+    "leads",
+    "follow-ups",
+    "reviews"
+  ],
+  "author": "Cerium",
+  "license": "UNLICENSED"
+}

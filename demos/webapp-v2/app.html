@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspace — CERIUM</title>
+<meta name="description" content="Cerium Workspace — Know who to call, who owes you, and what's next. Leads, follow-ups, invoices, payments, and review requests in one simple page.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/spatial.css">
+<link rel="stylesheet" href="css/refinements.css">
+<link rel="stylesheet" href="css/launchpad.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to workspace content</a>
+<div class="pg" id="pg">
+  <noscript><p class="boot-error">Enable JavaScript to open this local demo.</p></noscript>
+  <section class="boot-error" id="boot-error" hidden role="alert"><h1>Your workspace needs attention</h1><p></p><div><button class="btn" data-retry>Retry</button><button class="btn gh" data-backup>Download saved data</button><button class="btn gh" data-reset>Reset to sample data</button></div></section>
+  <div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <!-- Interactive Contractor Demo HUD Bar -->
+  <aside class="demo-hud" id="demo-hud" aria-label="Interactive Demo HUD">
+    <div class="demo-hud-inner">
+      <div class="demo-badge">
+        <span class="demo-dot" aria-hidden="true"></span>
+        <span><strong>Demo workspace</strong><span class="demo-business"> · Apex Roofing &amp; Construction</span></span>
+        <span class="demo-badge-sub" id="save-status" role="status" aria-live="polite">Saved on this device</span>
+      </div>
+      <details class="demo-tools"><summary>Demo tools <span aria-hidden="true">⌄</span></summary><div class="demo-actions">
+        <button class="btn sm demo-btn-sim" type="button" data-action="demo-sim-lead" title="Simulate a new incoming roofing lead">+ Simulate Lead</button>
+        <button class="btn sm demo-btn-sim" type="button" data-action="demo-sim-deposit" title="Simulate a customer bank deposit paying an open invoice">+ Simulate Deposit</button>
+        <button class="btn sm demo-btn-reset" type="button" data-action="demo-reset" title="Restore all sample data back to original state">↻ Reset Demo Data</button>
+      </div></details>
+    </div>
+  </aside>
+
+  <!-- Launchpad: a focused start, using the workspace's glass and lavender palette. -->
+  <section class="launchpad" id="welcome-screen" aria-labelledby="launch-title">
+    <header class="launch-header">
+      <a class="lg" href="#welcome" data-action="show-welcome" aria-label="Cerium launchpad">
+        <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true"> CERIUM
+      </a>
+      <div class="launch-header-meta">
+        <span class="c b" id="welcome-trial-pill">15 days left in trial</span>
+        <button class="btn gh sm" type="button" data-action="open-modal" data-modal="donate-modal">Support Cerium <span aria-hidden="true">↗</span></button>
+      </div>
+    </header>
+
+    <div class="launch-content">
+      <div class="launch-section-heading">
+        <p class="ey">Your launchpad</p>
+        <span class="launch-date" id="welcome-luck-text"></span>
+      </div>
+      <div class="launch-intro">
+        <div class="launch-card launch-hero" data-rv>
+          <span class="launch-tag"><span aria-hidden="true">✦</span> A little clarity. A lot of possibility.</span>
+          <h1 id="launch-title" tabindex="-1">Ready when you are,<br><span class="ac" id="welcome-user-name">Karthik</span>.</h1>
+          <p>Your next call, your next job, your next win.<br>Bring it all together in one calm workspace.</p>
+          <button class="btn launch-enter" type="button" data-action="enter-workspace" data-tab="today">Open workspace <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+          <span class="launch-entry-note">Start with your overview</span>
+        </div>
+        <aside class="launch-card launch-note" data-rv aria-label="A note for your day">
+          <div class="launch-note-heading"><span class="ey">A note for your day</span><span class="launch-spark" aria-hidden="true">✳</span></div>
+          <blockquote id="welcome-quote-text" aria-live="polite">“Small habits win big seasons: log the lead, set the reminder, send the invoice, ask for the review.”</blockquote>
+          <p id="welcome-quote-author">— Cerium Field Note</p>
+          <button class="btn gh sm" type="button" data-action="cycle-quote"><span aria-hidden="true">↻</span> Another note</button>
+        </aside>
+      </div>
+
+      <section class="launch-snapshot" aria-labelledby="launch-snapshot-title">
+        <div class="launch-section-heading"><h2 id="launch-snapshot-title">Your day at a glance</h2><span>Pick a place to begin</span></div>
+        <div class="launch-stats">
+          <button class="launch-stat" type="button" data-action="enter-workspace" data-tab="followups">
+            <span class="launch-stat-top"><span class="launch-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-4l-5-2-2 2a14 14 0 0 1-6-6l2-2-2-5Z"/></svg></span><span class="launch-arrow" aria-hidden="true">↗</span></span>
+            <span class="launch-stat-label">Follow-ups</span><strong id="welcome-stat-calls">0 due</strong><span class="launch-stat-hint">Keep the conversation moving</span>
+          </button>
+          <button class="launch-stat launch-stat-blue" type="button" data-action="enter-workspace" data-tab="invoices">
+            <span class="launch-stat-top"><span class="launch-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="launch-arrow" aria-hidden="true">↗</span></span>
+            <span class="launch-stat-label">Outstanding invoices</span><strong id="welcome-stat-unpaid">$0.00</strong><span class="launch-stat-hint">See what is ready to collect</span>
+          </button>
+          <button class="launch-stat launch-stat-teal" type="button" data-action="enter-workspace" data-tab="bank">
+            <span class="launch-stat-top"><span class="launch-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 8 4-4 4 4M8 4v12m12 0-4 4-4-4m4 4V8"/></svg></span><span class="launch-arrow" aria-hidden="true">↗</span></span>
+            <span class="launch-stat-label">Bank matching</span><strong id="welcome-stat-matches">0 matches</strong><span class="launch-stat-hint">Review your incoming deposits</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="launch-quick" aria-labelledby="launch-quick-title">
+        <h2 id="launch-quick-title">Jump right in</h2>
+        <div class="launch-quick-actions">
+          <button class="btn gh" type="button" data-action="enter-and-modal" data-tab="leads" data-modal="new-lead-modal"><span aria-hidden="true">＋</span> New lead</button>
+          <button class="btn gh" type="button" data-action="enter-and-modal" data-tab="invoices" data-modal="new-invoice-modal"><span aria-hidden="true">＋</span> Create invoice</button>
+          <button class="btn gh" type="button" data-action="enter-workspace" data-tab="reviews">Customer reviews <span aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+    </div>
+    <footer class="launch-footer"><span>A clearer day starts here.</span><span>Your workspace. Your pace.</span></footer>
+  </section>
+
+  <!-- ======================================================================
+       STAGE 2: NEAT, PERFECTLY ORGANIZED WORKSPACE SHELL
+       Left Sidebar with 7 clear icon tabs + Top Command Strip + Main Views
+       ====================================================================== -->
+  <div class="workspace-shell" id="workspace-shell" hidden>
+
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" aria-label="Workspace Navigation">
+      <div class="sb-brand-row">
+        <a class="lg" href="#view-today" data-action="switch-tab" data-tab="today">
+          <img src="img/cerium-logo-28.png" width="28" height="28" alt="" aria-hidden="true">
+          CERIUM
+        </a>
+      </div>
+
+      <div>
+        <p class="sb-section-label">Daily Operations</p>
+        <nav class="sb-nav" aria-label="Primary Workspace Tabs">
+          <button class="sb-tab nav-tab active" type="button" data-tab="today">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+            <span>Overview</span>
+            <span class="badge" id="nav-badge-today">0</span>
+          </button>
+
+          <button class="sb-tab nav-tab" type="button" data-tab="leads">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+            <span>Leads Pipeline</span>
+            <span class="badge" id="nav-badge-leads">0</span>
+          </button>
+
+          <button class="sb-tab nav-tab" type="button" data-tab="followups">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Follow-ups</span>
+            <span class="badge" id="nav-badge-followups">0</span>
+          </button>
+
+          <button class="sb-tab nav-tab" type="button" data-tab="invoices">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Invoices &amp; PDF</span>
+            <span class="badge" id="nav-badge-invoices">0</span>
+          </button>
+
+          <button class="sb-tab nav-tab" type="button" data-tab="bank">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+            <span>Bank Match</span>
+            <span class="badge" id="nav-badge-bank">0</span>
+          </button>
+
+          <button class="sb-tab nav-tab" type="button" data-tab="reviews">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Customer Reviews</span>
+            <span class="badge" id="nav-badge-reviews">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <div>
+        <p class="sb-section-label">Workspace</p>
+        <nav class="sb-nav">
+          <button class="sb-tab" type="button" data-action="show-welcome">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+            <span>Launchpad</span>
+          </button>
+          <button class="sb-tab nav-tab" type="button" data-tab="messages">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <span>Contact Founders</span>
+          </button>
+          <button class="sb-tab nav-tab" type="button" data-tab="account">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Account &amp; Data</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sb-footer">
+        <button class="side-link" type="button" data-action="open-modal" data-modal="donate-modal">♥ Support Cerium</button>
+        <div class="sb-trial-box" role="button" tabindex="0" data-action="switch-tab" data-tab="account">
+          <b><i aria-hidden="true"></i> <span id="header-trial-text">15 days left in free trial</span></b>
+          <span>Sample workspace · Data & settings</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Content Area -->
+    <div class="app-body">
+
+      <!-- Top Sticky Command & Tab Strip Bar -->
+      <header class="top-cmd-bar">
+        <div class="workspace-breadcrumb"><span>CERIUM</span><span aria-hidden="true">/</span><strong id="workspace-location">Overview</strong></div>
+        <nav class="top-tab-strip" aria-label="Workspace sections">
+          <button class="top-pill-tab nav-tab active" type="button" data-tab="today">Overview</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="leads">Leads</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="followups">Follow-ups</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="invoices">Invoices</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="bank">Bank Match</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="reviews">Reviews</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="account">Account</button>
+          <button class="top-pill-tab nav-tab" type="button" data-tab="messages">Messages</button>
+        </nav>
+
+        <div class="cmd-actions">
+          <button class="btn gh sm" type="button" data-action="show-welcome">☀ Launchpad</button>
+          <button class="btn sm" type="button" data-action="open-modal" data-modal="new-lead-modal">+ New Lead</button>
+          <button class="btn gh sm" type="button" data-action="open-modal" data-modal="new-invoice-modal">+ Invoice</button>
+          <button class="av-btn" type="button" data-action="switch-tab" data-tab="account" title="Account Settings">
+            <span class="av" id="header-av-initials">KT</span>
+            <span id="header-av-name">Karthik T.</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Workspace Views Container -->
+      <main class="app-main" id="main" tabindex="-1">
+
+        <!-- ================================================================
+             TAB 1: MORNING OVERVIEW (3-PILLAR BENTO DASHBOARD)
+             ================================================================ -->
+        <section class="view-section" id="view-today">
+          <div class="view-hd">
+            <div>
+              <p class="ey" id="today-date-label">Morning Command Center</p>
+              <h1 class="view-title">
+                Good morning, <span id="today-greet-name">Karthik</span>. Here’s <span class="ac">your game plan.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span>
+              </h1>
+              <p class="view-sub">Your callbacks, outstanding invoices, and next steps — all in one place.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn gh sm" type="button" data-action="open-modal" data-modal="new-followup-modal">+ Add Callback</button>
+              <button class="btn sm" type="button" data-action="open-modal" data-modal="new-lead-modal">+ Add Lead</button>
+            </div>
+          </div>
+
+          <!-- 4 Clickable KPI Cards -->
+          <div class="kpi-grid">
+            <article class="kpi-card" role="button" tabindex="0" data-action="switch-tab" data-tab="leads">
+              <small>Active Leads <span class="c b">Leads Tab →</span></small>
+              <b id="kpi-leads">0</b>
+              <span class="kpi-foot" id="kpi-leads-sub">0 open in New / Quoted</span>
+            </article>
+            <article class="kpi-card" role="button" tabindex="0" data-action="switch-tab" data-tab="followups">
+              <small>Follow-ups due <span class="c o">Call List →</span></small>
+              <b id="kpi-followups">0</b>
+              <span class="kpi-foot">Today and overdue</span>
+            </article>
+            <article class="kpi-card" role="button" tabindex="0" data-action="switch-tab" data-tab="invoices">
+              <small>Unpaid Invoices <span class="c b">Invoices →</span></small>
+              <b id="kpi-unpaid">$0.00</b>
+              <span class="kpi-foot">Net 15 &amp; Net 30 open balance</span>
+            </article>
+            <article class="kpi-card od" role="button" tabindex="0" data-action="switch-tab" data-tab="invoices">
+              <small>Overdue Balance <span class="c o">Attention →</span></small>
+              <b id="kpi-overdue">$0.00</b>
+              <span class="kpi-foot" id="kpi-overdue-sub">Nothing overdue</span>
+            </article>
+          </div>
+
+          <!-- 3-Pillar Bento Grid: 1. Who to Call | 2. Who Owes You | 3. What's Next -->
+          <div class="pillars-grid">
+            <!-- Pillar 1: Who to call -->
+            <article class="cd">
+              <div class="cd-hd">
+                <div>
+                  <span class="sub-label">01 · Who to call</span>
+                  <h3>Callbacks to make</h3>
+                </div>
+                <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="followups">All →</button>
+              </div>
+              <div class="pn" id="today-followups-list"></div>
+            </article>
+
+            <!-- Pillar 2: Who owes you -->
+            <article class="cd">
+              <div class="cd-hd">
+                <div>
+                  <span class="sub-label">02 · Who owes you</span>
+                  <h3>Open &amp; overdue invoices</h3>
+                </div>
+                <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="invoices">All →</button>
+              </div>
+              <div class="pn" id="today-invoices-list"></div>
+            </article>
+
+            <!-- Pillar 3: What's next (Reviews & Pipeline) -->
+            <article class="cd">
+              <div class="cd-hd">
+                <div>
+                  <span class="sub-label">03 · What’s next</span>
+                  <h3>Reviews to follow up</h3>
+                </div>
+                <button class="btn gh xs" type="button" data-action="switch-tab" data-tab="reviews">All →</button>
+              </div>
+              <div class="pn" id="today-reviews-list"></div>
+            </article>
+          </div>
+
+          <!-- Read-Only Bank Match Banner directly underneath the 3 Pillars -->
+          <div id="today-bank-match-box"></div>
+        </section>
+
+        <!-- ================================================================
+             TAB 2: LEADS PIPELINE (LIST & KANBAN BOARD)
+             ================================================================ -->
+        <section class="view-section" id="view-leads" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Tab 2 · Leads Pipeline</p>
+              <h1 class="view-title">Never lose a <span class="ac">lead.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Save every inquiry with its source, job value, notes, and next follow-up date. Move jobs from New → Quoted → Booked → Done.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn gh sm" type="button" data-action="switch-tab" data-tab="followups">View Follow-ups →</button>
+              <button class="btn sm" type="button" data-action="open-modal" data-modal="new-lead-modal">+ Save New Lead</button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="pill-group" role="group" aria-label="Filter leads by stage">
+              <button class="filter-pill active" type="button" data-lead-stage="All">All Stages</button>
+              <button class="filter-pill" type="button" data-lead-stage="New">New</button>
+              <button class="filter-pill" type="button" data-lead-stage="Quoted">Quoted</button>
+              <button class="filter-pill" type="button" data-lead-stage="Booked">Booked</button>
+              <button class="filter-pill" type="button" data-lead-stage="Done">Done</button>
+            </div>
+
+            <div class="search-box">
+              <input id="lead-search-input" type="search" placeholder="Search name, phone, address, or job notes…" aria-label="Search leads">
+              <select id="lead-source-select" aria-label="Filter by lead source" style="max-width:165px">
+                <option value="All">All Sources</option>
+                <option value="Google Search">Google Search</option>
+                <option value="Google Maps">Google Maps</option>
+                <option value="Referral">Referral</option>
+                <option value="Website Form">Website Form</option>
+                <option value="Repeat Customer">Repeat Customer</option>
+                <option value="Yard Sign">Yard Sign</option>
+              </select>
+            </div>
+
+            <div class="pill-group" role="group" aria-label="Switch view mode">
+              <button class="filter-pill active" type="button" data-lead-view="table">List View</button>
+              <button class="filter-pill" type="button" data-lead-view="board">Pipeline Board</button>
+            </div>
+          </div>
+
+          <article class="cd" id="leads-table-container">
+            <div class="table-wrap table-scroll" role="region" tabindex="0" aria-label="Scrollable records table">
+              <table class="c-table">
+                <thead>
+                  <tr>
+                    <th>Customer &amp; Job Location</th>
+                    <th>Source</th>
+                    <th>Stage</th>
+                    <th>Job Notes</th>
+                    <th>Next Follow-up</th>
+                    <th class="num-col">Est. Job Value</th>
+              </tr>
+                </thead>
+                <tbody id="leads-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <div id="leads-board-container" hidden></div>
+        </section>
+
+        <!-- ================================================================
+             TAB 3: DEDICATED FOLLOW-UPS & REMINDERS TAB
+             ================================================================ -->
+        <section class="view-section" id="view-followups" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Tab 3 · Scheduled Callbacks &amp; Reminders</p>
+              <h1 class="view-title">Know who to <span class="ac">call today.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Check off phone calls, text messages, and site visits as you complete them so no customer inquiry ever slips through the cracks.</p>
+            </div>
+            <button class="btn sm" type="button" data-action="open-modal" data-modal="new-followup-modal">+ Schedule Follow-up</button>
+          </div>
+
+          <div class="toolbar">
+            <div class="pill-group" role="group" aria-label="Filter follow-ups">
+              <button class="filter-pill active" type="button" data-fu-filter="due">Today &amp; overdue</button>
+              <button class="filter-pill" type="button" data-fu-filter="upcoming">Upcoming</button>
+              <button class="filter-pill" type="button" data-fu-filter="done">Completed</button>
+              <button class="filter-pill" type="button" data-fu-filter="all">All Reminders</button>
+            </div>
+          </div>
+
+          <article class="cd">
+            <div class="pn" id="leads-followups-list"></div>
+          </article>
+        </section>
+
+        <!-- ================================================================
+             TAB 4: INVOICES & PRINTABLE PDF GENERATOR
+             ================================================================ -->
+        <section class="view-section" id="view-invoices" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Tab 4 · Invoices &amp; Printable PDFs</p>
+              <h1 class="view-title">See what you’re <span class="ac">owed.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Create clear invoices, track outstanding balances, and print or save a PDF from the invoice preview.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn gh sm" type="button" data-action="switch-tab" data-tab="bank">Go to Bank Matching →</button>
+              <button class="btn sm" type="button" data-action="open-modal" data-modal="new-invoice-modal">+ Create Invoice</button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="pill-group" role="group" aria-label="Filter invoices by status">
+              <button class="filter-pill active" type="button" data-inv-status="All">All Invoices</button>
+              <button class="filter-pill" type="button" data-inv-status="Sent">Sent</button>
+              <button class="filter-pill" type="button" data-inv-status="Overdue">Overdue</button>
+              <button class="filter-pill" type="button" data-inv-status="Draft">Draft</button>
+              <button class="filter-pill" type="button" data-inv-status="Paid">Paid</button>
+            </div>
+            <div class="search-box">
+              <input id="invoice-search-input" type="search" placeholder="Search invoice #, customer, or job title…" aria-label="Search invoices">
+            </div>
+          </div>
+
+          <article class="cd">
+            <div class="table-wrap table-scroll" role="region" tabindex="0" aria-label="Scrollable records table">
+              <table class="c-table">
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Customer &amp; Job Summary</th>
+                    <th>Terms &amp; Due Date</th>
+                    <th>Status</th>
+                    <th class="num-col">Amount</th>
+                    <th style="text-align:right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="invoices-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- ================================================================
+             TAB 5: DEDICATED READ-ONLY BANK MATCHING TAB
+             ================================================================ -->
+        <section class="view-section" id="view-bank" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Payments · Sample bank feed</p>
+              <h1 class="view-title">Match payments, skip the <span class="ac">busywork.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Review sample deposits before applying them to an invoice. Partial payments keep the remaining balance open.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn gh sm" type="button" data-action="toggle-bank-connection">Enable / pause sample feed</button>
+              <button class="btn sm" type="button" data-action="sync-bank">↻ Refresh sample feed</button>
+            </div>
+          </div>
+
+          <article class="cd">
+            <div class="cd-hd">
+              <div>
+                <span class="sub-label" id="bank-feed-status-label">Read-only bank connection</span>
+                <h3>Recent bank deposits &amp; invoice match suggestions</h3>
+              </div>
+            </div>
+            <div class="pn" id="invoices-bank-feed"></div>
+          </article>
+        </section>
+
+        <!-- ================================================================
+             TAB 6: CUSTOMER REVIEWS (GOOGLE REVIEW LINK TRACKER)
+             ================================================================ -->
+        <section class="view-section" id="view-reviews" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Tab 6 · Google Review Request Tracker</p>
+              <h1 class="view-title">Ask every customer for a <span class="ac">review.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Copy a review request to your messaging app, then log when you asked. Sample reviews are included so you can explore the workflow.</p>
+            </div>
+            <button class="btn sm" type="button" data-action="open-modal" data-modal="new-review-modal">+ Add finished job</button>
+          </div>
+
+          <article class="cd" style="margin-bottom:18px">
+            <div class="cd-hd" style="margin-bottom:8px">
+              <div>
+                <span class="sub-label">Your Direct Google Business Profile Review Link</span>
+                <h3>Included automatically when you text or email a finished job</h3>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <input id="google-review-link-input" type="url" value="" placeholder="Paste your Google review link (https://g.page/r/…/review)" aria-label="Direct Google review link" style="flex:1 1 280px;min-height:42px;padding:0 14px;border:1.5px solid var(--ln);border-radius:12px;font:500 14px var(--bf);color:var(--ink);background:var(--bg)">
+              <button class="btn gh sm" type="button" data-action="copy-google-link">Copy review link</button>
+            </div>
+          </article>
+
+          <div class="toolbar">
+            <div class="pill-group" role="group" aria-label="Filter reviews by status">
+              <button class="filter-pill active" type="button" data-rev-status="All">All Finished Jobs</button>
+              <button class="filter-pill" type="button" data-rev-status="Not Asked">Not Asked Yet</button>
+              <button class="filter-pill" type="button" data-rev-status="Sent">Request Sent</button>
+              <button class="filter-pill" type="button" data-rev-status="Reminded">Reminded</button>
+              <button class="filter-pill" type="button" data-rev-status="Reviewed">Reviewed</button>
+            </div>
+          </div>
+
+          <article class="cd">
+            <div class="pn" id="reviews-list-container"></div>
+          </article>
+        </section>
+
+        <!-- ================================================================
+             TAB 7: ACCOUNT, BILLING & DATA PRIVACY
+             ================================================================ -->
+        <section class="view-section" id="view-account" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Tab 7 · Account, Plan &amp; Privacy Controls</p>
+              <h1 class="view-title">Simple. Fair. <span class="ac">Yours.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+              <p class="view-sub">Update your business profile, explore demo settings, and export your local workspace data.</p>
+            </div>
+            <button class="btn gh sm" type="button" data-action="switch-tab" data-tab="today">← Back to Overview</button>
+          </div>
+
+          <div class="dash-grid">
+            <article class="cd">
+              <div class="cd-hd">
+                <div>
+                  <span class="sub-label">Workspace Settings</span>
+                  <h3>Business profile &amp; invoice header</h3>
+                </div>
+              </div>
+              <form class="fm" id="account-profile-form">
+                <div class="fm-row">
+                  <div>
+                    <label for="acc-name-input">Your name</label>
+                    <input id="acc-name-input" type="text" required>
+                  </div>
+                  <div>
+                    <label for="acc-biz-input">Business name</label>
+                    <input id="acc-biz-input" type="text" placeholder="Your business name">
+                  </div>
+                </div>
+                <div class="fm-row">
+                  <div>
+                    <label for="acc-trade-input">Trade / Service type</label>
+                    <input id="acc-trade-input" type="text" placeholder="Plumbing, roofing, electrical…">
+                  </div>
+                  <div>
+                    <label for="acc-currency-select">Region &amp; Currency (US / India)</label>
+                    <select id="acc-currency-select">
+                      <option value="USD">United States — USD ($)</option>
+                      <option value="INR">India — INR (₹)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="fm-row">
+                  <div>
+                    <label for="acc-email-input">Business email</label>
+                    <input id="acc-email-input" type="email" placeholder="you@example.com">
+                  </div>
+                  <div>
+                    <label for="acc-phone-input">Business phone</label>
+                    <input id="acc-phone-input" type="tel">
+                  </div>
+                </div>
+                <div>
+                  <label for="acc-loc-input">City / Service area</label>
+                  <input id="acc-loc-input" type="text">
+                </div>
+                <button class="btn" type="submit">Save Workspace Profile</button>
+              </form>
+            </article>
+
+            <div class="dash-col">
+              <article class="cd">
+                <div class="cd-hd">
+                  <div>
+                    <span class="sub-label">One Simple Plan</span>
+                    <h3>15 days free, then $20/month</h3>
+                  </div>
+                  <em class="c b" id="acc-plan-badge">15-Day Free Trial</em>
+                </div>
+                <p id="acc-plan-desc" style="margin:0 0 16px;color:var(--mut);font-size:14.5px"></p>
+                <div>
+                  <button class="btn sm" id="acc-subscribe-btn" type="button" data-action="toggle-plan-status">Activate $20/month Plan</button>
+                </div>
+              </article>
+
+              <article class="cd">
+                <div class="cd-hd">
+                  <div>
+                    <span class="sub-label">Sample bank feed</span>
+                    <h3>Bank connection</h3>
+                  </div>
+                  <em class="c" id="acc-bank-badge">Not Connected</em>
+                </div>
+                <p style="margin:0 0 14px;color:var(--mut);font-size:14px">
+                  This demo uses sample transactions. Enabling it does not connect a real bank account.
+                </p>
+                <div>
+                  <button class="btn gh sm" id="acc-bank-toggle-btn" type="button" data-action="toggle-bank-connection">Connect Read-Only Bank</button>
+                </div>
+              </article>
+
+              <article class="cd">
+                <div class="cd-hd">
+                  <div>
+                    <span class="sub-label">Your Data Stays Yours</span>
+                    <h3>Export or delete your data anytime</h3>
+                  </div>
+                </div>
+                <p style="margin:0 0 14px;color:var(--mut);font-size:14px">
+                  You own the leads, customer details, and invoices you put into Cerium. Download a complete JSON copy or wipe your workspace data at any time.
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn gh sm" type="button" data-action="export-my-data">Download My Data (.json)</button>
+                  <button class="btn gh sm" type="button" data-action="copy-my-data">Copy My Data (JSON)</button>
+                  <button class="btn dg sm" type="button" data-action="open-modal" data-modal="delete-data-modal">Delete My Data</button>
+                  <button class="btn dg sm" type="button" data-action="delete-account">Clear Local Profile</button>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ================= MESSAGES: contact the founders ================= -->
+        <section class="view-section" id="view-messages" hidden>
+          <div class="view-hd">
+            <div>
+              <p class="ey">Contact the Founders</p>
+              <h1 class="view-title">Tell us what you need.</h1>
+              <p class="view-sub">Bug reports, suggestions and questions go straight to the founders.</p>
+            </div>
+          </div>
+
+          <div class="msg-wrap">
+            <div class="cd">
+              <form class="fm" id="new-message-form">
+                <div class="fm-row">
+                  <div>
+                    <label for="msg-category">Topic</label>
+                    <select id="msg-category" name="category">
+                      <option value="Bug report">Bug report</option>
+                      <option value="Suggestion">Suggestion</option>
+                      <option value="Product question">Product question</option>
+                      <option value="Service / billing question">Service / billing question</option>
+                      <option value="Other">Something else</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="msg-reply">Your email *</label>
+                    <input id="msg-reply" name="replyTo" type="email" placeholder="you@example.com" required>
+                  </div>
+                </div>
+                <div>
+                  <label for="msg-subject">Subject *</label>
+                  <input id="msg-subject" name="subject" type="text" maxlength="120" required>
+                </div>
+                <div>
+                  <label for="msg-body">Message *</label>
+                  <textarea id="msg-body" name="body" maxlength="1500" required></textarea>
+                </div>
+                <label class="msg-check">
+                  <input type="checkbox" id="msg-include-info" name="includeInfo" checked> Include app info (tab, browser, screen size) to help us fix bugs
+                </label>
+                <div class="msg-actions">
+                  <div class="msg-alt">
+                    <button class="link-btn" type="button" data-action="save-message-draft">Save draft</button>
+                    <button class="link-btn" type="reset">Clear draft</button>
+                    <button class="link-btn" type="button" data-action="open-gmail">Open in Gmail</button>
+                    <button class="link-btn" type="button" data-action="copy-message-draft">Copy message</button>
+                  </div>
+                  <button class="btn sm" type="submit">Open email draft</button>
+                </div>
+              </form>
+              <p class="msg-direct">Or email us directly: <b>cerium.founders@gmail.com</b>
+                <button class="link-btn" type="button" data-action="copy-founders-email">Copy</button></p>
+            </div>
+
+            <div class="cd">
+              <h3 class="msg-hist-title">Saved message drafts</h3>
+              <div class="pn" id="messages-list"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODALS (New Lead, New Follow-up, New Invoice, Invoice preview,
+       New Review Request, Delete Data Confirmation)
+       ====================================================================== -->
+
+  <!-- Modal 1: Save New Lead -->
+  <dialog class="c-modal" id="new-lead-modal" aria-labelledby="nl-title">
+    <div class="modal-hd">
+      <h3 id="nl-title">Save a new lead</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="new-lead-modal" aria-label="Close dialog">×</button>
+    </div>
+    <form class="fm" id="new-lead-form">
+      <input type="hidden" name="id" value="">
+      <div class="fm-row">
+        <div>
+          <label for="nl-name">Customer name *</label>
+          <input id="nl-name" name="name" type="text" placeholder="e.g. Jordan Miller" required>
+        </div>
+        <div>
+          <label for="nl-phone">Phone number *</label>
+          <input id="nl-phone" name="phone" type="tel" placeholder="(614) 555-0190" required>
+        </div>
+      </div>
+      <div class="fm-row">
+        <div>
+          <label for="nl-email">Email address</label>
+          <input id="nl-email" name="email" type="email" placeholder="jordan@example.com">
+        </div>
+        <div>
+          <label for="nl-source">Inquiry source</label>
+          <select id="nl-source" name="source">
+            <option value="Google Search">Google Search</option>
+            <option value="Google Maps">Google Maps</option>
+            <option value="Referral">Referral</option>
+            <option value="Website Form">Website Form</option>
+            <option value="Repeat Customer">Repeat Customer</option>
+            <option value="Yard Sign">Yard Sign</option>
+          </select>
+        </div>
+      </div>
+      <div class="fm-row">
+        <div>
+          <label for="nl-stage">Stage</label>
+          <select id="nl-stage" name="stage">
+            <option value="New">New</option>
+            <option value="Quoted">Quoted</option>
+            <option value="Booked">Booked</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div>
+          <label for="nl-value">Estimated job value</label>
+          <input id="nl-value" name="value" type="number" step="0.01" min="0" placeholder="1250.00" required>
+        </div>
+      </div>
+      <div class="fm-row">
+        <div>
+          <label for="nl-address">Job address</label>
+          <input id="nl-address" name="address" type="text" placeholder="140 High St, Columbus, OH">
+        </div>
+        <div>
+          <label for="nl-followup">Next follow-up date</label>
+          <input id="nl-followup" name="nextFollowUp" type="date" required>
+        </div>
+      </div>
+      <div>
+        <label for="nl-notes">Job scope &amp; notes</label>
+        <textarea id="nl-notes" name="notes" placeholder="Describe the inquiry, parts needed, or quote details…" required></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn gh sm" type="button" data-action="close-modal" data-modal="new-lead-modal">Cancel</button>
+        <button class="btn sm" id="nl-submit" type="submit">Save Lead &amp; Reminder</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal 2: Add Follow-up Reminder -->
+  <dialog class="c-modal" id="new-followup-modal" aria-labelledby="nfu-title">
+    <div class="modal-hd">
+      <h3 id="nfu-title">Schedule follow-up reminder</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="new-followup-modal" aria-label="Close dialog">×</button>
+    </div>
+    <form class="fm" id="new-followup-form">
+      <input type="hidden" name="id" value="">
+      <div class="fm-row">
+        <div>
+          <label for="nfu-name">Customer / Contact name *</label>
+          <input id="nfu-name" name="contactName" type="text" placeholder="e.g. Jordan Miller" required>
+        </div>
+        <div>
+          <label for="nfu-phone">Phone or email</label>
+          <input id="nfu-phone" name="phone" type="text" placeholder="(614) 555-0142" required>
+        </div>
+      </div>
+      <div class="fm-row">
+        <div>
+          <label for="nfu-channel">Action type</label>
+          <select id="nfu-channel" name="channel">
+            <option value="Call">Phone Call</option>
+            <option value="SMS">Text Message (SMS)</option>
+            <option value="Email">Email Follow-up</option>
+            <option value="Site Visit">On-Site Visit</option>
+          </select>
+        </div>
+        <div>
+          <label for="nfu-date">Due date</label>
+          <input id="nfu-date" name="dueDate" type="date" required>
+        </div>
+      </div>
+      <div>
+        <label for="nfu-task">What do you need to follow up on? *</label>
+        <input id="nfu-task" name="task" type="text" placeholder="Confirm quote approval & Tuesday arrival window" required>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn gh sm" type="button" data-action="close-modal" data-modal="new-followup-modal">Cancel</button>
+        <button class="btn sm" id="nfu-submit" type="submit">Add Reminder</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal 3: Create New Invoice -->
+  <dialog class="c-modal" id="new-invoice-modal" aria-labelledby="ni-title">
+    <div class="modal-hd">
+      <h3 id="ni-title">Create customer invoice</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="new-invoice-modal" aria-label="Close dialog">×</button>
+    </div>
+    <form class="fm" id="new-invoice-form">
+      <input type="hidden" name="id" value="">
+      <div class="fm-row">
+        <div>
+          <label for="inv-customer-name">Customer name *</label>
+          <input id="inv-customer-name" name="customerName" type="text" placeholder="e.g. Alex Carter" required>
+        </div>
+        <div>
+          <label for="inv-customer-email">Customer email</label>
+          <input id="inv-customer-email" name="customerEmail" type="email" placeholder="billing@client.com">
+        </div>
+      </div>
+      <div>
+        <label for="inv-customer-address">Job / Billing address</label>
+        <input id="inv-customer-address" name="customerAddress" type="text" placeholder="204 E Broad St, Columbus, OH">
+      </div>
+      <div>
+        <label for="inv-job-title">Job description / Line item *</label>
+        <input id="inv-job-title" name="jobTitle" type="text" placeholder="e.g. Water Heater Replacement & Expansion Tank" required>
+      </div>
+      <div class="fm-row">
+        <div>
+          <label for="inv-terms">Payment terms</label>
+          <select id="inv-terms" name="terms">
+            <option value="Due on receipt">Due on receipt</option>
+            <option value="Net 15" selected>Net 15 (Due in 15 days)</option>
+            <option value="Net 30">Net 30 (Due in 30 days)</option>
+          </select>
+        </div>
+        <div>
+          <label for="inv-status">Initial status</label>
+          <select id="inv-status" name="status">
+            <option value="Sent">Sent</option>
+            <option value="Draft">Draft</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for="inv-amount">Total invoice amount * <span id="invoice-currency-label"></span></label>
+        <input id="inv-amount" name="amount" type="number" step="0.01" min="0.01" max="1000000000" placeholder="1850.00" required>
+        <small id="inv-amount-note" hidden style="display:block;margin-top:6px;color:var(--mut)">The amount is read-only here to preserve the original line items and quantities.</small>
+      </div>
+      <div>
+        <label for="inv-notes">Customer notes (shown on invoice)</label>
+        <input id="inv-notes" name="notes" type="text" value="Thank you for your business! ACH or check accepted.">
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn gh sm" type="button" data-action="close-modal" data-modal="new-invoice-modal">Cancel</button>
+        <button class="btn sm" id="ni-submit" type="submit">Create &amp; Save Invoice</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal 4: Printable PDF Invoice Preview -->
+  <dialog class="c-modal wide" id="invoice-preview-modal" aria-labelledby="ip-title">
+    <div class="modal-hd no-print">
+      <h3 id="ip-title">Invoice preview</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="btn gh xs" id="invoice-download-link" download>Download HTML</a>
+        <button class="btn xs" type="button" data-action="print-invoice-pdf">Print / Save as PDF</button>
+        <button class="close-x" type="button" data-action="close-modal" data-modal="invoice-preview-modal" aria-label="Close dialog">×</button>
+      </div>
+    </div>
+    <div id="invoice-preview-body"></div>
+  </dialog>
+
+  <!-- Modal 5: Send Customer Review Request -->
+  <dialog class="c-modal" id="new-review-modal" aria-labelledby="nr-title">
+    <div class="modal-hd no-print">
+      <h3 id="nr-title">Add a finished job</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="new-review-modal" aria-label="Close dialog">×</button>
+    </div>
+    <form class="fm" id="new-review-form">
+      <input type="hidden" name="id" value="">
+      <div class="fm-row">
+        <div>
+          <label for="nr-name">Customer name *</label>
+          <input id="nr-name" name="customerName" type="text" placeholder="e.g. Taylor Brooks" required>
+        </div>
+        <div>
+          <label for="nr-phone">Phone number</label>
+          <input id="nr-phone" name="customerPhone" type="tel" placeholder="(614) 555-0129" required>
+        </div>
+      </div>
+      <div>
+        <label for="nr-email">Customer email</label>
+        <input id="nr-email" name="customerEmail" type="email" placeholder="taylor@example.com">
+      </div>
+      <div>
+        <label for="nr-job">Finished job summary *</label>
+        <input id="nr-job" name="jobTitle" type="text" placeholder="e.g. Kitchen Garbage Disposal & P-Trap Install" required>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn gh sm" type="button" data-action="close-modal" data-modal="new-review-modal">Cancel</button>
+        <button class="btn sm" id="nr-submit" type="submit">Save review record</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal 6: Delete Workspace Data Confirmation -->
+  <dialog class="c-modal" id="reset-demo-modal" aria-labelledby="reset-title">
+    <div class="modal-hd"><h3 id="reset-title">Restore the sample workspace?</h3><button class="close-x" data-action="close-modal" data-modal="reset-demo-modal" aria-label="Close dialog">×</button></div>
+    <p>This replaces your saved leads, invoices, follow-ups, and settings on this device. Export your data first if you want to keep it.</p>
+    <div class="dialog-actions"><button class="btn gh sm" data-action="export-my-data">Export backup</button><button class="btn gh sm" data-action="close-modal" data-modal="reset-demo-modal">Keep my workspace</button><button class="btn dg sm" data-action="confirm-demo-reset">Restore sample data</button></div>
+  </dialog>
+  <dialog class="c-modal" id="delete-data-modal" aria-labelledby="dd-title">
+    <div class="modal-hd">
+      <h3 id="dd-title">Delete your workspace data?</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="delete-data-modal" aria-label="Close dialog">×</button>
+    </div>
+    <p style="margin:0 0 18px;color:var(--mut)">
+      This clears all leads, follow-up reminders, invoices, bank matches, and review requests from your workspace immediately. Your account profile stays. Download a JSON export first if you want a copy.
+    </p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+      <button class="btn gh sm" type="button" data-action="close-modal" data-modal="delete-data-modal">Keep My Data</button>
+      <button class="btn dg sm" type="button" data-action="confirm-delete-data">Delete All Workspace Data</button>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Stack -->
+
+  <!-- Modal: Confirm deleting a single record -->
+  <dialog class="c-modal" id="delete-record-modal" aria-labelledby="dr-title">
+    <div class="modal-hd">
+      <h3 id="dr-title">Delete this record?</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="delete-record-modal" aria-label="Close dialog">×</button>
+    </div>
+    <p id="delete-record-text" style="margin:0 0 18px;color:var(--mut);line-height:1.5"></p>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn gh sm" type="button" data-action="close-modal" data-modal="delete-record-modal">Keep it</button>
+      <button class="btn dg sm" type="button" data-action="confirm-delete-record">Delete</button>
+    </div>
+  </dialog>
+
+  <!-- Modal: Donate -->
+  <dialog class="c-modal" id="donate-modal" aria-labelledby="dn-title">
+    <div class="modal-hd">
+      <h3 id="dn-title">Support Cerium ♥</h3>
+      <button class="close-x" type="button" data-action="close-modal" data-modal="donate-modal" aria-label="Close dialog">×</button>
+    </div>
+    <p style="margin:0 0 12px;line-height:1.55">Cerium is an academic project built by a small team, and we’re still growing. If it saves you time, a small donation helps us cover hosting and keep improving it for tradespeople like you.</p>
+    <p style="margin:0 0 18px;color:var(--mut);line-height:1.55">There is absolutely no pressure. Feedback, bug reports, or telling another contractor about Cerium helps just as much. Thank you for being here.</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px">
+      <button class="btn gh sm" type="button" data-action="donate-feedback">Send feedback instead</button>
+      <button class="btn gh sm" type="button" data-action="close-modal" data-modal="donate-modal">Maybe later</button>
+      <button class="btn sm" type="button" id="donate-primary" data-action="donate-now">Donate</button>
+    </div>
+  </dialog>
+
+  <div class="rec-menu" id="rec-menu" role="menu" hidden>
+    <button type="button" role="menuitem" data-action="edit-record">Edit</button>
+    <button type="button" role="menuitem" data-action="copy-record">Copy</button>
+    <button type="button" role="menuitem" class="danger" data-action="delete-record">Delete</button>
+  </div>
+
+  <div class="toast-stack" id="toast-stack" role="status" aria-live="polite"></div>
+</div>
+
+<script src="js/cursor.js"></script>
+<script defer src="js/api.js"></script>
+<script defer src="js/billing.js"></script>
+<script defer src="js/app.js"></script>
+</body>
+</html>
