@@ -1,0 +1,30 @@
+# Secrets and settings. NEVER commit these.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+Client Secret*.txt
+**/Client Secret*.txt
+
+# Application database and backups (contains user data)
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Exports and downloads
+waitlist*.csv
+cerium-*.csv
+cerium-*.json
+
+# Dependencies and logs
+node_modules/
+npm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

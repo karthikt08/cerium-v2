@@ -1,0 +1,28 @@
+{
+  "name": "cerium",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cerium — Unified Contractor Operations Platform, Landing Suite & Web Workspace",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test",
+    "gen-secret": "node scripts/gen-secret.js",
+    "export": "node scripts/export-waitlist.js",
+    "check:secrets": "node scripts/check-secrets.js",
+    "backup": "node scripts/backup.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "cookie-parser": "1.4.7",
+    "dotenv": "18.0.4",
+    "express": "5.2.1",
+    "express-rate-limit": "8.7.0",
+    "google-auth-library": "11.1.0",
+    "helmet": "8.3.0"
+  }
+}

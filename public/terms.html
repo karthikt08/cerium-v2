@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — CERIUM</title>
+<meta name="description" content="The rules for using Cerium, in plain words.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- Base (same on every page) ---------- */
+body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
+.pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
+.pg *{box-sizing:border-box}.pg a{color:inherit;text-decoration:none}
+.pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
+.pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+.rg,.gl{position:fixed;left:0;top:0;pointer-events:none}
+.rg{z-index:60;transition:transform .12s ease-out,opacity .3s}.rg i{display:block;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid var(--ac);border-radius:50%;transition:transform .25s,background .25s}
+.rg i.bg{transform:scale(1.9);background:color-mix(in srgb,var(--ac) 14%,transparent)}
+.gl{z-index:-1;transition:transform .6s ease-out,opacity .4s}.gl i{display:block;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 16%,transparent),transparent 65%)}
+.hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
+.lg{display:flex;align-items:center;gap:10px;font-size:23px}
+.hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
+.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;border-radius:99px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
+.pg .btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--ac)}
+.pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
+.pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.hw{position:relative}
+.hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
+.hero{position:relative;padding-top:40px;padding-bottom:56px}
+.ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
+.pg h1{font-size:clamp(2.4rem,5vw,4rem);max-width:15em;margin-top:20px}
+.ac{position:relative;color:var(--ac);white-space:nowrap}
+.ul{position:absolute;left:0;bottom:-.2em;width:100%;height:auto;overflow:visible}
+.ul path{fill:none;stroke:var(--ac);stroke-width:5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.1s .8s cubic-bezier(.6,0,.2,1) forwards}
+.ld{font-size:clamp(1.08rem,1.5vw,1.25rem);color:var(--mut);max-width:34em;margin:24px 0 0}
+.meta{margin:18px 0 0;font-size:14px;color:var(--mut)}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+.sc{max-width:1160px;margin:0 auto;padding:96px 24px 0}.sc h2{font-size:clamp(2.1rem,4.6vw,3.4rem);max-width:14em;margin-top:16px}
+.sb{color:var(--mut);font-size:1.12rem;max-width:34em;margin:18px 0 0}
+.todo{background:#fff3c4;color:#6b4e00;border-radius:4px;padding:0 .3em}
+.ft{max-width:1160px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;font-size:15px}
+.ft h5{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.ft a{display:block;padding:4px 0;color:var(--mut)}.ft a:hover{color:var(--ink)}.ft a.lg{display:flex;padding:0;color:var(--ink)}.ft a[aria-current]{color:var(--ink);font-weight:600}
+.ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
+.li{font-weight:600}.pg .li:hover{color:var(--ac)}.pg .btn .s{display:none}.pg [hidden]{display:none!important}
+@media(max-width:720px){.hd{gap:16px}.hd nav{display:none}.hd>.lg{margin-right:auto}.pg .btn .l{display:none}.pg .btn .s{display:inline}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.sc{padding-top:72px}}
+@media(hover:none){.rg,.gl{display:none}}
+@media(prefers-reduced-motion:reduce){.pg *{animation:none!important;transition:none!important}.ul path{stroke-dashoffset:0}.rg,.gl{display:none}}
+@keyframes up{from{opacity:0;transform:translateY(22px)}}@keyframes dr{to{stroke-dashoffset:0}}
+
+/* ---------- Privacy and Terms pages only ---------- */
+.lw{display:grid;grid-template-columns:220px minmax(0,740px);justify-content:center;gap:56px;align-items:start;max-width:1160px;margin:0 auto;padding:8px 24px 96px}
+.toc{position:sticky;top:24px;counter-reset:t}
+.th{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.pg .toc a{display:block;padding:7px 0 7px 14px;border-left:2px solid var(--ln);color:var(--mut);font-size:15px;line-height:1.35;counter-increment:t;transition:color .2s,border-color .2s}
+.pg .toc a::before{content:counter(t) ". "}
+.pg .toc a:hover{color:var(--ink);border-color:var(--ac)}
+.doc{counter-reset:s;background:var(--wh);border:1px solid var(--ln);border-radius:26px;padding:clamp(24px,4vw,48px)}
+.sum{background:color-mix(in srgb,var(--ac) 7%,var(--wh));border:1px solid color-mix(in srgb,var(--ac) 22%,var(--ln));border-radius:18px;padding:20px 24px}
+.sh{margin:0;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--ac)}
+.doc .sum ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+.doc .sum li{display:flex;gap:12px;align-items:flex-start;margin:0;font-size:15.5px;color:var(--ink)}
+.doc .sum li::before{content:"";flex:none;width:6px;height:11px;border:solid var(--ac);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);margin:2px 6px 0 4px}
+.doc h2{counter-increment:s;font-size:clamp(1.4rem,2.4vw,1.75rem);letter-spacing:-.02em;line-height:1.15;margin:44px 0 12px;scroll-margin-top:24px}
+.doc h2::before{content:counter(s) ". ";color:var(--ac)}
+.doc p,.doc li{color:#2a3550}
+.doc p{margin:0 0 14px}
+.doc ul{margin:0 0 14px;padding-left:1.25em}.doc li{margin:8px 0}.doc li::marker{color:var(--ac)}
+.pg .doc a:not(.btn){color:var(--ac);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px}
+.alsoread{margin-top:40px;padding-top:28px;border-top:1px solid var(--ln)}
+@media(max-width:900px){.lw{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+@media(max-width:560px){.lw{padding-left:16px;padding-right:16px}.doc{padding:22px 18px}.sum{padding:16px 18px}}
+@media print{.gl,.rg,.hd,.toc,.ft,.alsoread{display:none!important}.pg{background:#fff}.hw::before{display:none}.doc{border:0;padding:0}}
+</style>
+<link rel="stylesheet" href="css/spatial.css">
+</head>
+<body>
+<div class="pg" id="pg">
+<div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
+<div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
+<header class="w hd">
+<a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a>
+<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+<div style="display:flex;gap:10px;align-items:center">
+  <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
+  <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
+</div>
+</header>
+<main id="main">
+<!--
+  STARTER TEXT. This is not legal advice.
+  Before you publish:
+  1. Change every sentence that is not true for your product.
+  2. Fix the yellow parts (search for class="todo") and the CHECK and EDIT notes.
+  3. Change the "Last updated" date whenever you change the text.
+  4. If you can, ask a lawyer to read it.
+-->
+<section class="hw"><div class="w hero">
+<p class="ey u">Legal</p>
+<h1 class="u" style="animation-delay:.08s">Terms of <span class="ac">Service.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+<p class="ld u" style="animation-delay:.18s">The rules for using Cerium. Please read them. When you create an account or use Cerium, you agree to these terms.</p>
+<!-- EDIT: change this date whenever you change the text -->
+<p class="meta u" style="animation-delay:.26s">Last updated: October 11, 2026</p>
+</div></section>
+
+<div class="lw">
+<nav class="toc" aria-label="On this page">
+<p class="th">On this page</p>
+<a href="#using">Using Cerium</a>
+<a href="#account">Your account</a>
+<a href="#billing">Plan and billing</a>
+<a href="#data">Your data</a>
+<a href="#payments">Payments and banks</a>
+<a href="#messages">Messages to your customers</a>
+<a href="#rules">Acceptable use</a>
+<a href="#ending">Ending your account</a>
+<a href="#responsibility">Our responsibility</a>
+<a href="#changes">Changes to these terms</a>
+<a href="#law">Governing law</a>
+<a href="#contact">Contact us</a>
+</nav>
+
+<article class="doc">
+<div class="sum">
+<p class="sh">The short version</p>
+<ul>
+<li>Your first 15 days are free. After that, Cerium costs $20 per month. You can cancel anytime.</li>
+<li>Your data is yours. You can export or delete it anytime.</li>
+<li>Cerium is a business tool. It is not a bank, an accounting firm, or a payment processor.</li>
+<li>You are responsible for your invoices, your taxes, and following the law when you contact customers.</li>
+</ul>
+</div>
+
+<h2 id="using">Using Cerium</h2>
+<p>You must be at least 18 years old and use Cerium for your business. If you sign up for a company, you confirm that you can agree to these terms for that company.</p>
+
+<h2 id="account">Your account</h2>
+<p>You sign in with your Google account. Keep it secure, and give us correct information. You are responsible for what happens under your account. Tell us right away if you think someone else got into it.</p>
+
+<h2 id="billing">Plan and billing</h2>
+<p><b>Free trial.</b> Your first 15 days are free. You do not need a credit card to start. When the 15 days end, you can subscribe to keep using Cerium. If you do not subscribe, your access will pause. <span class="todo">We keep your data for 30 days after your trial ends, so you can come back or export it.</span></p>
+<p>After your trial, Cerium costs $20 per month, billed monthly. If you subscribe before your trial ends, billing starts the day you subscribe. Taxes may apply. Third-party fees, such as payment processing, bank connectivity, or text messaging, are separate.</p>
+<!-- CHECK: make sure this matches how your billing really works. -->
+<p>You can cancel anytime. Your plan stays active until the end of the month you already paid for. If we change our price, we will tell you at least <span class="todo">30 days</span> before it starts.</p>
+
+<h2 id="data">Your data</h2>
+<p>You own the information you put into Cerium, such as your leads, customers, and invoices. You give us permission to store and use it only to run Cerium for you. You can export or delete your data anytime. Our <a href="privacy.html">Privacy Policy</a> explains more.</p>
+
+<h2 id="payments">Payments and banks</h2>
+<p>Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers, and their own terms apply.</p>
+<p>Payment match suggestions can be wrong, so please check each one before you confirm it. You are responsible for your invoices, your records, and your taxes. Cerium does not give legal, tax, or accounting advice.</p>
+
+<h2 id="messages">Messages to your customers</h2>
+<p>If you use Cerium to contact your customers, for example with review requests or follow-up reminders by text or email, you are responsible for having their permission and for following the laws that apply to you.</p>
+
+<h2 id="rules">Acceptable use</h2>
+<p>Do not use Cerium to:</p>
+<ul>
+<li>break the law or help someone else break it;</li>
+<li>send spam or harmful content, or harass anyone;</li>
+<li>try to get into accounts or systems that are not yours;</li>
+<li>interfere with how Cerium works or put a heavy load on it;</li>
+<li>copy, resell, or reverse engineer Cerium.</li>
+</ul>
+
+<h2 id="ending">Ending your account</h2>
+<p>You can stop using Cerium at any time. We may pause or close an account if these terms are broken, or if the account puts Cerium or other people at risk.</p>
+
+<h2 id="responsibility">Our responsibility</h2>
+<p>We work hard to keep Cerium running well, but we provide it “as is” and “as available.” We cannot promise that it will always work, be free of errors, or fit every need.</p>
+<!-- CHECK: ask a lawyer to review this part. -->
+<p>To the fullest extent the law allows, Cerium is not responsible for indirect damages, such as lost profits or lost business. Our total responsibility for any claim is limited to the amount you paid us in the 12 months before the claim.</p>
+
+<h2 id="changes">Changes to these terms</h2>
+<p>We may update these terms. We will change the date at the top of this page. If a change is important, we will tell you by email or inside Cerium. If you keep using Cerium after a change, you agree to the new terms.</p>
+
+<h2 id="law">Governing law</h2>
+<p>These terms are governed by the laws of India, without regard to its conflict of law rules. Any dispute will be handled in the courts located in <b>BANGLORE</b>, <b>KARNATAKA</b>, India.</p>
+<h2 id="contact">Contact us</h2>
+<p>Questions about these terms? Email us at <a href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a> or use our <a href="contact.html">Contact page</a>.</p>
+
+<div class="alsoread"><a class="btn gh sm" href="privacy.html">Also read: Privacy Policy</a></div>
+</article>
+</div>
+</main>
+<footer class="ft">
+<div><a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
+<div><h5>Product</h5><a href="index.html#benefits">Benefits</a><a href="index.html#pricing">Pricing</a><a href="pricing.html">Pricing</a><a href="signup.html">Free Trial</a><a href="app.html">Workspace</a><a href="login.html">Log in</a></div>
+<div><h5>Company</h5><a href="about.html">About</a><a href="contact.html">Contact</a></div>
+<div><h5>Legal</h5><a href="privacy.html">Privacy</a><a href="terms.html" aria-current="page">Terms</a></div>
+<p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
+<p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
+</footer>
+</div>
+<script src="js/cursor.js"></script>
+<script type="module" src="js/waitlist-buttons.js"></script>
+<script src="js/nav-auth.js"></script>
+</body>
+</html>

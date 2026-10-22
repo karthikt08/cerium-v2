@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /pricing.html
+Allow: /about.html
+Allow: /contact.html
+Allow: /privacy.html
+Allow: /terms.html
+Disallow: /app.html
+Disallow: /app
+Disallow: /api/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /forgot-password.html
+Disallow: /reset-password.html
+
+Sitemap: https://ceriumapp.com/sitemap.xml

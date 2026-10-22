@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — CERIUM</title>
+<meta name="description" content="Questions about Cerium? Email us or send a message.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- Base (same on every page) ---------- */
+body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
+.pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
+.pg *{box-sizing:border-box}.pg a{color:inherit;text-decoration:none}
+.pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
+.pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+.rg,.gl{position:fixed;left:0;top:0;pointer-events:none}
+.rg{z-index:60;transition:transform .12s ease-out,opacity .3s}.rg i{display:block;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid var(--ac);border-radius:50%;transition:transform .25s,background .25s}
+.rg i.bg{transform:scale(1.9);background:color-mix(in srgb,var(--ac) 14%,transparent)}
+.gl{z-index:-1;transition:transform .6s ease-out,opacity .4s}.gl i{display:block;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 16%,transparent),transparent 65%)}
+.hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
+.lg{display:flex;align-items:center;gap:10px;font-size:23px}
+.hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
+.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;border-radius:99px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
+.pg .btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--ac)}
+.pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
+.pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.hw{position:relative}
+.hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
+.hero{position:relative;padding-top:40px;padding-bottom:56px}
+.ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
+.pg h1{font-size:clamp(2.4rem,5vw,4rem);max-width:15em;margin-top:20px}
+.ac{position:relative;color:var(--ac);white-space:nowrap}
+.ul{position:absolute;left:0;bottom:-.2em;width:100%;height:auto;overflow:visible}
+.ul path{fill:none;stroke:var(--ac);stroke-width:5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.1s .8s cubic-bezier(.6,0,.2,1) forwards}
+.ld{font-size:clamp(1.08rem,1.5vw,1.25rem);color:var(--mut);max-width:34em;margin:24px 0 0}
+.meta{margin:18px 0 0;font-size:14px;color:var(--mut)}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+.sc{max-width:1160px;margin:0 auto;padding:96px 24px 0}.sc h2{font-size:clamp(2.1rem,4.6vw,3.4rem);max-width:14em;margin-top:16px}
+.sb{color:var(--mut);font-size:1.12rem;max-width:34em;margin:18px 0 0}
+.todo{background:#fff3c4;color:#6b4e00;border-radius:4px;padding:0 .3em}
+.ft{max-width:1160px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;font-size:15px}
+.ft h5{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.ft a{display:block;padding:4px 0;color:var(--mut)}.ft a:hover{color:var(--ink)}.ft a.lg{display:flex;padding:0;color:var(--ink)}.ft a[aria-current]{color:var(--ink);font-weight:600}
+.ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
+.li{font-weight:600}.pg .li:hover{color:var(--ac)}.pg .btn .s{display:none}.pg [hidden]{display:none!important}
+@media(max-width:720px){.hd{gap:16px}.hd nav{display:none}.hd>.lg{margin-right:auto}.pg .btn .l{display:none}.pg .btn .s{display:inline}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.sc{padding-top:72px}}
+@media(hover:none){.rg,.gl{display:none}}
+@media(prefers-reduced-motion:reduce){.pg *{animation:none!important;transition:none!important}.ul path{stroke-dashoffset:0}.rg,.gl{display:none}}
+@keyframes up{from{opacity:0;transform:translateY(22px)}}@keyframes dr{to{stroke-dashoffset:0}}
+
+/* ---------- Contact page only ---------- */
+.ct{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;max-width:1160px;margin:0 auto;padding:8px 24px 96px;align-items:start}
+.cl{display:grid;gap:20px}
+.cd{background:var(--wh);border:1px solid var(--ln);border-radius:26px;padding:24px;transition:transform .3s,box-shadow .3s,border-color .3s}
+.cd:hover{transform:translateY(-4px);border-color:var(--ac);box-shadow:0 30px 50px -30px var(--ac)}
+.ci{display:flex;gap:18px;align-items:flex-start}
+.ic{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--ac) 10%,var(--wh));color:var(--ac)}
+.ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ci h3{font-size:1.25rem;letter-spacing:-.02em;margin:0 0 6px}
+.ci p{margin:0;color:var(--mut);font-size:15.5px}
+.pg .tl{display:inline-block;margin-top:10px;color:var(--ac);font-weight:600;overflow-wrap:anywhere}.pg .tl:hover{text-decoration:underline;text-underline-offset:3px}
+.fmc{background:var(--wh);border:1px solid var(--ln);border-radius:26px;padding:clamp(24px,3.5vw,36px)}
+.fmc h2{font-size:clamp(1.6rem,3vw,2.1rem);letter-spacing:-.02em}
+.fm{display:grid;gap:18px;margin-top:24px}
+.fm .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.fm label{display:block;margin-bottom:8px;font:600 14px var(--bf)}
+.fm input,.fm select,.fm textarea{display:block;width:100%;min-height:52px;padding:13px 16px;border:1.5px solid var(--ln);border-radius:14px;background:var(--wh);color:var(--ink);font:400 16px/1.4 var(--bf);transition:border-color .2s,box-shadow .2s}
+.fm textarea{min-height:160px;resize:vertical}
+.fm select{appearance:none;-webkit-appearance:none;padding-right:44px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23566178' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+.fm input:focus,.fm select:focus,.fm textarea:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 18%,transparent)}
+.fm .btn{width:100%}
+.fn{margin:0;font-size:14px;color:var(--mut)}.pg .fn a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:900px){.ct{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){.fm .row{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="css/spatial.css">
+</head>
+<body>
+<div class="pg" id="pg">
+<div class="gl" id="gl" style="opacity:0" aria-hidden="true"><i></i></div>
+<div class="rg" id="rg" style="opacity:0" aria-hidden="true"><i id="ri"></i></div>
+<header class="w hd">
+<a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a>
+<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+<div style="display:flex;gap:10px;align-items:center">
+  <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
+  <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
+</div>
+</header>
+<main id="main">
+<section class="hw"><div class="w hero">
+<p class="ey u">Contact</p>
+<h1 class="u" style="animation-delay:.08s">Got a question? <span class="ac">Just ask.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+<p class="ld u" style="animation-delay:.18s">Ask us anything about Cerium, your account, or billing. Send a message and we will write back.</p>
+</div></section>
+
+<section class="ct">
+<div class="cl">
+<!-- EDIT: change the email address here, and in the form below (the action="mailto:..." part) -->
+<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><div><h3>Email</h3><p>Best for questions about your account or billing.</p><a class="tl" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a></div></article>
+<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><div><h3>LinkedIn</h3><p>Connect with the founder.</p><a class="tl" href="https://www.linkedin.com/in/karthiktiitk/" target="_blank" rel="noopener">Karthik Thyagarajulu</a></div></article>
+<!-- EDIT: only keep this promise if you can keep it -->
+<article class="cd ci"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><div><h3>Reply time</h3><p>We usually reply within <span class="todo">2 business days</span>.</p></div></article>
+</div>
+
+<div class="fmc">
+<h2>Send a message</h2>
+<!-- This form opens the visitor's email app with the message ready. It does not need a server. -->
+<form class="fm" id="cf" action="mailto:cerium.founders@gmail.com" method="post" enctype="text/plain">
+<div class="row">
+<div><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+<div><label for="f-email">Your email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+</div>
+<div><label for="f-topic">Topic</label><select id="f-topic" name="topic"><option>Question about Cerium</option><option>Account or billing</option><option>Problem or bug</option><option>Idea or feedback</option><option>Privacy request</option><option>Something else</option></select></div>
+<div><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="6" maxlength="1500" required></textarea></div>
+<button class="btn" type="submit">Send message<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+<p class="fn">We only use your details to reply to you. Read our <a href="privacy.html">Privacy Policy</a>.</p>
+<p class="fn" id="fs" role="status" hidden></p>
+</form>
+</div>
+</section>
+</main>
+<footer class="ft">
+<div><a class="lg" href="index.html"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0c1729"/><path d="M8 21 22 9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="21" r="2.6" style="fill:var(--ac)"/><circle cx="22" cy="9" r="2.6" style="fill:var(--ac)"/></svg>CERIUM</a><p>The simple workspace for small business owners across the US.</p></div>
+<div><h5>Product</h5><a href="index.html#benefits">Benefits</a><a href="index.html#pricing">Pricing</a><a href="pricing.html">Pricing</a><a href="signup.html">Free Trial</a><a href="app.html">Workspace</a><a href="login.html">Log in</a></div>
+<div><h5>Company</h5><a href="about.html">About</a><a href="contact.html" aria-current="page">Contact</a></div>
+<div><h5>Legal</h5><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+<p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
+<p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
+</footer>
+</div>
+<script src="js/cursor.js"></script>
+<script src="js/contact.js"></script>
+<script type="module" src="js/waitlist-buttons.js"></script>
+<script src="js/nav-auth.js"></script>
+</body>
+</html>
