@@ -770,7 +770,9 @@
       sec.hidden = sec.id !== ('view-' + tabId);
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const contentPane = document.querySelector('.app-body');
+    if (contentPane) contentPane.scrollTop = 0;
+    window.scrollTo(0, 0);
   }
 
   function openModal(id) {
