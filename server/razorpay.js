@@ -39,5 +39,49 @@ export function makeRazorpay({ keyId, keySecret, webhookSecret, fetchImpl = fetc
     return safeEqual(String(signature || ''), expected);
   }
 
-  return { createOrder, verifyPayment, verifyWebhook };
+
+  async function call(method, endpoint, payload) {
+    const response = await fetchImpl('https://api.razorpay.com/v1/' + endpoint, {
+      method,
+      headers: { Authorization: auth, 'Content-Type': 'application/json' },
+      ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
+    });
+    if (!response.ok) throw new Error('Razorpay subscription request failed (' + response.status + ')');
+    return response.json();
+  }
+
+  function getPlan(planId) {
+    return call('GET', 'plans/' + encodeURIComponent(planId));
+  }
+
+  function createSubscription({ planId, startAt, totalCount = 120, notes = {} }) {
+    return call('POST', 'subscriptions', {
+      plan_id: planId,
+      total_count: totalCount,
+      quantity: 1,
+      customer_notify: true,
+      start_at: startAt,
+      notes,
+    });
+  }
+
+  function getSubscription(subscriptionId) {
+    return call('GET', 'subscriptions/' + encodeURIComponent(subscriptionId));
+  }
+
+  function cancelSubscription(subscriptionId, cancelAtCycleEnd = false) {
+    return call('POST', 'subscriptions/' + encodeURIComponent(subscriptionId) + '/cancel', {
+      cancel_at_cycle_end: cancelAtCycleEnd ? 1 : 0,
+    });
+  }
+
+  // For Razorpay recurring Checkout, the HMAC input is PAYMENT_ID|SUBSCRIPTION_ID,
+  // unlike one-time order checkout.
+  function verifySubscription({ subscriptionId, paymentId, signature }) {
+    if (!keySecret || !subscriptionId || !paymentId || !signature) return false;
+    const expected = createHmac('sha256', keySecret).update(paymentId + '|' + subscriptionId).digest('hex');
+    return safeEqual(String(signature), expected);
+  }
+
+  return { createOrder, verifyPayment, verifyWebhook, getPlan, createSubscription, getSubscription, cancelSubscription, verifySubscription };
 }
