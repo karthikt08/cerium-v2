@@ -221,6 +221,23 @@ export function openDb(file) {
     CREATE INDEX IF NOT EXISTS waitlist_email ON waitlist (email);
   `);
 
+  // Subscription records are persisted separately from one-time legacy payments.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS recurring_subscriptions (
+      subscription_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'created',
+      start_at INTEGER NOT NULL,
+      current_end INTEGER,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
+  `);
+  const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
+  const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+  const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
+  const subscriptionUpdate = db.prepare('UPDATE recurring_subscriptions SET status=?,current_end=? WHERE subscription_id=?');
+
   const q = {
     // Users
     insertUser: db.prepare(`
@@ -723,6 +740,7 @@ export function openDb(file) {
           trialDaysTotal: trialDaysTotal,
           trialDaysRemaining: trialDaysRemaining,
           planStatus: effectivePlanStatus,
+          subscription: this.getUserSubscription(userId) ? { status: this.getUserSubscription(userId).status, id: this.getUserSubscription(userId).subscription_id } : null,
           monthlyPrice: 20,
           bankConnected: Boolean(user.bank_connected),
           bankName: user.bank_name || '',
@@ -964,6 +982,26 @@ export function openDb(file) {
       });
       run();
       return { ok: true };
+    },
+
+    // ---------------------------------------------------------------- Recurring subscriptions
+    getSubscription(id) { return subscriptionFind.get(id) || null; },
+    getUserSubscription(userId) { return subscriptionForUser.get(userId) || null; },
+    createSubscription(userId, id, startAt) {
+      if (subscriptionFind.get(id)) return;
+      subscriptionInsert.run(id, userId, 'created', startAt, Date.now());
+    },
+    updateSubscription(id, status, currentEnd = null) {
+      const row = subscriptionFind.get(id);
+      if (!row) return false;
+      // Never grant access based on checkout callback alone; confirmed provider events determine status.
+      subscriptionUpdate.run(status, currentEnd, id);
+      if (status === 'active' || status === 'charged') {
+        q.setUserPlan.run('pro', 'active', id, currentEnd || Date.now() + 32 * 86400000, Date.now(), row.user_id);
+      } else if (['cancelled','halted','expired'].includes(status)) {
+        q.setUserPlan.run('expired', 'expired', id, currentEnd || Date.now(), Date.now(), row.user_id);
+      }
+      return true;
     },
 
     // ---------------------------------------------------------------- Payments & Billing
