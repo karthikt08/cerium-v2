@@ -45,3 +45,50 @@ export function formatUSPhone(value){
   if(digits.length!==10||/[a-z]/i.test(input))return input;
   return '('+digits.slice(0,3)+') '+digits.slice(3,6)+'-'+digits.slice(6);
 }
+
+
+function localParts(date,timeZone){
+  const formatter=new Intl.DateTimeFormat('en-US',{
+    timeZone,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23',
+  });
+  const parts=formatter.formatToParts(date);
+  const val=type=>parts.find(p=>p.type===type)?.value;
+  return val('year')+'-'+val('month')+'-'+val('day')+'T'+val('hour')+':'+val('minute');
+}
+export function businessLocalDateTime(timeZone,date=new Date()){
+  if(!timeZone||!validUsTimeZone(timeZone))
+    return [businessLocalDate('',date),
+      String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0')].join('T');
+  return localParts(date,timeZone);
+}
+// Map an explicit business wall-clock choice to a UTC instant. A spring-forward
+// gap matches no instants; a fall-back repeated hour matches two. Both should
+// prompt the owner to choose an unambiguous time, never silently guess.
+export function businessLocalToInstant(value,timeZone){
+  if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/.test(value))
+    throw new Error('Choose a valid reminder date and time.');
+  const base=Date.parse(value+':00Z');
+  if(!Number.isFinite(base)||new Date(base).toISOString().slice(0,16)!==value)
+    throw new Error('Choose a valid calendar date and time.');
+  if(!timeZone)return new Date(value).toISOString(); // existing device-local fallback
+  if(!validUsTimeZone(timeZone))throw new Error('Choose a valid business time zone in Settings.');
+  const formatter=new Intl.DateTimeFormat('en-US',{
+    timeZone,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23',
+  });
+  const match=instant=>{
+    const parts=formatter.formatToParts(instant);
+    const val=type=>parts.find(p=>p.type===type)?.value;
+    return val('year')+'-'+val('month')+'-'+val('day')+'T'+val('hour')+':'+val('minute');
+  };
+  const matches=[];
+  for(let minutes=-840;minutes<=840;minutes+=30){
+    const instant=base+minutes*60000;
+    if(match(new Date(instant))===value)matches.push(instant);
+    if(matches.length>1)break;
+  }
+  if(matches.length!==1)
+    throw new Error('This time is missing or repeated due to daylight saving time. Choose another business-local time.');
+  return new Date(matches[0]).toISOString();
+}
