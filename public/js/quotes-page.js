@@ -145,7 +145,9 @@ function editQuote(ws,id='',leadId=''){
   });
 }
 function convertDialog(quote,ws){
-  const date=businessLocalDate(ws.account?.timeZone,new Date(Date.now()+86400000));
+  const baseDay=businessLocalDate(ws.account?.timeZone);
+  // Advance the calendar date, not 24 elapsed hours, across DST changes.
+  const date=new Date(Date.parse(baseDay+'T12:00:00Z')+86400000).toISOString().slice(0,10);
   const crew=[{id:'',name:'Unassigned'},...(ws.crew||[]).filter(c=>c.active)];
   show(header('Turn approval into a job','Choose an appointment time. Billing items carry through to the future invoice.')+
     '<form data-quote-form="convert" data-quote-id="'+e(quote.id)+'"><div class="quotes-modal-body">'+
