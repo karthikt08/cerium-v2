@@ -74,7 +74,9 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       throw new JobsError('invalid_items','Add no more than 20 billing line items.');
     j.billableItems = j.billableItems.map(item => {
       if (!item || typeof item !== 'object' || Array.isArray(item)) throw new JobsError('invalid_items','Invalid billing line item.');
-      const description = text(item.description, 'Line item description', 180, true);
+      const description = typeof item.description === 'string' ? item.description.trim() : '';
+      if (!description || description.length > 180)
+        throw new JobsError('invalid_items','Line item description must contain 1–180 characters.');
       const qty = Number(item.qty), rate = Number(item.rate);
       if (!Number.isFinite(qty) || !Number.isFinite(rate) || qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
           Math.abs(qty * 100 - Math.round(qty * 100)) > 0.000001 || Math.abs(rate * 100 - Math.round(rate * 100)) > 0.000001)
