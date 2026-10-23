@@ -138,6 +138,7 @@ function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
   $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  if(singular[s])renderResults();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
       control.disabled=true;
@@ -145,7 +146,6 @@ function renderPage() {
       control.title='Trial ended — activate Cerium Pro to edit business records';
     });
   }
-  if(singular[s])renderResults();
 }
 function getRecord(kind,id) {return state.ws[kindKey[kind]]?.find(r=>String(r.id)===String(id));}
 function openRecord(kind,id) {
