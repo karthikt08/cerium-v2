@@ -7,6 +7,7 @@ import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
+import { validUsState, validUsZip, validUsTimeZone } from '../public/js/us-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -236,6 +237,14 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
+  // Non-destructive US profile migration. Preserve all historical invoices and currency.
+  const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
+  for(const [column,ddl] of [
+    ['us_state',"ALTER TABLE users ADD COLUMN us_state TEXT NOT NULL DEFAULT ''"],
+    ['us_zip',"ALTER TABLE users ADD COLUMN us_zip TEXT NOT NULL DEFAULT ''"],
+    ['time_zone',"ALTER TABLE users ADD COLUMN time_zone TEXT NOT NULL DEFAULT ''"],
+  ])if(!userColumns.has(column))db.exec(ddl);
+
   // Existing invoices retain their numbers and data. A nullable source job ID
   // lets one automatically generated invoice be linked to its origin.
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
@@ -278,6 +287,9 @@ export function openDb(file) {
         location = COALESCE(?, location),
         country = COALESCE(?, country),
         currency = COALESCE(?, currency),
+        us_state = COALESCE(?, us_state),
+        us_zip = COALESCE(?, us_zip),
+        time_zone = COALESCE(?, time_zone),
         google_place_url = COALESCE(?, google_place_url),
         updated_at = ?
       WHERE id = ?
@@ -604,7 +616,15 @@ export function openDb(file) {
       return q.getUserByResetToken.get(token) || null;
     },
 
-    updateUser(id, { name, businessName, trade, phone, location, country, currency, googlePlaceUrl }) {
+    updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl }) {
+      const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
+      if(country!==undefined&&country!=='US')invalid('CERIUM currently supports US businesses only.');
+      if(currency!==undefined&&currency!=='USD')invalid('CERIUM billing is USD-only. Existing non-USD data is not converted automatically.');
+      for(const [name,value,valid] of [
+        ['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone],
+      ])if(value!==undefined&&(typeof value!=='string'||!valid(value.trim())))
+        invalid('Enter a valid '+name+'.');
+      if(phone!==undefined&&(typeof phone!=='string'||phone.length>40))invalid('Phone number is too long.');
       const now = Date.now();
       q.updateUser.run(
         name !== undefined ? name.trim() : null,
@@ -614,6 +634,9 @@ export function openDb(file) {
         location !== undefined ? location.trim() : null,
         country !== undefined ? country.trim() : null,
         currency !== undefined ? currency.trim() : null,
+        usState !== undefined ? usState.trim() : null,
+        usZip !== undefined ? usZip.trim() : null,
+        timeZone !== undefined ? timeZone.trim() : null,
         googlePlaceUrl !== undefined ? googlePlaceUrl.trim() : null,
         now, id
       );
@@ -773,6 +796,9 @@ export function openDb(file) {
           location: user.location || '',
           country: user.country || 'US',
           currency: user.currency || 'USD',
+          usState: user.us_state || '',
+          usZip: user.us_zip || '',
+          timeZone: user.time_zone || '',
           googlePlaceUrl: user.google_place_url || '',
           trialStartedAt: user.trial_started_at,
           trialDaysTotal: trialDaysTotal,
