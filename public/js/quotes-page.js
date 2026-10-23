@@ -72,20 +72,21 @@ function updateTotal(form){
   const el=form.querySelector('[data-quote-total]');
   if(el)el.textContent=fmt(amount,handlers?.getWorkspace()?.account?.currency);
 }
-function editQuote(ws,id=''){
+function editQuote(ws,id='',leadId=''){
   const quote=(ws.quotes||[]).find(q=>q.id===id)||null;
   if(id&&!quote)return handlers.toast('Estimate not found.',true);
   const leads=[{id:'',name:'No linked lead'},...(ws.leads||[])];
+  const prefill=!quote?(ws.leads||[]).find(l=>l.id===leadId):null;
   show(header(quote?'Edit draft estimate':'New estimate',
     'Set the work, quantity and rate. Prices are locked once you create an approval link.')+
     '<form data-quote-form="edit" data-quote-id="'+e(id)+'">'+
     '<div class="quotes-modal-body"><div class="quotes-form-grid">'+
-    '<label>Linked lead<select name="leadId">'+leads.map(l=>'<option value="'+e(l.id)+'" '+(quote?.leadId===l.id?'selected':'')+'>'+e(l.name)+'</option>').join('')+'</select></label>'+
-    '<label>Customer name<input name="customerName" required maxlength="120" value="'+e(quote?.customerName)+'" placeholder="e.g. Taylor Properties"></label>'+
-    '<label>Email (optional)<input name="customerEmail" type="email" maxlength="254" value="'+e(quote?.customerEmail)+'"></label>'+
-    '<label>Phone (optional)<input name="customerPhone" maxlength="40" value="'+e(quote?.customerPhone)+'"></label>'+
+    '<label>Linked lead<select name="leadId">'+leads.map(l=>'<option value="'+e(l.id)+'" '+((quote?.leadId||leadId)===l.id?'selected':'')+'>'+e(l.name)+'</option>').join('')+'</select></label>'+
+    '<label>Customer name<input name="customerName" required maxlength="120" value="'+e(quote?.customerName||prefill?.name)+'" placeholder="e.g. Taylor Properties"></label>'+
+    '<label>Email (optional)<input name="customerEmail" type="email" maxlength="254" value="'+e(quote?.customerEmail||prefill?.email)+'"></label>'+
+    '<label>Phone (optional)<input name="customerPhone" maxlength="40" value="'+e(quote?.customerPhone||prefill?.phone)+'"></label>'+
     '<label class="quote-wide">Estimate title<input name="title" required maxlength="120" value="'+e(quote?.title)+'" placeholder="AC repair and parts"></label>'+
-    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address)+'"></label>'+
+    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address||prefill?.address)+'"></label>'+
     '<label class="quote-wide">Notes<textarea name="notes" maxlength="1200" rows="3" placeholder="Scope, exclusions, or assumptions">'+e(quote?.notes)+'</textarea></label>'+
     '</div><div class="quotes-items-head"><h3>Line items</h3><p>Labor, materials, visits, and other quoted costs.</p></div>'+
     '<div data-quote-items>'+((quote?.items?.length?quote.items:[{description:'Service labor',qty:1,rate:0}]).map(row).join(''))+'</div>'+
@@ -133,6 +134,10 @@ async function copyLink(url,toast){
 }
 export function initializeQuotesUI({API,refresh,getWorkspace,isReadOnly,toast}){
   handlers={API,refresh,getWorkspace,isReadOnly,toast};
+  document.addEventListener('cerium:new-quote',event=>{
+    if(isReadOnly())return toast('Your trial has ended. Estimates are read-only.',true);
+    const ws=getWorkspace();if(ws)editQuote(ws,'',event.detail?.leadId||'');
+  });
   document.addEventListener('click',async event=>{
     const button=event.target.closest('[data-quote-action]');if(!button)return;
     const action=button.dataset.quoteAction,id=button.dataset.quoteId;
