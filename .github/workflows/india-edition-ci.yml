@@ -1,0 +1,30 @@
+name: India edition checks
+on:
+  push:
+    branches: [feat/india-edition-gst]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check JavaScript syntax
+        run: |
+          node --check server/db.js
+          node --check server/app.js
+          node --check public/js/app.js
+          node --check public/js/india-market.js
+      - name: Execute full Node test suite
+        run: npm test
