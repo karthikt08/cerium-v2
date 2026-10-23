@@ -1,5 +1,6 @@
 // Estimates & Quotes — integrated with CERIUM's job scheduling and billing.
 import {escapeHTML as esc} from './workspace-model.js';
+import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
 let handlers=null;
 let working=false;
 const statuses={Draft:'draft',Sent:'sent',Accepted:'accepted',Declined:'declined',Converted:'converted'};
@@ -120,9 +121,9 @@ function editQuote(ws,id='',leadId=''){
     '<label>Linked lead<select name="leadId">'+leads.map(l=>'<option value="'+e(l.id)+'" '+((quote?.leadId||leadId)===l.id?'selected':'')+'>'+e(l.name)+'</option>').join('')+'</select></label>'+
     '<label>Customer name<input name="customerName" required maxlength="120" value="'+e(quote?.customerName||prefill?.name)+'" placeholder="e.g. Taylor Properties"></label>'+
     '<label>Email (optional)<input name="customerEmail" type="email" maxlength="254" value="'+e(quote?.customerEmail||prefill?.email)+'"></label>'+
-    '<label>Phone (optional)<input name="customerPhone" maxlength="40" value="'+e(quote?.customerPhone||prefill?.phone)+'"></label>'+
+    '<label>Phone (optional)<input name="customerPhone" maxlength="40" value="'+e(formatUSPhone(quote?.customerPhone||prefill?.phone))+'"></label>'+
     '<label class="quote-wide">Estimate title<input name="title" required maxlength="120" value="'+e(quote?.title)+'" placeholder="AC repair and parts"></label>'+
-    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address||prefill?.address)+'"></label>'+
+    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address||prefill?.address)+'" placeholder="Street, city, state, ZIP"></label>'+
     '<label class="quote-wide">Notes<textarea name="notes" maxlength="1200" rows="3" placeholder="Scope, exclusions, or assumptions">'+e(quote?.notes)+'</textarea></label>'+
     '</div><div class="quotes-items-head"><h3>Line items</h3><p>Labor, materials, visits, and other quoted costs.</p></div>'+
     '<div data-quote-items>'+((quote?.items?.length?quote.items:[{description:'Service labor',qty:1,rate:0}]).map(row).join(''))+'</div>'+
@@ -144,19 +145,18 @@ function editQuote(ws,id='',leadId=''){
   });
 }
 function convertDialog(quote,ws){
-  const d=new Date(Date.now()+86400000);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-  const date=d.toISOString().slice(0,10);
+  const date=businessLocalDate(ws.account?.timeZone,new Date(Date.now()+86400000));
   const crew=[{id:'',name:'Unassigned'},...(ws.crew||[]).filter(c=>c.active)];
   show(header('Turn approval into a job','Choose an appointment time. Billing items carry through to the future invoice.')+
     '<form data-quote-form="convert" data-quote-id="'+e(quote.id)+'"><div class="quotes-modal-body">'+
     '<div class="quotes-convert-summary"><strong>'+e(quote.title)+'</strong>'+
     '<span>'+e(quote.customerName)+' · '+e(fmt(quote.total,quote.currency||ws.account?.currency))+'</span></div>'+
     '<div class="quotes-form-grid">'+
-    '<label>Start time<input type="datetime-local" name="startAt" required value="'+date+'T09:00"></label>'+
-    '<label>End time<input type="datetime-local" name="endAt" required value="'+date+'T10:00"></label>'+
+    '<label>Start time (business local)<input type="datetime-local" name="startAt" required value="'+date+'T09:00"></label>'+
+    '<label>End time (business local)<input type="datetime-local" name="endAt" required value="'+date+'T10:00"></label>'+
     '<label class="quote-wide">Assigned crew<select name="workerId">'+crew.map(c=>
       '<option value="'+e(c.id)+'">'+e(c.name)+'</option>').join('')+'</select></label></div>'+
-    '<p class="quotes-subtle">The job starts in Scheduled status. Completing it later generates a draft invoice from these same line items.</p>'+
+    '<p class="quotes-subtle">Business time zone: '+e(US_TIME_ZONES[ws.account?.timeZone]||'Not set — using your browser clock')+'. The job starts in Scheduled status. Completing it creates a draft invoice with the approved items.</p>'+
     '<p class="quotes-error" hidden role="alert"></p></div>'+
     '<div class="quotes-modal-actions"><button class="button secondary" type="button" data-quote-action="close">Cancel</button>'+
     '<button class="button primary" type="submit">Create scheduled job</button></div></form>');
