@@ -1,6 +1,7 @@
 import API from './api.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
+import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
@@ -86,7 +87,7 @@ function overview() {
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',cash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',cash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+
     `<div class="dashboard-grid"><section class="panel">${panelHeader('followups','Today’s follow-ups',tasks.length?`${tasks.length} ${tasks.length===1?'customer needs':'customers need'} a check-in`:'Your next conversations, in one place',viewLink('followups'))}<div class="panel-body">${tasks.length?tasks.slice(0,4).map(taskRow).join(''):empty('You’re all caught up','Add a follow-up when a customer needs a call or message.',button('Add follow-up','new','data-kind="followup"','secondary'))}</div><div class="panel-footer"><span>${tasks.length>4?`Showing 4 of ${tasks.length} due`:'A small follow-up can make a big difference.'}</span>${button(icon('plus')+'Add','new','data-kind="followup"','secondary')}</div></section>`+
     `<section class="panel">${panelHeader('invoices','Awaiting payment','A clear view of what’s coming in',viewLink('invoices'))}<div class="panel-body">${invoices.length?invoices.slice(0,3).map(invoiceRow).join(''):empty('No outstanding invoices','Create your next invoice when a job is ready to bill.',button('Create invoice','new','data-kind="invoice"','secondary'))}</div><div class="panel-footer"><span>${invoices.length} open ${invoices.length===1?'invoice':'invoices'}</span><strong class="amount">${cash(m.outstanding)}</strong></div></section>`+
-    `<section class="panel">${panelHeader('leads','Your pipeline','From first inquiry to a finished job',viewLink('leads'))}<div class="pipeline-strip">${STAGES.map(s=>`<div class="stage-item"><div class="stage-line"></div><strong>${ws.leads.filter(l=>l.stage===s).length}</strong>${s}</div>`).join('')}</div><div class="panel-body">${leads.length?leads.map(l=>`<div class="task-row"><span class="mini-avatar">${esc(initials(l.name))}</span><div class="row-details"><span class="row-title">${esc(l.name)}</span><span class="row-meta">${esc(l.source)}${l.notes?' · '+esc(l.notes.slice(0,40)):''}</span></div>${badge(l.stage)}<button class="icon-button" data-action="edit" data-kind="lead" data-id="${esc(l.id)}" aria-label="Edit ${esc(l.name)}">${icon('chevron')}</button></div>`).join(''):empty('Make room for your next customer','Every inquiry starts with a new lead.')}</div></section>`+
+    `<section class="panel">${panelHeader('leads','Your pipeline','From first inquiry to a finished job',viewLink('leads'))}<div class="pipeline-strip">${STAGES.map(s=>`<div class="stage-item"><div class="stage-line"></div><strong>${ws.leads.filter(l=>l.stage===s).length}</strong>${s}</div>`).join('')}</div><div class="panel-body">${leads.length?leads.map(l=>`<div class="task-row"><span class="mini-avatar">${esc(initials(l.name))}</span><div class="row-details"><span class="row-title">${esc(l.name)}</span><span class="row-meta">${esc(l.source)}${l.notes?' · '+esc(l.notes.slice(0,40)):''}</span></div>${badge(l.stage)}<button class="text-button" data-action="new-quote" data-id="${esc(l.id)}" aria-label="Create quote for ${esc(l.name)}">Quote ↗</button><button class="icon-button" data-action="edit" data-kind="lead" data-id="${esc(l.id)}" aria-label="Edit ${esc(l.name)}">${icon('chevron')}</button></div>`).join(''):empty('Make room for your next customer','Every inquiry starts with a new lead.')}</div></section>`+
     `<section class="panel">${panelHeader('reviews','Close the loop','Keep your good work working for you',viewLink('reviews'))}<div class="panel-body">${reviews.length?reviews.map(r=>`<div class="task-row"><span class="mini-avatar lavender">${icon('reviews')}</span><div class="row-details"><span class="row-title">${esc(r.customerName)}</span><span class="row-meta">${esc(r.jobTitle)}</span></div>${badge(r.status==='Sent'?'Requested':r.status)}</div>`).join(''):empty('Good work deserves a good review','Track review requests after you finish a job.')}</div><div class="panel-footer"><span>${m.reviews} waiting for a request</span>${viewLink('reviews','Manage reviews')}</div></section></div><p class="page-note">${icon('check')}A little less admin. A little more room to work.</p>`;
 }
 function toolbar(kind) {
@@ -107,7 +108,7 @@ function renderResults() {
   if(kind==='leads'&&state.view==='board') {
     holder.innerHTML=`<div class="board" tabindex="0" aria-label="Scrollable lead board">${STAGES.map(stage=>`<div class="board-column"><div class="board-title">${stage}<span>${rows.filter(l=>l.stage===stage).length}</span></div>${rows.filter(l=>l.stage===stage).map(l=>`<article class="lead-card"><span class="row-title">${esc(l.name)}</span><span class="row-meta">${esc(l.source)}</span><div class="lead-card-bottom"><strong class="amount">${cash(l.value)}</strong><button class="icon-button" data-action="edit" data-kind="lead" data-id="${esc(l.id)}" aria-label="Edit ${esc(l.name)}">${icon('edit')}</button></div></article>`).join('')}</div>`).join('')}</div>`;
   } else if(kind==='leads') {
-    holder.innerHTML=table(['Customer','Source','Stage','Value','Next follow-up','Actions'],rows.map(l=>`<tr><td><div class="person">${esc(l.name)}</div><div class="subline">${esc(l.email||l.phone||l.address||'No contact details')}</div></td><td>${esc(l.source)}</td><td>${badge(l.stage)}</td><td class="amount">${cash(l.value)}</td><td>${dateLabel(l.nextFollowUp)}</td><td>${rowActions('lead',l.id,l.name)}</td></tr>`));
+    holder.innerHTML=table(['Customer','Source','Stage','Value','Next follow-up','Actions'],rows.map(l=>`<tr><td><div class="person">${esc(l.name)}</div><div class="subline">${esc(l.email||l.phone||l.address||'No contact details')}</div></td><td>${esc(l.source)}</td><td>${badge(l.stage)}</td><td class="amount">${cash(l.value)}</td><td>${dateLabel(l.nextFollowUp)}</td><td>${button('Quote ↗','new-quote',`data-id="${esc(l.id)}"`,'secondary')}${rowActions('lead',l.id,l.name)}</td></tr>`));
   } else if(kind==='followups') {
     holder.innerHTML=table(['Task','Customer','Due','Channel','Status','Actions'],rows.map(f=>`<tr><td><div class="person">${esc(f.task)}</div></td><td>${esc(f.contactName)}<div class="subline">${esc(f.phone)}</div></td><td>${dateLabel(f.dueDate)}</td><td>${esc(f.channel)}</td><td><button class="button secondary" data-action="toggle-followup" data-id="${esc(f.id)}">${f.done?icon('check')+'Done':'Mark done'}</button></td><td>${rowActions('followup',f.id,f.contactName)}</td></tr>`));
   } else if(kind==='invoices') {
@@ -139,7 +140,7 @@ function supportPage() {
 function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
   if(singular[s])renderResults();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
@@ -214,7 +215,12 @@ document.addEventListener('click',e=>{
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
   if(!state.ws)return;
-  if(readOnly() && ['new','edit','delete','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
+  if(readOnly() && ['new','edit','delete','new-quote','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
+  if(action==='new-quote'){
+    location.hash='#quotes';navigate('quotes');
+    document.dispatchEvent(new CustomEvent('cerium:new-quote',{detail:{leadId:id}}));
+    return;
+  }
   if(action==='new'||action==='edit'){openRecord(kind,action==='edit'?id:null);return;}
   if(action==='lead-view'){state.view=el.dataset.view;document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));renderResults();return;}
   if(action==='preview-invoice'){previewInvoice(id);return;}
@@ -284,4 +290,4 @@ async function initialize() {
   catch(err){setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
-$('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
+$('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
