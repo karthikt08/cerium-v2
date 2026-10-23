@@ -601,8 +601,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Bank matching API
   api.post('/bank/match', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     const { txId, action, targetInvoiceId } = req.body || {};
-    db.resolveBankMatch(req.session.userId, txId, action, targetInvoiceId);
-    res.json({ ok: true });
+    try { db.resolveBankMatch(req.session.userId, txId, action, targetInvoiceId);res.json({ ok: true }); }
+    catch(err) { scheduleError(res,err); }
   });
 
   api.post('/bank/sync', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
