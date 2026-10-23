@@ -40,3 +40,5 @@
 .quotes-convert-summary span,.quotes-subtle{font-size:12px;color:#7b8599}
 @media(max-width:850px){.quote-cards{grid-template-columns:1fr}.quotes-progress{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.quotes-summary{gap:7px}.quotes-summary>div{padding:12px}.quotes-summary strong{font-size:23px}.quotes-progress>span{padding:10px;font-size:11px}.quotes-modal-body,.quotes-modal-head,.quotes-modal-actions{padding-left:16px;padding-right:16px}.quotes-form-grid{grid-template-columns:1fr}.quote-item{grid-template-columns:minmax(0,1fr) 58px 76px 26px;gap:5px}.quote-item input{padding:8px 5px}.quotes-total-actions{align-items:flex-start}.quotes-dialog{width:100%;max-height:96vh}.quote-actions{gap:6px}}
+
+.quotes-share-label{display:grid;gap:10px;color:#576983;font-size:12px;font-weight:700}.quotes-share-label input{width:100%;min-width:0;padding:13px;border:1px solid #dadff0;border-radius:11px;background:#f7f7fc;color:#293856;font:inherit;font-size:12px;letter-spacing:.05px}
