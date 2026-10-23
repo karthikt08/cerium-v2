@@ -114,7 +114,15 @@ describe('every page works with a strict Content-Security-Policy', () => {
       for (const m of text.matchAll(/fetch\(\s*['"`]([^'"`]+)/g)) {
         assert.ok(m[1].startsWith('/'), `${path.basename(f)} calls ${m[1]}`);
       }
-      assert.doesNotMatch(text, /https?:\/\/(?!myaccount\.google\.com|localhost)/, `${path.basename(f)} mentions an outside address`);
+      const external = [...text.matchAll(/https?:\/\/[^'"`\s]+/g)].map(m => m[0]);
+      for (const url of external) {
+        const allowed = ['https://myaccount.google.com', 'http://localhost', 'https://checkout.razorpay.com/v1/checkout.js'];
+        assert.ok(allowed.some(origin => url.startsWith(origin)), `${path.basename(f)} mentions an unapproved outside address: ${url}`);
+        if (url.startsWith('https://checkout.razorpay.com')) {
+          assert.equal(path.basename(f), 'billing.js', 'only the checkout integration may reference the provider script');
+          assert.equal(url, 'https://checkout.razorpay.com/v1/checkout.js');
+        }
+      }
     }
   });
 });
