@@ -7,7 +7,7 @@ import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
-import { validUsState, validUsZip, validUsTimeZone } from '../public/js/us-market.js';
+import { validUsState, validUsZip, validUsTimeZone, businessLocalDate } from '../public/js/us-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -485,12 +485,16 @@ export function openDb(file) {
     ping: db.prepare('SELECT 1 AS ok'),
   };
 
+  // Business-facing days follow the US service location, not the Oracle VM clock.
+  // Keep trial/billing timestamps in their existing UTC semantics.
+  const userBusinessToday=userId=>businessLocalDate(q.getUserById.get(userId)?.time_zone);
+
   // Called inside the Jobs SQLite transaction, only when a job first becomes
   // Completed. Either job completion and invoice draft both commit, or neither.
   // The unique index is a second defense against duplicate draft invoices.
   function generateJobDraft(userId, job) {
     if (q.getInvoiceForJob.get(userId, job.id)) return;
-    const today = todayStr();
+    const today = userBusinessToday(userId);
     const items = job.billableItems.length
       ? job.billableItems
       : [{description: job.title, qty: 1, rate: 0}];
@@ -675,6 +679,7 @@ export function openDb(file) {
       if (!user) return null;
 
       const today = todayStr();
+      const businessToday=businessLocalDate(user.time_zone);
       const usedDays = Math.max(0, daysBetween(user.trial_started_at || today, today));
       const trialDaysTotal = user.trial_days_total || 15;
       const trialDaysRemaining = Math.max(0, trialDaysTotal - usedDays);
@@ -732,7 +737,7 @@ export function openDb(file) {
         let items = [];
         try { items = JSON.parse(i.items_json); } catch { items = []; }
         let status = i.status;
-        if (status === 'Sent' && i.due_date && i.due_date < today) status = 'Overdue';
+        if (status === 'Sent' && i.due_date && i.due_date < businessToday) status = 'Overdue';
         return {
           id: i.id,
           customerName: i.customer_name,
@@ -829,7 +834,7 @@ export function openDb(file) {
     ...quotesStore,
 
     createLead(userId, payload) {
-      const today = todayStr();
+      const today = userBusinessToday(userId);
       const id = 'LD-' + randomBytes(4).toString('hex');
       const lead = {
         id,
@@ -864,7 +869,7 @@ export function openDb(file) {
     updateLead(userId, leadId, updates) {
       const previous = q.getLead.get(leadId, userId);
       if (!previous) return { ok: true };
-      const now = todayStr();
+      const now = userBusinessToday(userId);
       q.updateLead.run(
         updates.name, updates.phone, updates.email, updates.address, updates.source,
         updates.stage, updates.value, updates.nextFollowUp, updates.notes,
@@ -891,10 +896,10 @@ export function openDb(file) {
         phone: (payload.phone || '').trim(),
         channel: payload.channel || 'Call',
         task: (payload.task || '').trim(),
-        dueDate: payload.dueDate || todayStr(),
+        dueDate: payload.dueDate || userBusinessToday(userId),
         done: false,
       };
-      q.insertFollowUp.run(fu.id, userId, fu.leadId, fu.contactName, fu.phone, fu.channel, fu.task, fu.dueDate, 0, todayStr());
+      q.insertFollowUp.run(fu.id, userId, fu.leadId, fu.contactName, fu.phone, fu.channel, fu.task, fu.dueDate, 0, userBusinessToday(userId));
       return fu;
     },
 
@@ -914,7 +919,7 @@ export function openDb(file) {
     },
 
     createInvoice(userId, payload) {
-      const today = todayStr();
+      const today = userBusinessToday(userId);
       const terms = payload.terms || 'Net 15';
       const items = payload.items && payload.items.length ? payload.items : [
         { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: Number(payload.amount) || 0 },
@@ -975,12 +980,12 @@ export function openDb(file) {
       items = this.validateInvoiceItems(items);
       const total = Math.round(items.reduce((s, it) => s + it.qty * it.rate, 0) * 100) / 100;
       const terms = p.terms || inv.terms;
-      const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || todayStr(), termsToDays(terms)) : inv.due_date);
+      const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
       if (inv.job_id && status !== 'Draft' && total <= 0) {
         throw Object.assign(new Error('Enter and save a positive invoice amount before marking this job invoice as sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
-      const paidAt = status === 'Paid' ? (inv.paid_at || todayStr()) : null;
+      const paidAt = status === 'Paid' ? (inv.paid_at || userBusinessToday(userId)) : null;
 
       q.updateInvoice.run(
         p.customerName, p.customerEmail, p.customerAddress, p.jobTitle,
@@ -996,7 +1001,7 @@ export function openDb(file) {
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
         throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
-      const paidAt = status === 'Paid' ? todayStr() : null;
+      const paidAt = status === 'Paid' ? userBusinessToday(userId) : null;
       q.updateInvoiceStatus.run(status, paidAt, String(id), userId);
       return { ok: true };
     },
@@ -1017,7 +1022,7 @@ export function openDb(file) {
       if (action === 'confirm') {
         q.resolveBankMatch.run('matched', targetInvoiceId || null, targetInvoiceId || null, txId, userId);
         if (targetInvoiceId) {
-          q.updateInvoiceStatus.run('Paid', todayStr(), String(targetInvoiceId), userId);
+          q.updateInvoiceStatus.run('Paid', userBusinessToday(userId), String(targetInvoiceId), userId);
         }
       } else {
         q.resolveBankMatch.run('dismissed', null, null, txId, userId);
