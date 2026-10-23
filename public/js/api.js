@@ -163,6 +163,13 @@ export const CeriumAPI = {
     return request('/api/workspace', { method: 'GET' });
   },
 
+  async createQuote(payload){return request('/api/quotes',{method:'POST',body:JSON.stringify(payload)});},
+  async updateQuote(id,payload){return request('/api/quotes/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(payload)});},
+  async sendQuote(id){return request('/api/quotes/'+encodeURIComponent(id)+'/send',{method:'POST'});},
+  async quoteLink(id){return request('/api/quotes/'+encodeURIComponent(id)+'/link',{method:'GET'});},
+  async convertQuote(id,payload){return request('/api/quotes/'+encodeURIComponent(id)+'/convert',{method:'POST',body:JSON.stringify(payload)});},
+  async deleteQuote(id){return request('/api/quotes/'+encodeURIComponent(id),{method:'DELETE'});},
+
   async createReminder(payload) {return request('/api/reminders',{method:'POST',body:JSON.stringify(payload)});},
   async cancelReminder(id) {return request('/api/reminders/'+encodeURIComponent(id),{method:'DELETE'});},
 
