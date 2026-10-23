@@ -116,6 +116,43 @@ test('US profile migrations are additive and idempotent on persistent SQLite',()
   }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });
 
+test('legacy workspaces with no financial history switch to dollars on database reopen',()=>{
+  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-currency-'));
+  const file=path.join(folder,'workspace.db');
+  try{
+    let db=openDb(file);
+    let safe, invoiceOwner, quoteOwner, leadOwner;
+    try{
+      safe=db.createUser({email:'empty-currency@example.com',name:'Empty Demo'});
+      invoiceOwner=db.createUser({email:'with-invoice@example.com',name:'Has Invoice'});
+      quoteOwner=db.createUser({email:'with-quote@example.com',name:'Has Quote'});
+      leadOwner=db.createUser({email:'with-valued-lead@example.com',name:'Has Lead'});
+      // Test realistic pre-existing INR flags and records before reopening.
+      const markLegacy=db.rawDb.prepare('UPDATE users SET currency=? WHERE id=?');
+      for(const u of [safe,invoiceOwner,quoteOwner,leadOwner])markLegacy.run('INR',u.id);
+      db.createLead(safe.id,{name:'Unpriced test lead',value:0});
+      db.createInvoice(invoiceOwner.id,{customerName:'Customer',jobTitle:'Repairs',amount:250,status:'Draft'});
+      db.createQuote(quoteOwner.id,{
+        customerName:'Customer',title:'Service quote',
+        items:[{description:'Repairs',qty:1,rate:1000}],
+      });
+      db.createLead(leadOwner.id,{name:'Priced lead',value:900});
+      assert.equal(db.getWorkspace(safe.id).account.currency,'INR');
+    }finally{db.close();}
+    db=openDb(file);
+    try{
+      assert.equal(db.getWorkspace(safe.id).account.currency,'USD');
+      assert.equal(db.getWorkspace(safe.id).leads.length,1);
+      assert.equal(db.getWorkspace(invoiceOwner.id).account.currency,'INR');
+      assert.equal(db.getWorkspace(invoiceOwner.id).invoices[0].total,250);
+      assert.equal(db.getWorkspace(quoteOwner.id).account.currency,'INR');
+      assert.equal(db.getWorkspace(quoteOwner.id).quotes[0].total,1000);
+      assert.equal(db.getWorkspace(leadOwner.id).account.currency,'INR');
+      assert.equal(db.getWorkspace(leadOwner.id).leads[0].value,900);
+    }finally{db.close();}
+  }finally{fs.rmSync(folder,{recursive:true,force:true});}
+});
+
 test('US-only page positioning and invoice presentation are present without relabeling historic currency',()=>{
   const landing=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
   const app=fs.readFileSync(new URL('../public/js/app.js',import.meta.url),'utf8');
@@ -127,5 +164,7 @@ test('US-only page positioning and invoice presentation are present without rela
   assert.match(app,/ZIP code/);
   assert.match(app,/Business time zone/);
   assert.match(app,/const usAddress=/);
-  assert.match(app,/legacy non-USD/);
+  assert.match(app,/Existing records are denominated/);
+  assert.match(app,/dashboardCash\(m.outstanding\)/);
+  assert.match(app,/dashboardCash\(m.overdue\)/);
 });
