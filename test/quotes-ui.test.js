@@ -56,7 +56,7 @@ test('estimate cards have exactly one primary next-step action and delete is und
 test('quotes have mobile-sized form actions and the More menu is keyboard focusable',()=>{
   const css=read('css/quotes.css');
   assert.match(css,/\.quote-action-group\{display:grid/);
-  assert.match(css,/\.quote-more summary\{display:flex/);
+  assert.match(css,/\.quote-more summary\{display:grid;place-items:center/);
   assert.match(css,/\.quotes-modal-actions\{position:sticky/);
   assert.match(css,/@media\(max-width:520px\)/);
   assert.match(css,/\.quote-item label:first-child\{grid-column:1 \/ -1\}/);
