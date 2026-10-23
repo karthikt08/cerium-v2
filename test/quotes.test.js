@@ -47,7 +47,8 @@ test('quote lifecycle: linked lead → shareable estimate → customer approves 
   const address=new URL(share.data.url);
   const path=address.pathname+address.search;
   const token=address.searchParams.get('token');
-  const publicResponse=await bob.req(path);
+  const visitor=t.browser(); // no customer account or login required
+  const publicResponse=await visitor.req(path);
   assert.equal(publicResponse.status,200);
   const html=await publicResponse.text();
   assert.match(html,/AC repair and compressor parts/);
@@ -55,7 +56,7 @@ test('quote lifecycle: linked lead → shareable estimate → customer approves 
   assert.match(html,/240/);
   assert.match(publicResponse.headers.get('x-robots-tag'),/noindex/);
 
-  const accept=await bob.req('/quote/'+created.data.id+'/respond',{method:'POST',form:{token,decision:'Accepted'}});
+  const accept=await visitor.req('/quote/'+created.data.id+'/respond',{method:'POST',form:{token,decision:'Accepted'}});
   assert.equal(accept.status,200);
   assert.match(await accept.text(),/Estimate accepted/);
   assert.equal((await A('/api/workspace')).data.quotes[0].status,'Accepted');
