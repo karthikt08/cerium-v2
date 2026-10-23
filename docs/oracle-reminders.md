@@ -13,6 +13,10 @@ and configures live email delivery. Disabled is the default.
   sent/skipped/cancelled/review statuses, indexed due times and opt-out suppression.
 - Safety: paid/draft/deleted invoices, recipient changes, or expired plans stop
   delivery. Interrupted/ambiguous SMTP sends become Needs review; no blind retry.
+
+- Worker safety caps: at most 50 delivery attempts per UTC day and 1,500 per
+  calendar month across all workspaces. These are conservative software caps,
+  NOT a promise your OCI tenancy is allowed to send that much.
 - Emails contain recipient-scoped signed unsubscribe links. Keep SESSION_SECRET
   stable across web and worker or previous links will stop working.
 - Only one scheduled reminder per invoice for this MVP.
