@@ -20,7 +20,8 @@ describe('pages and safety headers', () => {
     const r = await t.browser().req('/');
     assert.equal(r.status, 200);
     const csp = r.headers.get('content-security-policy');
-    assert.match(csp, /script-src 'self'(;|$)/); // no inline scripts allowed
+    assert.match(csp, /script-src 'self' https:\/\/checkout\.razorpay\.com(;|$)/); // only our scripts plus the checkout provider
+    assert.doesNotMatch(csp, /'unsafe-inline'|'unsafe-eval'/);
     assert.match(csp, /frame-ancestors 'none'/);
     assert.match(csp, /object-src 'none'/);
     assert.match(csp, /form-action 'self' https:\/\/accounts\.google\.com/);
@@ -173,7 +174,7 @@ describe('Google sign-in flow', () => {
     const b = t.browser();
     const flow = await signIn(t, b, { intent: 'join', business: 'Plumbing', profile: ALICE });
     assert.equal(flow.cb.status, 303);
-    assert.equal(flow.cb.headers.get('location'), '/app.html');
+    assert.equal(flow.cb.headers.get('location'), '/app.html#settings');
     const session = readSetCookie(flow.cb, t.config.sessionCookie);
     assert.match(session, /HttpOnly/i);
     assert.match(session, /SameSite=Lax/i);
