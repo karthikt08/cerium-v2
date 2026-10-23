@@ -1,0 +1,51 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {startServer,signIn,ALICE,BOB} from './helpers.js';
+
+test('jobs: schedule, dispatch, conflicts, tenant isolation, expiry, exports and deletion',async()=>{
+  const t=await startServer();
+  try {
+    const a=t.browser(),b=t.browser();
+    await signIn(t,a,{profile:ALICE});await signIn(t,b,{profile:BOB});
+    const ac=(await a.me()).csrfToken,bc=(await b.me()).csrfToken;
+    const A=async(path,method='GET',json)=>{const r=await a.req(path,{method,json,csrf:ac});return {status:r.status,data:await r.json()};};
+    const B=async(path,method='GET',json)=>{const r=await b.req(path,{method,json,csrf:bc});return {status:r.status,data:await r.json()};};
+    const crew=await A('/api/crew','POST',{name:'Sam Technician',role:'HVAC'});
+    assert.equal(crew.status,201);
+    assert.equal((await B('/api/workspace')).data.crew.length,0);
+    assert.equal((await B('/api/jobs','POST',{title:'Wrong',customerName:'Other',startAt:'2026-11-01T10:00',endAt:'2026-11-01T11:00',workerId:crew.data.id})).status,400);
+    const p={title:'Repair AC',customerName:'Taylor',workerId:crew.data.id,startAt:'2026-11-01T09:00',endAt:'2026-11-01T10:30'};
+    const job=await A('/api/jobs','POST',p);
+    assert.equal(job.status,201);
+    assert.equal(job.data.status,'Scheduled');
+    assert.equal((await A('/api/jobs','POST',{...p,startAt:'2026-11-01T10:00',endAt:'2026-11-01T11:00'})).status,409);
+    const adjacent=await A('/api/jobs','POST',{...p,startAt:'2026-11-01T10:30',endAt:'2026-11-01T11:00'});
+    assert.equal(adjacent.status,201);
+    assert.equal((await A('/api/jobs','POST',{...p,startAt:'2026-02-30T10:00',endAt:'2026-02-30T11:00'})).status,400);
+    assert.equal((await A('/api/jobs','POST',{...p,endAt:'2026-11-01T08:00'})).status,400);
+    assert.equal((await A('/api/jobs','POST',{...p,leadId:'somebody-elses-lead'})).status,400);
+    assert.equal((await B('/api/jobs/'+job.data.id,'PATCH',{title:'Stolen'})).status,404);
+    assert.equal((await B('/api/jobs/'+job.data.id,'DELETE')).status,404);
+    assert.equal((await B('/api/workspace')).data.jobs.length,0);
+    assert.equal((await A('/api/crew/'+crew.data.id,'DELETE')).status,409);
+    const done=await A('/api/jobs/'+job.data.id,'PATCH',{status:'Completed'});
+    assert.equal(done.status,200);
+    assert.equal(done.data.status,'Completed');
+    assert.equal((await A('/api/jobs/'+adjacent.data.id,'PATCH',{status:'Cancelled'})).status,200);
+    assert.equal((await A('/api/crew/'+crew.data.id,'DELETE')).status,200);
+    assert.equal((await A('/api/workspace')).data.crew[0].active,false);
+    assert.equal((await A('/api/jobs','POST',{...p,startAt:'2026-11-01T12:00',endAt:'2026-11-01T13:00'})).status,400);
+    const before=(await A('/api/me/export')).data;
+    assert.equal(before.workspace.jobs.length,2);
+    const user=(await a.me()).user;
+    t.db.setUserPlan(user.id,{plan:'expired',planStatus:'expired'});
+    assert.equal((await A('/api/jobs','POST',p)).status,403);
+    assert.equal((await A('/api/jobs/'+job.data.id,'PATCH',{status:'Cancelled'})).status,403);
+    assert.equal((await A('/api/crew','POST',{name:'New'})).status,403);
+    assert.equal((await A('/api/crew/'+crew.data.id,'DELETE')).status,403);
+    assert.equal((await A('/api/workspace')).data.jobs.length,2);
+    assert.equal((await A('/api/me/data','DELETE')).status,200);
+    assert.equal((await A('/api/workspace')).data.jobs.length,0);
+    assert.equal((await A('/api/workspace')).data.crew.length,0);
+  } finally {await t.close();}
+});
