@@ -149,12 +149,7 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
     if(action==='invoice'){
       el.closest('dialog')?.close();
       const id=el.dataset.invoiceId;
-      location.hash='#invoices';
-      requestAnimationFrame(()=>{
-        document.querySelectorAll('[data-action="preview-invoice"]').forEach(button=>{
-          if(button.dataset.id===id)button.click();
-        });
-      });
+      document.dispatchEvent(new CustomEvent('cerium:open-invoice',{detail:{id}}));
       return;
     }
     if(action==='add-item'){
