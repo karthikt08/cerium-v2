@@ -9,6 +9,7 @@ import { GOOD_SECRET, FAKE_CLIENT_ID, FAKE_CLIENT_SECRET } from './helpers.js';
 
 const PROD = {
   NODE_ENV: 'production',
+  GEOIP_API_KEY: 'region-testing-key-123456',
   BASE_URL: 'https://cerium.test',
   GOOGLE_CLIENT_ID: FAKE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: FAKE_CLIENT_SECRET,
