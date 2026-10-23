@@ -187,6 +187,9 @@ export function createQuotesStore(db,{jobsStore}){
         const row=ownerQuote(userId,id);
         if(row.status!=='Accepted'||row.job_id)
           throw new QuoteError('quote_not_accepted','Only an accepted, unconverted estimate can become a job.',409);
+        const currency=db.prepare('SELECT currency FROM users WHERE id=?').get(userId)?.currency;
+        if(currency!==row.currency)
+          throw new QuoteError('currency_changed','The business currency changed since this estimate was issued. Restore the original currency before converting.',409);
         if(!p||typeof p!=='object'||Array.isArray(p))
           throw new QuoteError('invalid_schedule','Enter job schedule details.');
         const job=jobsStore.createJob(userId,{
