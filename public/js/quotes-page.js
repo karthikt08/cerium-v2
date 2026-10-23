@@ -38,15 +38,18 @@ const quoteRow=(quote,currency,ro)=>{
       nextStep='Customer declined · no job was created';
       break;
   }
+  // Keep the destructive action accessible, but out of the main CTA row.
   const more=!ro?
-    '<details class="quote-more"><summary aria-label="More actions for '+e(quote.title)+'">'+
-    'More <span aria-hidden="true">···</span></summary>'+
-    '<div class="quote-more-menu"><button type="button" class="quote-delete" data-quote-action="delete" '+
+    '<details class="quote-more"><summary title="More estimate options" aria-label="More actions for '+e(quote.title)+'">'+
+    '<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">'+
+    '<circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>'+
+    '</summary><div class="quote-more-menu"><button type="button" class="quote-delete" data-quote-action="delete" '+
     'data-quote-id="'+id+'">Delete estimate</button></div></details>':'';
   return '<article class="quote-card"><div class="quote-card-main"><div class="quote-card-top">'+
-    '<span class="quote-number">ESTIMATE / '+e(quote.id.slice(0,8).toUpperCase())+'</span>'+
-    '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+
-    e(quote.status==='Sent'?'Link ready':quote.status)+'</span></div>'+
+    '<span class="quote-number" title="Estimate ID: '+id+'">Estimate <span class="quote-short-id">#'+
+    e(quote.id.slice(0,6).toUpperCase())+'</span></span>'+
+    '<div class="quote-card-head-actions"><span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+
+    e(quote.status==='Sent'?'Link ready':quote.status)+'</span>'+more+'</div></div>'+
     '<h3>'+e(quote.title)+'</h3><p>'+e(quote.customerName)+
     (quote.customerEmail?' · '+e(quote.customerEmail):'')+'</p>'+
     '<div class="quote-card-bottom"><strong>'+e(fmt(quote.total,quote.currency||currency))+'</strong>'+
@@ -56,7 +59,7 @@ const quoteRow=(quote,currency,ro)=>{
       '<div class="quote-action-group">'+
         (primary||'<span class="quote-complete-label">No further action required</span>')+
         (secondary||'')+
-      '</div>'+more+'</div>')+
+      '</div></div>')+
     '</article>';
 };
 
