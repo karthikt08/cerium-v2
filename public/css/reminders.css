@@ -1,0 +1,22 @@
+/* CERIUM payment reminders */
+.reminders-view{display:grid;gap:20px}.reminders-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.reminders-stats>div{border:1px solid #e3e8f1;border-radius:14px;background:#fff;padding:16px 19px;display:grid;gap:3px}
+.reminders-stats strong{font-size:29px;letter-spacing:-1px;color:#233a5c}.reminders-stats span{color:#8190a4;font-size:12px;font-weight:700}
+.reminders-columns{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(340px,1.1fr);gap:20px;align-items:start}
+.reminders-heading{padding:20px 23px;border-bottom:1px solid #e6eaf1}.reminders-heading h2{margin:0 0 5px;font-size:17px;letter-spacing:-.4px}
+.reminders-heading p{color:#7e8da3;font-size:12px;line-height:1.5}
+.reminders-form{padding:20px 23px;display:grid;gap:18px}.reminders-form>label:not(.reminders-check){font-size:12px;font-weight:700;color:#465873;display:grid;gap:7px}
+.reminders-form select,.reminders-form input[type=datetime-local]{width:100%;min-width:0;border:1px solid #dce4ef;background:#fbfcff;color:#1f304c;padding:12px;border-radius:10px;font-size:13px}
+.reminders-check{display:flex;align-items:flex-start;gap:11px;color:#495c78;font-size:12px;line-height:1.5}
+.reminders-check input{margin-top:3px;flex:0 0 auto;accent-color:#536ecb}
+.reminders-info{font-size:12px;color:#77859b;line-height:1.55;padding:12px 16px}
+.reminders-error{color:#ac3041;font-size:12px;background:#fff1f3;padding:10px;border-radius:9px}
+.reminders-error[hidden]{display:none}.reminders-list{display:grid}
+.reminder-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #edf1f7}
+.reminder-row:last-child{border-bottom:0}.reminder-row>div:first-child{min-width:0;display:grid;gap:4px}
+.reminder-row strong{font-size:13px}.reminder-row span,.reminder-row small{font-size:11px;color:#8190a6;overflow-wrap:anywhere}
+.reminder-row-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.reminder-status{background:#eef2fb!important;color:#50648c!important;padding:6px 11px;border-radius:20px;font-weight:750}
+.reminders-error-text{color:#a5454c!important}.reminders-row-actions .button{font-size:12px}
+@media(max-width:900px){.reminders-columns{grid-template-columns:1fr}}
+@media(max-width:620px){.reminders-stats{gap:8px}.reminders-stats>div{padding:13px}.reminders-stats strong{font-size:23px}.reminder-row{flex-wrap:wrap}}

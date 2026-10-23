@@ -1,0 +1,6 @@
+# Replace the domain before enabling. Requires DNS pointed at the VM and
+# inbound TCP 80/443 allowed by both OCI security rules and the VM firewall.
+your-domain.example {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3000
+}

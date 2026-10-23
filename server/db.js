@@ -5,6 +5,7 @@
 
 import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
+import { createReminderStore } from './reminders.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -240,6 +241,7 @@ export function openDb(file) {
   if (!invoiceColumns.has('job_id')) db.exec('ALTER TABLE invoices ADD COLUMN job_id TEXT');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
+  const reminders = createReminderStore(db);
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
@@ -788,10 +790,13 @@ export function openDb(file) {
         messages,
         jobs: jobsStore.listJobs(userId).map(j => ({...j, invoiceId: invoices.find(i => i.jobId === j.id)?.id || null})),
         crew: jobsStore.listCrew(userId),
+        reminders: reminders.listReminders(userId),
+        reminderOptouts: reminders.listEmailOptouts(userId),
       };
     },
 
     ...jobsStore,
+    ...reminders,
 
     createLead(userId, payload) {
       const today = todayStr();
@@ -1052,6 +1057,7 @@ export function openDb(file) {
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
+        reminders.clearReminderData(userId);
       });
       run();
       return { ok: true };
@@ -1151,6 +1157,7 @@ export function openDb(file) {
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
+        reminders.clearReminderData(userId);
 
         const member = q.deleteMember.run(sub).changes;
         const sessions = q.deleteSessionsForUser.run(userId).changes + (sub ? q.deleteSessionsForSub.run(sub).changes : 0);

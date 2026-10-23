@@ -11,6 +11,7 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
+import {verifyOptOut} from './reminders.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -156,6 +157,24 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
+
+  // Token-gated unsubscribe endpoint. Opening an email does NOT mutate settings;
+  // the recipient must confirm by POST. No sign-in required for the recipient.
+  app.get('/unsubscribe', (req,res) => {
+    const token=typeof req.query.token==='string'?req.query.token:'';
+    if(!verifyOptOut(token,config.sessionSecret))return res.status(400).type('text/plain').send('Invalid unsubscribe link.');
+    res.set('Cache-Control','no-store');
+    res.set('Referrer-Policy','no-referrer');
+    res.type('html').send('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stop CERIUM reminders</title><main><h1>Stop payment reminders?</h1><p>Confirm to stop automated invoice reminders from this business.</p><form method="post" action="/unsubscribe"><input type="hidden" name="token" value="'+token+'"><button type="submit">Stop reminders</button></form></main></html>');
+  });
+  app.post('/unsubscribe', authLimiter, (req,res) => {
+    const token=typeof req.body?.token==='string'?req.body.token:'';
+    const decoded=verifyOptOut(token,config.sessionSecret);
+    if(!decoded)return res.status(400).type('text/plain').send('Invalid unsubscribe link.');
+    db.optOut(decoded.userId,decoded.email);
+    res.set('Cache-Control','no-store');
+    res.type('html').send('<!doctype html><html lang="en"><meta charset="utf-8"><title>Unsubscribed</title><main><h1>You are unsubscribed.</h1><p>This business will not send you more CERIUM payment reminders.</p></main></html>');
+  });
 
   // ------------------------------------------------------------ Protected Workspace Routing
   // Unauthenticated users attempting to access workspace pages are redirected to login with returnTo preserved
@@ -501,7 +520,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -537,6 +556,16 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   });
   api.delete('/jobs/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
     try { res.json(db.deleteJob(req.session.userId,req.params.id)); }
+    catch(err) { scheduleError(res,err); }
+  });
+
+  // Owner-approved automated invoice payment reminders.
+  api.post('/reminders', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.status(201).json(db.createReminder(req.session.userId,req.body)); }
+    catch(err) { scheduleError(res,err); }
+  });
+  api.delete('/reminders/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.json(db.cancelReminder(req.session.userId,req.params.id)); }
     catch(err) { scheduleError(res,err); }
   });
 
