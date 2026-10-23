@@ -100,6 +100,38 @@ test('US edition does not silently relabel legacy invoice amounts or historical 
 });
 
 
+
+test('legacy account financial writes are rejected while reads and data export still work',async()=>{
+  const t=await startServer();
+  try{
+    const browser=t.browser();await signIn(t,browser,{profile:ALICE});
+    const me=await browser.me(),userId=me.user.id;
+    t.db.createInvoice(userId,{customerName:'Prior Customer',jobTitle:'Old work',amount:1000,status:'Draft'});
+    t.db.rawDb.prepare("UPDATE users SET currency='INR' WHERE id=?").run(userId);
+    const req=async(route,method='GET',json)=>{
+      const r=await browser.req(route,{method,json,csrf:me.csrfToken});
+      return {status:r.status,data:await r.json()};
+    };
+    const old=await req('/api/workspace');
+    assert.equal(old.status,200);
+    assert.equal(old.data.account.currency,'INR');
+    assert.equal(old.data.invoices[0].total,1000);
+    const exportResult=await req('/api/me/export');
+    assert.equal(exportResult.status,200);
+    for(const [url,payload] of [
+      ['/api/invoices',{customerName:'Do not add',jobTitle:'Test',amount:300}],
+      ['/api/leads',{name:'Blocked paid lead',value:400}],
+      ['/api/quotes',{customerName:'Blocked',title:'Estimate',items:[{description:'Work',qty:1,rate:100}]}],
+      ['/api/jobs',{title:'Blocked job',customerName:'Customer',startAt:'2026-11-02T09:00',endAt:'2026-11-02T10:00'}],
+    ]){
+      const res=await req(url,'POST',payload);
+      assert.equal(res.status,409,url);
+      assert.equal(res.data.error,'currency_review_required',url);
+    }
+    assert.equal((await req('/api/workspace')).data.invoices.length,1);
+  }finally{await t.close();}
+});
+
 test('US profile migrations are additive and idempotent on persistent SQLite',()=>{
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-us-'));
   const file=path.join(temp,'workspace.db');
