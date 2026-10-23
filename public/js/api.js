@@ -163,6 +163,12 @@ export const CeriumAPI = {
     return request('/api/workspace', { method: 'GET' });
   },
 
+  async createJob(payload) { return request('/api/jobs', { method:'POST', body:JSON.stringify(payload) }); },
+  async updateJob(id,payload) { return request('/api/jobs/'+encodeURIComponent(id), { method:'PATCH', body:JSON.stringify(payload) }); },
+  async deleteJob(id) { return request('/api/jobs/'+encodeURIComponent(id), { method:'DELETE' }); },
+  async addCrew(payload) { return request('/api/crew', { method:'POST', body:JSON.stringify(payload) }); },
+  async archiveCrew(id) { return request('/api/crew/'+encodeURIComponent(id), { method:'DELETE' }); },
+
   async createLead(payload) {
     return request('/api/leads', { method: 'POST', body: JSON.stringify(payload) });
   },
