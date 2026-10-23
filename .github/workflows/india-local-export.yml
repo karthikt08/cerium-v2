@@ -1,0 +1,23 @@
+name: Temporary India edition source export
+on:
+  push:
+    branches: [feat/india-edition-gst]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive only source code
+        run: |
+          zip -q -r cerium-india-source.zip . -x '.git/*' 'node_modules/*' '.env' '.env.*.local' 'data/*' '*.db' '*.db-shm' '*.db-wal' 'logs/*' 'output/*'
+          unzip -tq cerium-india-source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cerium-india-source-for-local-qa
+          path: cerium-india-source.zip
+          retention-days: 1
+          if-no-files-found: error
