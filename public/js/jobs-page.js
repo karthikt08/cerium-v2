@@ -34,7 +34,7 @@ function updateJobBillingTotal(form){
   },0);
   const currency=dispatch?.getWorkspace()?.account?.currency||'USD';
   const target=form.querySelector('[data-job-billing-total]');
-  if(target)target.textContent=new Intl.NumberFormat('en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
+  if(target)target.textContent=new Intl.NumberFormat(currency==='INR'?'en-IN':'en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
 }
 const active = j => j.status !== 'Cancelled' && j.status !== 'Completed';
 const selectOptions = (options,selected) => options.map(x=>`<option value="${safeData(x.value)}" ${x.value===selected?'selected':''}>${esc(x.label)}</option>`).join('');
@@ -119,10 +119,10 @@ function formJob(ws,id='',date=today()) {
     <label>Start time (business local)<input name="startAt" type="datetime-local" required value="${esc(start)}"></label>
     <label>End time (business local)<input name="endAt" type="datetime-local" required value="${esc(end)}"></label>
     <label>Status<select name="status">${selectOptions(statuses.map(s=>({value:s,label:s})),j?.status||'Scheduled')}</select></label>
-    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(formatUSPhone(j?.customerPhone||''))}" placeholder="(415) 555-0123"></label>
+    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(ws.account?.country==='IN'?(j?.customerPhone||''):formatUSPhone(j?.customerPhone||''))}" placeholder="(415) 555-0123"></label>
     <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Street, city, state, ZIP"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
-    <p class="muted jobs-wide">Appointment times use your business time zone: ${esc(US_TIME_ZONES[ws.account?.timeZone]||'not set — browser clock until configured in Settings')}.</p>
+    <p class="muted jobs-wide">Appointment times use your business time zone: ${esc((ws.account?.timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[ws.account?.timeZone])||'not set — browser clock until configured in Settings')}.</p>
     <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
       <div data-billing-rows>${items.map(item=>billingItemRow(item,!!j?.invoiceGenerated)).join('')}</div>
       <button type="button" class="button secondary" data-job-action="add-item" ${j?.invoiceGenerated?'disabled':''}>+ Add line item</button><strong class="jobs-billing-total">Estimated total: <span data-job-billing-total>—</span></strong>
