@@ -150,7 +150,7 @@ test('reject invalid estimate line items and malformed amounts without persistin
   assert.equal((await A('/api/workspace')).data.quotes.length,0);
 }));
 
-test('quote job conversion rolls back cleanly on conflicting crew assignment',()=>setup(async({A})=>{
+test('quote job conversion rolls back cleanly on conflicting crew assignment',()=>setup(async({alice,A})=>{
   const crew=(await A('/api/crew','POST',{name:'HVAC Installer'})).data;
   const existing=await A('/api/jobs','POST',{title:'Reserved',customerName:'Elsewhere',workerId:crew.id,
     startAt:schedule.startAt,endAt:schedule.endAt});
@@ -158,15 +158,19 @@ test('quote job conversion rolls back cleanly on conflicting crew assignment',()
   const id=(await A('/api/quotes','POST',quote)).data.id;
   const url=(await A('/api/quotes/'+id+'/send','POST')).data.url;
   const token=new URL(url).searchParams.get('token');
-  // Complete the customer's explicit approval through the public endpoint.
-  const accepted=await A('/api/quotes/'+id+'/link');
-  assert.equal(accepted.status,200);
-  // Use the approved database operation here to isolate scheduling logic.
-  // The approval HTTP path itself is already tested above.
-  assert.equal(typeof token,'string');
-  const tbd=await A('/api/quotes/'+id+'/convert','POST',{...schedule,workerId:crew.id});
-  assert.equal(tbd.status,409); // Still Sent, not accepted.
-  assert.equal((await A('/api/workspace')).data.quotes[0].status,'Sent');
+  assert.equal((await alice.req('/quote/'+id+'/respond',
+    {method:'POST',form:{token,decision:'Accepted'}})).status,200);
+  const conflict=await A('/api/quotes/'+id+'/convert','POST',{...schedule,workerId:crew.id});
+  assert.equal(conflict.status,409);
+  let ws=(await A('/api/workspace')).data;
+  assert.equal(ws.quotes[0].status,'Accepted','conversion must roll back on crew conflict');
+  assert.equal(ws.quotes[0].jobId,null);
+  assert.equal(ws.jobs.length,1,'no extra job should survive the failed conversion');
+  const success=await A('/api/quotes/'+id+'/convert','POST',{...schedule,workerId:null});
+  assert.equal(success.status,201);
+  ws=(await A('/api/workspace')).data;
+  assert.equal(ws.jobs.length,2);
+  assert.equal(ws.quotes[0].status,'Converted');
 }));
 
 test('workspace exports and deletion include quotes; deleting linked job preserves accepted quote record',()=>setup(async({t,alice,A})=>{
