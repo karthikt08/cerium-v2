@@ -498,6 +498,22 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     res.json(ws);
   });
 
+  // Keep expired workspaces readable and exportable, but prevent ALL business-data
+  // mutations on the server (including direct API requests that bypass the UI).
+  // Profile, support, billing, data export, and deletion remain available.
+  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews'], requireSession, (req, res, next) => {
+    if (req.method === 'GET' || req.method === 'HEAD') return next();
+    const workspace = db.getWorkspace(req.session.userId);
+    if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
+    if (workspace.account.planStatus === 'expired') {
+      return res.status(403).json({
+        error: 'upgrade_required',
+        message: 'Your 15-day trial has ended. Your records are still available to view and export. Activate Cerium Pro to add or change business records.',
+      });
+    }
+    next();
+  });
+
   // Leads API
   api.post('/leads', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     const lead = db.createLead(req.session.userId, req.body || {});
@@ -535,16 +551,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     res.json({ ok: true });
   });
 
-  // Invoices API (with server-side plan limit enforcement)
+  // Invoice writes are protected by the same plan guard as every other business tool.
   api.post('/invoices', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    const ws = db.getWorkspace(req.session.userId);
-    // If trial is expired and user has not upgraded to Pro:
-    if (ws && ws.account.planStatus === 'expired' && ws.invoices.length >= 5) {
-      return res.status(403).json({
-        error: 'upgrade_required',
-        message: 'Your 15-day free trial has expired. Upgrade to Cerium Pro ($20/month) for unlimited invoices and bank matching.',
-      });
-    }
     const inv = db.createInvoice(req.session.userId, req.body || {});
     res.status(201).json(inv);
   });
