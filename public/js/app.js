@@ -202,7 +202,7 @@ function renderPage() {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
       control.disabled=true;
       control.setAttribute('aria-disabled','true');
-      control.title='Trial ended — activate Cerium Pro to edit business records';
+      control.title=currencyMismatch()?'Review legacy currency before editing':'Trial ended — activate Cerium Pro to edit business records';
     });
   }
 }
