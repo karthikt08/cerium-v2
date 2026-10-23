@@ -1,4 +1,5 @@
 import API from './api.js';
+import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
@@ -137,7 +138,7 @@ function supportPage() {
 function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
   if(singular[s])renderResults();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
@@ -256,4 +257,4 @@ async function initialize() {
   catch(err){setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
-$('sidebar').inert=innerWidth<=760;setNavigation();initialize();
+$('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
