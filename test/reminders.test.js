@@ -126,3 +126,30 @@ test('delivery cannot run accidentally without a configured sender',()=>{
   assert.equal(makeSmtpSender({}),null);
   assert.equal(makeSmtpSender({REMINDER_DELIVERY_MODE:'disabled'}),null);
 });
+
+
+test('unknown SMTP delivery outcome remains review-only, not retried',()=>setup(async({t,A})=>{
+  const inv=(await A('/api/invoices','POST',sentInvoice)).data;
+  const due=daysFromNow(.1);
+  await A('/api/reminders','POST',{invoiceId:inv.id,dueAt:due,approved:true,consentConfirmed:true});
+  let count=0;
+  const opts={db:t.db,secret:t.config.sessionSecret,baseUrl:'https://cerium.example',now:Date.parse(due)+1000,
+    send:async()=>{count++;throw new Error('connection lost after DATA');},log:{error(){}}};
+  const first=await processDueReminders(opts);
+  const second=await processDueReminders({...opts,now:opts.now+1000});
+  assert.equal(first.review,1);
+  assert.equal(second.claimed,0);
+  assert.equal(count,1);
+  assert.equal((await A('/api/workspace')).data.reminders[0].status,'review');
+}));
+
+test('new reminder endpoints still require CSRF and same origin',()=>setup(async({a,A})=>{
+  const inv=(await A('/api/invoices','POST',sentInvoice)).data;
+  const body={invoiceId:inv.id,dueAt:daysFromNow(),approved:true,consentConfirmed:true};
+  const noCsrf=await a.req('/api/reminders',{method:'POST',json:body});
+  assert.equal(noCsrf.status,403);
+  const badOrigin=await a.req('/api/reminders',{method:'POST',json:body,
+    origin:'https://untrusted.invalid',csrf:(await a.me()).csrfToken});
+  assert.equal(badOrigin.status,403);
+  assert.equal((await A('/api/workspace')).data.reminders.length,0);
+}));
