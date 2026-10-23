@@ -6,8 +6,8 @@
 .quotes-summary>div{display:grid;gap:4px;background:#fff;border:1px solid #e3e7f0;padding:17px;border-radius:14px}
 .quotes-summary strong{font-size:27px;color:#263852;line-height:1.1;letter-spacing:-.6px}.quotes-summary span{font-size:12px;color:#8290a2}
 .quote-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
-.quote-card{background:#fff;border:1px solid #e5e8f2;box-shadow:0 8px 26px rgba(37,49,74,.035);border-radius:16px;overflow:hidden;min-width:0}
-.quote-card-main{padding:20px}.quote-card-top{display:flex;justify-content:space-between;gap:9px;align-items:center}
+.quote-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid #e5e8f2;box-shadow:0 8px 26px rgba(37,49,74,.035);border-radius:16px;overflow:visible;min-width:0}
+.quote-card-main{padding:20px;flex:1;min-width:0}.quote-card-top{display:flex;justify-content:space-between;gap:9px;align-items:center}
 .quote-number{font-size:10px;letter-spacing:1px;font-weight:750;color:#8996ab}.quote-pill{border-radius:999px;font-size:10px;font-weight:800;padding:5px 11px;background:#edf1f7;color:#5f718d}
 .quote-accepted,.quote-converted{background:#e9f7ef;color:#29845d}.quote-sent{background:#eceafb;color:#6556ad}.quote-declined{background:#fff0ee;color:#b05b55}
 .quote-card h3{font-size:18px;letter-spacing:-.45px;margin:14px 0 4px;color:#22334e}
@@ -42,3 +42,51 @@
 @media(max-width:520px){.quotes-summary{gap:7px}.quotes-summary>div{padding:12px}.quotes-summary strong{font-size:23px}.quotes-progress>span{padding:10px;font-size:11px}.quotes-modal-body,.quotes-modal-head,.quotes-modal-actions{padding-left:16px;padding-right:16px}.quotes-form-grid{grid-template-columns:1fr}.quote-item{grid-template-columns:minmax(0,1fr) 58px 76px 26px;gap:5px}.quote-item input{padding:8px 5px}.quotes-total-actions{align-items:flex-start}.quotes-dialog{width:100%;max-height:96vh}.quote-actions{gap:6px}}
 
 .quotes-share-label{display:grid;gap:10px;color:#576983;font-size:12px;font-weight:700}.quotes-share-label input{width:100%;min-width:0;padding:13px;border:1px solid #dadff0;border-radius:11px;background:#f7f7fc;color:#293856;font:inherit;font-size:12px;letter-spacing:.05px}
+
+/* A deliberate action hierarchy: one dominant next step, secondary utility,
+   and a separate overflow menu for destructive operations. */
+.quote-card:has(.quote-more[open]){z-index:10}
+.quote-card-main{border-radius:16px 16px 0 0}
+.quote-next-step{margin-top:13px!important;padding-top:10px;border-top:1px solid #f0f1f7;color:#6b7795!important;font-size:11px!important;line-height:1.45!important}
+.quote-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:15px 18px;background:#fafbfe;border-top:1px solid #edf0f7;border-radius:0 0 16px 16px;min-width:0}
+.quote-action-group{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;flex:1;min-width:0}
+.quote-action-group>.quote-action-button{min-height:42px;padding:10px 14px;font-size:12px;font-weight:650;white-space:normal;text-align:center;border-radius:10px}
+.quote-action-group>.button.primary{width:100%;min-width:0;font-weight:750;box-shadow:0 4px 10px rgba(92,75,156,.10)}
+.quote-action-group>.button.secondary{background:#fff;border-color:#dfe3ee;color:#53617a;min-width:98px}
+.quote-action-group>.button.secondary:hover{border-color:#bfc6d9;background:#f5f6fb}
+.quote-complete-label{font-size:11px;color:#8592a7;padding:7px 0;line-height:1.4}
+.quote-more{position:relative;flex:0 0 auto;align-self:center}
+.quote-more summary{display:flex;align-items:center;gap:5px;min-height:42px;cursor:pointer;user-select:none;padding:8px 9px;border:1px solid transparent;border-radius:9px;font-size:11px;font-weight:650;color:#7a879d;list-style:none}
+.quote-more summary::-webkit-details-marker{display:none}
+.quote-more summary>span{font-size:19px;line-height:8px;font-weight:800;letter-spacing:1px;transform:translateY(-2px)}
+.quote-more summary:hover,.quote-more[open] summary{background:#eceefa;color:#514883}
+.quote-more-menu{position:absolute;top:calc(100% + 7px);right:0;z-index:20;min-width:178px;padding:6px;background:#fff;border:1px solid #dfe3ed;border-radius:11px;box-shadow:0 14px 38px rgba(28,34,64,.16)}
+.quote-more-menu .quote-delete{display:block;width:100%;padding:11px 12px;margin:0;border:0;border-radius:7px;text-align:left;color:#a94655;font-size:12px;font-weight:600;cursor:pointer;background:#fff}
+.quote-more-menu .quote-delete:hover{background:#fff1f3;color:#92293a}
+.quote-actions button:focus-visible,.quote-more summary:focus-visible,
+.quotes-dialog button:focus-visible{outline:3px solid #8b7cdb;outline-offset:3px}
+.quotes-dialog .quote-x{width:42px;height:42px;min-width:42px;border-radius:11px}
+.quotes-dialog .quote-remove{height:42px;min-width:42px;border-radius:10px}
+.quote-item{grid-template-columns:minmax(0,1fr) 85px 115px 42px;gap:10px}
+.quote-item input{min-height:42px}
+.quotes-modal-actions{position:sticky;bottom:0;z-index:2;align-items:center;gap:12px}
+.quotes-modal-actions>.button{min-height:42px;min-width:135px;border-radius:10px;font-size:12px;font-weight:700}
+.quotes-total-actions>.button{min-height:42px;border-radius:10px}
+.quotes-view>.page-heading .button{min-height:42px;padding-inline:18px;border-radius:10px;font-weight:750}
+@media(max-width:620px){
+  .quote-actions{padding:12px 14px;gap:8px}
+  .quote-action-group{grid-template-columns:minmax(0,1fr) auto}
+  .quote-action-group>.button.secondary{min-width:88px;padding-inline:10px}
+}
+@media(max-width:520px){
+  .quote-item{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px;gap:10px}
+  .quote-item label:first-child{grid-column:1 / -1}
+  .quote-item input{padding:10px 11px;font-size:13px}
+  .quotes-modal-actions{gap:9px}
+  .quotes-modal-actions>.button{flex:1;min-width:0;padding:10px 8px;white-space:normal}
+  .quote-action-group{grid-template-columns:1fr}
+  .quote-action-group>.quote-action-button{width:100%}
+  .quote-actions{align-items:stretch}
+  .quote-more{align-self:flex-start}
+}
+@media(prefers-reduced-motion:reduce){.quote-action-group>.button.primary{box-shadow:none}}
