@@ -110,7 +110,7 @@ function renderResults() {
   } else if(kind==='followups') {
     holder.innerHTML=table(['Task','Customer','Due','Channel','Status','Actions'],rows.map(f=>`<tr><td><div class="person">${esc(f.task)}</div></td><td>${esc(f.contactName)}<div class="subline">${esc(f.phone)}</div></td><td>${dateLabel(f.dueDate)}</td><td>${esc(f.channel)}</td><td><button class="button secondary" data-action="toggle-followup" data-id="${esc(f.id)}">${f.done?icon('check')+'Done':'Mark done'}</button></td><td>${rowActions('followup',f.id,f.contactName)}</td></tr>`));
   } else if(kind==='invoices') {
-    holder.innerHTML=table(['Invoice','Customer','Due date','Total','Status','Actions'],rows.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button><div class="subline">${esc(i.jobTitle)}</div></td><td><div class="person">${esc(i.customerName)}</div></td><td>${dateLabel(i.dueDate)}</td><td class="amount">${cash(i.total)}</td><td><select class="small-select" data-invoice-status="${esc(i.id)}" aria-label="Status of invoice ${esc(i.id)}">${['Draft','Sent','Overdue','Paid'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${rowActions('invoice',i.id,'invoice '+i.id)}</td></tr>`));
+    holder.innerHTML=table(['Invoice','Customer','Job','Due date','Total','Status','Actions'],rows.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button><div class="subline">${esc(i.jobTitle)}</div></td><td><div class="person">${esc(i.customerName)}</div></td><td>${i.jobId?`<a href="#jobs" data-nav="jobs" class="text-button" title="From completed job">From job ↗</a>`:'—'}</td><td>${dateLabel(i.dueDate)}</td><td class="amount">${cash(i.total)}</td><td><select class="small-select" data-invoice-status="${esc(i.id)}" aria-label="Status of invoice ${esc(i.id)}">${['Draft','Sent','Overdue','Paid'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${rowActions('invoice',i.id,'invoice '+i.id)}</td></tr>`));
   } else if(kind==='reviews') {
     holder.innerHTML=table(['Customer','Job','Status','Request','Actions'],rows.map(r=>`<tr><td><div class="person">${esc(r.customerName)}</div><div class="subline">${esc(r.customerEmail||r.customerPhone)}</div></td><td>${esc(r.jobTitle)}</td><td>${badge(r.status==='Sent'?'Requested':r.status)}</td><td><div class="table-actions">${button('Copy request','copy-review',`data-id="${esc(r.id)}"`,'secondary')}${r.status==='Not Asked'?button('Mark requested','mark-requested',`data-id="${esc(r.id)}"`,'secondary'):r.status!=='Reviewed'?button('Mark received','review-received',`data-id="${esc(r.id)}"`,'secondary'):''}</div></td><td>${rowActions('review',r.id,r.customerName)}</td></tr>`));
   }
@@ -160,7 +160,17 @@ function openRecord(kind,id) {
   const v=record||{};let html='';
   if(kind==='lead')html=field('name','Customer name',v.name,'text',{required:true,full:true})+field('email','Email',v.email,'email')+field('phone','Phone',v.phone,'tel')+field('stage','Stage',v.stage||'New','text',{choices:STAGES})+field('source','Source',v.source||'Direct','text',{choices:[...new Set([...SOURCES,v.source].filter(Boolean))]})+field('value',`Estimated value (${currency()})`,v.value||'','number',{min:0,step:'.01'})+field('nextFollowUp','Next follow-up',v.nextFollowUp||localDate(),'date')+field('address','Address',v.address,'text',{full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(record?'':'<label class="check-field"><input type="checkbox" name="createReminder" checked>Create a follow-up reminder</label>');
   if(kind==='followup')html=field('contactName','Customer name',v.contactName,'text',{required:true,full:true})+field('task','What needs to happen?',v.task,'text',{required:true,full:true,max:250})+field('dueDate','Due date',v.dueDate||localDate(),'date',{required:true})+field('channel','Contact method',v.channel||'Call','text',{choices:['Call','Text','Email']})+field('phone','Phone',v.phone,'tel',{full:true});
-  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress)+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount (${currency()})`,v.total||'','number',{required:true,min:'.01',step:'.01',readOnly:!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'');
+  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress)+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount (${currency()})`,v.total??'','number',{required:!v.jobId,min:v.jobId?0:'.01',step:'.01',readOnly:!!v.jobId||!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1&&!v.jobId?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'');
+  if(kind==='invoice'&&v.jobId){
+    const rows=(v.items||[]).map((item,index)=>`<div class="invoice-billing-row" data-invoice-line>
+      <label>Item ${index+1} <input data-invoice-line-field="description" value="${esc(item.description)}" maxlength="180" required></label>
+      <label>Quantity <input data-invoice-line-field="qty" type="number" min="0.01" max="10000" step="0.01" value="${esc(item.qty)}" required></label>
+      <label>Rate <input data-invoice-line-field="rate" type="number" min="0" max="1000000" step="0.01" value="${esc(item.rate)}" required></label>
+    </div>`).join('');
+    html+=`<section class="invoice-billing-section"><h3>Review invoice line items</h3>
+      <p class="muted">Automatically drafted from the completed job. Set correct prices before marking it Sent. CERIUM never sends invoices automatically.</p>
+      ${rows}</section>`;
+  }
   if(kind==='review')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('jobTitle','Completed job',v.jobTitle,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerPhone','Phone',v.customerPhone,'tel');
   $('record-fields').innerHTML=html;$('record-submit').textContent=record?'Save changes':kind==='invoice'?'Create invoice':kind==='review'?'Save request':'Save '+names[kind];$('record-dialog').showModal(); $('record-fields').querySelector('input,select,textarea')?.focus();
 }
@@ -231,9 +241,19 @@ document.addEventListener('change',e=>{
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(d.hasAttribute('aria-busy'))e.preventDefault();}));
 $('record-form').addEventListener('submit',e=>{
   e.preventDefault();if(readOnly()){toast('Your trial has ended. Business records are read-only.',true);return;}const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});
-  const error=validateRecord(kind,values);formError('record-error',error);if(error)return;
+  const isJobInvoice=kind==='invoice'&&id&&Boolean(getRecord(kind,id)?.jobId);
+  if(isJobInvoice){
+    values.items=[...form.querySelectorAll('[data-invoice-line]')].map(row=>{
+      const get=key=>row.querySelector('[data-invoice-line-field="'+key+'"]').value.trim();
+      return {description:get('description'),qty:Number(get('qty')),rate:Number(get('rate'))};
+    });
+    values.amount=String(Math.round(values.items.reduce((sum,item)=>sum+item.qty*item.rate,0)*100)/100);
+  }
+  let error=validateRecord(kind,values);
+  if(isJobInvoice&&values.status==='Draft'&&error==='Enter an invoice amount greater than zero.')error='';
+  formError('record-error',error);if(error)return;
   if(kind==='lead'&&!id)values.createReminder=form.elements.createReminder.checked;
-  if(kind==='invoice'&&id&&getRecord(kind,id).items.length>1)delete values.amount;
+  if(kind==='invoice'&&id&&(getRecord(kind,id).items.length>1||isJobInvoice))delete values.amount;
   perform('save-record',$('record-submit'),async()=>{const d=$('record-dialog');d.setAttribute('aria-busy','true');try{if(id)await updateCalls[kind](id,values);else await createCalls[kind](values);d.close();await refresh();toast(id?'Changes saved.':'Record created.');}finally{d.removeAttribute('aria-busy');}},'record-error');
 });
 $('confirm-form').addEventListener('submit',e=>{
