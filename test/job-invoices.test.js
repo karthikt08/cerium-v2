@@ -121,6 +121,11 @@ test('Reject malformed billable items rather than recording misleading invoices'
     {description:'Labor',qty:0,rate:10},
     {description:'Labor',qty:1,rate:1.123},
     {description:'',qty:1,rate:99},
+    {description:'   ',qty:1,rate:99},
+    {description:null,qty:1,rate:99},
+    {description:42,qty:1,rate:99},
+    {qty:1,rate:99},
+    {description:'x'.repeat(181),qty:1,rate:99},
   ]) {
     const response=await A('/api/jobs','POST',{...job,billableItems:[item],status:'Completed'});
     assert.equal(response.status,400);
