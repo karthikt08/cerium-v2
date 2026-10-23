@@ -62,3 +62,27 @@ test('quotes have mobile-sized form actions and the More menu is keyboard focusa
   assert.match(css,/\.quote-item label:first-child\{grid-column:1 \/ -1\}/);
   assert.match(css,/:focus-visible/);
 });
+
+
+test('estimate card reference and overflow control stay subtle and in the header',async()=>{
+  const {renderQuotesPage}=await import('../public/js/quotes-page.js');
+  const model={account:{currency:'INR'},quotes:[{
+    id:'49b46d2f-1111-2222-3333-444455556666',
+    title:'XYZ',customerName:'XYZ',status:'Sent',
+    currency:'INR',total:1000,items:[{description:'Labor',qty:1,rate:1000}],
+    createdAt:'2026-10-23T09:00:00Z',
+  }]};
+  const html=renderQuotesPage(model);
+  assert.match(html,/class="quote-number".*?Estimate <span class="quote-short-id">#49B46D/);
+  assert.match(html,/class="quote-card-head-actions"/);
+  assert.match(html,/<span class="quote-pill quote-sent">Link ready<\/span><details class="quote-more">/);
+  assert.match(html,/<svg aria-hidden="true" viewBox="0 0 24 24"/);
+  assert.doesNotMatch(html,/More <span aria-hidden/);
+  const footer=html.split('<div class="quote-actions">')[1];
+  assert.ok(footer);
+  assert.doesNotMatch(footer,/<details class="quote-more">/);
+  assert.match(footer,/data-quote-action="copy"/);
+  const css=read('css/quotes.css');
+  assert.match(css,/\.quote-card-head-actions\{display:flex/);
+  assert.match(css,/\.quote-more summary\{display:grid/);
+});
