@@ -162,8 +162,8 @@ function settingsPage() {
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
     ${field('email','Sign-in email',a.email,'email',{readOnly:true})}
-    ${field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
-    <p class="muted full-width">Changing editions is allowed only before adding business records or subscription history. Existing money is never converted.</p>
+    ${a.regionLocked?field('country','Edition / country (verified by IP)',a.country,'text',{readOnly:true,full:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
+    <p class="muted full-width">${a.regionLocked?'Country and billing currency are verified by the server using your connection. Contact support to review a regional mismatch.':'Changing editions is allowed only before adding business records or subscription history.'} Existing money is never converted.</p>
     ${field('phone','Business phone',ind?a.phone:formatUSPhone(a.phone),'tel',{placeholder:ind?'+91 98765 43210':'(415) 555-0123'})}
     ${field('trade','Trade / industry',a.trade)}
     ${field('location','City / service area',a.location,'text',{placeholder:ind?'e.g. Chennai':'e.g. Austin'})}
