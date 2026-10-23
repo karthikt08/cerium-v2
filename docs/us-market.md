@@ -45,9 +45,19 @@ For normal daytime local-service appointments, select the correct business zone.
 - Editing a profile rejects non-US country or non-USD currency settings.
 - \`CURRENCY\` environment configuration must be \`USD\`.
 - **No amounts, historical invoices, paid records, or quotes are converted.**
-  An existing account with a legacy non-USD currency is still displayed in its
-  recorded currency, with a migration warning in Settings. Do not just relabel
-  rupees as dollars. Review any legacy data before migration.
+  Existing accounts with priced invoices, quotes, jobs, deposits, payments or
+  subscriptions keep their recorded INR currency; amounts are never relabeled.
+  The dashboard displays dollar zeros for empty outstanding/overdue balances,
+  but an account with priced legacy records gets a visible warning.
+- An existing INR demo account with no financial history automatically moves to
+  USD when its SQLite database is next opened. Existing unpriced leads remain.
+- **Optional fresh start:** if test data can be permanently discarded, first
+  export workspace records, then use Settings → Clear workspace and confirm
+  DELETE. It removes leads, jobs, quotes, invoices, reminders and other business
+  records; after the clear, a demo account without provider billing history
+  switches to USD. This action cannot be undone. Subscription or payment
+  history prevents automatic currency switching. Never use this to erase real
+  customer records.
 - CERIUM does **not** calculate sales tax. US contractor sales tax applicability
   depends on jurisdiction, service, materials and customer. Confirm with a
   qualified local tax adviser before charging customers; do not silently
