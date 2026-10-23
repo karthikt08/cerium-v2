@@ -56,9 +56,12 @@ function deny(req,res,decision){
 
 export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiKey)}){
   const cache=new Map();
-  const exempt=path=>path==='/healthz'||path==='/webhooks/razorpay'||
-    path==='/unsubscribe'||path==='/auth/logout'||
-    path==='/api/billing/subscription/cancel'; // Always permit cancelling auto-renewal.
+  const exempt=req=>req.path==='/healthz'||req.path==='/webhooks/razorpay'||
+    req.path==='/unsubscribe'||req.path==='/auth/logout'||req.path==='/api/logout'||
+    req.path==='/privacy.html'||req.path==='/terms.html'||
+    req.path==='/api/billing/subscription/cancel'|| // Customers must always be able to cancel.
+    (req.path==='/api/me'&&['GET','DELETE'].includes(req.method))||
+    (req.path==='/api/me/export'&&req.method==='GET'); // Allow basic account/data rights.
 
   async function classify(ip){
     const existing=cache.get(ip);
@@ -76,7 +79,7 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
   }
 
   return async function regionGate(req,res,next){
-    if(exempt(req.path))return next();
+    if(exempt(req))return next();
     if(!config.regionEnforced){
       req.region=null;
       return next();
