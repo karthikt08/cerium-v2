@@ -1,4 +1,5 @@
 // Shared, side-effect-free workspace rules.
+import {businessLocalDate} from './us-market.js';
 export const SECTIONS = {
   overview: ['Overview', 'Your day at a glance.'],
   reminders: ['Payment reminders', 'Schedule approved customer reminders.'],
@@ -26,10 +27,11 @@ export function dateLabel(value) {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-US', {month:'short',day:'numeric'});
 }
 export function money(value, currency = 'USD') {
+  // Keep legacy historical amounts legible until they are explicitly migrated.
   const safeCurrency = ['USD','INR'].includes(currency) ? currency : 'USD';
   return new Intl.NumberFormat(safeCurrency === 'INR' ? 'en-IN' : 'en-US', {style:'currency',currency:safeCurrency,minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(value) || 0);
 }
-export function metrics(ws, today = localDate()) {
+export function metrics(ws, today = businessLocalDate(ws.account?.timeZone)) {
   const openInvoices = ws.invoices.filter(x => ['Sent','Overdue'].includes(x.status));
   return {
     leads: ws.leads.filter(x => ['New','Quoted'].includes(x.stage)).length,
@@ -40,7 +42,7 @@ export function metrics(ws, today = localDate()) {
     reviews: ws.reviews.filter(x => x.status === 'Not Asked').length,
   };
 }
-export function filteredRows(kind, ws, filters = {}, today = localDate()) {
+export function filteredRows(kind, ws, filters = {}, today = businessLocalDate(ws.account?.timeZone)) {
   const {query='',status='All',source='All'} = filters;
   const key = kind === 'followups' ? 'followUps' : kind;
   let rows = [...(ws[key] || [])];

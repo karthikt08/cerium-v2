@@ -1,5 +1,6 @@
 // CERIUM Jobs & Dispatch — no calendar, SMS, or location provider required.
 import {escapeHTML as esc} from './workspace-model.js';
+import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
 
 let weekShift = 0;
 let filter = 'all';
@@ -10,7 +11,7 @@ const dayFmt = new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',da
 const longFmt = new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'});
 const dateAt = v => new Date(v+'T12:00:00');
 const isoDay = v => `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
-const today = () => isoDay(new Date());
+const today = () => businessLocalDate(dispatch?.getWorkspace()?.account?.timeZone);
 const monday = () => { const d=dateAt(today());d.setDate(d.getDate()-((d.getDay()+6)%7)+weekShift*7);return d;};
 const hour = v => v?.slice(11,16) || '—';
 const dateTime = v => v ? `${longFmt.format(dateAt(v.slice(0,10)))} · ${hour(v)}` : 'Unscheduled';
@@ -115,12 +116,13 @@ function formJob(ws,id='',date=today()) {
     <label>Customer name<input name="customerName" required maxlength="120" value="${esc(j?.customerName||'')}" placeholder="Customer or business name"></label>
     <label>Linked lead<select name="leadId">${selectOptions(leadOpts,j?.leadId||'')}</select></label>
     <label>Assigned crew<select name="workerId">${selectOptions(workers,j?.workerId||'')}</select></label>
-    <label>Start time<input name="startAt" type="datetime-local" required value="${esc(start)}"></label>
-    <label>End time<input name="endAt" type="datetime-local" required value="${esc(end)}"></label>
+    <label>Start time (business local)<input name="startAt" type="datetime-local" required value="${esc(start)}"></label>
+    <label>End time (business local)<input name="endAt" type="datetime-local" required value="${esc(end)}"></label>
     <label>Status<select name="status">${selectOptions(statuses.map(s=>({value:s,label:s})),j?.status||'Scheduled')}</select></label>
-    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(j?.customerPhone||'')}" placeholder="Optional"></label>
-    <label class="jobs-wide">Job address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Service location"></label>
+    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(formatUSPhone(j?.customerPhone||''))}" placeholder="(415) 555-0123"></label>
+    <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Street, city, state, ZIP"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
+    <p class="muted jobs-wide">Appointment times use your business time zone: ${esc(US_TIME_ZONES[ws.account?.timeZone]||'not set — browser clock until configured in Settings')}.</p>
     <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
       <div data-billing-rows>${items.map(item=>billingItemRow(item,!!j?.invoiceGenerated)).join('')}</div>
       <button type="button" class="button secondary" data-job-action="add-item" ${j?.invoiceGenerated?'disabled':''}>+ Add line item</button><strong class="jobs-billing-total">Estimated total: <span data-job-billing-total>—</span></strong>

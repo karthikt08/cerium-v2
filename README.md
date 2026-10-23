@@ -15,7 +15,7 @@ This uploaded version is a standalone local demonstration with simulated banking
 
 ---
 
-**Cerium** is a unified, production-ready web platform and operations workspace designed for independent trade contractors, service businesses, and small crews.
+**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. USD pricing, familiar address formats, and business-local scheduling are built in.
 
 It merges the marketing landing suite, authentication system, operations web application, and premium subscription billing into one unified software product.
 

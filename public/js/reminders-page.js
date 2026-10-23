@@ -1,12 +1,13 @@
 import {escapeHTML as esc} from './workspace-model.js';
+import {businessLocalDateTime,businessLocalToInstant,US_TIME_ZONES} from './us-market.js';
 
 const labels={
   scheduled:'Scheduled',sending:'Sending',sent:'Sent',cancelled:'Cancelled',
   skipped:'Skipped',review:'Needs review',
 };
-const fmtDate=s=>{
+const fmtDate=(s,timeZone='')=>{
   const d=new Date(s);
-  return Number.isFinite(d.getTime())?d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—';
+  return Number.isFinite(d.getTime())?d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',...(timeZone?{timeZone}:{})}):'—';
 };
 export function renderRemindersPage(ws,readOnly=false){
   const reminders=ws.reminders||[];
@@ -16,9 +17,8 @@ export function renderRemindersPage(ws,readOnly=false){
   const pending=reminders.filter(r=>r.status==='scheduled').length;
   const review=reminders.filter(r=>r.status==='review').length;
   const optouts=new Set((ws.reminderOptouts||[]).map(x=>x.email));
-  const date=new Date(Date.now()+3*86400000);
-  date.setMinutes(date.getMinutes()-date.getTimezoneOffset());
-  const defaultTime=date.toISOString().slice(0,16);
+  const timeZone=ws.account?.timeZone||'';
+  const defaultTime=businessLocalDateTime(timeZone,new Date(Date.now()+3*86400000));
   return '<div class="reminders-view">'+
     '<div class="page-heading"><div><p class="eyebrow">CUSTOMER COMMUNICATION</p><h1>Payment reminders</h1>'+
     '<p class="page-description">Schedule considerate invoice follow-ups that stop when an invoice is paid or a customer opts out.</p></div></div>'+
@@ -33,7 +33,7 @@ export function renderRemindersPage(ws,readOnly=false){
         eligible.map(i=>'<option value="'+esc(i.id)+'" '+(optouts.has(i.customerEmail.trim().toLowerCase())?'disabled':'')+'>'+
           '#'+esc(i.id)+' — '+esc(i.customerName)+' ('+esc(i.customerEmail)+')</option>').join('')+
       '</select></label>'+
-      '<label>Reminder time (your local time)<input name="dueAt" type="datetime-local" value="'+defaultTime+'" required></label>'+
+      '<label>Reminder time ('+esc(timeZone?(US_TIME_ZONES[timeZone]||'business local time'):'your device local time')+')<input name="dueAt" type="datetime-local" value="'+defaultTime+'" required></label>'+
       '<label class="reminders-check"><input name="consentConfirmed" type="checkbox" required><span>I confirm this customer agreed to receive invoice reminders by email.</span></label>'+
       '<label class="reminders-check"><input name="approved" type="checkbox" required><span>I approve scheduling this payment reminder.</span></label>'+
       '<p class="reminders-info">No SMS, bulk email campaigns, or automatic payment charges. If an invoice is marked paid before dispatch, the reminder is skipped.</p>'+
@@ -42,7 +42,7 @@ export function renderRemindersPage(ws,readOnly=false){
       '</section><section class="panel"><div class="reminders-heading"><h2>Delivery queue</h2><p>Every reminder is stored durably, even across server restarts.</p></div>'+
         (reminders.length?'<div class="reminders-list">'+reminders.map(r=>
           '<div class="reminder-row"><div><strong>Invoice #'+esc(r.invoiceId)+'</strong>'+
-          '<span>'+esc(r.email)+'</span><small>'+esc(fmtDate(r.dueAt))+'</small>'+
+          '<span>'+esc(r.email)+'</span><small>'+esc(fmtDate(r.dueAt,timeZone))+'</small>'+
           (r.error?'<small class="reminders-error-text">'+esc(r.error)+'</small>':'')+'</div>'+
           '<div class="reminder-row-actions"><span class="reminder-status">'+esc(labels[r.status]||r.status)+'</span>'+
           (r.status==='scheduled'&&!readOnly?'<button class="button secondary" data-reminder-cancel="'+esc(r.id)+'" type="button">Cancel</button>':'')+
@@ -62,10 +62,10 @@ export function initializeRemindersUI({API,refresh,getWorkspace,toast,isReadOnly
     btn.disabled=true;error.hidden=true;
     (async()=>{
       const values=Object.fromEntries(new FormData(form));
-      const local=new Date(values.dueAt);
-      if(!Number.isFinite(local.getTime()))throw new Error('Choose a valid reminder time.');
+      const timeZone=getWorkspace()?.account?.timeZone||'';
+      const dueAt=businessLocalToInstant(values.dueAt,timeZone);
       const payload={
-        invoiceId:values.invoiceId,dueAt:local.toISOString(),
+        invoiceId:values.invoiceId,dueAt,
         consentConfirmed:form.elements.consentConfirmed.checked,
         approved:form.elements.approved.checked,
       };

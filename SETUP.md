@@ -143,6 +143,10 @@ For the complete Oracle VM, systemd, consent, unsubscribe and deployment checkli
 see docs/oracle-reminders.md. Do not send real reminders until your own inbox tests
 and appropriate customer permission checks pass.
 
+For US-only business defaults (USD, state/ZIP and business-local time zones), see
+[docs/us-market.md](docs/us-market.md). Set the business time zone before
+scheduling jobs or automated reminders so the selected times are unambiguous.
+
 ## Recurring 15-day trial authorization
 
 1. In Razorpay, create a **monthly subscription plan** for **USD 20.00**, interval **1 month**. Confirm Razorpay supports the currency and recurring mandate for the countries/cards you will serve.

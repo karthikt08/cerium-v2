@@ -7,6 +7,7 @@ import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
+import { validUsState, validUsZip, validUsTimeZone, businessLocalDate } from '../public/js/us-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -236,6 +237,14 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
+  // Non-destructive US profile migration. Preserve all historical invoices and currency.
+  const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
+  for(const [column,ddl] of [
+    ['us_state',"ALTER TABLE users ADD COLUMN us_state TEXT NOT NULL DEFAULT ''"],
+    ['us_zip',"ALTER TABLE users ADD COLUMN us_zip TEXT NOT NULL DEFAULT ''"],
+    ['time_zone',"ALTER TABLE users ADD COLUMN time_zone TEXT NOT NULL DEFAULT ''"],
+  ])if(!userColumns.has(column))db.exec(ddl);
+
   // Existing invoices retain their numbers and data. A nullable source job ID
   // lets one automatically generated invoice be linked to its origin.
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
@@ -244,6 +253,20 @@ export function openDb(file) {
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
   const quotesStore = createQuotesStore(db,{jobsStore});
+  // One-time, non-destructive currency cleanup for empty legacy test workspaces.
+  // Never touch an account containing financial history or priced work; those
+  // records were originally created under its saved currency.
+  db.prepare(`
+    UPDATE users SET currency='USD', updated_at=?
+    WHERE currency='INR' AND COALESCE(country,'US')='US'
+      AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM quotes WHERE quotes.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM jobs WHERE jobs.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM bank_transactions WHERE bank_transactions.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM payments WHERE payments.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM recurring_subscriptions WHERE recurring_subscriptions.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM leads WHERE leads.user_id=users.id AND COALESCE(leads.value,0)<>0)
+  `).run(Date.now());
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
@@ -278,6 +301,9 @@ export function openDb(file) {
         location = COALESCE(?, location),
         country = COALESCE(?, country),
         currency = COALESCE(?, currency),
+        us_state = COALESCE(?, us_state),
+        us_zip = COALESCE(?, us_zip),
+        time_zone = COALESCE(?, time_zone),
         google_place_url = COALESCE(?, google_place_url),
         updated_at = ?
       WHERE id = ?
@@ -473,12 +499,16 @@ export function openDb(file) {
     ping: db.prepare('SELECT 1 AS ok'),
   };
 
+  // Business-facing days follow the US service location, not the Oracle VM clock.
+  // Keep trial/billing timestamps in their existing UTC semantics.
+  const userBusinessToday=userId=>businessLocalDate(q.getUserById.get(userId)?.time_zone);
+
   // Called inside the Jobs SQLite transaction, only when a job first becomes
   // Completed. Either job completion and invoice draft both commit, or neither.
   // The unique index is a second defense against duplicate draft invoices.
   function generateJobDraft(userId, job) {
     if (q.getInvoiceForJob.get(userId, job.id)) return;
-    const today = todayStr();
+    const today = userBusinessToday(userId);
     const items = job.billableItems.length
       ? job.billableItems
       : [{description: job.title, qty: 1, rate: 0}];
@@ -604,7 +634,19 @@ export function openDb(file) {
       return q.getUserByResetToken.get(token) || null;
     },
 
-    updateUser(id, { name, businessName, trade, phone, location, country, currency, googlePlaceUrl }) {
+    updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl }) {
+      const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
+      if(country!==undefined&&country!=='US')invalid('CERIUM currently supports US businesses only.');
+      if(currency!==undefined&&currency!=='USD')invalid('CERIUM billing is USD-only. Existing non-USD data is not converted automatically.');
+      // A legacy INR workspace must never be relabeled USD without a reviewed migration.
+      const storedCurrency=q.getUserById.get(id)?.currency;
+      if(currency==='USD'&&storedCurrency&&storedCurrency!=='USD')
+        invalid('Legacy '+storedCurrency+' amounts cannot be relabeled USD. Contact support for a reviewed currency migration.');
+      for(const [name,value,valid] of [
+        ['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone],
+      ])if(value!==undefined&&(typeof value!=='string'||!valid(value.trim())))
+        invalid('Enter a valid '+name+'.');
+      if(phone!==undefined&&(typeof phone!=='string'||phone.length>40))invalid('Phone number is too long.');
       const now = Date.now();
       q.updateUser.run(
         name !== undefined ? name.trim() : null,
@@ -614,6 +656,9 @@ export function openDb(file) {
         location !== undefined ? location.trim() : null,
         country !== undefined ? country.trim() : null,
         currency !== undefined ? currency.trim() : null,
+        usState !== undefined ? usState.trim() : null,
+        usZip !== undefined ? usZip.trim() : null,
+        timeZone !== undefined ? timeZone.trim() : null,
         googlePlaceUrl !== undefined ? googlePlaceUrl.trim() : null,
         now, id
       );
@@ -652,6 +697,7 @@ export function openDb(file) {
       if (!user) return null;
 
       const today = todayStr();
+      const businessToday=businessLocalDate(user.time_zone);
       const usedDays = Math.max(0, daysBetween(user.trial_started_at || today, today));
       const trialDaysTotal = user.trial_days_total || 15;
       const trialDaysRemaining = Math.max(0, trialDaysTotal - usedDays);
@@ -709,7 +755,7 @@ export function openDb(file) {
         let items = [];
         try { items = JSON.parse(i.items_json); } catch { items = []; }
         let status = i.status;
-        if (status === 'Sent' && i.due_date && i.due_date < today) status = 'Overdue';
+        if (status === 'Sent' && i.due_date && i.due_date < businessToday) status = 'Overdue';
         return {
           id: i.id,
           customerName: i.customer_name,
@@ -773,6 +819,9 @@ export function openDb(file) {
           location: user.location || '',
           country: user.country || 'US',
           currency: user.currency || 'USD',
+          usState: user.us_state || '',
+          usZip: user.us_zip || '',
+          timeZone: user.time_zone || '',
           googlePlaceUrl: user.google_place_url || '',
           trialStartedAt: user.trial_started_at,
           trialDaysTotal: trialDaysTotal,
@@ -803,7 +852,7 @@ export function openDb(file) {
     ...quotesStore,
 
     createLead(userId, payload) {
-      const today = todayStr();
+      const today = userBusinessToday(userId);
       const id = 'LD-' + randomBytes(4).toString('hex');
       const lead = {
         id,
@@ -838,7 +887,7 @@ export function openDb(file) {
     updateLead(userId, leadId, updates) {
       const previous = q.getLead.get(leadId, userId);
       if (!previous) return { ok: true };
-      const now = todayStr();
+      const now = userBusinessToday(userId);
       q.updateLead.run(
         updates.name, updates.phone, updates.email, updates.address, updates.source,
         updates.stage, updates.value, updates.nextFollowUp, updates.notes,
@@ -865,10 +914,10 @@ export function openDb(file) {
         phone: (payload.phone || '').trim(),
         channel: payload.channel || 'Call',
         task: (payload.task || '').trim(),
-        dueDate: payload.dueDate || todayStr(),
+        dueDate: payload.dueDate || userBusinessToday(userId),
         done: false,
       };
-      q.insertFollowUp.run(fu.id, userId, fu.leadId, fu.contactName, fu.phone, fu.channel, fu.task, fu.dueDate, 0, todayStr());
+      q.insertFollowUp.run(fu.id, userId, fu.leadId, fu.contactName, fu.phone, fu.channel, fu.task, fu.dueDate, 0, userBusinessToday(userId));
       return fu;
     },
 
@@ -888,7 +937,7 @@ export function openDb(file) {
     },
 
     createInvoice(userId, payload) {
-      const today = todayStr();
+      const today = userBusinessToday(userId);
       const terms = payload.terms || 'Net 15';
       const items = payload.items && payload.items.length ? payload.items : [
         { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: Number(payload.amount) || 0 },
@@ -949,12 +998,12 @@ export function openDb(file) {
       items = this.validateInvoiceItems(items);
       const total = Math.round(items.reduce((s, it) => s + it.qty * it.rate, 0) * 100) / 100;
       const terms = p.terms || inv.terms;
-      const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || todayStr(), termsToDays(terms)) : inv.due_date);
+      const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
       if (inv.job_id && status !== 'Draft' && total <= 0) {
         throw Object.assign(new Error('Enter and save a positive invoice amount before marking this job invoice as sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
-      const paidAt = status === 'Paid' ? (inv.paid_at || todayStr()) : null;
+      const paidAt = status === 'Paid' ? (inv.paid_at || userBusinessToday(userId)) : null;
 
       q.updateInvoice.run(
         p.customerName, p.customerEmail, p.customerAddress, p.jobTitle,
@@ -970,7 +1019,7 @@ export function openDb(file) {
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
         throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
-      const paidAt = status === 'Paid' ? todayStr() : null;
+      const paidAt = status === 'Paid' ? userBusinessToday(userId) : null;
       q.updateInvoiceStatus.run(status, paidAt, String(id), userId);
       return { ok: true };
     },
@@ -991,7 +1040,7 @@ export function openDb(file) {
       if (action === 'confirm') {
         q.resolveBankMatch.run('matched', targetInvoiceId || null, targetInvoiceId || null, txId, userId);
         if (targetInvoiceId) {
-          q.updateInvoiceStatus.run('Paid', todayStr(), String(targetInvoiceId), userId);
+          q.updateInvoiceStatus.run('Paid', userBusinessToday(userId), String(targetInvoiceId), userId);
         }
       } else {
         q.resolveBankMatch.run('dismissed', null, null, txId, userId);
@@ -1063,6 +1112,15 @@ export function openDb(file) {
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         quotesStore.clearQuotes(userId);
+        // Clear workspace was explicitly confirmed by the owner. After business
+        // records are gone, a legacy INR test workspace can start fresh in USD.
+        // Billing/payment history survives Clear workspace and blocks the switch.
+        db.prepare(`
+          UPDATE users SET currency='USD', updated_at=?
+          WHERE id=? AND currency='INR' AND COALESCE(country,'US')='US'
+            AND NOT EXISTS (SELECT 1 FROM payments WHERE user_id=?)
+            AND NOT EXISTS (SELECT 1 FROM recurring_subscriptions WHERE user_id=?)
+        `).run(Date.now(),userId,userId,userId);
       });
       run();
       return { ok: true };

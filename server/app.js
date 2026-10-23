@@ -538,6 +538,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
             location: user.location || '',
             country: user.country || 'US',
             currency: user.currency || 'USD',
+            usState: user.us_state || '',
+            usZip: user.us_zip || '',
+            timeZone: user.time_zone || '',
             plan: user.plan,
             planStatus: user.plan_status,
             emailVerified: Boolean(user.email_verified),
@@ -549,7 +552,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    const updated = db.updateUser(req.session.userId, req.body || {});
+    let updated;
+    try { updated = db.updateUser(req.session.userId, req.body || {}); }
+    catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
       ok: true,
       account: {
@@ -561,6 +566,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         location: updated.location || '',
         country: updated.country || 'US',
         currency: updated.currency || 'USD',
+        usState: updated.us_state || '',
+        usZip: updated.us_zip || '',
+        timeZone: updated.time_zone || '',
         planStatus: updated.plan_status,
       },
     });
@@ -584,6 +592,16 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       return res.status(403).json({
         error: 'upgrade_required',
         message: 'Your 15-day trial has ended. Your records are still available to view and export. Activate Cerium Pro to add or change business records.',
+      });
+    }
+    // Legacy non-USD records must remain in their original denomination.
+    // Never allow new amounts to be created under that denomination in the
+    // dollar-only product. Account export and deliberate workspace clearing
+    // remain available outside this middleware.
+    if (workspace.account.currency !== 'USD') {
+      return res.status(409).json({
+        error: 'currency_review_required',
+        message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
       });
     }
     next();
@@ -777,6 +795,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
     if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
     const user = db.getUserById(req.session.userId);
+    if(user.country!=='US'||user.currency!=='USD')
+      return res.status(403).json({error:'us_billing_only',message:'CERIUM subscription checkout is available only to USD-denominated US workspaces. Contact support to review legacy currency records.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
@@ -832,7 +852,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured) });
+    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured && ws?.account.country==='US' && ws?.account.currency==='USD') });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
