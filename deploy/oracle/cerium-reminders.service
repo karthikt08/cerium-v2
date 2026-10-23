@@ -1,0 +1,26 @@
+[Unit]
+Description=CERIUM invoice-reminder worker
+After=network-online.target cerium-web.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cerium
+Group=cerium
+WorkingDirectory=/opt/cerium/app
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/cerium/cerium.env
+ExecStart=/usr/bin/node scripts/reminder-worker.js
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/cerium
+MemoryMax=240M
+LimitNOFILE=2048
+
+[Install]
+WantedBy=multi-user.target
