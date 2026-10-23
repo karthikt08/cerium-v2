@@ -28,10 +28,11 @@ export const US_TIME_ZONE_OPTIONS=Object.freeze(Object.entries(US_TIME_ZONES).ma
 export const validUsState=value=>value===''||Object.prototype.hasOwnProperty.call(US_STATES,value);
 export const validUsZip=value=>value===''||/^\d{5}(?:-\d{4})?$/.test(value);
 export const validUsTimeZone=value=>value===''||Object.prototype.hasOwnProperty.call(US_TIME_ZONES,value);
+const validBusinessTimeZone=value=>validUsTimeZone(value)||value==='Asia/Kolkata';
 // Store schedule times as wall-clock business-local values: never silently
 // reinterpret existing job startAt/endAt as UTC.
 export function businessLocalDate(timeZone,date=new Date()){
-  if(!timeZone||!Object.prototype.hasOwnProperty.call(US_TIME_ZONES,timeZone))
+  if(!timeZone||!validBusinessTimeZone(timeZone))
     return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
   const parts=new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
   const get=type=>parts.find(p=>p.type===type)?.value;
@@ -57,7 +58,7 @@ function localParts(date,timeZone){
   return val('year')+'-'+val('month')+'-'+val('day')+'T'+val('hour')+':'+val('minute');
 }
 export function businessLocalDateTime(timeZone,date=new Date()){
-  if(!timeZone||!validUsTimeZone(timeZone))
+  if(!timeZone||!validBusinessTimeZone(timeZone))
     return [businessLocalDate('',date),
       String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0')].join('T');
   return localParts(date,timeZone);
@@ -72,7 +73,7 @@ export function businessLocalToInstant(value,timeZone){
   if(!Number.isFinite(base)||new Date(base).toISOString().slice(0,16)!==value)
     throw new Error('Choose a valid calendar date and time.');
   if(!timeZone)return new Date(value).toISOString(); // existing device-local fallback
-  if(!validUsTimeZone(timeZone))throw new Error('Choose a valid business time zone in Settings.');
+  if(!validBusinessTimeZone(timeZone))throw new Error('Choose a valid business time zone in Settings.');
   const formatter=new Intl.DateTimeFormat('en-US',{
     timeZone,year:'numeric',month:'2-digit',day:'2-digit',
     hour:'2-digit',minute:'2-digit',hourCycle:'h23',
