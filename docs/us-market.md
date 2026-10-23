@@ -27,6 +27,11 @@ remain unchanged rather than being automatically converted to/from UTC.
 Before the business time zone is configured, existing browser/server-local
 fallback behavior remains for compatibility.
 
+Payment reminders use the configured business time zone and convert the chosen
+local time to a UTC instant before saving. Ambiguous or nonexistent reminder
+hours at a US daylight-saving transition are rejected with a clear error.
+The delivery worker still requires separately configured SMTP credentials.
+
 **DST note:** Jobs are stored as local wall-clock times without a UTC offset.
 During a US daylight-saving transition, a clock time such as 2:30 AM may not
 exist, or a time such as 1:30 AM may occur twice. Confirm unusual overnight
