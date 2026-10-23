@@ -129,6 +129,20 @@ In production:
 5. Set `TRUST_PROXY=1` when behind a reverse proxy or load balancer.
 6. Verify your site with `npm run check:secrets` and `npm test` before going live.
 
+## Oracle VM invoice reminders (optional)
+
+The payment-reminder queue works locally without cloud infrastructure or email delivery.
+CERIUM does not send emails until REMINDER_DELIVERY_MODE=live and a verified
+SMTP sender is configured. To run the separate worker on an Oracle VM:
+
+```bash
+npm run reminders:worker
+```
+
+For the complete Oracle VM, systemd, consent, unsubscribe and deployment checklist,
+see docs/oracle-reminders.md. Do not send real reminders until your own inbox tests
+and appropriate customer permission checks pass.
+
 ## Recurring 15-day trial authorization
 
 1. In Razorpay, create a **monthly subscription plan** for **USD 20.00**, interval **1 month**. Confirm Razorpay supports the currency and recurring mandate for the countries/cards you will serve.
