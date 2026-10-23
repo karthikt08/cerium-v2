@@ -58,3 +58,6 @@
 .invoice-billing-row label{min-width:0;font-weight:700;display:grid;gap:5px;font-size:12px;color:#41516a}
 .invoice-billing-row input{width:100%;min-width:0;border:1px solid #dbe3ef;border-radius:10px;background:#fff;padding:10px;color:#233754;font-size:13px}
 @media(max-width:650px){.invoice-billing-row{grid-template-columns:repeat(2,minmax(0,1fr))}.invoice-billing-row>label:first-child{grid-column:1/-1}}
+
+.jobs-billing-total{display:block;font-weight:750;font-size:13px;color:#2f496d;justify-self:start;padding:8px 12px;border-radius:10px;background:#ebf2ff}
+.job-billing-row input:disabled{background:#f1f4f8;color:#667489;cursor:not-allowed}
