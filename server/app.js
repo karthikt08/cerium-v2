@@ -538,6 +538,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
             location: user.location || '',
             country: user.country || 'US',
             currency: user.currency || 'USD',
+            usState: user.us_state || '',
+            usZip: user.us_zip || '',
+            timeZone: user.time_zone || '',
             plan: user.plan,
             planStatus: user.plan_status,
             emailVerified: Boolean(user.email_verified),
@@ -549,7 +552,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    const updated = db.updateUser(req.session.userId, req.body || {});
+    let updated;
+    try { updated = db.updateUser(req.session.userId, req.body || {}); }
+    catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
       ok: true,
       account: {
@@ -561,6 +566,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         location: updated.location || '',
         country: updated.country || 'US',
         currency: updated.currency || 'USD',
+        usState: updated.us_state || '',
+        usZip: updated.us_zip || '',
+        timeZone: updated.time_zone || '',
         planStatus: updated.plan_status,
       },
     });
