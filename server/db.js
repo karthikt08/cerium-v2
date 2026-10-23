@@ -908,6 +908,24 @@ export function openDb(file) {
       return inv;
     },
 
+    // Validate editable invoice line items before committing any financial totals.
+    // Owner approval remains manual; generating a draft never sends or charges anyone.
+    validateInvoiceItems(items) {
+      if (!Array.isArray(items) || !items.length || items.length > 20) {
+        throw Object.assign(new Error('Provide between 1 and 20 invoice line items.'), {code:'invalid_invoice_items',status:400});
+      }
+      return items.map(item => {
+        const description = typeof item?.description === 'string' ? item.description.trim() : '';
+        const qty = Number(item?.qty), rate = Number(item?.rate);
+        if (!description || description.length > 180 || !Number.isFinite(qty) || !Number.isFinite(rate) ||
+            qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
+            Math.abs(qty*100-Math.round(qty*100)) > 0.000001 ||
+            Math.abs(rate*100-Math.round(rate*100)) > 0.000001)
+          throw Object.assign(new Error('Check line item descriptions, quantities and rates (max 2 decimals).'), {code:'invalid_invoice_items',status:400});
+        return {description,qty,rate};
+      });
+    },
+
     updateInvoice(userId, id, p) {
       const inv = q.getInvoice.get(String(id), userId);
       if (!inv) throw new Error('Invoice not found');
@@ -918,10 +936,14 @@ export function openDb(file) {
       } else if (p.items) {
         items = p.items;
       }
-      const total = items.reduce((s, it) => s + (Number(it.qty) || 1) * (Number(it.rate) || 0), 0);
+      items = this.validateInvoiceItems(items);
+      const total = Math.round(items.reduce((s, it) => s + it.qty * it.rate, 0) * 100) / 100;
       const terms = p.terms || inv.terms;
       const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || todayStr(), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
+      if (inv.job_id && status !== 'Draft' && total <= 0) {
+        throw Object.assign(new Error('Enter and save a positive invoice amount before marking this job invoice as sent or paid.'), {code:'invoice_needs_pricing',status:409});
+      }
       const paidAt = status === 'Paid' ? (inv.paid_at || todayStr()) : null;
 
       q.updateInvoice.run(
@@ -933,6 +955,11 @@ export function openDb(file) {
     },
 
     updateInvoiceStatus(userId, id, status) {
+      const original = q.getInvoice.get(String(id), userId);
+      if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
+      if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
+        throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
+      }
       const paidAt = status === 'Paid' ? todayStr() : null;
       q.updateInvoiceStatus.run(status, paidAt, String(id), userId);
       return { ok: true };
