@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {US_STATES,US_TIME_ZONES,validUsState,validUsZip,validUsTimeZone,businessLocalDate,formatUSPhone} from '../public/js/us-market.js';
+import {US_STATES,US_TIME_ZONES,validUsState,validUsZip,validUsTimeZone,businessLocalDate,businessLocalDateTime,businessLocalToInstant,formatUSPhone} from '../public/js/us-market.js';
 import {startServer,signIn,ALICE} from './helpers.js';
 
 test('US market formatters accept all states, ZIP+4 and all supported US zones',()=>{
@@ -26,6 +26,16 @@ test('US business dates follow regional time zones including near UTC midnight',
   assert.equal(businessLocalDate('America/Los_Angeles',instant),'2026-10-22');
   assert.equal(businessLocalDate('Pacific/Honolulu',instant),'2026-10-22');
   assert.equal(businessLocalDate('America/Puerto_Rico',instant),'2026-10-23');
+});
+
+test('reminder scheduling converts US business clock to UTC without DST ambiguity',()=>{
+  assert.equal(businessLocalToInstant('2026-10-23T09:00','America/Los_Angeles'),'2026-10-23T16:00:00.000Z');
+  assert.equal(businessLocalToInstant('2026-12-23T09:00','America/Los_Angeles'),'2026-12-23T17:00:00.000Z');
+  assert.equal(businessLocalToInstant('2026-10-23T09:00','America/New_York'),'2026-10-23T13:00:00.000Z');
+  assert.equal(businessLocalDateTime('America/Los_Angeles',new Date('2026-10-23T05:00:00Z')),'2026-10-22T22:00');
+  assert.throws(()=>businessLocalToInstant('2026-03-08T02:30','America/New_York'),/daylight saving/);
+  assert.throws(()=>businessLocalToInstant('2026-11-01T01:30','America/New_York'),/daylight saving/);
+  assert.throws(()=>businessLocalToInstant('bad','America/New_York'),/valid reminder/);
 });
 
 test('profile: US state, ZIP and time zone persist; non-US and non-USD changes are rejected',async()=>{
