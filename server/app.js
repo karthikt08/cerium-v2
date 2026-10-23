@@ -12,6 +12,7 @@ import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js'
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
 import {verifyOptOut} from './reminders.js';
+import {createRegionGate} from './region-access.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -35,7 +36,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -157,6 +158,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
+  // Apply before static pages, sign-in endpoints, workspace routes and billing.
+  // Verified provider webhooks, uptime checks and opt-outs remain reachable.
+  app.use(createRegionGate({config,...(regionLookup?{lookup:regionLookup}:{})}));
 
   // Token-gated unsubscribe endpoint. Opening an email does NOT mutate settings;
   // the recipient must confirm by POST. No sign-in required for the recipient.
@@ -287,6 +291,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       name: cleanName,
       businessName: cleanBusiness,
       termsVersion: config.termsVersion,
+      country: req.region?.country || 'US',
       emailVerified: 0,
       verificationToken,
       verificationExpires,
@@ -438,7 +443,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const verifier = randomToken(48);
     const business = intent === 'join' ? cleanText(req.body && req.body.business, 80) : '';
 
-    const note = sign(config.sessionSecret, { s: state, n: nonce, v: verifier, i: intent, b: business, r: returnTo, e: now() + LOGIN_TIME });
+    const note = sign(config.sessionSecret, { s: state, n: nonce, v: verifier, i: intent, b: business, r: returnTo, country: req.region?.country || null, e: now() + LOGIN_TIME });
     res.cookie(config.oauthCookie, note, { ...cookieBase, maxAge: LOGIN_TIME });
     res.redirect(303, google.buildAuthUrl({ state, nonce, codeChallenge: pkceChallenge(verifier) }));
   });
@@ -451,6 +456,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const fail = (code) => res.redirect(303, `${page}?error=${code}`);
 
     if (!note || typeof note.e !== 'number' || note.e < now()) return fail('expired');
+    if(config.regionEnforced && (!req.region || note.country!==req.region.country)) return fail('invalid');
     if (req.query.error) return fail(req.query.error === 'access_denied' ? 'denied' : 'failed');
 
     const { code, state } = req.query;
@@ -476,6 +482,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         googleSub: profile.sub,
         emailVerified: 1,
         termsVersion: config.termsVersion,
+        country: req.region?.country || 'US',
         now: now(),
       });
     }
@@ -518,6 +525,14 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // ------------------------------------------------------------ Workspace & Private API (/api)
   const api = express.Router();
 
+  // Public, server-verified market selection; deliberately excludes visitor IP.
+  api.get('/region', (req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    if(!req.region)return res.json({mode:'development',country:null,currency:null,monthlyPrice:null});
+    const {country,currency,monthlyPrice}=req.region;
+    return res.json({mode:'enforced',country,currency,monthlyPrice});
+  });
+
   // Current session & user status
   api.get('/me', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -554,7 +569,10 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
-    try { updated = db.updateUser(req.session.userId, req.body || {}); }
+    if(config.regionEnforced && req.body?.country && req.body.country!==req.region.country)
+      return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
+    const body=config.regionEnforced?{...(req.body||{}),country:req.region.country,currency:req.region.currency}:(req.body||{});
+    try { updated = db.updateUser(req.session.userId, body); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
       ok: true,
@@ -580,7 +598,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   api.get('/workspace', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
     if (!ws) return res.status(404).json({ error: 'workspace_not_found' });
-    res.json(ws);
+    // Region restrictions are server-enforced; disable edition selection in UI.
+    res.json({...ws,account:{...ws.account,regionLocked:config.regionEnforced}});
   });
 
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
