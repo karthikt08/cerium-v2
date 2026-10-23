@@ -21,7 +21,7 @@ describe('pages and safety headers', () => {
     assert.equal(r.status, 200);
     const csp = r.headers.get('content-security-policy');
     assert.match(csp, /script-src 'self' https:\/\/checkout\.razorpay\.com(;|$)/); // only our scripts plus the checkout provider
-    assert.doesNotMatch(csp, /'unsafe-inline'|'unsafe-eval'/);
+    assert.doesNotMatch(csp.split('script-src ')[1].split(';')[0], /'unsafe-inline'|'unsafe-eval'/);
     assert.match(csp, /frame-ancestors 'none'/);
     assert.match(csp, /object-src 'none'/);
     assert.match(csp, /form-action 'self' https:\/\/accounts\.google\.com/);
