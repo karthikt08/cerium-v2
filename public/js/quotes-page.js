@@ -18,7 +18,7 @@ const quoteRow=(quote,currency,ro)=>{
       '<button type="button" class="button secondary" data-quote-action="view-job" data-quote-id="'+e(quote.id)+'">View job →</button>':'';
   return '<article class="quote-card"><div class="quote-card-main"><div class="quote-card-top">'+
     '<span class="quote-number">ESTIMATE / '+e(quote.id.slice(0,8).toUpperCase())+'</span>'+
-    '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+e(quote.status)+'</span></div>'+
+    '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+e(quote.status==='Sent'?'Link ready':quote.status)+'</span></div>'+
     '<h3>'+e(quote.title)+'</h3><p>'+e(quote.customerName)+
     (quote.customerEmail?' · '+e(quote.customerEmail):'')+'</p>'+
     '<div class="quote-card-bottom"><strong>'+e(fmt(quote.total,currency))+'</strong>'+
@@ -125,6 +125,15 @@ function convertDialog(quote,ws){
     '<div class="quotes-modal-actions"><button class="button secondary" type="button" data-quote-action="close">Cancel</button>'+
     '<button class="button primary" type="submit">Create scheduled job</button></div></form>');
 }
+function shareDialog(url){
+  show(header('Your approval link is ready',
+    'The estimate is locked and ready for your customer. CERIUM has not sent an email.')+
+    '<div class="quotes-modal-body"><label class="quotes-share-label">Private customer approval link'+
+    '<input id="cerium-share-url" readonly value="'+e(url)+'"></label>'+
+    '<p class="quotes-subtle">Only the person you share this link with should review and respond to this estimate. The link expires in 30 days.</p></div>'+
+    '<div class="quotes-modal-actions"><button class="button secondary" type="button" data-quote-action="close">Close</button>'+
+    '<button class="button primary" type="button" data-quote-action="copy-link">Copy link</button></div>');
+}
 async function copyLink(url,toast){
   if(navigator.clipboard?.writeText){
     try{await navigator.clipboard.writeText(url);toast('Private approval link copied. Share it with your customer.');return;}catch{}
@@ -142,6 +151,11 @@ export function initializeQuotesUI({API,refresh,getWorkspace,isReadOnly,toast}){
     const button=event.target.closest('[data-quote-action]');if(!button)return;
     const action=button.dataset.quoteAction,id=button.dataset.quoteId;
     if(action==='close'){close();return;}
+    if(action==='copy-link'){
+      const input=document.getElementById('cerium-share-url');
+      if(input)await copyLink(input.value,toast);
+      return;
+    }
     if(action==='add-item'){const parent=button.closest('form')?.querySelector('[data-quote-items]');if(parent?.children.length>=20)return toast('Maximum 20 estimate lines.',true);
       parent?.insertAdjacentHTML('beforeend',row());updateTotal(button.closest('form'));return;}
     if(action==='remove-item'){const el=button.closest('[data-quote-item]'),p=el?.parentElement;
@@ -157,8 +171,8 @@ export function initializeQuotesUI({API,refresh,getWorkspace,isReadOnly,toast}){
     if(!['share','copy','delete'].includes(action))return;
     working=true;button.disabled=true;
     try{
-      if(action==='share'){const result=await API.sendQuote(id);await refresh();await copyLink(result.url,toast);}
-      else if(action==='copy'){const result=await API.quoteLink(id);await copyLink(result.url,toast);}
+      if(action==='share'){const result=await API.sendQuote(id);await refresh();shareDialog(result.url);toast('Approval link created. Nothing was emailed.');}
+      else if(action==='copy'){const result=await API.quoteLink(id);shareDialog(result.url);}
       else {await API.deleteQuote(id);await refresh();toast('Estimate deleted.');}
     }catch(error){toast(error.message||'Could not complete estimate action.',true);}
     finally{working=false;button.disabled=false;}
