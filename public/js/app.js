@@ -196,6 +196,12 @@ function closeNavigation() {
 $('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
 window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();});
 window.addEventListener('hashchange',()=>navigate(routeFromHash(location.hash),true));
+document.addEventListener('cerium:open-invoice',e=>{
+  if(!state.ws)return;
+  location.hash='#invoices';
+  navigate('invoices');
+  previewInvoice(e.detail?.id);
+});
 document.addEventListener('keydown',e=>{
   if(!$('sidebar').classList.contains('is-open'))return;
   if(e.key==='Escape'){e.preventDefault();closeNavigation();}
