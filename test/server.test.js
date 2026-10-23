@@ -600,11 +600,13 @@ describe('running in production', () => {
     t = await startServer({
       env: {
         NODE_ENV: 'production',
+        GEOIP_API_KEY: 'region-testing-key-123456',
         BASE_URL: 'https://cerium.test',
         DATABASE_PATH: path.join(dir, 'cerium.db'),
         TRUST_PROXY: '1',
         SESSION_SECRET: GOOD_SECRET,
       },
+      regionLookup:async()=>({location:{country_code:'US'},is_vpn:false,is_proxy:false,is_tor:false}),
     });
   });
   after(async () => { await t.close(); fs.rmSync(dir, { recursive: true, force: true }); });
