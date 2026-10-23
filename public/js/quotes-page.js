@@ -48,7 +48,7 @@ export function renderQuotesPage(ws,ro=false){
 }
 function ensureDialog(){
   let d=document.getElementById('cerium-quote-dialog');
-  if(!d){d=document.createElement('dialog');d.id='cerium-quote-dialog';d.className='quotes-dialog';document.body.append(d);}
+  if(!d){d=document.createElement('dialog');d.id='cerium-quote-dialog';d.className='quotes-dialog';d.setAttribute('aria-label','Estimate editor');document.body.append(d);}
   return d;
 }
 function close(){const d=document.getElementById('cerium-quote-dialog');if(d?.open)d.close();}
