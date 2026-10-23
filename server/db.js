@@ -1107,6 +1107,10 @@ export function openDb(file) {
     updateInvoiceStatus(userId, id, status) {
       const original = q.getInvoice.get(String(id), userId);
       if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
+      const owner=q.getUserById.get(userId);
+      if (owner?.country==='IN'&&owner.gstin&&status!=='Draft'&&
+          (!original.supplier_gstin||!original.hsn_sac||!original.place_of_supply))
+        throw Object.assign(new Error('Review and save GST details before marking this invoice Sent or Paid.'),{code:'gst_review_required',status:409});
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
         throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
@@ -1124,6 +1128,9 @@ export function openDb(file) {
       if (action === 'confirm' && targetInvoiceId) {
         const source = q.getInvoice.get(String(targetInvoiceId), userId);
         if (!source) throw Object.assign(new Error('The selected invoice was not found.'), {code:'not_found',status:404});
+        const owner=q.getUserById.get(userId);
+        if(owner?.country==='IN'&&owner.gstin&&(!source.supplier_gstin||!source.hsn_sac||!source.place_of_supply))
+          throw Object.assign(new Error('Finish reviewing GST details before recording this invoice as paid.'),{code:'gst_review_required',status:409});
         if (source.job_id && Number(source.total) <= 0) {
           throw Object.assign(new Error('Set invoice pricing before recording a payment against this job draft.'), {code:'invoice_needs_pricing',status:409});
         }
