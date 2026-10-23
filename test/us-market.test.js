@@ -217,7 +217,7 @@ test('US-only page positioning and invoice presentation are present without rela
   assert.match(app,/field\('usState','State'/);
   assert.match(app,/ZIP code/);
   assert.match(app,/Business time zone/);
-  assert.match(app,/const usAddress=/);
+  assert.match(app,/const address=/);
   assert.match(app,/Existing amounts are stored in/);
   assert.match(app,/dashboardCash\(m.outstanding\)/);
   assert.match(app,/dashboardCash\(m.overdue\)/);
