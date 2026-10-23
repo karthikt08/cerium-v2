@@ -785,6 +785,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
     if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
     const user = db.getUserById(req.session.userId);
+    if(user.country!=='US'||user.currency!=='USD')
+      return res.status(403).json({error:'us_billing_only',message:'CERIUM subscription checkout is available only to USD-denominated US workspaces. Contact support to review legacy currency records.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
@@ -840,7 +842,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured) });
+    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured && ws?.account.country==='US' && ws?.account.currency==='USD') });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
