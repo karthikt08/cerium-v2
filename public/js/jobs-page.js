@@ -17,13 +17,23 @@ const dateTime = v => v ? `${longFmt.format(dateAt(v.slice(0,10)))} · ${hour(v)
 const workerName = (ws,id) => ws.crew?.find(c=>c.id===id)?.name || 'Unassigned';
 const statusClass = s => ({Scheduled:'blue',Confirmed:'purple','In progress':'orange',Completed:'green',Cancelled:'gray'})[s]||'blue';
 const safeData = s => esc(s||'');
-function billingItemRow(item={description:'',qty:1,rate:0}) {
+function billingItemRow(item={description:'',qty:1,rate:0},locked=false) {
   return `<div class="job-billing-row" data-job-billing-row>
-    <label>Description<input data-billing-field="description" maxlength="180" value="${esc(item.description)}" placeholder="Labor, materials..."></label>
-    <label>Qty<input data-billing-field="qty" type="number" min="0.01" max="10000" step="0.01" value="${esc(item.qty)}"></label>
-    <label>Rate<input data-billing-field="rate" type="number" min="0" max="1000000" step="0.01" value="${esc(item.rate)}"></label>
-    <button type="button" class="button secondary" data-job-action="remove-item" aria-label="Remove item">×</button>
+    <label>Description<input data-billing-field="description" maxlength="180" ${locked?'disabled':''} value="${esc(item.description)}" placeholder="Labor, materials..."></label>
+    <label>Qty<input data-billing-field="qty" type="number" ${locked?'disabled':''} min="0.01" max="10000" step="0.01" value="${esc(item.qty)}"></label>
+    <label>Rate<input data-billing-field="rate" type="number" ${locked?'disabled':''} min="0" max="1000000" step="0.01" value="${esc(item.rate)}"></label>
+    <button type="button" class="button secondary" data-job-action="remove-item" ${locked?'disabled':''} aria-label="Remove item">×</button>
   </div>`;
+}
+function updateJobBillingTotal(form){
+  if(!form)return;
+  const amount=[...form.querySelectorAll('[data-job-billing-row]')].reduce((sum,row)=>{
+    const number=key=>Number(row.querySelector('[data-billing-field="'+key+'"]')?.value||0);
+    return sum+number('qty')*number('rate');
+  },0);
+  const currency=dispatch?.getWorkspace()?.account?.currency||'USD';
+  const target=form.querySelector('[data-job-billing-total]');
+  if(target)target.textContent=new Intl.NumberFormat('en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
 }
 const active = j => j.status !== 'Cancelled' && j.status !== 'Completed';
 const selectOptions = (options,selected) => options.map(x=>`<option value="${safeData(x.value)}" ${x.value===selected?'selected':''}>${esc(x.label)}</option>`).join('');
@@ -112,15 +122,16 @@ function formJob(ws,id='',date=today()) {
     <label class="jobs-wide">Job address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Service location"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
     <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
-      <div data-billing-rows>${items.map(billingItemRow).join('')}</div>
-      <button type="button" class="button secondary" data-job-action="add-item">+ Add line item</button>
-      <p class="muted">Set quantities and rates before completing the job. Zero-value drafts require pricing before being marked sent.</p>
+      <div data-billing-rows>${items.map(item=>billingItemRow(item,!!j?.invoiceGenerated)).join('')}</div>
+      <button type="button" class="button secondary" data-job-action="add-item" ${j?.invoiceGenerated?'disabled':''}>+ Add line item</button><strong class="jobs-billing-total">Estimated total: <span data-job-billing-total>—</span></strong>
+      <p class="muted">${j?.invoiceGenerated?'Billing items have been copied to an invoice. Edit its line items in Invoices instead.':'Set quantities and rates before completing the job. Zero-value drafts require pricing before being marked sent.'}</p>
     </div>
-    ${j?.invoiceId ? `<p class="jobs-linked-invoice jobs-wide">Draft invoice generated: <strong>#${esc(j.invoiceId)}</strong> · <button type="button" class="button secondary" data-job-action="invoice" data-invoice-id="${esc(j.invoiceId)}">Review invoice →</button></p>` : ''}
+    ${j?.invoiceId ? `<p class="jobs-linked-invoice jobs-wide">Invoice prepared: <strong>#${esc(j.invoiceId)}</strong> · <button type="button" class="button secondary" data-job-action="invoice" data-invoice-id="${esc(j.invoiceId)}">Review invoice →</button></p>` : j?.invoiceGenerated ? '<p class="jobs-linked-invoice jobs-wide">The original draft invoice was deleted. It will not be generated again automatically.</p>' : ''}
     <p class="jobs-form-error" role="alert" hidden></p></div>
     <div class="jobs-modal-actions">${j?'<button type="button" class="button secondary" data-job-action="delete" data-job-id="'+esc(j.id)+'">Delete job</button>':''}
     <button type="button" class="button secondary" data-job-action="close">Cancel</button><button type="submit" class="button primary">${j?'Save changes':'Schedule job'}</button></div>
     </form>`);
+  updateJobBillingTotal(document.querySelector('#cerium-job-dialog [data-job-form="job"]'));
   const lead=document.querySelector('#cerium-job-dialog [name=leadId]');
   lead?.addEventListener('change',()=>{
     const v=ws.leads.find(x=>x.id===lead.value);if(!v)return;
@@ -154,13 +165,13 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
     }
     if(action==='add-item'){
       const parent=el.closest('form')?.querySelector('[data-billing-rows]');
-      if(parent && parent.children.length<20) parent.insertAdjacentHTML('beforeend',billingItemRow());
+      if(parent && parent.children.length<20) {parent.insertAdjacentHTML('beforeend',billingItemRow());updateJobBillingTotal(parent.closest('form'));}
       else toast('Maximum 20 billing items.',true);
       return;
     }
     if(action==='remove-item'){
       const row=el.closest('[data-job-billing-row]'),parent=row?.parentElement;
-      if(parent?.children.length>1)row.remove();
+      if(parent?.children.length>1){row.remove();updateJobBillingTotal(parent.closest('form'));}
       else toast('Keep at least one line item.',true);
       return;
     }
@@ -176,6 +187,7 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
       busy=true;try{await API.deleteJob(el.dataset.jobId);el.closest('dialog')?.close();await refresh();toast('Job deleted.');}catch(err){toast(err.message,true);}finally{busy=false;}
     }
   });
+  document.addEventListener('input',event=>{if(event.target.matches('[data-billing-field]'))updateJobBillingTotal(event.target.closest('form'));});
   document.addEventListener('change',event=>{
     if(event.target.matches('[data-jobs-filter]')){filter=event.target.value;refresh().catch(e=>toast(e.message,true));}
   });
