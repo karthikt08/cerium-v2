@@ -1,6 +1,7 @@
 // Shared, side-effect-free workspace rules.
 export const SECTIONS = {
   overview: ['Overview', 'Your day at a glance.'],
+  jobs: ['Jobs & dispatch', 'Schedule jobs and assign your crew.'],
   leads: ['Leads', 'Keep every inquiry moving toward a booked job.'],
   followups: ['Follow-ups', 'A clear list of who to contact and when.'],
   invoices: ['Invoices', 'Create invoices and keep track of what is owed.'],
