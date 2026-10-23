@@ -594,6 +594,16 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         message: 'Your 15-day trial has ended. Your records are still available to view and export. Activate Cerium Pro to add or change business records.',
       });
     }
+    // Legacy non-USD records must remain in their original denomination.
+    // Never allow new amounts to be created under that denomination in the
+    // dollar-only product. Account export and deliberate workspace clearing
+    // remain available outside this middleware.
+    if (workspace.account.currency !== 'USD') {
+      return res.status(409).json({
+        error: 'currency_review_required',
+        message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
+      });
+    }
     next();
   });
 
