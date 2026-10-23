@@ -102,6 +102,8 @@ that it appears in the queue. Delivery remains disabled by default.
 
 ## Before pilot launch
 
+- Review and update CERIUM's Privacy Policy/Terms before enabling live email
+  delivery, including provider involvement, recipient opt-outs and retention.
 - Test the SMTP adapter against your own verified inbox, not a customer.
 - Confirm unsubscribe, paid invoices, customer-email changes, expired trials
   and restart recovery. Tests inject a fake sender and need not use Oracle.
