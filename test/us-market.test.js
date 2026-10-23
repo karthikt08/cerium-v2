@@ -79,6 +79,7 @@ test('US edition does not silently relabel legacy invoice amounts or historical 
     assert.equal(ws.account.currency,'INR'); // visible legacy state, not a silent conversion
     assert.equal(ws.invoices.find(i=>i.id===invoice.id).total,425);
     assert.throws(()=>t.db.updateUser(userId,{currency:'INR'}),{code:'invalid_us_profile'});
+    assert.throws(()=>t.db.updateUser(userId,{currency:'USD'}),{code:'invalid_us_profile'});
     t.db.updateUser(userId,{usState:'NY',usZip:'10001',timeZone:'America/New_York'});
     assert.equal(t.db.getWorkspace(userId).invoices.find(i=>i.id===invoice.id).total,425);
   }finally{await t.close();}
