@@ -971,6 +971,13 @@ export function openDb(file) {
     },
 
     resolveBankMatch(userId, txId, action, targetInvoiceId) {
+      if (action === 'confirm' && targetInvoiceId) {
+        const source = q.getInvoice.get(String(targetInvoiceId), userId);
+        if (!source) throw Object.assign(new Error('The selected invoice was not found.'), {code:'not_found',status:404});
+        if (source.job_id && Number(source.total) <= 0) {
+          throw Object.assign(new Error('Set invoice pricing before recording a payment against this job draft.'), {code:'invoice_needs_pricing',status:409});
+        }
+      }
       if (action === 'confirm') {
         q.resolveBankMatch.run('matched', targetInvoiceId || null, targetInvoiceId || null, txId, userId);
         if (targetInvoiceId) {
