@@ -97,6 +97,7 @@ export function buildConfig(env = process.env) {
     if (Number.isInteger(pc) && pc > 0) priceCents = pc;
   }
   const currency = get('CURRENCY') || 'USD';
+  if(currency!=='USD')problems.push('CERIUM US edition requires CURRENCY=USD. Never silently relabel existing amounts.');
 
   if (!razorpayConfigured) {
     warnings.push('Razorpay credentials are missing. Recurring billing is disabled; no simulation payments are available.');
