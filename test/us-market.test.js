@@ -153,6 +153,28 @@ test('legacy workspaces with no financial history switch to dollars on database 
   }finally{fs.rmSync(folder,{recursive:true,force:true});}
 });
 
+test('explicit workspace clear begins a clean USD ledger while preserving subscription records',()=>{
+  const db=openDb(':memory:');
+  try{
+    const demo=db.createUser({email:'clear-demo@example.com',name:'Test Demo'});
+    const billed=db.createUser({email:'keep-billing@example.com',name:'Test Billed'});
+    const mark=db.rawDb.prepare("UPDATE users SET currency='INR' WHERE id=?");
+    mark.run(demo.id);mark.run(billed.id);
+    db.createInvoice(demo.id,{customerName:'Customer',jobTitle:'Past demo job',amount:250,status:'Draft'});
+    db.createInvoice(billed.id,{customerName:'Customer',jobTitle:'Past invoice',amount:400,status:'Draft'});
+    db.createSubscription(billed.id,'sub_keep_history',Math.floor(Date.now()/1000)+3600);
+    assert.equal(db.getWorkspace(demo.id).account.currency,'INR');
+    assert.equal(db.getWorkspace(billed.id).account.currency,'INR');
+    db.clearWorkspaceData(demo.id);
+    db.clearWorkspaceData(billed.id);
+    assert.equal(db.getWorkspace(demo.id).account.currency,'USD');
+    assert.equal(db.getWorkspace(demo.id).invoices.length,0);
+    assert.equal(db.getWorkspace(billed.id).account.currency,'INR');
+    assert.ok(db.getUserSubscription(billed.id));
+    assert.equal(db.getWorkspace(billed.id).invoices.length,0);
+  }finally{db.close();}
+});
+
 test('US-only page positioning and invoice presentation are present without relabeling historic currency',()=>{
   const landing=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
   const app=fs.readFileSync(new URL('../public/js/app.js',import.meta.url),'utf8');
@@ -164,7 +186,7 @@ test('US-only page positioning and invoice presentation are present without rela
   assert.match(app,/ZIP code/);
   assert.match(app,/Business time zone/);
   assert.match(app,/const usAddress=/);
-  assert.match(app,/Existing records are denominated/);
+  assert.match(app,/Existing amounts are stored in/);
   assert.match(app,/dashboardCash\(m.outstanding\)/);
   assert.match(app,/dashboardCash\(m.overdue\)/);
 });
