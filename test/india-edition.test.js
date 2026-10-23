@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {openDb} from '../server/db.js';
+import {businessLocalDate,businessLocalToInstant} from '../public/js/us-market.js';
 import {gstBreakdown,validGSTIN,validUpiVpa,validIndianState} from '../public/js/india-market.js';
 import {startServer,signIn,ALICE} from './helpers.js';
 
@@ -11,6 +12,8 @@ test('India helpers calculate intra-state CGST/SGST vs interstate IGST in rupees
   assert.equal(validIndianState('ZZ'),false);
   assert.equal(validGSTIN(taxId),true);
   assert.equal(validGSTIN('not a GSTIN'),false);
+  assert.equal(businessLocalDate('Asia/Kolkata',new Date('2026-10-23T20:00:00.000Z')),'2026-10-24');
+  assert.equal(businessLocalToInstant('2026-10-24T09:30','Asia/Kolkata'),'2026-10-24T04:00:00.000Z');
   assert.equal(validUpiVpa('merchant@okaxis'),true);
   assert.equal(validUpiVpa('https://evil.invalid'),false);
   assert.deepEqual(gstBreakdown(1000,18,'33','33'),{
@@ -44,6 +47,9 @@ test('fresh workspace can opt into India without converting existing USD monetar
     assert.equal(saved.sgst,90);
     assert.equal(saved.total,1180);
     assert.equal(saved.supplierGstin,taxId);
+    db.rawDb.prepare("UPDATE invoices SET supplier_gstin='' WHERE id=?").run(inv.id);
+    assert.throws(()=>db.updateInvoiceStatus(u.id,inv.id,'Sent'),{code:'gst_review_required'});
+    db.updateInvoice(u.id,inv.id,{amount:'1000',gstRate:'18',hsnSac:'998314',placeOfSupply:'33'});
     db.updateInvoice(u.id,inv.id,{amount:'2000',gstRate:'18',hsnSac:'998314',placeOfSupply:'29'});
     const second=db.getWorkspace(u.id).invoices.find(x=>x.id===inv.id);
     assert.equal(second.igst,360);
