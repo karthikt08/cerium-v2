@@ -4,6 +4,7 @@
 // data isolation across all user workspaces, authentication, sessions, and payments.
 
 import Database from 'better-sqlite3';
+import { createJobsStore } from './jobs.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -233,6 +234,7 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
+  const jobsStore = createJobsStore(db);
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
@@ -758,8 +760,12 @@ export function openDb(file) {
         bankTransactions,
         reviews,
         messages,
+        jobs: jobsStore.listJobs(userId),
+        crew: jobsStore.listCrew(userId),
       };
     },
+
+    ...jobsStore,
 
     createLead(userId, payload) {
       const today = todayStr();
@@ -985,6 +991,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        jobsStore.clear(userId);
       });
       run();
       return { ok: true };
@@ -1083,6 +1090,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        jobsStore.clear(userId);
 
         const member = q.deleteMember.run(sub).changes;
         const sessions = q.deleteSessionsForUser.run(userId).changes + (sub ? q.deleteSessionsForSub.run(sub).changes : 0);
