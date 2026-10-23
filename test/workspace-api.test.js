@@ -11,3 +11,47 @@ test('newest leads appear first even when created on the same day',()=>setup(asy
 test('mutations require CSRF and correct origin',()=>setup(async({a,ac})=>{let r=await a.req('/api/leads',{method:'POST',json:{name:'No token'}});assert.equal(r.status,403);r=await a.req('/api/leads',{method:'POST',json:{name:'Cross site'},csrf:ac,origin:'https://untrusted.invalid'});assert.equal(r.status,403);}));
 test('exports include only the signed-in users data',()=>setup(async({A,B})=>{await A('/api/leads','POST',{name:'Alice customer',createReminder:false});await B('/api/leads','POST',{name:'Bob customer',createReminder:false});const out=(await A('/api/me/export')).data;assert.equal(out.workspace.leads.length,1);assert.equal(out.workspace.leads[0].name,'Alice customer');}));
 test('review records can be edited and marked received',()=>setup(async({A})=>{const r=(await A('/api/reviews','POST',{customerName:'Review customer',jobTitle:'Repairs'})).data;await A('/api/reviews/'+r.id,'PATCH',{customerName:'Updated review customer',jobTitle:'Renovation'});await A('/api/reviews/'+r.id+'/complete','PATCH');const ws=(await A('/api/workspace')).data;assert.equal(ws.reviews[0].customerName,'Updated review customer');assert.equal(ws.reviews[0].status,'Reviewed');assert.equal(ws.reviews[0].rating,null);}));
+
+
+test('expired trials cannot mutate business records but keep viewing, exports, profile and support',()=>setup(async({A,t,a})=>{
+  const me=await a.me();
+  const id=me.user.id;
+  const first=await A('/api/leads','POST',{name:'Preserved customer',createReminder:false});
+  assert.equal(first.status,201);
+  const invoice=await A('/api/invoices','POST',{customerName:'Existing client',jobTitle:'Repair',amount:100});
+  assert.equal(invoice.status,201);
+  t.db.setUserPlan(id,{plan:'expired',planStatus:'expired'});
+  const ws=await A('/api/workspace');
+  assert.equal(ws.status,200);
+  assert.equal(ws.data.account.planStatus,'expired');
+  assert.equal(ws.data.leads.length,1);
+  for(const [method,url,json] of [
+    ['POST','/api/leads',{name:'No'}],
+    ['PATCH','/api/leads/'+first.data.id,{name:'No'}],
+    ['DELETE','/api/leads/'+first.data.id],
+    ['POST','/api/followups',{contactName:'No',task:'Call',dueDate:'2026-11-01'}],
+    ['PATCH','/api/followups/example/toggle',{}],
+    ['POST','/api/invoices',{customerName:'No',jobTitle:'No',amount:25}],
+    ['PATCH','/api/invoices/'+invoice.data.id+'/status',{status:'Paid'}],
+    ['DELETE','/api/invoices/'+invoice.data.id],
+    ['POST','/api/bank/sync',{}],
+    ['POST','/api/bank/match',{txId:'no',action:'confirm'}],
+    ['PATCH','/api/bank/connection',{}],
+    ['POST','/api/reviews',{customerName:'No',jobTitle:'No'}],
+    ['PATCH','/api/reviews/example',{}],
+    ['POST','/api/reviews/example/send',{}],
+    ['PATCH','/api/reviews/example/complete',{}],
+    ['DELETE','/api/reviews/example']
+  ]) {
+    const result=await A(url,method,json);
+    assert.equal(result.status,403,method+' '+url);
+    assert.equal(result.data.error,'upgrade_required');
+  }
+  const preserved=await A('/api/workspace');
+  assert.equal(preserved.data.leads[0].name,'Preserved customer');
+  assert.equal(preserved.data.invoices.length,1);
+  assert.equal((await A('/api/me/export')).status,200);
+  assert.equal((await A('/api/me','PATCH',{businessName:'Still my business'})).status,200);
+  assert.equal((await A('/api/messages','POST',{category:'Billing',subject:'Question',body:'Can I export?'})).status,201);
+  assert.equal((await A('/api/billing/status')).status,200);
+}));
