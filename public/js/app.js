@@ -15,8 +15,10 @@ const updateCalls = {lead:API.updateLead,followup:API.updateFollowUp,invoice:API
 const deleteCalls = {lead:API.deleteLead,followup:API.deleteFollowUp,invoice:API.deleteInvoice,review:API.deleteReview};
 const initialFilters = (kind) => ({query:'',status:kind === 'followups' ? 'Due' : 'All',source:'All'});
 const currency = () => state.ws?.account.currency || 'USD';
-const readOnly = () => state.ws?.account.planStatus === 'expired';
-const trialNotice = () => `<div class="notice" role="status"><div><strong>Your free trial has ended — read-only access</strong><p>Your business records are safe. You can view invoices, export data, and manage your subscription. <a href="#settings" data-nav="settings" style="text-decoration:underline;font-weight:600">View subscription options →</a></p></div></div>`;
+const readOnly = () => state.ws?.account.planStatus === 'expired' || (state.ws?.account.currency && state.ws.account.currency !== 'USD');
+const trialNotice = () => state.ws?.account.currency && state.ws.account.currency !== 'USD'
+  ? '<div class="notice" role="status"><div><strong>Historical currency — read-only</strong><p>These amounts are preserved in their original currency. Export your records, then review options in <a href="#settings" data-nav="settings" style="text-decoration:underline;font-weight:600">Settings →</a> before creating new dollar invoices.</p></div></div>'
+  : `<div class="notice" role="status"><div><strong>Your free trial has ended — read-only access</strong><p>Your business records are safe. You can view invoices, export data, and manage your subscription. <a href="#settings" data-nav="settings" style="text-decoration:underline;font-weight:600">View subscription options →</a></p></div></div>`;
 const cash = (n) => money(n,currency());
 // Zero represents no debt in any currency; keep an empty dashboard dollar-native
 // without changing the denomination of stored legacy transactions.
