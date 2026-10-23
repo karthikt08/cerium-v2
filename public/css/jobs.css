@@ -39,3 +39,13 @@
 .jobs-add-crew{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-top:15px;border-top:1px solid #e5eaf1}.jobs-add-crew .button{align-self:end}
 @media(max-width:1100px){.jobs-stats{grid-template-columns:repeat(2,1fr)}.jobs-bottom{grid-template-columns:1fr}}
 @media(max-width:650px){.jobs-stats{gap:9px}.jobs-stat{padding:14px}.jobs-stat strong{font-size:23px}.jobs-tools{align-items:flex-start;flex-direction:column}.jobs-tools-actions{flex-wrap:wrap}.jobs-modal-body{padding:18px;grid-template-columns:1fr}.jobs-modal-actions{padding:14px}.jobs-add-crew{grid-template-columns:1fr}.jobs-upcoming-row{flex-wrap:wrap}.jobs-upcoming-info{flex-basis:62%}}
+
+/* Job billing: responsive itemized labor and materials, kept separate from dispatch UI. */
+.jobs-billing{border-top:1px solid #e6ebf2;padding-top:15px;display:grid;gap:11px}
+.jobs-billing-header{display:grid;gap:3px}.jobs-billing-header strong{font-size:14px;color:#253c65}
+.jobs-billing-header span,.jobs-billing>.muted{font-size:12px;color:#76869f;line-height:1.5}
+.job-billing-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(60px,.65fr) minmax(80px,.8fr) 38px;align-items:end;gap:8px;padding:10px;border:1px solid #e3e9f1;border-radius:11px;background:#f8faff}
+.job-billing-row>label{min-width:0}.job-billing-row button{height:41px;min-width:36px;padding:0}
+.jobs-linked-invoice{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:12px;background:#f0f7f4;border:1px solid #d7eadf;border-radius:10px;color:#426956;font-size:13px}
+.jobs-linked-invoice strong{font-weight:800}.jobs-linked-invoice button{min-height:35px}
+@media(max-width:620px){.job-billing-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px}.job-billing-row label:first-child{grid-column:1/-1}.job-billing-row button{grid-column:3;grid-row:2}}
