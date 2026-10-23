@@ -707,7 +707,7 @@ export function openDb(file) {
       const switching=nextCountry!==prior.country;
       if(switching&&(pricedHistory(id)||prior.subscription_id))
         invalid('To switch editions, start with a new empty workspace. Existing records and payment history cannot be relabeled.');
-      if(!switching&&prior.currency!==nextCurrency)
+      if(!switching&&prior.currency!==nextCurrency&&currency!==undefined)
         invalid('Legacy currency records require review and cannot be relabeled.');
       if(nextCountry==='US'){
         for(const [label,v,valid] of [['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone]])
@@ -727,7 +727,7 @@ export function openDb(file) {
           name!==undefined?name.trim():null,businessName!==undefined?businessName.trim():null,
           trade!==undefined?trade.trim():null,phone!==undefined?phone.trim():null,
           location!==undefined?location.trim():null,
-          nextCountry,nextCurrency,
+          nextCountry,!switching&&prior.currency!==nextCurrency?prior.currency:nextCurrency,
           nextCountry==='US'?(usState===undefined?(switching?'':null):usState.trim()):'',
           nextCountry==='US'?(usZip===undefined?(switching?'':null):usZip.trim()):'',
           nextCountry==='IN'?'Asia/Kolkata':(timeZone===undefined?(switching?'':null):timeZone.trim()),
