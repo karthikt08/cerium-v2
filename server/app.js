@@ -538,7 +538,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
             location: user.location || '',
             country: user.country || 'US',
             currency: user.currency || 'USD',
-            usState: user.us_state || '',
+            indiaState: user.india_state || '', gstin: user.gstin || '', upiVpa: user.upi_vpa || '',
+          usState: user.us_state || '',
             usZip: user.us_zip || '',
             timeZone: user.time_zone || '',
             plan: user.plan,
@@ -566,6 +567,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         location: updated.location || '',
         country: updated.country || 'US',
         currency: updated.currency || 'USD',
+        indiaState: updated.india_state || '', gstin: updated.gstin || '', upiVpa: updated.upi_vpa || '',
         usState: updated.us_state || '',
         usZip: updated.us_zip || '',
         timeZone: updated.time_zone || '',
@@ -598,7 +600,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     // Never allow new amounts to be created under that denomination in the
     // dollar-only product. Account export and deliberate workspace clearing
     // remain available outside this middleware.
-    if (workspace.account.currency !== 'USD') {
+    if (!((workspace.account.country==='US'&&workspace.account.currency==='USD')||
+          (workspace.account.country==='IN'&&workspace.account.currency==='INR'))) {
       return res.status(409).json({
         error: 'currency_review_required',
         message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
@@ -793,27 +796,33 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
-    if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
     const user = db.getUserById(req.session.userId);
-    if(user.country!=='US'||user.currency!=='USD')
-      return res.status(403).json({error:'us_billing_only',message:'CERIUM subscription checkout is available only to USD-denominated US workspaces. Contact support to review legacy currency records.'});
+    const indian=user.country==='IN'&&user.currency==='INR';
+    const american=user.country==='US'&&user.currency==='USD';
+    if(!indian&&!american)
+      return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
+    const billingPlanId=indian?config.razorpayIndiaPlanId:config.razorpayPlanId;
+    const billingAmount=indian?config.priceInPaise:config.priceCents;
+    const billingCurrency=indian?'INR':'USD';
+    if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
+      return res.status(503).json({error:'billing_not_configured',message:'Recurring payments in your region are not enabled yet. Your trial remains available.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
     }
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
       const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
-      const plan = await rzp.getPlan(config.razorpayPlanId);
+      const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
-          Number(plan.item?.amount) !== config.priceCents ||
-          plan.item?.currency !== config.currency) {
+          Number(plan.item?.amount) !== billingAmount ||
+          plan.item?.currency !== billingCurrency) {
         return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
       }
-      const created = await rzp.createSubscription({ planId: config.razorpayPlanId, startAt, notes: { userId: user.id } });
+      const created = await rzp.createSubscription({ planId: billingPlanId, startAt, notes: { userId: user.id, edition: indian?'IN':'US' } });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       db.createSubscription(user.id, created.id, startAt);
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: config.priceCents, currency: config.currency });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: billingAmount, currency: billingCurrency });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
