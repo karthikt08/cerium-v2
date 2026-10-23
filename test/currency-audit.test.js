@@ -35,7 +35,7 @@ test('India-only rupee text is limited to edition-specific UI and not shipped gl
   }
   assert.ok(files.length>20,'must scan the complete shipped frontend');
   assert.match(read('public/js/app.js'),/₹500/,'India edition pricing must remain visible');
-  assert.match(read('public/js/app.js'),/\\$20/,'US edition pricing must remain visible');
+  assert.ok(read('public/js/app.js').includes('$20'),'US edition pricing must remain visible');
 });
 
 test('dollar defaults, legacy safeguards and active backend write barrier stay enforced',()=>{
