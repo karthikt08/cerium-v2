@@ -128,3 +128,23 @@ test('Reject malformed billable items rather than recording misleading invoices'
   }
   assert.equal((await A('/api/workspace')).data.invoices.length,0);
 }));
+
+
+test('Lead contact details carry into the draft and financial actions reject unpriced work',()=>setup(async({A})=>{
+  const lead=await A('/api/leads','POST',{name:'New Customer',email:'customer@example.com',address:'12 Service Rd',createReminder:false});
+  assert.equal(lead.status,201);
+  const j=await A('/api/jobs','POST',{...job,customerName:'New Customer',leadId:lead.data.id,status:'Completed'});
+  assert.equal(j.status,201);
+  const invoice=(await A('/api/workspace')).data.invoices[0];
+  assert.equal(invoice.customerEmail,'customer@example.com');
+  assert.equal(invoice.jobId,j.data.id);
+  assert.equal((await A('/api/invoices/'+invoice.id,'PATCH',{status:'Sent'})).status,409);
+  const attempted=await A('/api/bank/match','POST',{txId:'not-a-transaction',action:'confirm',targetInvoiceId:invoice.id});
+  assert.equal(attempted.status,409);
+  assert.equal(attempted.data.error,'invoice_needs_pricing');
+  assert.equal((await A('/api/invoices/'+invoice.id,'PATCH',{
+    items:[{description:'Service call',qty:1,rate:0.001}],
+    status:'Draft',
+  })).status,400);
+  assert.equal((await A('/api/workspace')).data.invoices[0].total,0);
+}));
