@@ -624,6 +624,10 @@ export function openDb(file) {
       const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
       if(country!==undefined&&country!=='US')invalid('CERIUM currently supports US businesses only.');
       if(currency!==undefined&&currency!=='USD')invalid('CERIUM billing is USD-only. Existing non-USD data is not converted automatically.');
+      // A legacy INR workspace must never be relabeled USD without a reviewed migration.
+      const storedCurrency=q.getUserById.get(id)?.currency;
+      if(currency==='USD'&&storedCurrency&&storedCurrency!=='USD')
+        invalid('Legacy '+storedCurrency+' amounts cannot be relabeled USD. Contact support for a reviewed currency migration.');
       for(const [name,value,valid] of [
         ['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone],
       ])if(value!==undefined&&(typeof value!=='string'||!valid(value.trim())))
