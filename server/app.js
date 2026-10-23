@@ -176,6 +176,62 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     res.type('html').send('<!doctype html><html lang="en"><meta charset="utf-8"><title>Unsubscribed</title><main><h1>You are unsubscribed.</h1><p>This business will not send you more CERIUM payment reminders.</p></main></html>');
   });
 
+  // Public estimate approval uses a scoped, 30-day HMAC link. Visiting a link
+  // is read-only; clicking Accept or Decline makes the one-time change.
+  const escapeQuoteHtml = value => String(value??'').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+  const quotePage = (title,body) => '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeQuoteHtml(title)+' · CERIUM</title>'+
+    '<style>*{box-sizing:border-box}body{margin:0;background:#f5f6fb;font-family:system-ui,-apple-system,sans-serif;color:#273653}main{max-width:700px;margin:7vh auto;padding:36px;background:white;border:1px solid #e5e9f3;border-radius:22px;box-shadow:0 22px 60px #34375914}h1{font-size:29px;letter-spacing:-.9px}h2{font-size:19px}p{line-height:1.6;color:#66738c}.brand{font-size:13px;font-weight:800;letter-spacing:3px;color:#765ec4}table{border-collapse:collapse;width:100%;margin:25px 0}th,td{text-align:left;border-bottom:1px solid #e9ebf3;padding:12px 8px;font-size:14px}th{font-size:12px;color:#65738a}td:last-child,th:last-child{text-align:right}.total{font-size:24px;font-weight:800;text-align:right}button{font:inherit;padding:13px 23px;background:#5c52ac;color:white;border:0;border-radius:10px;cursor:pointer}button.secondary{background:#f1eefb;color:#5449a0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0}.meta{font-size:13px}.note{padding:16px;background:#f6f4fc;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}@media(max-width:750px){main{margin:0;padding:25px 18px;border-radius:0;min-height:100vh}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}</style></head><body><main><div class="brand">CERIUM / ESTIMATES</div>'+
+    body+'</main></body></html>';
+  const renderQuoteError = (res,err) => res.status(err.status||400).type('html').send(quotePage('Estimate unavailable',
+    '<h1>'+escapeQuoteHtml(err.status===404?'Estimate not found':err.status===410?'Link expired':'Cannot complete request')+'</h1><p>'+
+    escapeQuoteHtml(err.message||'Please contact the contractor.')+'</p>'));
+  const quoteHeaders = res => {
+    res.set('Cache-Control','no-store');res.set('Referrer-Policy','no-referrer');
+    res.set('X-Robots-Tag','noindex, nofollow, noarchive');
+  };
+  app.get('/quote/:id', (req,res)=>{
+    quoteHeaders(res);
+    try{
+      const {quote,businessName,expiresAt}=db.getPublicQuote(req.params.id,req.query.token,config.sessionSecret);
+      const money=n=>new Intl.NumberFormat(quote.currency==='INR'?'en-IN':'en-US',
+        {style:'currency',currency:quote.currency==='INR'?'INR':'USD'}).format(n);
+      const rows=quote.items.map(i=>'<tr><td>'+escapeQuoteHtml(i.description)+
+        '</td><td>'+escapeQuoteHtml(i.qty)+'</td><td>'+escapeQuoteHtml(money(i.rate))+
+        '</td><td>'+escapeQuoteHtml(money(i.qty*i.rate))+'</td></tr>').join('');
+      const token=escapeQuoteHtml(req.query.token);
+      const actions=quote.status==='Sent'?
+        '<p>Review the details carefully. Only choose Accept if you agree to the work and listed prices.</p>'+
+        '<div class="actions"><form action="/quote/'+quote.id+'/respond" method="post">'+
+        '<input type="hidden" name="token" value="'+token+'"><input type="hidden" name="decision" value="Accepted">'+
+        '<button type="submit">Accept estimate</button></form>'+
+        '<form action="/quote/'+quote.id+'/respond" method="post">'+
+        '<input type="hidden" name="token" value="'+token+'"><input type="hidden" name="decision" value="Declined">'+
+        '<button type="submit" class="secondary">Decline</button></form></div>':
+        '<p><strong>This estimate is '+escapeQuoteHtml(quote.status.toLowerCase())+'.</strong> Contact the contractor for changes.</p>';
+      const body='<h1>'+escapeQuoteHtml(quote.title)+'</h1><p>Prepared by <strong>'+
+        escapeQuoteHtml(businessName)+'</strong> for '+escapeQuoteHtml(quote.customerName)+'.</p>'+
+        '<p class="meta">Estimate #'+escapeQuoteHtml(quote.id.slice(0,8).toUpperCase())+
+        ' · Decision link expires '+escapeQuoteHtml(new Date(expiresAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}))+'</p>'+
+        '<table><thead><tr><th>Work</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead><tbody>'+
+        rows+'</tbody></table><div class="total">Total '+escapeQuoteHtml(money(quote.total))+'</div>'+
+        (quote.notes?'<h2>Notes</h2><p class="note">'+escapeQuoteHtml(quote.notes)+'</p>':'')+actions+
+        '<p class="meta">Approval confirms the estimate only. Scheduling and billing are handled separately.</p>';
+      res.type('html').send(quotePage('Review estimate',body));
+    }catch(err){renderQuoteError(res,err);}
+  });
+  app.post('/quote/:id/respond',authLimiter,sameOrigin,(req,res)=>{
+    quoteHeaders(res);
+    try{
+      const answer=db.respondQuote(req.params.id,req.body?.token,config.sessionSecret,req.body?.decision);
+      res.type('html').send(quotePage('Response recorded',
+        '<h1>Estimate '+escapeQuoteHtml(answer.status.toLowerCase())+'</h1>'+
+        '<p>Your response has been recorded. The contractor can now take the next step.</p>'));
+    }catch(err){renderQuoteError(res,err);}
+  });
+
   // ------------------------------------------------------------ Protected Workspace Routing
   // Unauthenticated users attempting to access workspace pages are redirected to login with returnTo preserved
   app.get(['/app', '/app.html'], (req, res, next) => {
@@ -520,7 +576,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -531,6 +587,36 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       });
     }
     next();
+  });
+
+  // Quote editing is owner-only; customer approvals use the public signed link above.
+  const quoteError = (res,err) => {
+    if(err && err.code && err.status)return res.status(err.status).json({error:err.code,message:err.message});
+    throw err;
+  };
+  api.post('/quotes',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.createQuote(req.session.userId,req.body));}
+    catch(err){quoteError(res,err);}
+  });
+  api.patch('/quotes/:id',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.updateQuote(req.session.userId,req.params.id,req.body));}
+    catch(err){quoteError(res,err);}
+  });
+  api.post('/quotes/:id/send',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.sendQuote(req.session.userId,req.params.id,config.baseUrl,config.sessionSecret));}
+    catch(err){quoteError(res,err);}
+  });
+  api.get('/quotes/:id/link',requireSession,(req,res)=>{
+    try{res.json(db.quoteLink(req.session.userId,req.params.id,config.baseUrl,config.sessionSecret));}
+    catch(err){quoteError(res,err);}
+  });
+  api.post('/quotes/:id/convert',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.convertQuote(req.session.userId,req.params.id,req.body));}
+    catch(err){quoteError(res,err);}
+  });
+  api.delete('/quotes/:id',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.deleteQuote(req.session.userId,req.params.id));}
+    catch(err){quoteError(res,err);}
   });
 
   // Crew and Jobs scheduling — business-data writes share existing trial/CSRF rules.
