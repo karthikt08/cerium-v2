@@ -8,25 +8,58 @@ const fmt=(value,currency='USD')=>new Intl.NumberFormat(currency==='INR'?'en-IN'
 const day=v=>v?new Date(v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
 const e=s=>esc(s??'');
 const quoteRow=(quote,currency,ro)=>{
-  const actions=quote.status==='Draft'
-    ?'<button type="button" class="button secondary" data-quote-action="edit" data-quote-id="'+e(quote.id)+'">Edit</button>'+
-      '<button type="button" class="button primary" data-quote-action="share" data-quote-id="'+e(quote.id)+'">Create approval link</button>'
-    :['Sent','Accepted'].includes(quote.status)?
-      '<button type="button" class="button secondary" data-quote-action="copy" data-quote-id="'+e(quote.id)+'">Copy approval link</button>'+
-      (quote.status==='Accepted'?'<button type="button" class="button primary" data-quote-action="convert" data-quote-id="'+e(quote.id)+'">Schedule job →</button>':'')
-    :quote.status==='Converted'&&quote.jobId?
-      '<button type="button" class="button secondary" data-quote-action="view-job" data-quote-id="'+e(quote.id)+'">View job →</button>':'';
+  const id=e(quote.id);
+  const action=(kind,label,style='primary')=>
+    '<button type="button" class="button '+style+' quote-action-button" data-quote-action="'+kind+
+    '" data-quote-id="'+id+'">'+label+'</button>';
+  // Only one visually dominant action per status. Administrative actions live
+  // in a separate, quieter area instead of fighting for space on every card.
+  let primary='',secondary='',nextStep='';
+  switch(quote.status){
+    case 'Draft':
+      primary=action('share','Create approval link');
+      secondary=action('edit','Edit draft','secondary');
+      nextStep='Ready to share once you finish pricing';
+      break;
+    case 'Sent':
+      primary=action('copy','Copy approval link');
+      nextStep='Approval link ready · awaiting customer response';
+      break;
+    case 'Accepted':
+      primary=action('convert','Schedule job →');
+      secondary=action('copy','Copy link','secondary');
+      nextStep='Customer accepted · schedule an appointment';
+      break;
+    case 'Converted':
+      if(quote.jobId)primary=action('view-job','View scheduled job →');
+      nextStep=quote.jobId?'Linked to a scheduled job':'Original job no longer exists';
+      break;
+    case 'Declined':
+      nextStep='Customer declined · no job was created';
+      break;
+  }
+  const more=!ro?
+    '<details class="quote-more"><summary aria-label="More actions for '+e(quote.title)+'">'+
+    'More <span aria-hidden="true">···</span></summary>'+
+    '<div class="quote-more-menu"><button type="button" class="quote-delete" data-quote-action="delete" '+
+    'data-quote-id="'+id+'">Delete estimate</button></div></details>':'';
   return '<article class="quote-card"><div class="quote-card-main"><div class="quote-card-top">'+
     '<span class="quote-number">ESTIMATE / '+e(quote.id.slice(0,8).toUpperCase())+'</span>'+
-    '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+e(quote.status==='Sent'?'Link ready':quote.status)+'</span></div>'+
+    '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+
+    e(quote.status==='Sent'?'Link ready':quote.status)+'</span></div>'+
     '<h3>'+e(quote.title)+'</h3><p>'+e(quote.customerName)+
     (quote.customerEmail?' · '+e(quote.customerEmail):'')+'</p>'+
     '<div class="quote-card-bottom"><strong>'+e(fmt(quote.total,quote.currency||currency))+'</strong>'+
-    '<span>'+e(quote.items.length)+' line item'+(quote.items.length===1?'':'s')+' · '+e(day(quote.createdAt))+'</span></div></div>'+
-    '<div class="quote-actions">'+(ro?'':actions)+
-    (ro?'':'<button type="button" class="quote-delete" data-quote-action="delete" data-quote-id="'+e(quote.id)+'" title="Delete estimate">Delete</button>')+
-    '</div></article>';
+    '<span>'+e(quote.items.length)+' line item'+(quote.items.length===1?'':'s')+' · '+e(day(quote.createdAt))+'</span></div>'+
+    '<p class="quote-next-step">'+e(nextStep)+'</p></div>'+
+    (ro?'':'<div class="quote-actions">'+
+      '<div class="quote-action-group">'+
+        (primary||'<span class="quote-complete-label">No further action required</span>')+
+        (secondary||'')+
+      '</div>'+more+'</div>')+
+    '</article>';
 };
+
 export function renderQuotesPage(ws,ro=false){
   const quotes=ws.quotes||[],currency=ws.account?.currency;
   return '<div class="quotes-view"><div class="page-heading"><div>'+
