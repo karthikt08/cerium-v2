@@ -481,7 +481,8 @@ export function openDb(file) {
     const total = Math.round(items.reduce((sum, item) => sum + item.qty * item.rate, 0) * 100) / 100;
     const invoiceId = String(q.nextInvoiceNumber.run().lastInsertRowid);
     const notes = 'Draft generated from completed job. Review items and pricing before sending.';
-    q.insertInvoice.run(invoiceId, userId, job.customerName, '', job.address, job.title, today,
+    const linkedLead = job.leadId ? q.getLead.get(job.leadId, userId) : null;
+    q.insertInvoice.run(invoiceId, userId, job.customerName, linkedLead?.email || '', job.address, job.title, today,
       'Net 15', addDays(today, 15), 'Draft', JSON.stringify(items), total, notes, null, today);
     q.linkInvoiceToJob.run(job.id, invoiceId, userId);
   }
