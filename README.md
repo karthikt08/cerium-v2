@@ -15,7 +15,7 @@ This uploaded version is a standalone local demonstration with simulated banking
 
 ---
 
-**Cerium** is a US-focused operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. Prices are displayed in USD; customer addresses follow US formats and schedules use business-local wall-clock times.
+**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. USD pricing, familiar address formats, and business-local scheduling are built in.
 
 It merges the marketing landing suite, authentication system, operations web application, and premium subscription billing into one unified software product.
 
