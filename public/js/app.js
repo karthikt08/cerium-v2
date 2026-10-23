@@ -11,6 +11,8 @@ const updateCalls = {lead:API.updateLead,followup:API.updateFollowUp,invoice:API
 const deleteCalls = {lead:API.deleteLead,followup:API.deleteFollowUp,invoice:API.deleteInvoice,review:API.deleteReview};
 const initialFilters = (kind) => ({query:'',status:kind === 'followups' ? 'Due' : 'All',source:'All'});
 const currency = () => state.ws?.account.currency || 'USD';
+const readOnly = () => state.ws?.account.planStatus === 'expired';
+const trialNotice = () => `<div class="notice" role="status"><div><strong>Your free trial has ended — read-only access</strong><p>Your business records are safe. You can view invoices, export data, and manage your subscription. <a href="#settings" data-nav="settings" style="text-decoration:underline;font-weight:600">View subscription options →</a></p></div></div>`;
 const cash = (n) => money(n,currency());
 const initials = (name) => String(name || 'C').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 const button = (text,action,extra='',style='primary') => `<button type="button" class="button ${style}" data-action="${action}" ${extra}>${text}</button>`;
@@ -135,7 +137,14 @@ function supportPage() {
 function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  $('page-body').innerHTML=s==='overview'?overview():singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage();
+  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  if(readOnly()) {
+    $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
+      control.disabled=true;
+      control.setAttribute('aria-disabled','true');
+      control.title='Trial ended — activate Cerium Pro to edit business records';
+    });
+  }
   if(singular[s])renderResults();
 }
 function getRecord(kind,id) {return state.ws[kindKey[kind]]?.find(r=>String(r.id)===String(id));}
@@ -187,6 +196,7 @@ document.addEventListener('click',e=>{
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
   if(!state.ws)return;
+  if(readOnly() && ['new','edit','delete','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
   if(action==='new'||action==='edit'){openRecord(kind,action==='edit'?id:null);return;}
   if(action==='lead-view'){state.view=el.dataset.view;document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));renderResults();return;}
   if(action==='preview-invoice'){previewInvoice(id);return;}
@@ -215,11 +225,11 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});
 document.addEventListener('change',e=>{
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
-  const id=e.target.dataset.invoiceStatus;if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
+  const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(d.hasAttribute('aria-busy'))e.preventDefault();}));
 $('record-form').addEventListener('submit',e=>{
-  e.preventDefault();const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});
+  e.preventDefault();if(readOnly()){toast('Your trial has ended. Business records are read-only.',true);return;}const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});
   const error=validateRecord(kind,values);formError('record-error',error);if(error)return;
   if(kind==='lead'&&!id)values.createReminder=form.elements.createReminder.checked;
   if(kind==='invoice'&&id&&getRecord(kind,id).items.length>1)delete values.amount;
