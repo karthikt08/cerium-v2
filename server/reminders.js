@@ -16,14 +16,14 @@ const out=r=>({
 
 export function signOptOut({userId,email},secret){
   const data=Buffer.from(JSON.stringify({u:userId,e:email})).toString('base64url');
-  const signature=createHmac('sha256',secret).update(data).digest('base64url');
+  const signature=createHmac('sha256',secret).update('cerium:unsubscribe:v1:'+data).digest('base64url');
   return data+'.'+signature;
 }
 export function verifyOptOut(token,secret){
   if(typeof token!=='string'||token.length>1024||!token.includes('.'))return null;
   const parts=token.split('.');
   if(parts.length!==2)return null;
-  const expected=createHmac('sha256',secret).update(parts[0]).digest();
+  const expected=createHmac('sha256',secret).update('cerium:unsubscribe:v1:'+parts[0]).digest();
   let incoming;
   try{incoming=Buffer.from(parts[1],'base64url');}catch{return null;}
   if(incoming.length!==expected.length||!timingSafeEqual(incoming,expected))return null;
@@ -56,6 +56,7 @@ export function createReminderStore(db){
     create:db.prepare("INSERT INTO email_reminders(id,user_id,invoice_id,email,due_at,status,created_at) VALUES(?,?,?,?,?,'scheduled',?)"),
     cancel:db.prepare("UPDATE email_reminders SET status='cancelled' WHERE id=? AND user_id=? AND status IN ('scheduled','review')"),
     due:db.prepare("SELECT * FROM email_reminders WHERE status='scheduled' AND due_at<=? ORDER BY due_at ASC LIMIT ?"),
+    attemptsSince:db.prepare('SELECT COUNT(*) AS n FROM email_reminders WHERE claimed_at>=?'),
     claim:db.prepare("UPDATE email_reminders SET status='sending',claimed_at=?,last_error=NULL WHERE id=? AND status='scheduled'"),
     stale:db.prepare("UPDATE email_reminders SET status='review',last_error='Delivery outcome unknown after interruption. Review before any resending.' WHERE status='sending' AND claimed_at<?"),
     finish:db.prepare("UPDATE email_reminders SET status=?,sent_at=?,last_error=? WHERE id=? AND status='sending'"),
@@ -120,8 +121,16 @@ export function createReminderStore(db){
     claimDueReminders(now=Date.now(),limit=5){
       const capped=Math.max(1,Math.min(10,Number(limit)||5));
       return db.transaction(()=>{
+        // Safety cap well below advertised OCI free allowances. These values do
+        // not override account-specific provider limits or guarantee free sending.
+        const today=new Date(now);today.setUTCHours(0,0,0,0);
+        const month=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),1));
+        const todayUsed=q.attemptsSince.get(today.getTime()).n;
+        const monthUsed=q.attemptsSince.get(month.getTime()).n;
+        const available=Math.max(0,Math.min(capped,50-todayUsed,1500-monthUsed));
         const claimed=[];
-        for(const reminder of q.due.all(now,capped)){
+        if(!available)return claimed;
+        for(const reminder of q.due.all(now,available)){
           if(q.claim.run(now,reminder.id).changes)claimed.push({...reminder,claimed_at:now});
         }
         return claimed;
