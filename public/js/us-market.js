@@ -66,7 +66,7 @@ export function businessLocalDateTime(timeZone,date=new Date()){
 // gap matches no instants; a fall-back repeated hour matches two. Both should
 // prompt the owner to choose an unambiguous time, never silently guess.
 export function businessLocalToInstant(value,timeZone){
-  if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/.test(value))
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))
     throw new Error('Choose a valid reminder date and time.');
   const base=Date.parse(value+':00Z');
   if(!Number.isFinite(base)||new Date(base).toISOString().slice(0,16)!==value)
