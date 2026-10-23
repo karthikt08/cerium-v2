@@ -501,7 +501,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -512,6 +512,32 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       });
     }
     next();
+  });
+
+  // Crew and Jobs scheduling — business-data writes share existing trial/CSRF rules.
+  const scheduleError = (res, err) => {
+    if (!err.code || !err.status) throw err;
+    return res.status(err.status).json({ error: err.code, message: err.message });
+  };
+  api.post('/crew', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.status(201).json(db.addCrew(req.session.userId, req.body)); }
+    catch(err) { scheduleError(res,err); }
+  });
+  api.delete('/crew/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.json(db.archiveCrew(req.session.userId,req.params.id)); }
+    catch(err) { scheduleError(res,err); }
+  });
+  api.post('/jobs', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.status(201).json(db.createJob(req.session.userId,req.body)); }
+    catch(err) { scheduleError(res,err); }
+  });
+  api.patch('/jobs/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.json(db.updateJob(req.session.userId,req.params.id,req.body)); }
+    catch(err) { scheduleError(res,err); }
+  });
+  api.delete('/jobs/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.json(db.deleteJob(req.session.userId,req.params.id)); }
+    catch(err) { scheduleError(res,err); }
   });
 
   // Leads API
