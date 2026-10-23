@@ -584,13 +584,13 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   });
 
   api.patch('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    db.updateInvoice(req.session.userId, req.params.id, req.body || {});
-    res.json({ ok: true });
+    try { db.updateInvoice(req.session.userId, req.params.id, req.body || {});res.json({ ok: true }); }
+    catch(err) { scheduleError(res,err); }
   });
 
   api.patch('/invoices/:id/status', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    db.updateInvoiceStatus(req.session.userId, req.params.id, req.body && req.body.status ? req.body.status : 'Paid');
-    res.json({ ok: true });
+    try { db.updateInvoiceStatus(req.session.userId, req.params.id, req.body && req.body.status ? req.body.status : 'Paid');res.json({ ok: true }); }
+    catch(err) { scheduleError(res,err); }
   });
 
   api.delete('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
