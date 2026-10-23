@@ -654,9 +654,10 @@ export function openDb(file) {
     },
 
     // ---------------------------------------------------------------- Users
-    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now() }) {
+    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
       const cleanEmail = email.trim().toLowerCase();
+      if(!['US','IN'].includes(country))throw new Error('Unsupported signup country.');
       q.insertUser.run(
         id,
         cleanEmail,
@@ -664,7 +665,7 @@ export function openDb(file) {
         name.trim(),
         businessName ? businessName.trim() : null,
         null, null, null,
-        'US', 'USD',
+        country, country==='IN'?'INR':'USD',
         googleSub || null, null,
         emailVerified ? 1 : 0,
         verificationToken, verificationExpires,
@@ -673,6 +674,7 @@ export function openDb(file) {
         todayStr(), 15,
         now, now, termsVersion
       );
+      if(country==='IN')db.prepare("UPDATE users SET time_zone='Asia/Kolkata' WHERE id=?").run(id);
       return q.getUserById.get(id);
     },
 
