@@ -120,10 +120,10 @@ test('US-only page positioning and invoice presentation are present without rela
   const landing=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
   const app=fs.readFileSync(new URL('../public/js/app.js',import.meta.url),'utf8');
   const signup=fs.readFileSync(new URL('../public/signup.html',import.meta.url),'utf8');
-  assert.match(landing,/United States/);
+  assert.match(landing,/For contractors and service crews/);
   assert.doesNotMatch(landing,/US and India/);
-  assert.match(signup,/US service businesses/);
-  assert.match(app,/US state/);
+  assert.match(signup,/15-Day Free Trial/);
+  assert.match(app,/field\('usState','State'/);
   assert.match(app,/ZIP code/);
   assert.match(app,/Business time zone/);
   assert.match(app,/const usAddress=/);
