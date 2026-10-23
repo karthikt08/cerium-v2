@@ -33,7 +33,7 @@ export function renderRemindersPage(ws,readOnly=false){
         eligible.map(i=>'<option value="'+esc(i.id)+'" '+(optouts.has(i.customerEmail.trim().toLowerCase())?'disabled':'')+'>'+
           '#'+esc(i.id)+' — '+esc(i.customerName)+' ('+esc(i.customerEmail)+')</option>').join('')+
       '</select></label>'+
-      '<label>Reminder time ('+esc(timeZone?(US_TIME_ZONES[timeZone]||'business local time'):'your device local time')+')<input name="dueAt" type="datetime-local" value="'+defaultTime+'" required></label>'+
+      '<label>Reminder time ('+esc(timeZone?((timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[timeZone])||'business local time'):'your device local time')+')<input name="dueAt" type="datetime-local" value="'+defaultTime+'" required></label>'+
       '<label class="reminders-check"><input name="consentConfirmed" type="checkbox" required><span>I confirm this customer agreed to receive invoice reminders by email.</span></label>'+
       '<label class="reminders-check"><input name="approved" type="checkbox" required><span>I approve scheduling this payment reminder.</span></label>'+
       '<p class="reminders-info">No SMS, bulk email campaigns, or automatic payment charges. If an invoice is marked paid before dispatch, the reminder is skipped.</p>'+
