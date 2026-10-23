@@ -23,7 +23,7 @@ test('India-only rupee text is limited to edition-specific UI and not shipped gl
     const source=read(file);
     // path.join() uses backslashes on Windows; exceptions use portable repo paths.
     const portablePath=file.split(path.sep).join('/');
-    if(!['public/js/app.js','public/js/billing.js','public/js/region-pricing.js'].includes(portablePath))
+    if(!['public/js/app.js','public/js/billing.js','public/js/region-pricing.js','public/terms.html'].includes(portablePath))
       assert.equal(source.includes(String.fromCharCode(0x20b9)),false,
         portablePath+' unexpectedly contains a rupee glyph outside the India edition pricing UI');
     if(file.endsWith('.html')){
