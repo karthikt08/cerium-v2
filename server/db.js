@@ -1112,6 +1112,15 @@ export function openDb(file) {
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         quotesStore.clearQuotes(userId);
+        // Clear workspace was explicitly confirmed by the owner. After business
+        // records are gone, a legacy INR test workspace can start fresh in USD.
+        // Billing/payment history survives Clear workspace and blocks the switch.
+        db.prepare(`
+          UPDATE users SET currency='USD', updated_at=?
+          WHERE id=? AND currency='INR' AND COALESCE(country,'US')='US'
+            AND NOT EXISTS (SELECT 1 FROM payments WHERE user_id=?)
+            AND NOT EXISTS (SELECT 1 FROM recurring_subscriptions WHERE user_id=?)
+        `).run(Date.now(),userId,userId,userId);
       });
       run();
       return { ok: true };
