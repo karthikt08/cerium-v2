@@ -59,6 +59,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     editJob:db.prepare('UPDATE jobs SET lead_id=?,worker_id=?,title=?,customer_name=?,customer_phone=?,address=?,notes=?,starts_at=?,ends_at=?,status=?,billable_items_json=?,updated_at=? WHERE id=? AND user_id=?'),
     generated:db.prepare('UPDATE jobs SET invoice_generated=1 WHERE id=? AND user_id=?'),
     deleteJob:db.prepare('DELETE FROM jobs WHERE id=? AND user_id=?'),
+    detachInvoice:db.prepare('UPDATE invoices SET job_id=NULL WHERE user_id=? AND job_id=?'),
     clearJobs:db.prepare('DELETE FROM jobs WHERE user_id=?'),
     clearCrew:db.prepare('DELETE FROM crew_members WHERE user_id=?'),
   };
@@ -76,7 +77,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       const description = text(item.description, 'Line item description', 180, true);
       const qty = Number(item.qty), rate = Number(item.rate);
       if (!Number.isFinite(qty) || !Number.isFinite(rate) || qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
-          !Number.isInteger(qty*100) || !Number.isInteger(rate*100))
+          Math.abs(qty * 100 - Math.round(qty * 100)) > 0.000001 || Math.abs(rate * 100 - Math.round(rate * 100)) > 0.000001)
         throw new JobsError('invalid_items','Line item quantity and rate must be valid numbers with at most 2 decimals.');
       return {description,qty,rate};
     });
@@ -127,10 +128,13 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       if (j.status==='Completed' && !previous.invoice_generated) { onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},
-    deleteJob(userId,id){
-      if(!q.deleteJob.run(id,userId).changes)throw new JobsError('not_found','Job not found.',404);
+    deleteJob(userId,id){return db.transaction(()=>{
+      if(!q.job.get(id,userId))throw new JobsError('not_found','Job not found.',404);
+      // Preserve the invoice as an independent financial record if its source job is removed.
+      q.detachInvoice.run(userId,id);
+      q.deleteJob.run(id,userId);
       return {ok:true};
-    },
+    })();},
     clear(userId){q.clearJobs.run(userId);q.clearCrew.run(userId);}
   };
 }
