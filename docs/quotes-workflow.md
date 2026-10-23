@@ -12,10 +12,11 @@ backend and Oracle VM deployment strategy remain unchanged.
 
 ## How to test it locally
 
-1. Run \`npm test\` and \`npm start\`.
-2. Open \`http://localhost:3000/app.html#quotes\` (sign in first).
+1. Run `npm test` and `npm start`.
+2. Open `http://localhost:3000/app.html#quotes` (sign in first).
 3. Choose **Create estimate**.
-4. Optional: choose an existing lead to prefill name, email and service address.
+4. Optional: choose an existing lead to prefill name, email and service address,
+   or click **Quote ↗** directly on an existing lead.
 5. Enter an estimate title, customer, and billable line items:
    - AC inspection: quantity 1, rate 50
    - Compressor labor: quantity 2, rate 75
@@ -24,9 +25,9 @@ backend and Oracle VM deployment strategy remain unchanged.
 6. Save as Draft. Confirm nothing was emailed, billed, or scheduled.
 7. Choose **Create approval link**. Review the confirmation dialog; this locks
    the quote's line items so the customer approves an immutable offer.
-8. The link is copied to your clipboard; paste it into a private/incognito
-   browser window (you do NOT need to sign in as the customer). If automatic
-   clipboard copying is unavailable, use the displayed prompt to copy it.
+8. CERIUM opens a share dialog. Click **Copy link**, then paste the URL into
+   a private/incognito browser window (you do NOT need to sign in as the
+   customer). No email is sent by this action.
 9. Check the total and click **Accept estimate**.
 10. In CERIUM go back to Estimates & quotes and refresh. The estimate now says
     Accepted. Click **Schedule job →** and choose a valid appointment time.
@@ -38,7 +39,7 @@ backend and Oracle VM deployment strategy remain unchanged.
 
 ## Backend data model
 
-- SQLite \`quotes\` table with foreign keys to existing users, leads, and jobs.
+- SQLite `quotes` table with foreign keys to existing users, leads, and jobs.
 - Quote snapshots (title, customer, address, items, total in cents and currency)
   remain intact if the source lead or converted job is subsequently deleted.
 - Draft estimates can be edited; sent estimates are immutable.
