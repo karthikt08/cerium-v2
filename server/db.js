@@ -234,7 +234,12 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
-  const jobsStore = createJobsStore(db);
+  // Existing invoices retain their numbers and data. A nullable source job ID
+  // lets one automatically generated invoice be linked to its origin.
+  const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
+  if (!invoiceColumns.has('job_id')) db.exec('ALTER TABLE invoices ADD COLUMN job_id TEXT');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
+  const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
@@ -369,6 +374,8 @@ export function openDb(file) {
     // Invoices
     getInvoices: db.prepare('SELECT * FROM invoices WHERE user_id = ? ORDER BY created_at DESC'),
     getInvoice: db.prepare('SELECT * FROM invoices WHERE id = ? AND user_id = ?'),
+    getInvoiceForJob: db.prepare('SELECT id FROM invoices WHERE user_id = ? AND job_id = ?'),
+    linkInvoiceToJob: db.prepare('UPDATE invoices SET job_id = ? WHERE id = ? AND user_id = ?'),
     nextInvoiceNumber: db.prepare('INSERT INTO invoice_numbers DEFAULT VALUES'),
     insertInvoice: db.prepare(`
       INSERT INTO invoices (id, user_id, customer_name, customer_email, customer_address, job_title, issue_date, terms, due_date, status, items_json, total, notes, paid_at, created_at)
@@ -461,6 +468,24 @@ export function openDb(file) {
     countWaitlist: db.prepare('SELECT COUNT(*) AS n FROM waitlist'),
     ping: db.prepare('SELECT 1 AS ok'),
   };
+
+  // Called inside the Jobs SQLite transaction, only when a job first becomes
+  // Completed. Either job completion and invoice draft both commit, or neither.
+  // The unique index is a second defense against duplicate draft invoices.
+  function generateJobDraft(userId, job) {
+    if (q.getInvoiceForJob.get(userId, job.id)) return;
+    const today = todayStr();
+    const items = job.billableItems.length
+      ? job.billableItems
+      : [{description: job.title, qty: 1, rate: 0}];
+    const total = Math.round(items.reduce((sum, item) => sum + item.qty * item.rate, 0) * 100) / 100;
+    const invoiceId = String(q.nextInvoiceNumber.run().lastInsertRowid);
+    const notes = 'Draft generated from completed job. Review items and pricing before sending.';
+    const linkedLead = job.leadId ? q.getLead.get(job.leadId, userId) : null;
+    q.insertInvoice.run(invoiceId, userId, job.customerName, linkedLead?.email || '', job.address, job.title, today,
+      'Net 15', addDays(today, 15), 'Draft', JSON.stringify(items), total, notes, null, today);
+    q.linkInvoiceToJob.run(job.id, invoiceId, userId);
+  }
 
   const memberOut = (row) =>
     row && { email: row.email, name: row.name, business: row.business || '', joinedAt: row.joined_at, termsVersion: row.terms_version };
@@ -695,6 +720,7 @@ export function openDb(file) {
           total: Number(i.total) || 0,
           notes: i.notes || '',
           paidAt: i.paid_at || undefined,
+          jobId: i.job_id || null,
         };
       });
 
@@ -760,7 +786,7 @@ export function openDb(file) {
         bankTransactions,
         reviews,
         messages,
-        jobs: jobsStore.listJobs(userId),
+        jobs: jobsStore.listJobs(userId).map(j => ({...j, invoiceId: invoices.find(i => i.jobId === j.id)?.id || null})),
         crew: jobsStore.listCrew(userId),
       };
     },
@@ -883,6 +909,24 @@ export function openDb(file) {
       return inv;
     },
 
+    // Validate editable invoice line items before committing any financial totals.
+    // Owner approval remains manual; generating a draft never sends or charges anyone.
+    validateInvoiceItems(items) {
+      if (!Array.isArray(items) || !items.length || items.length > 20) {
+        throw Object.assign(new Error('Provide between 1 and 20 invoice line items.'), {code:'invalid_invoice_items',status:400});
+      }
+      return items.map(item => {
+        const description = typeof item?.description === 'string' ? item.description.trim() : '';
+        const qty = Number(item?.qty), rate = Number(item?.rate);
+        if (!description || description.length > 180 || !Number.isFinite(qty) || !Number.isFinite(rate) ||
+            qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
+            Math.abs(qty*100-Math.round(qty*100)) > 0.000001 ||
+            Math.abs(rate*100-Math.round(rate*100)) > 0.000001)
+          throw Object.assign(new Error('Check line item descriptions, quantities and rates (max 2 decimals).'), {code:'invalid_invoice_items',status:400});
+        return {description,qty,rate};
+      });
+    },
+
     updateInvoice(userId, id, p) {
       const inv = q.getInvoice.get(String(id), userId);
       if (!inv) throw new Error('Invoice not found');
@@ -893,10 +937,14 @@ export function openDb(file) {
       } else if (p.items) {
         items = p.items;
       }
-      const total = items.reduce((s, it) => s + (Number(it.qty) || 1) * (Number(it.rate) || 0), 0);
+      items = this.validateInvoiceItems(items);
+      const total = Math.round(items.reduce((s, it) => s + it.qty * it.rate, 0) * 100) / 100;
       const terms = p.terms || inv.terms;
       const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || todayStr(), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
+      if (inv.job_id && status !== 'Draft' && total <= 0) {
+        throw Object.assign(new Error('Enter and save a positive invoice amount before marking this job invoice as sent or paid.'), {code:'invoice_needs_pricing',status:409});
+      }
       const paidAt = status === 'Paid' ? (inv.paid_at || todayStr()) : null;
 
       q.updateInvoice.run(
@@ -908,6 +956,11 @@ export function openDb(file) {
     },
 
     updateInvoiceStatus(userId, id, status) {
+      const original = q.getInvoice.get(String(id), userId);
+      if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
+      if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
+        throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
+      }
       const paidAt = status === 'Paid' ? todayStr() : null;
       q.updateInvoiceStatus.run(status, paidAt, String(id), userId);
       return { ok: true };
@@ -919,6 +972,13 @@ export function openDb(file) {
     },
 
     resolveBankMatch(userId, txId, action, targetInvoiceId) {
+      if (action === 'confirm' && targetInvoiceId) {
+        const source = q.getInvoice.get(String(targetInvoiceId), userId);
+        if (!source) throw Object.assign(new Error('The selected invoice was not found.'), {code:'not_found',status:404});
+        if (source.job_id && Number(source.total) <= 0) {
+          throw Object.assign(new Error('Set invoice pricing before recording a payment against this job draft.'), {code:'invoice_needs_pricing',status:409});
+        }
+      }
       if (action === 'confirm') {
         q.resolveBankMatch.run('matched', targetInvoiceId || null, targetInvoiceId || null, txId, userId);
         if (targetInvoiceId) {

@@ -17,6 +17,24 @@ const dateTime = v => v ? `${longFmt.format(dateAt(v.slice(0,10)))} · ${hour(v)
 const workerName = (ws,id) => ws.crew?.find(c=>c.id===id)?.name || 'Unassigned';
 const statusClass = s => ({Scheduled:'blue',Confirmed:'purple','In progress':'orange',Completed:'green',Cancelled:'gray'})[s]||'blue';
 const safeData = s => esc(s||'');
+function billingItemRow(item={description:'',qty:1,rate:0},locked=false) {
+  return `<div class="job-billing-row" data-job-billing-row>
+    <label>Description<input data-billing-field="description" maxlength="180" ${locked?'disabled':''} value="${esc(item.description)}" placeholder="Labor, materials..."></label>
+    <label>Qty<input data-billing-field="qty" type="number" ${locked?'disabled':''} min="0.01" max="10000" step="0.01" value="${esc(item.qty)}"></label>
+    <label>Rate<input data-billing-field="rate" type="number" ${locked?'disabled':''} min="0" max="1000000" step="0.01" value="${esc(item.rate)}"></label>
+    <button type="button" class="button secondary" data-job-action="remove-item" ${locked?'disabled':''} aria-label="Remove item">×</button>
+  </div>`;
+}
+function updateJobBillingTotal(form){
+  if(!form)return;
+  const amount=[...form.querySelectorAll('[data-job-billing-row]')].reduce((sum,row)=>{
+    const number=key=>Number(row.querySelector('[data-billing-field="'+key+'"]')?.value||0);
+    return sum+number('qty')*number('rate');
+  },0);
+  const currency=dispatch?.getWorkspace()?.account?.currency||'USD';
+  const target=form.querySelector('[data-job-billing-total]');
+  if(target)target.textContent=new Intl.NumberFormat('en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
+}
 const active = j => j.status !== 'Cancelled' && j.status !== 'Completed';
 const selectOptions = (options,selected) => options.map(x=>`<option value="${safeData(x.value)}" ${x.value===selected?'selected':''}>${esc(x.label)}</option>`).join('');
 function dayHeader(d) {return `<span>${dayFmt.format(d)}</span><strong>${d.getDate()}</strong>`;}
@@ -87,7 +105,7 @@ function formJob(ws,id='',date=today()) {
   if(dispatch.isReadOnly())return dispatch.toast('Trial ended. Jobs are read-only.',true);
   const j=id?ws.jobs.find(x=>x.id===id):null;
   if(id&&!j)return dispatch.toast('Job not found.',true);
-  const hours=(s)=>s.padStart(2,'0');
+  const items = j?.billableItems?.length ? j.billableItems : [{description:'Service labor',qty:1,rate:0}];
   const start=j?.startAt||date+'T09:00',end=j?.endAt||date+'T10:00';
   const workers=[{value:'',label:'Unassigned'},...ws.crew.filter(c=>c.active||c.id===j?.workerId).map(c=>({value:c.id,label:c.name+(c.active?'':' (archived)')}))];
   const leadOpts=[{value:'',label:'No linked lead'},...ws.leads.map(l=>({value:l.id,label:l.name}))];
@@ -103,10 +121,17 @@ function formJob(ws,id='',date=today()) {
     <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(j?.customerPhone||'')}" placeholder="Optional"></label>
     <label class="jobs-wide">Job address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Service location"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
+    <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
+      <div data-billing-rows>${items.map(item=>billingItemRow(item,!!j?.invoiceGenerated)).join('')}</div>
+      <button type="button" class="button secondary" data-job-action="add-item" ${j?.invoiceGenerated?'disabled':''}>+ Add line item</button><strong class="jobs-billing-total">Estimated total: <span data-job-billing-total>—</span></strong>
+      <p class="muted">${j?.invoiceGenerated?'Billing items have been copied to an invoice. Edit its line items in Invoices instead.':'Set quantities and rates before completing the job. Zero-value drafts require pricing before being marked sent.'}</p>
+    </div>
+    ${j?.invoiceId ? `<p class="jobs-linked-invoice jobs-wide">Invoice prepared: <strong>#${esc(j.invoiceId)}</strong> · <button type="button" class="button secondary" data-job-action="invoice" data-invoice-id="${esc(j.invoiceId)}">Review invoice →</button></p>` : j?.invoiceGenerated ? '<p class="jobs-linked-invoice jobs-wide">The original draft invoice was deleted. It will not be generated again automatically.</p>' : ''}
     <p class="jobs-form-error" role="alert" hidden></p></div>
     <div class="jobs-modal-actions">${j?'<button type="button" class="button secondary" data-job-action="delete" data-job-id="'+esc(j.id)+'">Delete job</button>':''}
     <button type="button" class="button secondary" data-job-action="close">Cancel</button><button type="submit" class="button primary">${j?'Save changes':'Schedule job'}</button></div>
     </form>`);
+  updateJobBillingTotal(document.querySelector('#cerium-job-dialog [data-job-form="job"]'));
   const lead=document.querySelector('#cerium-job-dialog [name=leadId]');
   lead?.addEventListener('change',()=>{
     const v=ws.leads.find(x=>x.id===lead.value);if(!v)return;
@@ -132,6 +157,24 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
     }
     if(action==='close'){el.closest('dialog')?.close();return;}
     if(action==='crew'){formCrew(ws);return;}
+    if(action==='invoice'){
+      el.closest('dialog')?.close();
+      const id=el.dataset.invoiceId;
+      document.dispatchEvent(new CustomEvent('cerium:open-invoice',{detail:{id}}));
+      return;
+    }
+    if(action==='add-item'){
+      const parent=el.closest('form')?.querySelector('[data-billing-rows]');
+      if(parent && parent.children.length<20) {parent.insertAdjacentHTML('beforeend',billingItemRow());updateJobBillingTotal(parent.closest('form'));}
+      else toast('Maximum 20 billing items.',true);
+      return;
+    }
+    if(action==='remove-item'){
+      const row=el.closest('[data-job-billing-row]'),parent=row?.parentElement;
+      if(parent?.children.length>1){row.remove();updateJobBillingTotal(parent.closest('form'));}
+      else toast('Keep at least one line item.',true);
+      return;
+    }
     if(isReadOnly())return toast('Your trial has ended. Business records are read-only.',true);
     if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today());
     if(busy)return;
@@ -144,6 +187,7 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
       busy=true;try{await API.deleteJob(el.dataset.jobId);el.closest('dialog')?.close();await refresh();toast('Job deleted.');}catch(err){toast(err.message,true);}finally{busy=false;}
     }
   });
+  document.addEventListener('input',event=>{if(event.target.matches('[data-billing-field]'))updateJobBillingTotal(event.target.closest('form'));});
   document.addEventListener('change',event=>{
     if(event.target.matches('[data-jobs-filter]')){filter=event.target.value;refresh().catch(e=>toast(e.message,true));}
   });
@@ -156,13 +200,18 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
     try{
       const data=Object.fromEntries(new FormData(form));
       if(form.dataset.jobForm==='job') {
+        data.billableItems=[...form.querySelectorAll('[data-job-billing-row]')].map(row=>{
+          const val=key=>row.querySelector('[data-billing-field="'+key+'"]').value.trim();
+          return {description:val('description'),qty:Number(val('qty')),rate:Number(val('rate'))};
+        }).filter(row=>row.description || row.rate);
+        if(data.billableItems.some(item=>!item.description))throw Error('Enter a description for each priced line item.');
         if(data.endAt<=data.startAt)throw Error('The end time must be after the start time.');
         if(form.dataset.jobId)await API.updateJob(form.dataset.jobId,data);else await API.createJob(data);
       }else await API.addCrew(data);
       const type=form.dataset.jobForm;
       form.closest('dialog')?.close();await refresh();
       if(type==='crew')formCrew(getWorkspace());
-      toast(type==='crew'?'Crew member added.':'Job saved.');
+      toast(type==='crew'?'Crew member added.':data.status==='Completed'?'Job completed. An invoice draft is ready to review.':'Job saved.');
     }catch(e){if(error){error.textContent=e.message;error.hidden=false;}else toast(e.message,true);}
     finally{busy=false;if(submit)submit.disabled=false;}
   });
