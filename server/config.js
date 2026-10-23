@@ -96,6 +96,12 @@ export function buildConfig(env = process.env) {
     const pc = Number(get('PRICE_CENTS'));
     if (Number.isInteger(pc) && pc > 0) priceCents = pc;
   }
+  // Separate country plans; the original USD default remains unchanged.
+  const razorpayIndiaPlanId=get('RAZORPAY_IN_PLAN_ID');
+  const indiaSubscriptionsConfigured=razorpayConfigured &&
+    /^plan_[A-Za-z0-9]+$/.test(razorpayIndiaPlanId) &&
+    razorpayWebhookSecret.length>=16&&!PLACEHOLDER.test(razorpayWebhookSecret);
+  const priceInPaise=50000; // Rs 500/month founding-customer plan, excluding applicable tax
   const currency = get('CURRENCY') || 'USD';
   if(currency!=='USD')problems.push('CERIUM US edition requires CURRENCY=USD. Never silently relabel existing amounts.');
 
@@ -178,6 +184,9 @@ export function buildConfig(env = process.env) {
     razorpayKeySecret,
     razorpayWebhookSecret,
     razorpayPlanId,
+    razorpayIndiaPlanId,
+    indiaSubscriptionsConfigured,
+    priceInPaise,
     razorpayConfigured,
     subscriptionsConfigured,
     priceCents,
