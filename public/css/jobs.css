@@ -49,3 +49,12 @@
 .jobs-linked-invoice{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:12px;background:#f0f7f4;border:1px solid #d7eadf;border-radius:10px;color:#426956;font-size:13px}
 .jobs-linked-invoice strong{font-weight:800}.jobs-linked-invoice button{min-height:35px}
 @media(max-width:620px){.job-billing-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px}.job-billing-row label:first-child{grid-column:1/-1}.job-billing-row button{grid-column:3;grid-row:2}}
+
+/* Invoice review shares the same clean spacing as the Jobs billing editor. */
+.invoice-billing-section{grid-column:1/-1;display:grid;gap:12px;padding:16px;border:1px solid #e1e7f1;background:#f8faff;border-radius:12px}
+.invoice-billing-section h3{font-size:14px;line-height:1.25;font-weight:800;color:#2c4369}
+.invoice-billing-section>.muted{font-size:12px;color:#6e7f99;line-height:1.5}
+.invoice-billing-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,.7fr) minmax(0,.8fr);gap:9px}
+.invoice-billing-row label{min-width:0;font-weight:700;display:grid;gap:5px;font-size:12px;color:#41516a}
+.invoice-billing-row input{width:100%;min-width:0;border:1px solid #dbe3ef;border-radius:10px;background:#fff;padding:10px;color:#233754;font-size:13px}
+@media(max-width:650px){.invoice-billing-row{grid-template-columns:repeat(2,minmax(0,1fr))}.invoice-billing-row>label:first-child{grid-column:1/-1}}
