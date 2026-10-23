@@ -111,6 +111,17 @@ export function buildConfig(env = process.env) {
 
   if (!subscriptionsConfigured) warnings.push('Recurring subscriptions require RAZORPAY_PLAN_ID and RAZORPAY_WEBHOOK_SECRET. Checkout is disabled until configured.');
 
+  // Region restrictions are mandatory on production deployments. During local
+  // development, explicitly enable the gate only with an external GeoIP key.
+  const regionAccessMode=get('REGION_ACCESS_MODE')||(isProd?'enforce':'off');
+  if(!['enforce','off'].includes(regionAccessMode))
+    problems.push('REGION_ACCESS_MODE must be enforce or off.');
+  const regionEnforced=regionAccessMode==='enforce';
+  if(isProd&&!regionEnforced)problems.push('CERIUM production must enforce region access.');
+  const geoIpApiKey=get('GEOIP_API_KEY');
+  if(regionEnforced&&(geoIpApiKey.length<12||PLACEHOLDER.test(geoIpApiKey)))
+    problems.push('GEOIP_API_KEY is required for server-side US/India region and VPN checks.');
+
   // ---- SESSION_SECRET: signs the short note kept while a person is at Google and cookie notes
   let sessionSecret = get('SESSION_SECRET');
   if (sessionSecret.length < 32 || PLACEHOLDER.test(sessionSecret)) {
@@ -191,6 +202,9 @@ export function buildConfig(env = process.env) {
     subscriptionsConfigured,
     priceCents,
     currency,
+    regionEnforced,
+    regionAccessMode,
+    geoIpApiKey,
     sessionSecret,
     databasePath,
     trustProxy,
