@@ -45,7 +45,7 @@ test('dollar defaults, legacy safeguards and active backend write barrier stay e
   assert.match(db,/NOT EXISTS \(SELECT 1 FROM quotes/);
   assert.match(db,/NOT EXISTS \(SELECT 1 FROM invoices/);
   assert.match(db,/NOT EXISTS \(SELECT 1 FROM payments/);
-  assert.match(app,/user\.currency!=='USD'/);
+  assert.match(app,/country==='IN'&&user.currency==='INR'/);
   assert.match(model,/currency = 'USD'/);
   assert.match(quotes,/currency_changed/);
 });
