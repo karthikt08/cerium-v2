@@ -253,6 +253,20 @@ export function openDb(file) {
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
   const quotesStore = createQuotesStore(db,{jobsStore});
+  // One-time, non-destructive currency cleanup for empty legacy test workspaces.
+  // Never touch an account containing financial history or priced work; those
+  // records were originally created under its saved currency.
+  db.prepare(`
+    UPDATE users SET currency='USD', updated_at=?
+    WHERE currency='INR' AND COALESCE(country,'US')='US'
+      AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM quotes WHERE quotes.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM jobs WHERE jobs.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM bank_transactions WHERE bank_transactions.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM payments WHERE payments.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM recurring_subscriptions WHERE recurring_subscriptions.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM leads WHERE leads.user_id=users.id AND COALESCE(leads.value,0)<>0)
+  `).run(Date.now());
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
