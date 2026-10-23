@@ -21,7 +21,7 @@ const quoteRow=(quote,currency,ro)=>{
     '<span class="quote-pill quote-'+e(statuses[quote.status]||'draft')+'">'+e(quote.status==='Sent'?'Link ready':quote.status)+'</span></div>'+
     '<h3>'+e(quote.title)+'</h3><p>'+e(quote.customerName)+
     (quote.customerEmail?' · '+e(quote.customerEmail):'')+'</p>'+
-    '<div class="quote-card-bottom"><strong>'+e(fmt(quote.total,currency))+'</strong>'+
+    '<div class="quote-card-bottom"><strong>'+e(fmt(quote.total,quote.currency||currency))+'</strong>'+
     '<span>'+e(quote.items.length)+' line item'+(quote.items.length===1?'':'s')+' · '+e(day(quote.createdAt))+'</span></div></div>'+
     '<div class="quote-actions">'+(ro?'':actions)+
     (ro?'':'<button type="button" class="quote-delete" data-quote-action="delete" data-quote-id="'+e(quote.id)+'" title="Delete estimate">Delete</button>')+
@@ -114,7 +114,7 @@ function convertDialog(quote,ws){
   show(header('Turn approval into a job','Choose an appointment time. Billing items carry through to the future invoice.')+
     '<form data-quote-form="convert" data-quote-id="'+e(quote.id)+'"><div class="quotes-modal-body">'+
     '<div class="quotes-convert-summary"><strong>'+e(quote.title)+'</strong>'+
-    '<span>'+e(quote.customerName)+' · '+e(fmt(quote.total,ws.account?.currency))+'</span></div>'+
+    '<span>'+e(quote.customerName)+' · '+e(fmt(quote.total,quote.currency||ws.account?.currency))+'</span></div>'+
     '<div class="quotes-form-grid">'+
     '<label>Start time<input type="datetime-local" name="startAt" required value="'+date+'T09:00"></label>'+
     '<label>End time<input type="datetime-local" name="endAt" required value="'+date+'T10:00"></label>'+
