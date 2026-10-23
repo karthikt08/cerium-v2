@@ -23,6 +23,11 @@ and configures live email delivery. Disabled is the default.
    Arm Ampere A1 is preferred over the 1-GB AMD micro when available.
 2. Install an Ubuntu ARM64 image and Node.js 22+. Install python3, make and g++
    if better-sqlite3 must be compiled on ARM64. Run npm ci directly on the VM.
+   If ARM64 has no matching prebuilt better-sqlite3 binary after npm ci,
+   install build-essential/python3 and rebuild only that trusted dependency:
+
+       npm rebuild better-sqlite3 --ignore-scripts=false
+
 3. Place the checked-out app under /opt/cerium/app and create a system user
    named cerium. Store SQLite at /var/lib/cerium/cerium.db on persistent disk.
    Give the cerium user access only to its own DB files.
