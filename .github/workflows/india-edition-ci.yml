@@ -1,7 +1,7 @@
 name: India edition checks
 on:
   push:
-    branches: [feat/india-edition-gst]
+    branches: [feat/india-edition-gst, feat/region-pricing-access]
   workflow_dispatch:
 
 permissions:
