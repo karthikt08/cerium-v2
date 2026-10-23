@@ -180,7 +180,13 @@ export function initializeQuotesUI({API,refresh,getWorkspace,isReadOnly,toast}){
     if(isReadOnly())return toast('Your trial has ended. Estimates are read-only.',true);
     const ws=getWorkspace();if(ws)editQuote(ws,'',event.detail?.leadId||'');
   });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape')document.querySelectorAll('.quote-more[open]').forEach(menu=>{menu.open=false;});
+  });
   document.addEventListener('click',async event=>{
+    document.querySelectorAll('.quote-more[open]').forEach(menu=>{
+      if(!menu.contains(event.target))menu.open=false;
+    });
     const button=event.target.closest('[data-quote-action]');if(!button)return;
     const action=button.dataset.quoteAction,id=button.dataset.quoteId;
     if(action==='close'){close();return;}
