@@ -1,5 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {openDb} from '../server/db.js';
 import {US_STATES,US_TIME_ZONES,validUsState,validUsZip,validUsTimeZone,businessLocalDate,businessLocalDateTime,businessLocalToInstant,formatUSPhone} from '../public/js/us-market.js';
 import {startServer,signIn,ALICE} from './helpers.js';
 
@@ -93,4 +97,35 @@ test('US edition does not silently relabel legacy invoice amounts or historical 
     t.db.updateUser(userId,{usState:'NY',usZip:'10001',timeZone:'America/New_York'});
     assert.equal(t.db.getWorkspace(userId).invoices.find(i=>i.id===invoice.id).total,425);
   }finally{await t.close();}
+});
+
+
+test('US profile migrations are additive and idempotent on persistent SQLite',()=>{
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-us-'));
+  const file=path.join(temp,'workspace.db');
+  try{
+    for(let n=0;n<2;n++){
+      const db=openDb(file);
+      try{
+        const columns=db.rawDb.prepare('PRAGMA table_info(users)').all().map(row=>row.name);
+        for(const name of ['us_state','us_zip','time_zone','country','currency'])
+          assert.ok(columns.includes(name),name);
+        assert.equal(db.rawDb.pragma('foreign_keys',{simple:true}),1);
+      }finally{db.close();}
+    }
+  }finally{fs.rmSync(temp,{recursive:true,force:true});}
+});
+
+test('US-only page positioning and invoice presentation are present without relabeling historic currency',()=>{
+  const landing=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const app=fs.readFileSync(new URL('../public/js/app.js',import.meta.url),'utf8');
+  const signup=fs.readFileSync(new URL('../public/signup.html',import.meta.url),'utf8');
+  assert.match(landing,/United States/);
+  assert.doesNotMatch(landing,/US and India/);
+  assert.match(signup,/US service businesses/);
+  assert.match(app,/US state/);
+  assert.match(app,/ZIP code/);
+  assert.match(app,/Business time zone/);
+  assert.match(app,/const usAddress=/);
+  assert.match(app,/legacy non-USD/);
 });
