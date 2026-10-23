@@ -861,7 +861,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured && ws?.account.country==='US' && ws?.account.currency==='USD') });
+    const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
+    const american=ws?.account.country==='US'&&ws?.account.currency==='USD';
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured)) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
