@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node server/index.js",
+    "reminders:worker": "node scripts/reminder-worker.js",
     "dev": "node --watch server/index.js",
     "test": "node --test",
     "gen-secret": "node scripts/gen-secret.js",
