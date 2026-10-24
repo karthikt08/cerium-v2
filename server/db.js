@@ -689,8 +689,8 @@ export function openDb(file) {
       const user=q.getUserById.get(userId), proof=billingRow.get(userId);
       if(!user||!proof||proof.phone_verified_at<=0||proof.billing_country_attested_at<=0)return false;
       if(proof.billing_country!==user.country)return false;
-      if(user.country==='IN')return /^\\+91[6-9][0-9]{9}$/.test(proof.phone_e164);
-      if(user.country==='US')return /^\\+1[2-9][0-9]{9}$/.test(proof.phone_e164);
+      if(user.country==='IN')return /^\+91[6-9][0-9]{9}$/.test(proof.phone_e164);
+      if(user.country==='US')return /^\+1[2-9][0-9]{9}$/.test(proof.phone_e164);
       return false;
     },
 
