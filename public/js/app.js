@@ -179,7 +179,7 @@ function settingsPage() {
     <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
     ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:''}
     ${a.subscription&&['authenticated','active','pending'].includes(a.subscription.status)?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
-    <p class="muted">${ind?'INR recurring checkout requires an enabled Razorpay INR plan and customer-approved UPI Autopay/card mandate.':'USD checkout requires an enabled US plan.'}</p>
+    <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout requires an enabled US plan.'}</p>
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
     <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON.</p>
@@ -263,7 +263,7 @@ function previewInvoice(id) {
     ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(Number(item.qty)*Number(item.rate))}</td></tr>`))}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
-    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>. Confirm receipt in your bank before marking Paid.</p>`:''}
+    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
     ${gst?'<p class="muted">Draft only. Validate invoice numbering, tax classification, signature, reverse charge, IRN/e-invoicing eligibility and other statutory requirements before issuing.</p>':''}
     <p class="muted">${esc(i.notes)}</p>
   </article>`; $('invoice-dialog').showModal();
