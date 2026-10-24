@@ -260,6 +260,10 @@ export function openDb(file) {
   if(!new Set(db.prepare('PRAGMA table_info(billing_identities)').all().map(c=>c.name)).has('mandate_authorized_at'))
     db.exec('ALTER TABLE billing_identities ADD COLUMN mandate_authorized_at INTEGER NOT NULL DEFAULT 0');
   const billingRow=db.prepare('SELECT * FROM billing_identities WHERE user_id=?');
+  // One active verified account per phone. Numbers can be reassigned in real
+  // life; support must handle verified ownership transfers manually.
+  const billingPhoneOtherOwner=db.prepare(`SELECT user_id FROM billing_identities
+    WHERE phone_e164=? AND phone_verified_at>0 AND user_id<>? LIMIT 1`);
   const markMandateAuthorized=db.prepare('UPDATE billing_identities SET mandate_authorized_at=MAX(mandate_authorized_at,?) WHERE user_id=?');
   const billingInit=db.prepare('INSERT OR IGNORE INTO billing_identities(user_id) VALUES(?)');
   const billingPending=db.prepare(`UPDATE billing_identities SET pending_phone=?,pending_country=?,
@@ -750,6 +754,9 @@ export function openDb(file) {
         const proof=billingRow.get(userId),user=q.getUserById.get(userId);
         if(!proof||!user||proof.pending_country!==country||
            proof.pending_phone!==phone||proof.pending_expires_at<at||proof.attempts>5)return false;
+        // Do not allow repeated signups to unlock trials using the same
+        // verified phone, even if they use different Google accounts.
+        if(billingPhoneOtherOwner.get(phone,userId))return false;
         // Edition changes only AFTER OTP success, and never relabel stored money.
         if(user.country!==country){
           if(pricedHistory(userId)||user.subscription_id)return false;
