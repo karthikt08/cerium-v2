@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verify your business — CERIUM</title>
+<meta name="description" content="Confirm your phone and regional edition before accessing your CERIUM workspace.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/verify-phone.css">
+</head>
+<body>
+<main class="verify-layout">
+  <a class="brand" href="/" aria-label="CERIUM home">CERIUM<span>.</span></a>
+  <section class="verify-card" aria-labelledby="verify-title">
+    <p class="eyebrow">PRIVATE WORKSPACE · ONE-TIME ONBOARDING</p>
+    <h1 id="verify-title">Verify your phone to enter CERIUM.</h1>
+    <p class="intro">Confirm that you control an eligible Indian or US number. We will set your workspace's edition once the code is approved.</p>
+    <p class="alert" id="message" role="status" aria-live="polite">Checking your account…</p>
+    <form id="start-form" hidden>
+      <label for="phone">Your mobile number, including country code</label>
+      <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210 or +1 415 555 0123" maxlength="40" required>
+      <div class="edition-preview" id="edition-preview" aria-live="polite">Type your number to see the available edition.</div>
+      <label class="country-check"><input type="checkbox" id="country-confirm" required>
+        <span id="country-confirm-text">I confirm this is my business billing country and I control this number.</span></label>
+      <button type="submit" class="primary">Send verification code</button>
+      <p class="hint">A phone prefix doesn't prove where a company operates. If your business uses a different country's number, ask for a manual review.</p>
+    </form>
+    <form id="code-form" hidden>
+      <label for="code">One-time verification code</label>
+      <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" placeholder="Enter your code" required>
+      <button type="submit" class="primary">Verify phone and enter</button>
+      <p class="hint">Codes expire after 10 minutes. Resends are limited to protect customers and prevent SMS abuse.</p>
+    </form>
+    <section id="mandate-panel" hidden aria-label="Payment method authorization">
+      <h2>Authorize your payment method to start the trial</h2>
+      <p id="mandate-info" class="intro">Your first recurring payment is scheduled after your 15-day trial. Nothing is charged monthly without explicit authorization.</p>
+      <button type="button" class="primary" id="mandate-button">Authorize secure recurring checkout</button>
+      <p class="hint">US: eligible cards. India: eligible cards or UPI AutoPay when Razorpay enables them. Any authorization transaction is handled by Razorpay.</p>
+    </section>
+    <p class="footnote">Having trouble? <a href="mailto:cerium.founders@gmail.com?subject=CERIUM%20identity%20review">Request a manual review</a>. Your phone is used for verification, not advertising.</p>
+  </section>
+  <p class="legal">© 2026 CERIUM · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
+</main>
+<script type="module" src="js/verify-phone.js"></script>
+<script src="js/billing.js" defer></script>
+</body></html>
