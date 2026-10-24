@@ -8,7 +8,7 @@ import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, mon
 
 const $ = (id) => document.getElementById(id);
 const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
-const state = { ws:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, pending:new Set() };
+const state = { ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, pending:new Set() };
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
 const singular = {leads:'lead',followups:'followup',invoices:'invoice',reviews:'review'};
 const createCalls = {lead:API.createLead,followup:API.createFollowUp,invoice:API.createInvoice,review:API.createReviewRequest};
@@ -57,7 +57,7 @@ async function perform(key,element,fn,errorTarget) {
 }
 async function refresh() {
   setSync('Updating…');
-  try { state.ws=await API.getWorkspace(); renderChrome(); renderPage(); setSync('Up to date'); }
+  try { state.ws=await API.getWorkspace(); state.billingIdentity=await API.getBillingIdentity(); renderChrome(); renderPage(); setSync('Up to date'); }
   catch(err) { setSync('Could not refresh'); throw err; }
 }
 function renderChrome() {
@@ -168,6 +168,31 @@ function settingsPage() {
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=[{value:'US',label:'United States — USD'},{value:'IN',label:'India — INR'}];
   const moneyPrice=ind?'₹500':'$20';
+  const proof=state.billingIdentity||{};
+  const billingIdentityPanel=`<section class="panel">${panelHeader('payments','Billing verification',proof.verified?'Verified for paid checkout':'Required before your first paid subscription')}
+    <div class="settings-content billing-verify-content">
+      <p class="billing-verify-status ${proof.verified?'is-verified':''}" role="status">${proof.verified?'✓ Phone confirmed':'Phone confirmation pending'} · ${ind?'India (INR)':'United States (USD)'}${proof.verified?' · '+esc(proof.phoneMasked):''}</p>
+      <p class="muted">Your 15-day trial works without SMS. Before authorizing recurring payments, confirm that your business is based in ${ind?'India':'the United States'} and verify a phone number. A dial code alone does not prove a business location.</p>
+      ${!proof.providerReady?'<p class="form-error">Phone verification is not yet configured on this server. The trial is still available. Contact support before paying.</p>':''}
+      ${proof.mode==='development'?'<p class="billing-dev-tip">Local development only: no text message is sent. Enter the test code <strong>000000</strong> after requesting a code.</p>':''}
+      <form id="billing-phone-start" class="billing-verify-form">
+        <label class="field">Phone number for verification
+          <input name="phone" type="tel" autocomplete="tel" placeholder="${ind?'+91 98765 43210':'+1 415 555 0123'}" maxlength="40" required ${!proof.providerReady?'disabled':''}>
+        </label>
+        <label class="billing-declaration"><input type="checkbox" name="confirmCountry" required ${!proof.providerReady?'disabled':''}>
+          I confirm that my business billing country is ${ind?'India':'the United States'} and that I control this phone number.</label>
+        <button type="submit" class="button secondary" ${!proof.providerReady?'disabled':''}>${proof.verified?'Verify a different phone':'Send verification code'}</button>
+      </form>
+      ${proof.pending?`<form id="billing-phone-check" class="billing-verify-form">
+        <p class="muted">Enter the code sent to your phone. Codes expire in 10 minutes. Request another only after 90 seconds.</p>
+        <label class="field">One-time code
+          <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" required placeholder="6-digit code">
+        </label>
+        <button type="submit" class="button primary">Confirm phone</button>
+      </form>`:''}
+      <p class="muted">Using a different-country number? Contact <a href="mailto:cerium.founders@gmail.com?subject=Billing%20country%20review">CERIUM support</a> for a manual review. Existing accounts are never repriced just for travelling.</p>
+    </div>
+  </section>`;
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <form id="profile-form" class="settings-content"><div class="form-grid">
     ${field('name','Your name',a.name,'text',{required:true})}
@@ -184,12 +209,12 @@ function settingsPage() {
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
   <div class="settings-actions"><button type="submit" class="button primary">Save changes</button></div></form>
-  </section><div class="settings-stack"><section class="panel">
+  </section><div class="settings-stack">${billingIdentityPanel}<section class="panel">
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':'US'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
     <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
-    ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:''}
+    ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration above to unlock the recurring payment authorization button.</p>':''}
     ${a.subscription&&['authenticated','active','pending'].includes(a.subscription.status)?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout requires an enabled US plan.'}</p>
   </div></section><section class="panel">
@@ -380,6 +405,28 @@ $('confirm-form').addEventListener('submit',e=>{
   perform('confirmation',e.submitter,async()=>{const d=$('confirm-dialog');d.setAttribute('aria-busy','true');try{await c.fn();d.close();state.confirmation=null;}finally{d.removeAttribute('aria-busy');}},'confirm-error');
 });
 document.addEventListener('submit',e=>{
+  if(e.target.id==='billing-phone-start'){
+    e.preventDefault();
+    const form=e.target;
+    const phone=form.elements.phone.value.trim();
+    const confirmCountry=form.elements.confirmCountry.checked;
+    perform('billing-phone-start',e.submitter,async()=>{
+      const result=await API.startBillingPhone(phone,confirmCountry);
+      await refresh();
+      toast(result.mode==='development'?'Local code requested — enter 000000 below.':'Verification code requested. Check your phone.');
+    });
+    return;
+  }
+  if(e.target.id==='billing-phone-check'){
+    e.preventDefault();
+    const code=e.target.elements.code.value.trim();
+    perform('billing-phone-check',e.submitter,async()=>{
+      await API.verifyBillingPhone(code);
+      await refresh();
+      toast('Phone confirmed. You can now authorize regional billing.');
+    });
+    return;
+  }
   if(e.target.id==='profile-form'){
     e.preventDefault();const data=Object.fromEntries(new FormData(e.target));delete data.email;
     if(data.country==='US'&&!validUsZip(data.usZip||'')){formError('profile-error','Enter a ZIP code (12345 or 12345-6789).');return;}
