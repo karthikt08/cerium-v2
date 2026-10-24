@@ -296,8 +296,11 @@ export function openDb(file) {
   // not while they are waiting for phone/provider verification.
   if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('onboarding_completed_at'))
     db.exec("ALTER TABLE users ADD COLUMN onboarding_completed_at INTEGER NOT NULL DEFAULT 0");
+  // Exact UTC expiration for new trials. Existing accounts keep legacy date-based expiry.
+  if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('trial_ends_at'))
+    db.exec("ALTER TABLE users ADD COLUMN trial_ends_at INTEGER NOT NULL DEFAULT 0");
   const startTrialStmt=db.prepare(`UPDATE users SET trial_started_at=?,
-    onboarding_completed_at=?,updated_at=?
+    onboarding_completed_at=?,trial_ends_at=?,updated_at=?
     WHERE id=? AND onboarding_completed_at=0 AND plan_status='trial'`);
   const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
   for(const [col,ddl] of [
@@ -699,8 +702,9 @@ export function openDb(file) {
     },
 
     // Start the one-time free-trial clock when access becomes usable.
-    beginTrialOnEntry(userId,at=Date.now()) {
-      return startTrialStmt.run(toDateStr(new Date(at)),at,at,userId).changes>0;
+    beginTrialOnEntry(userId,at=Date.now(),trialEndAt=at+15*86400000) {
+      if(!Number.isSafeInteger(trialEndAt) || trialEndAt<at+15*86400000)return false;
+      return startTrialStmt.run(toDateStr(new Date(at)),at,trialEndAt,at,userId).changes>0;
     },
 
     // ---------------------------------------------------------------- Phone possession + self-attested billing country
@@ -892,7 +896,9 @@ export function openDb(file) {
       const businessToday=businessLocalDate(user.time_zone);
       const usedDays = Math.max(0, daysBetween(user.trial_started_at || today, today));
       const trialDaysTotal = user.trial_days_total || 15;
-      const trialDaysRemaining = Math.max(0, trialDaysTotal - usedDays);
+      const trialDaysRemaining = user.trial_ends_at>0
+        ?Math.max(0,Math.ceil((user.trial_ends_at-Date.now())/86400000))
+        :Math.max(0,trialDaysTotal-usedDays);
 
       let effectivePlanStatus = user.plan_status;
       const recurring = subscriptionForUser.get(userId);
@@ -906,7 +912,8 @@ export function openDb(file) {
           effectivePlanStatus = 'expired';
           q.setUserPlan.run('expired', 'expired', user.subscription_id, user.subscription_expires_at, Date.now(), userId);
         }
-      } else if (effectivePlanStatus === 'trial' && trialDaysRemaining <= 0) {
+      } else if (effectivePlanStatus === 'trial' &&
+        (user.trial_ends_at>0?Date.now()>=user.trial_ends_at:trialDaysRemaining<=0)) {
         effectivePlanStatus = 'expired';
       }
 
@@ -1025,6 +1032,7 @@ export function openDb(file) {
           timeZone: user.time_zone || '',
           googlePlaceUrl: user.google_place_url || '',
           trialStartedAt: user.trial_started_at,
+          trialEndsAt: user.trial_ends_at>0?new Date(user.trial_ends_at).toISOString():null,
           trialDaysTotal: trialDaysTotal,
           trialDaysRemaining: trialDaysRemaining,
           planStatus: effectivePlanStatus,
