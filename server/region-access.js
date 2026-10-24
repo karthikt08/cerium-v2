@@ -79,21 +79,34 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
   }
 
   return async function regionGate(req,res,next){
-    if(exempt(req))return next();
-    if(!config.regionEnforced){
-      req.region=null;
+    req.region=null;
+    req.regionIssue=null;
+    if(exempt(req)||!config.regionEnforced)return next();
+
+    // Existing authenticated workspaces are tied to their stored billing country,
+    // not the network currently used to access them. Travel and corporate VPNs
+    // must never interrupt legitimate customer operations or cancellation.
+    if(req.user&&req.session)return next();
+
+    // Marketing, legal, waitlist, static resources and login remain accessible
+    // worldwide. New accounts and billing still require verified launch markets.
+    const publicRead=['GET','HEAD'].includes(req.method)&&
+      !req.path.startsWith('/api/')&&req.path!=='/auth/google/callback';
+    if(publicRead)return next();
+    if(req.path.startsWith('/auth/')&&!['/auth/register','/auth/google','/auth/google/callback'].includes(req.path))
       return next();
-    }
+
     const ip=req.ip;
-    if(!isIP(ip))return deny(req,res,{status:503,reason:'unverified'});
-    const decision=await classify(ip);
+    const decision=isIP(ip)?await classify(ip):{ok:false,status:503,reason:'unverified'};
+    if(decision.ok)req.region=decision;
+    else req.regionIssue=decision;
+
+    // Price discovery never grants access and should return useful availability
+    // information rather than a 403. Existing Google accounts may sign in from
+    // anywhere; the callback separately checks region before creating an account.
+    if(req.path==='/api/region'||req.path==='/auth/google/callback')return next();
+    if(req.path==='/auth/google'&&req.body?.intent!=='join')return next();
     if(!decision.ok)return deny(req,res,decision);
-    req.region=decision;
-    // No silent country/currency switch for an existing subscription or ledger.
-    // Existing cross-region accounts receive a support path instead of a reprice.
-    if(req.user&&((req.user.country||'US')!==decision.country||
-       (req.user.currency||'USD')!==decision.currency))
-      return deny(req,res,{status:409,reason:'region_mismatch'});
     return next();
   };
 }
