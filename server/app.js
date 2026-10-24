@@ -258,7 +258,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   const accessStatus=userId=>{
     const verified=db.billingEligible(userId);
     const sub=db.getUserSubscription(userId);
-    const mandate=Boolean(sub&&['authenticated','active','charged'].includes(sub.status));
+    const receipt=db.getBillingIdentity(userId);
+    // Once authorized, a cancelled mandate should not end the already granted
+    // free trial. Trial expiry still makes business writes read-only.
+    const mandate=Boolean(receipt?.mandate_authorized_at>0 ||
+      (sub&&['authenticated','active','charged'].includes(sub.status)));
     const mode=config.workspaceAccessMode;
     return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
   };
