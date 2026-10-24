@@ -198,7 +198,7 @@ function settingsPage() {
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
     ${field('email','Sign-in email',a.email,'email',{readOnly:true})}
-    ${a.regionLocked?field('country','Edition / country (verified by IP)',a.country,'text',{readOnly:true,full:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
+    ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true,full:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
     <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
     <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${ind?'India · INR':'United States · USD'}. ${ind?'GST draft fields and UPI settings are shown below.':'Select India and click Save changes to enable Indian invoice fields and pricing.'}</div>
     ${field('phone','Business phone',ind?a.phone:formatUSPhone(a.phone),'tel',{placeholder:ind?'+91 98765 43210':'(415) 555-0123'})}
@@ -411,7 +411,7 @@ document.addEventListener('submit',e=>{
     const phone=form.elements.phone.value.trim();
     const confirmCountry=form.elements.confirmCountry.checked;
     perform('billing-phone-start',e.submitter,async()=>{
-      const result=await API.startBillingPhone(phone,confirmCountry);
+      const result=await API.startBillingPhone(phone,confirmCountry,state.ws.account.country);
       await refresh();
       toast(result.mode==='development'?'Local code requested — enter 000000 below.':'Verification code requested. Check your phone.');
     });
