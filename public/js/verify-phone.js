@@ -91,6 +91,9 @@ el('mandate-button').addEventListener('click',async()=>{
       onComplete:async()=>{setBusy(false);try{await view()}catch(err){setMessage(err.message,true)}},
       onError:err=>{setBusy(false);setMessage(err.message||'Mandate authorization was not completed.',true)}
     });
+    // Razorpay returns as soon as the hosted modal opens. Let customers retry
+    // if they close it; only provider-confirmed authorization unlocks access.
+    setBusy(false);
   }catch(err){setBusy(false);setMessage(err.message,true)}
 });
 updatePreview();
