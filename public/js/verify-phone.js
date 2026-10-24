@@ -17,7 +17,7 @@ function detect(raw) {
 }
 function updatePreview(){
   candidate=detect(phone.value);
-  const label=candidate==='IN'?'India · INR · ₹500/month':candidate==='US'?'US · USD · $20/month':'Enter a valid +91 Indian mobile number or +1 US number.';
+  const label=candidate==='IN'?'India · INR · 500 INR/month':candidate==='US'?'US · USD · $20/month':'Enter a valid +91 Indian mobile number or +1 US number.';
   el('edition-preview').textContent=candidate?'Proposed edition: '+label:label;
   el('country-confirm-text').textContent=candidate==='IN'
     ?'I confirm my business is based in India and I control this mobile number.'
@@ -43,7 +43,7 @@ async function view(){
       setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
     }else{
       el('mandate-button').disabled=false;
-      el('mandate-info').textContent=(details.country==='IN'?'India edition · ₹500/month':'US edition · $20/month')+
+      el('mandate-info').textContent=(details.country==='IN'?'India edition · INR 500/month':'US edition · $20/month')+
         '. Authorize the mandate now; the first monthly charge is scheduled after the remaining 15-day trial period.';
       setMessage('Phone confirmed. One final step: authorize your payment method.');
     }
