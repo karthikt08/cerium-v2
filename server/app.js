@@ -496,7 +496,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
     let user = db.getUserByGoogleSub(profile.sub) || db.getUserByEmail(profile.email);
     if (!user) {
-      if(config.regionEnforced && (!req.region || !note.country || note.country!==req.region.country)) return fail('region-unavailable');
+      if(config.regionEnforced && config.workspaceAccessMode==='off' &&
+         (!req.region || !note.country || note.country!==req.region.country)) return fail('region-unavailable');
       user = db.createUser({
         email: profile.email,
         name: profile.name,
