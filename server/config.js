@@ -111,6 +111,13 @@ export function buildConfig(env = process.env) {
 
   if (!subscriptionsConfigured) warnings.push('Recurring subscriptions require RAZORPAY_PLAN_ID and RAZORPAY_WEBHOOK_SECRET. Checkout is disabled until configured.');
 
+  // Market gate requires an actual IP intelligence key in production.
+  // Development keeps localhost working; set MARKET_GATE_ENABLED=true for staging.
+  const marketGateEnabled=get('MARKET_GATE_ENABLED')==='true'||(isProd&&get('MARKET_GATE_ENABLED')!=='false');
+  const marketIpapiKey=get('MARKET_IPAPI_KEY');
+  if(isProd&&get('MARKET_GATE_ENABLED')==='false')problems.push('Production country restrictions cannot be disabled.');
+  if(marketGateEnabled&&(!marketIpapiKey||PLACEHOLDER.test(marketIpapiKey)))
+    problems.push('MARKET_IPAPI_KEY is required when country and proxy restrictions are enabled.');
   // ---- SESSION_SECRET: signs the short note kept while a person is at Google and cookie notes
   let sessionSecret = get('SESSION_SECRET');
   if (sessionSecret.length < 32 || PLACEHOLDER.test(sessionSecret)) {
@@ -192,6 +199,8 @@ export function buildConfig(env = process.env) {
     priceCents,
     currency,
     sessionSecret,
+    marketGateEnabled,
+    marketIpapiKey,
     databasePath,
     trustProxy,
     adminEmails: Object.freeze(adminEmails),
