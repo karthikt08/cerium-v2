@@ -14,6 +14,7 @@ import { makeRazorpay } from './razorpay.js';
 import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhone} from './billing-identity.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
+import {makeTrialSchedule,safeTrialSchedule} from './trial-timing.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -112,11 +113,25 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     });
   }
 
+  // A late or mismatched provider schedule must never unlock an early
+  // recurring debit. Attempt immediate cancellation before responding.
+  async function cancelUnsafeSubscription(id) {
+    try {
+      const cancelled=await rzp.cancelSubscription(id,false);
+      if(cancelled?.status!=='cancelled')return false;
+      db.updateSubscription(id,'cancelled');
+      return true;
+    }catch(err){
+      console.error('[billing] unsafe subscription cancellation requires urgent manual review:',id,err?.message);
+      return false;
+    }
+  }
+
   // ------------------------------------------------------------ Razorpay Webhooks (Raw Body)
   app.post(
     '/webhooks/razorpay',
     express.raw({ type: 'application/json', limit: '256kb' }),
-    (req, res) => {
+    async (req, res) => {
       const signature = req.get('x-razorpay-signature');
       if (!rzp.verifyWebhook(req.body, signature)) {
         return res.status(400).json({ error: 'invalid_signature' });
@@ -129,13 +144,23 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
           const allowed = ['authenticated','active','charged','pending','halted','cancelled','expired','completed'];
           if (allowed.includes(status)) {
             const normalized = status === 'completed' ? 'expired' : status;
-            db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
+            const savedSub=db.getSubscription(subscription.id);
+            if(savedSub) {
+              const verified=db.billingEligible(savedSub.user_id);
+              const alreadyAuthorized=Number(db.getBillingIdentity(savedSub.user_id)?.mandate_authorized_at)>0;
               if(config.workspaceAccessMode==='phone_and_mandate' &&
-                 ['authenticated','active','charged'].includes(normalized)){
-                const savedSub=db.getSubscription(subscription.id);
-                if(savedSub&&db.billingEligible(savedSub.user_id))
-                  db.beginTrialOnEntry(savedSub.user_id);
+                ['authenticated','active','charged'].includes(normalized) &&
+                !alreadyAuthorized &&
+                (!verified || !safeTrialSchedule(subscription,savedSub.start_at))) {
+                const cancelled=await cancelUnsafeSubscription(subscription.id);
+                if(!cancelled)return res.status(503).json({error:'unsafe_billing_schedule'});
+                return res.json({status:'cancelled_for_trial_safety'});
               }
+              db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
+              if(config.workspaceAccessMode==='phone_and_mandate' &&
+                 ['authenticated','active','charged'].includes(normalized)&&verified&&!alreadyAuthorized)
+                db.beginTrialOnEntry(savedSub.user_id,Date.now(),savedSub.start_at*1000);
+            }
           }
         }
         if (event.event === 'payment.captured' || event.event === 'order.paid') {
@@ -261,8 +286,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const receipt=db.getBillingIdentity(userId);
     // Once authorized, a cancelled mandate should not end the already granted
     // free trial. Trial expiry still makes business writes read-only.
-    const mandate=Boolean(receipt?.mandate_authorized_at>0 ||
-      (sub&&['authenticated','active','charged'].includes(sub.status)));
+    const mandate=Boolean(receipt?.mandate_authorized_at>0);
     const mode=config.workspaceAccessMode;
     return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
   };
@@ -943,9 +967,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if(!db.billingEligible(user.id))
       return res.status(409).json({error:'billing_verification_required',message:'Verify your phone and confirm your business billing country before authorizing the trial payment method.'});
     try {
-      // Trial begins when account is created. Use its original end date, not a fresh 15 days.
+      // Razorpay fixes start_at at subscription creation. Bound authorization
+      // to one hour and add the same hour to the scheduled first charge, so
+      // approval at any permitted time guarantees AT LEAST 15 full days.
+      const schedule=makeTrialSchedule();
       const startAt=config.workspaceAccessMode==='phone_and_mandate'
-        ?Math.floor(Date.now()/1000)+15*86400
+        ?schedule.startAt
         :Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
       const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
@@ -953,10 +980,22 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
           plan.item?.currency !== billingCurrency) {
         return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
       }
-      const created = await rzp.createSubscription({ planId: billingPlanId, startAt, notes: { userId: user.id, edition: indian?'IN':'US' } });
+      const created = await rzp.createSubscription({
+        planId: billingPlanId, startAt,
+        expireBy:config.workspaceAccessMode==='phone_and_mandate'?schedule.expireBy:undefined,
+        notes: { userId: user.id, edition: indian?'IN':'US' }
+      });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
+      if(config.workspaceAccessMode==='phone_and_mandate' &&
+         (Number(created.start_at)!==startAt || Number(created.expire_by)!==schedule.expireBy)){
+        const cancelled=await rzp.cancelSubscription(created.id,false);
+        if(cancelled?.status!=='cancelled')throw new Error('Unsafe provider schedule; cancellation not confirmed: '+created.id);
+        return res.status(503).json({error:'billing_schedule_mismatch',message:'Could not confirm the full trial period. Please try again or contact support.'});
+      }
       db.createSubscription(user.id, created.id, startAt);
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: billingAmount, currency: billingCurrency });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status,
+        startAt, expireBy:config.workspaceAccessMode==='phone_and_mandate'?schedule.expireBy:null,
+        amount: billingAmount, currency: billingCurrency });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
@@ -971,14 +1010,24 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try {
       const remote = await rzp.getSubscription(razorpay_subscription_id);
       const status = String(remote.status || '');
+      const alreadyAuthorized=Number(db.getBillingIdentity(req.session.userId)?.mandate_authorized_at)>0;
+      if(config.workspaceAccessMode==='phone_and_mandate' &&
+         ['authenticated','active','charged'].includes(status) && !alreadyAuthorized &&
+         !safeTrialSchedule(remote,saved.start_at)) {
+        const cancelled=await cancelUnsafeSubscription(saved.subscription_id);
+        return res.status(cancelled?409:503).json({
+          verified:false,error:'trial_schedule_unsafe',
+          message:cancelled?'Authorization was too late to guarantee 15 full days. Restart checkout for a new safe trial date.':'We could not confirm cancellation of an unsafe subscription. Contact CERIUM support before retrying.'
+        });
+      }
       if (['authenticated','active','pending','charged'].includes(status)) {
         db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
         // A pending subscription has NOT completed recurring authorization.
         // Never return verified:true (or begin the trial) until Razorpay
         // confirms a mandate-authorized state.
         if (['authenticated','active','charged'].includes(status)) {
-          if (config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId))
-            db.beginTrialOnEntry(req.session.userId);
+          if (config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId)&&!alreadyAuthorized)
+            db.beginTrialOnEntry(req.session.userId,Date.now(),saved.start_at*1000);
           return res.json({ verified: true, status });
         }
       }
