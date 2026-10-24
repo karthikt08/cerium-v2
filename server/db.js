@@ -265,6 +265,9 @@ export function openDb(file) {
     phone_verified_at=?,billing_country=pending_country,billing_country_attested_at=?,
     pending_phone='',pending_country='',pending_expires_at=0,attempts=0 WHERE user_id=?`);
   const billingReset=db.prepare('DELETE FROM billing_identities WHERE user_id=?');
+  const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
+    us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
+    updated_at=? WHERE id=?`);
   // Non-destructive US profile migration. Preserve all historical invoices and currency.
   const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
   for(const [column,ddl] of [
@@ -696,7 +699,9 @@ export function openDb(file) {
 
     beginBillingPhone(userId, phone, country, at=Date.now()) {
       const user=q.getUserById.get(userId);
-      if(!user||user.country!==country) return {ok:false,reason:'country_mismatch'};
+      if(!user || !['IN','US'].includes(country)) return {ok:false,reason:'country_mismatch'};
+      if(user.country!==country && (pricedHistory(userId)||user.subscription_id))
+        return {ok:false,reason:'country_mismatch'};
       return db.transaction(()=>{
         billingInit.run(userId);
         const old=billingRow.get(userId);
@@ -723,8 +728,14 @@ export function openDb(file) {
     completeBillingPhone(userId,phone,country,at=Date.now()) {
       return db.transaction(()=>{
         const proof=billingRow.get(userId),user=q.getUserById.get(userId);
-        if(!proof||!user||user.country!==country||proof.pending_country!==country||
+        if(!proof||!user||proof.pending_country!==country||
            proof.pending_phone!==phone||proof.pending_expires_at<at||proof.attempts>5)return false;
+        // Edition changes only AFTER OTP success, and never relabel stored money.
+        if(user.country!==country){
+          if(pricedHistory(userId)||user.subscription_id)return false;
+          updateCountryForVerifiedPhone.run(country,country==='IN'?'INR':'USD',
+            country==='IN'?'Asia/Kolkata':'',at,userId);
+        }
         billingFinish.run(at,at,userId);
         return true;
       })();
