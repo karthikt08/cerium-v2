@@ -966,6 +966,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       signIn: { provider: req.session.sub ? 'Google' : 'Email', email: req.session.email, name: req.session.name },
       waitlist: member && { joinedAt: member.joinedAt, business: member.business, termsVersionAccepted: member.termsVersion },
       workspace: ws,
+      billingIdentity: db.getBillingIdentity(req.session.userId),
     };
     res.set('Content-Disposition', 'attachment; filename="cerium-my-data.json"');
     res.type('application/json').send(JSON.stringify(data, null, 2));
