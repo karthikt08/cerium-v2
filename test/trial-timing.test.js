@@ -194,3 +194,26 @@ test('expired authorization attempt is cancelled before a new 15-day schedule is
     assert.equal((await b.req('/api/workspace')).status,403);
   }finally{await t.close();}
 });
+
+test('provider schedule mismatch cancels rather than storing a potentially early charge',async()=>{
+  const cancelled=[];
+  const razorpay={
+    getPlan:async()=>({period:'monthly',interval:1,item:{amount:2000,currency:'USD'}}),
+    createSubscription:async args=>({id:'sub_mismatch',status:'created',
+      start_at:args.startAt,charge_at:args.startAt-20,expire_by:args.expireBy}),
+    cancelSubscription:async id=>{cancelled.push(id);return {status:'cancelled'};}
+  };
+  const t=await startServer({env:VALID_ENV,razorpay});
+  try{
+    const b=t.browser();
+    await signIn(t,b,{profile:ALICE});
+    const csrf=await verifyPhone(t,b);
+    const userId=t.db.getUserByEmail(ALICE.email).id;
+    const r=await b.req('/api/billing/subscription',{method:'POST',csrf});
+    assert.equal(r.status,503,await r.clone().text());
+    assert.equal((await r.json()).error,'billing_schedule_mismatch');
+    assert.deepEqual(cancelled,['sub_mismatch']);
+    assert.equal(t.db.getUserSubscription(userId),null);
+    assert.equal((await b.req('/api/workspace')).status,403);
+  }finally{await t.close();}
+});
