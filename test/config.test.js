@@ -15,6 +15,7 @@ const PROD = {
   SESSION_SECRET: GOOD_SECRET,
   DATABASE_PATH: '/data/cerium.db',
   TRUST_PROXY: '1',
+  MARKET_IPAPI_KEY: 'test-ip-intelligence-key',
 };
 
 function problemsOf(env) {
