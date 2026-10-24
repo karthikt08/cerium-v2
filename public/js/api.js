@@ -287,6 +287,17 @@ export const CeriumAPI = {
     return request('/api/me', { method: 'DELETE' });
   },
 
+  // Billing identity: phone OTP is sent by the backend, never by the browser.
+  async getBillingIdentity() {
+    return request('/api/billing/identity', { method: 'GET' });
+  },
+  async startBillingPhone(phone, confirmCountry) {
+    return request('/api/billing/identity/start', { method: 'POST', body: JSON.stringify({ phone, confirmCountry }) });
+  },
+  async verifyBillingPhone(code) {
+    return request('/api/billing/identity/verify', { method: 'POST', body: JSON.stringify({ code }) });
+  },
+
   // Billing & Subscriptions
   async createRecurringSubscription() {
     return request('/api/billing/subscription', { method: 'POST' });
