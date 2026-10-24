@@ -10,9 +10,9 @@ function setMessage(text,isError=false){
   msg.classList.toggle('error',isError);
 }
 function detect(raw) {
-  const digits=String(raw||'').replace(/[\\s().-]/g,'');
-  if(/^\\+91[6-9][0-9]{9}$/.test(digits))return 'IN';
-  if(/^\\+1[2-9][0-9]{9}$/.test(digits))return 'US';
+  const digits=String(raw||'').replace(/[\s().-]/g,'');
+  if(/^\+91[6-9][0-9]{9}$/.test(digits))return 'IN';
+  if(/^\+1[2-9][0-9]{9}$/.test(digits))return 'US';
   return null;
 }
 function updatePreview(){
