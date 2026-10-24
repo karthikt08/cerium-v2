@@ -934,14 +934,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const billingAmount=indian?config.priceInPaise:config.priceCents;
     const billingCurrency=indian?'INR':'USD';
     if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
-      return res.status(503).json({error:'billing_not_configured',message:'Recurring payments in your region are not enabled yet. Your trial remains available.'});
+      return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
     }
-    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Paid checkout requires phone verification. Your 15-day trial remains available.'});
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone and payment verification are required before trial entry. This checkout is temporarily unavailable.'});
     if(!db.billingEligible(user.id))
-      return res.status(409).json({error:'billing_verification_required',message:'Confirm your business billing country and verify your phone in Settings before authorizing a subscription.'});
+      return res.status(409).json({error:'billing_verification_required',message:'Verify your phone and confirm your business billing country before authorizing the trial payment method.'});
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
       const startAt=config.workspaceAccessMode==='phone_and_mandate'
