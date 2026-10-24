@@ -27,7 +27,7 @@ test('gate fails closed when provider cannot verify an IP',async()=>{
 });
 test('production requires market key and cannot turn region restrictions off',()=>{
  const base={NODE_ENV:'production',BASE_URL:'https://cerium.example.test',SESSION_SECRET:'a'.repeat(56),
-   GOOGLE_CLIENT_ID:'not-set',GOOGLE_CLIENT_SECRET:'not-set',TRUST_PROXY:'0',DATABASE_PATH:'/data/db.sqlite'};
+   GOOGLE_CLIENT_ID:'test-123456789.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'GOCSPX-fake-for-tests',TRUST_PROXY:'0',DATABASE_PATH:'/data/db.sqlite'};
  assert.throws(()=>buildConfig(base),/MARKET_IPAPI_KEY/);
  assert.throws(()=>buildConfig({...base,MARKET_GATE_ENABLED:'false'}),/cannot be disabled/);
  const config=buildConfig({...base,MARKET_IPAPI_KEY:'real-testing-only-key'});
