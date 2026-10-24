@@ -18,11 +18,17 @@
         script.onerror = () => reject(new Error('Could not load secure payment checkout.'));
         document.head.appendChild(script);
       });
+      const scheduled=new Date(Number(result.startAt)*1000);
+      const firstCharge=Number.isFinite(scheduled.getTime())
+        ?scheduled.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
+        :'the disclosed subscription start date';
       const rzp = new global.Razorpay({
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
-        description: result.currency === 'INR' ? '15-day trial, then ₹500/month plus applicable taxes. UPI AutoPay may be available subject to eligibility; approve the recurring mandate. Cancel anytime.' : '15-day trial, then $20/month. Authorize recurring billing. Cancel anytime.',
+        description: result.currency === 'INR'
+          ?'At least 15 full days free. First ₹500/month debit scheduled '+firstCharge+' plus applicable taxes. UPI AutoPay subject to eligibility. Cancel anytime.'
+          :'At least 15 full days free. First $20/month debit scheduled '+firstCharge+'. Authorize recurring billing. Cancel anytime.',
         theme: { color: '#6954b8' },
         handler: async response => {
           try {
