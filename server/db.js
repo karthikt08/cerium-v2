@@ -284,6 +284,13 @@ export function openDb(file) {
   const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
     us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
     updated_at=? WHERE id=?`);
+  // Trial starts when the customer FIRST unlocks the gated workspace,
+  // not while they are waiting for phone/provider verification.
+  if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('onboarding_completed_at'))
+    db.exec("ALTER TABLE users ADD COLUMN onboarding_completed_at INTEGER NOT NULL DEFAULT 0");
+  const beginTrialOnEntry=db.prepare(`UPDATE users SET trial_started_at=?,
+    onboarding_completed_at=?,updated_at=?
+    WHERE id=? AND onboarding_completed_at=0 AND plan_status='trial'`);
   const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
   for(const [col,ddl] of [
     ['invoice_currency',"ALTER TABLE invoices ADD COLUMN invoice_currency TEXT"],
@@ -681,6 +688,11 @@ export function openDb(file) {
 
     purgeExpiredSessions(now = Date.now()) {
       return q.purgeSessions.run(now).changes;
+    },
+
+    // Start the one-time free-trial clock when access becomes usable.
+    beginTrialOnEntry(userId,at=Date.now()) {
+      return beginTrialOnEntry.run(toDateStr(new Date(at)),at,at,userId).changes>0;
     },
 
     // ---------------------------------------------------------------- Phone possession + self-attested billing country
