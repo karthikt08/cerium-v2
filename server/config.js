@@ -122,6 +122,15 @@ export function buildConfig(env = process.env) {
   if(regionEnforced&&(geoIpApiKey.length<12||PLACEHOLDER.test(geoIpApiKey)))
     problems.push('GEOIP_API_KEY is required for server-side US/India region and VPN checks.');
 
+  // Workspace entry policy: tests default off for backwards-compatible fixtures;
+  // local development and production require phone verification BEFORE workspace.
+  // Optional phone_and_mandate adds explicit recurring payment authorization.
+  const workspaceAccessMode=get('WORKSPACE_ACCESS_MODE')||(env.NODE_ENV==='test'?'off':'phone');
+  if(!['off','phone','phone_and_mandate'].includes(workspaceAccessMode))
+    problems.push('WORKSPACE_ACCESS_MODE must be off, phone or phone_and_mandate.');
+  if(isProd&&workspaceAccessMode==='off')
+    problems.push('Production requires a verified phone before workspace access.');
+
   // ---- Optional phone verification for paid checkout.
   // 'development' never sends SMS and is only allowed on loopback.
   // 'twilio' calls Verify; production without a verified provider cannot
@@ -226,6 +235,7 @@ export function buildConfig(env = process.env) {
     currency,
     regionEnforced,
     regionAccessMode,
+    workspaceAccessMode,
     geoIpApiKey,
     phoneVerifyMode,
     phoneVerifyConfigured,
