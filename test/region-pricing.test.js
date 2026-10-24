@@ -90,23 +90,42 @@ test('India Google signup immediately creates INR workspace and INR 500 pricing'
   });
 });
 
-test('unsupported country, detected VPN and unverifiable network block HTML and API access',async()=>{
-  for(const [raw,status,error] of [
-    [fixture('FR'),403,'country_unavailable'],
-    [fixture('US',{is_vpn:true}),403,'anonymous_network'],
-    [fixture('IN',{is_proxy:true}),403,'anonymous_network'],
-    [{location:null,is_vpn:false,is_proxy:false,is_tor:false},503,'unverified'],
+test('unsupported or anonymous visitor can see public pages but cannot register',async()=>{
+  for(const [raw,reason] of [
+    [fixture('FR'),'country_unavailable'],
+    [fixture('US',{is_vpn:true}),'anonymous_network'],
+    [{location:null,is_vpn:false,is_proxy:false,is_tor:false},'unverified'],
   ]){
     await runFor(raw,async(t,b)=>{
-      const home=await b.req('/');
-      assert.equal(home.status,status);
-      const api=await b.req('/api/region');
-      assert.equal(api.status,status);
-      assert.equal((await api.json()).error,error);
-      const health=await b.req('/healthz');
-      assert.equal(health.status,200);
+      assert.equal((await b.req('/')).status,200);
+      assert.equal((await b.req('/pricing.html')).status,200);
+      assert.equal((await b.req('/login.html')).status,200);
+      const region=await (await b.req('/api/region')).json();
+      assert.equal(region.reason,reason);
+      const signup=await b.req('/auth/register',{method:'POST',json:{
+        name:'Test',email:'new@example.test',password:'strong-pw-123'
+      }});
+      assert.equal(signup.status,reason==='unverified'?503:403);
     });
   }
+});
+
+test('travel and VPN do not lock previously verified accounts or change currency',async()=>{
+  let raw=fixture('US');
+  const t=await startServer({env:options,regionLookup:async()=>raw});
+  try{
+    const b=t.browser();
+    await signIn(t,b,{profile:ALICE});
+    raw=fixture('FR',{is_vpn:true});
+    // The initial IP decision may be cached, but account access bypasses
+    // network classification entirely once the existing session is loaded.
+    const ws=await b.req('/api/workspace');
+    assert.equal(ws.status,200);
+    const data=await ws.json();
+    assert.equal(data.account.country,'US');
+    assert.equal(data.account.currency,'USD');
+    assert.equal((await b.req('/api/billing/status')).status,200);
+  }finally{await t.close();}
 });
 
 test('untrusted X-Forwarded-For cannot override the socket IP at trustProxy=0',async()=>{
@@ -123,7 +142,7 @@ test('untrusted X-Forwarded-For cannot override the socket IP at trustProxy=0',a
   }finally{await t.close();}
 });
 
-test('previously registered accounts cannot be silently repriced if detected market differs',async()=>{
+test('existing accounts can sign in from another region without repricing',async()=>{
   const t=await startServer({env:options,regionLookup:async()=>fixture('IN')});
   try {
     t.db.createUser({email:ALICE.email,name:ALICE.name,country:'US'});
@@ -131,10 +150,12 @@ test('previously registered accounts cannot be silently repriced if detected mar
     const result=await signIn(t,b,{profile:ALICE});
     assert.equal(result.cb.status,303);
     const ws=await b.req('/api/workspace');
-    assert.equal(ws.status,409);
-    const resultBody=await ws.json();
-    assert.equal(resultBody.error,'region_mismatch');
-    const account=t.db.getUserByEmail(ALICE.email);
+    assert.equal(ws.status,200);
+    const account=(await ws.json()).account;
+    assert.equal(account.country,'US');
     assert.equal(account.currency,'USD');
+    const csrf=(await b.me()).csrfToken;
+    const change=await b.req('/api/me',{method:'PATCH',json:{country:'IN'},csrf});
+    assert.equal(change.status,403);
   }finally{await t.close();}
 });
