@@ -291,8 +291,8 @@ export const CeriumAPI = {
   async getBillingIdentity() {
     return request('/api/billing/identity', { method: 'GET' });
   },
-  async startBillingPhone(phone, confirmCountry) {
-    return request('/api/billing/identity/start', { method: 'POST', body: JSON.stringify({ phone, confirmCountry }) });
+  async startBillingPhone(phone, confirmCountry, declaredCountry) {
+    return request('/api/billing/identity/start', { method: 'POST', body: JSON.stringify({ phone, confirmCountry, declaredCountry }) });
   },
   async verifyBillingPhone(code) {
     return request('/api/billing/identity/verify', { method: 'POST', body: JSON.stringify({ code }) });
