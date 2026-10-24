@@ -63,6 +63,7 @@ export async function startServer({ env = {}, limits, db: givenDb } = {}) {
     SESSION_SECRET: GOOD_SECRET,
     GOOGLE_CLIENT_ID: FAKE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: FAKE_CLIENT_SECRET,
+    MARKET_IPAPI_KEY: 'test-ip-intelligence-key',
     ...env,
   });
   const db = givenDb || openDb(config.databasePath);
@@ -71,7 +72,8 @@ export async function startServer({ env = {}, limits, db: givenDb } = {}) {
   // Big limits by default, so that many test sign-ins are not slowed down.
   // The tests about rate limits give small limits on purpose.
   const BIG = { windowMs: 60_000, limit: 100_000 };
-  const app = createApp({ config, db, google, limits: { global: BIG, auth: BIG, write: BIG, ...limits }, log: false });
+  const app = createApp({ config, db, google, limits: { global: BIG, auth: BIG, write: BIG, ...limits }, log: false,
+    marketGateOverride:(req,res,next)=>{req.market={allowed:true,country:'US',currency:'USD',monthlyPrice:20};next();} });
   const server = await new Promise((resolve) => {
     const s = app.listen(port, '127.0.0.1', () => resolve(s));
   });

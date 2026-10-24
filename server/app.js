@@ -11,6 +11,7 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
+import {createMarketGate} from './market-gate.js';
 import {verifyOptOut} from './reminders.js';
 import {
   sign, unsign, cleanText, csvCell,
@@ -35,7 +36,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true, marketGateOverride = null }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -151,6 +152,12 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       }
     }
   );
+
+  // ------------------------------------------------------------ IP territory and proxy gating
+  // Webhooks and health checks bypass visitor restrictions; no login or
+  // workspace action can occur without an allowed visitor IP in production.
+  const marketGate=createMarketGate({enabled:config.marketGateEnabled,apiKey:config.marketIpapiKey});
+  app.use(marketGateOverride || marketGate.middleware);
 
   // ------------------------------------------------------------ Parsers & Session Loading
   app.use(cookieParser());
@@ -281,7 +288,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const verificationToken = generateToken(32);
     const verificationExpires = now() + 24 * 60 * 60 * 1000;
 
-    const user = db.createUser({
+    let user = db.createUser({
       email: cleanEmail,
       passwordHash,
       name: cleanName,
@@ -293,6 +300,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       now: now(),
     });
 
+    if(req.market?.country==='IN')user=db.updateUser(user.id,{country:'IN'});
     const session = db.createSession({
       userId: user.id,
       email: user.email,
@@ -478,6 +486,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         termsVersion: config.termsVersion,
         now: now(),
       });
+      if(req.market?.country==='IN')user=db.updateUser(user.id,{country:'IN'});
     }
 
     if (note.i === 'join') {
@@ -538,7 +547,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
             location: user.location || '',
             country: user.country || 'US',
             currency: user.currency || 'USD',
-            usState: user.us_state || '',
+            indiaState: user.india_state || '', gstin: user.gstin || '', upiVpa: user.upi_vpa || '',
+          usState: user.us_state || '',
             usZip: user.us_zip || '',
             timeZone: user.time_zone || '',
             plan: user.plan,
@@ -550,9 +560,20 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     });
   });
 
+  api.get('/market', (req,res)=>{
+    res.set('Cache-Control','no-store');
+    const m=req.market;
+    res.json({country:m?.country||null,currency:m?.currency||null,monthlyPrice:m?.monthlyPrice||null,
+      verified:Boolean(m?.country),developmentBypass:Boolean(m?.developmentBypass)});
+  });
+
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
+    // Country selection is based on verified network location when enabled.
+    // The user cannot spoof a different billing region via the profile API.
+    if(config.marketGateEnabled&&req.body?.country&&req.body.country!==req.market?.country)
+      return res.status(403).json({error:'country_mismatch',message:'Your selected country does not match your verified region.'});
     try { updated = db.updateUser(req.session.userId, req.body || {}); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
@@ -566,6 +587,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         location: updated.location || '',
         country: updated.country || 'US',
         currency: updated.currency || 'USD',
+        indiaState: updated.india_state || '', gstin: updated.gstin || '', upiVpa: updated.upi_vpa || '',
         usState: updated.us_state || '',
         usZip: updated.us_zip || '',
         timeZone: updated.time_zone || '',
@@ -598,7 +620,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     // Never allow new amounts to be created under that denomination in the
     // dollar-only product. Account export and deliberate workspace clearing
     // remain available outside this middleware.
-    if (workspace.account.currency !== 'USD') {
+    if (!((workspace.account.country==='US'&&workspace.account.currency==='USD')||
+          (workspace.account.country==='IN'&&workspace.account.currency==='INR'))) {
       return res.status(409).json({
         error: 'currency_review_required',
         message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
@@ -793,27 +816,35 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
-    if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
     const user = db.getUserById(req.session.userId);
-    if(user.country!=='US'||user.currency!=='USD')
-      return res.status(403).json({error:'us_billing_only',message:'CERIUM subscription checkout is available only to USD-denominated US workspaces. Contact support to review legacy currency records.'});
+    if(config.marketGateEnabled&&user.country!==req.market?.country)
+      return res.status(403).json({error:'country_mismatch',message:'Billing country and verified location do not match. Contact support if your business operates across regions.'});
+    const indian=user.country==='IN'&&user.currency==='INR';
+    const american=user.country==='US'&&user.currency==='USD';
+    if(!indian&&!american)
+      return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
+    const billingPlanId=indian?config.razorpayIndiaPlanId:config.razorpayPlanId;
+    const billingAmount=indian?config.priceInPaise:config.priceCents;
+    const billingCurrency=indian?'INR':'USD';
+    if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
+      return res.status(503).json({error:'billing_not_configured',message:'Recurring payments in your region are not enabled yet. Your trial remains available.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
     }
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
       const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
-      const plan = await rzp.getPlan(config.razorpayPlanId);
+      const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
-          Number(plan.item?.amount) !== config.priceCents ||
-          plan.item?.currency !== config.currency) {
+          Number(plan.item?.amount) !== billingAmount ||
+          plan.item?.currency !== billingCurrency) {
         return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
       }
-      const created = await rzp.createSubscription({ planId: config.razorpayPlanId, startAt, notes: { userId: user.id } });
+      const created = await rzp.createSubscription({ planId: billingPlanId, startAt, notes: { userId: user.id, edition: indian?'IN':'US' } });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       db.createSubscription(user.id, created.id, startAt);
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: config.priceCents, currency: config.currency });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: billingAmount, currency: billingCurrency });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
@@ -852,7 +883,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured && ws?.account.country==='US' && ws?.account.currency==='USD') });
+    const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
+    const american=ws?.account.country==='US'&&ws?.account.currency==='USD';
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured)) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.

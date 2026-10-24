@@ -42,7 +42,7 @@ test('reminder scheduling converts US business clock to UTC without DST ambiguit
   assert.throws(()=>businessLocalToInstant('bad','America/New_York'),/valid reminder/);
 });
 
-test('profile: US state, ZIP and time zone persist; non-US and non-USD changes are rejected',async()=>{
+test('profile: US state, ZIP and time zone persist; unsupported countries and mismatched currency are rejected',async()=>{
   const t=await startServer();
   try{
     const browser=t.browser();
@@ -67,7 +67,7 @@ test('profile: US state, ZIP and time zone persist; non-US and non-USD changes a
     assert.equal(ws.account.usState,'CA');
     assert.equal(ws.account.timeZone,'America/Los_Angeles');
     for(const invalid of [
-      {country:'IN'}, {currency:'INR'}, {usState:'ZZ'},
+      {country:'FR'}, {currency:'INR'}, {usState:'ZZ'},
       {usZip:'bad zip'}, {usZip:'9999'}, {timeZone:'Asia/Tokyo'},
     ]){
       const response=await call('/api/me','PATCH',invalid);
@@ -217,7 +217,7 @@ test('US-only page positioning and invoice presentation are present without rela
   assert.match(app,/field\('usState','State'/);
   assert.match(app,/ZIP code/);
   assert.match(app,/Business time zone/);
-  assert.match(app,/const usAddress=/);
+  assert.match(app,/const address=/);
   assert.match(app,/Existing amounts are stored in/);
   assert.match(app,/dashboardCash\(m.outstanding\)/);
   assert.match(app,/dashboardCash\(m.overdue\)/);
