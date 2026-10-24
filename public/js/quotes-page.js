@@ -123,7 +123,7 @@ function editQuote(ws,id='',leadId=''){
     '<label>Email (optional)<input name="customerEmail" type="email" maxlength="254" value="'+e(quote?.customerEmail||prefill?.email)+'"></label>'+
     '<label>Phone (optional)<input name="customerPhone" maxlength="40" value="'+e(ws.account?.country==='IN'?(quote?.customerPhone||prefill?.phone||''):formatUSPhone(quote?.customerPhone||prefill?.phone))+'"></label>'+
     '<label class="quote-wide">Estimate title<input name="title" required maxlength="120" value="'+e(quote?.title)+'" placeholder="AC repair and parts"></label>'+
-    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address||prefill?.address)+'" placeholder="Street, city, state, ZIP"></label>'+
+    '<label class="quote-wide">Service address<input name="address" maxlength="240" value="'+e(quote?.address||prefill?.address)+'" placeholder="'+e(ws.account?.country==='IN'?'Street, area, city, state, PIN':'Street, city, state, ZIP')+'"></label>'+
     '<label class="quote-wide">Notes<textarea name="notes" maxlength="1200" rows="3" placeholder="Scope, exclusions, or assumptions">'+e(quote?.notes)+'</textarea></label>'+
     '</div><div class="quotes-items-head"><h3>Line items</h3><p>Labor, materials, visits, and other quoted costs.</p></div>'+
     '<div data-quote-items>'+((quote?.items?.length?quote.items:[{description:'Service labor',qty:1,rate:0}]).map(row).join(''))+'</div>'+

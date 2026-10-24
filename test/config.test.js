@@ -9,13 +9,13 @@ import { GOOD_SECRET, FAKE_CLIENT_ID, FAKE_CLIENT_SECRET } from './helpers.js';
 
 const PROD = {
   NODE_ENV: 'production',
+  GEOIP_API_KEY: 'region-testing-key-123456',
   BASE_URL: 'https://cerium.test',
   GOOGLE_CLIENT_ID: FAKE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: FAKE_CLIENT_SECRET,
   SESSION_SECRET: GOOD_SECRET,
   DATABASE_PATH: '/data/cerium.db',
   TRUST_PROXY: '1',
-  MARKET_IPAPI_KEY: 'test-ip-intelligence-key',
 };
 
 function problemsOf(env) {
@@ -42,6 +42,7 @@ describe('production settings', () => {
   it('accepts a complete, strong setup', () => {
     const c = buildConfig(PROD);
     assert.equal(c.mode, 'production');
+    assert.equal(c.workspaceAccessMode,'phone_and_mandate');
     assert.equal(c.baseUrl, 'https://cerium.test');
     assert.equal(c.cookieSecure, true);
     assert.equal(c.sessionCookie, '__Host-cerium_sid');
@@ -133,5 +134,18 @@ describe('development settings', () => {
   it('knows when Google keys are real-looking', () => {
     const c = buildConfig({ GOOGLE_CLIENT_ID: FAKE_CLIENT_ID, GOOGLE_CLIENT_SECRET: FAKE_CLIENT_SECRET });
     assert.equal(c.googleConfigured, true);
+  });
+});
+
+describe('paid-trial entry security policy',()=>{
+  it('requires verified payment method authorization in production',()=>{
+    for(const mode of ['phone','off']){
+      const issues=problemsOf({...PROD,WORKSPACE_ACCESS_MODE:mode});
+      assert.ok(issues.some(s=>/phone_and_mandate/.test(s)),issues.join(' | '));
+    }
+  });
+  it('still supports SMS-only localhost demos explicitly',()=>{
+    const config=buildConfig({WORKSPACE_ACCESS_MODE:'phone'});
+    assert.equal(config.workspaceAccessMode,'phone');
   });
 });

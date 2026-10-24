@@ -8,7 +8,7 @@ import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, mon
 
 const $ = (id) => document.getElementById(id);
 const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
-const state = { ws:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, pending:new Set() };
+const state = { ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, pending:new Set() };
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
 const singular = {leads:'lead',followups:'followup',invoices:'invoice',reviews:'review'};
 const createCalls = {lead:API.createLead,followup:API.createFollowUp,invoice:API.createInvoice,review:API.createReviewRequest};
@@ -57,7 +57,7 @@ async function perform(key,element,fn,errorTarget) {
 }
 async function refresh() {
   setSync('Updating…');
-  try { state.ws=await API.getWorkspace(); renderChrome(); renderPage(); setSync('Up to date'); }
+  try { state.ws=await API.getWorkspace(); state.billingIdentity=await API.getBillingIdentity(); renderChrome(); renderPage(); setSync('Up to date'); }
   catch(err) { setSync('Could not refresh'); throw err; }
 }
 function renderChrome() {
@@ -65,6 +65,10 @@ function renderChrome() {
   $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1);
   $('user-avatar').textContent=initials(a.name); $('user-avatar').setAttribute('aria-label',`Account settings for ${a.name || 'your account'}`);
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
+  const india=a.country==='IN'&&a.currency==='INR';
+  $('edition-label').textContent=india?'India edition · INR':'US edition · USD';
+  $('edition-chip').textContent=india?'India · INR':'US · USD';
+  document.body.dataset.edition=india?'in':'us';
   for(const [name,value] of Object.entries({leads:m.leads,followups:m.due,invoices:state.ws.invoices.filter(x=>x.status==='Overdue').length,reviews:m.reviews})) {
     const el=$('count-'+name);el.textContent=value;el.hidden=!value;
   }
@@ -93,9 +97,16 @@ function overview() {
   const day=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',...(tz?{timeZone:tz}:{})});
   const tasks=filteredRows('followups',ws,{status:'Due'}),invoices=ws.invoices.filter(x=>['Sent','Overdue'].includes(x.status)).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
   const leads=ws.leads.slice(0,3),reviews=ws.reviews.filter(x=>x.status!=='Reviewed').slice(0,3);
+  const indiaWelcome=isIndia()?`<section class="india-guide" aria-label="India edition">
+    <div class="india-guide-body"><p class="eyebrow">INDIA EDITION ACTIVE · INR BILLING · ₹500 / MONTH</p>
+    <h2>Your business, in rupees.</h2>
+    <p>Invoices use INR and include optional GST draft fields. ${ws.account.upiVpa?'UPI ID is configured for new invoice payment instructions.':'Add a UPI ID in Settings to include payment instructions on new invoices.'} GST drafts require accountant review before statutory use.</p></div>
+    <div class="india-guide-actions"><a class="button secondary" href="#settings" data-nav="settings">Set up GST & UPI</a>${button('Create INR invoice','new','data-kind="invoice"')}</div>
+  </section>`:'';
   const metric=(label,value,foot,nav,ic,warn=false)=>`<a href="#${nav}" data-nav="${nav}" class="metric ${warn?'warning':''}"><div class="metric-top"><span>${label}</span>${icon(ic)}</div><strong class="metric-value">${value}</strong><span class="metric-foot"><i class="dot"></i>${foot}</span></a>`;
   return pageHeading(title,`Here's what needs your attention today.`,addButton('lead','New lead'),day)+
     (!currencyMismatch()?'':'<div class="notice" role="status"><div><strong>Previous currency records</strong><p>Your workspace still contains earlier amounts in '+esc(ws.account.currency)+'. They are preserved as originally recorded; see Settings before creating new dollar invoices.</p></div></div>')+
+    indiaWelcome+
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',dashboardCash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',dashboardCash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+
     `<div class="dashboard-grid"><section class="panel">${panelHeader('followups','Today’s follow-ups',tasks.length?`${tasks.length} ${tasks.length===1?'customer needs':'customers need'} a check-in`:'Your next conversations, in one place',viewLink('followups'))}<div class="panel-body">${tasks.length?tasks.slice(0,4).map(taskRow).join(''):empty('You’re all caught up','Add a follow-up when a customer needs a call or message.',button('Add follow-up','new','data-kind="followup"','secondary'))}</div><div class="panel-footer"><span>${tasks.length>4?`Showing 4 of ${tasks.length} due`:'A small follow-up can make a big difference.'}</span>${button(icon('plus')+'Add','new','data-kind="followup"','secondary')}</div></section>`+
     `<section class="panel">${panelHeader('invoices','Awaiting payment','A clear view of what’s coming in',viewLink('invoices'))}<div class="panel-body">${invoices.length?invoices.slice(0,3).map(invoiceRow).join(''):empty('No outstanding invoices','Create your next invoice when a job is ready to bill.',button('Create invoice','new','data-kind="invoice"','secondary'))}</div><div class="panel-footer"><span>${invoices.length} open ${invoices.length===1?'invoice':'invoices'}</span><strong class="amount">${cash(m.outstanding)}</strong></div></section>`+
@@ -157,13 +168,39 @@ function settingsPage() {
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=[{value:'US',label:'United States — USD'},{value:'IN',label:'India — INR'}];
   const moneyPrice=ind?'₹500':'$20';
+  const proof=state.billingIdentity||{};
+  const billingIdentityPanel=`<section class="panel">${panelHeader('payments','Billing verification',proof.verified?'Verified for paid checkout':'Required before your first paid subscription')}
+    <div class="settings-content billing-verify-content">
+      <p class="billing-verify-status ${proof.verified?'is-verified':''}" role="status">${proof.verified?'✓ Phone confirmed':'Phone confirmation pending'} · ${ind?'India (INR)':'United States (USD)'}${proof.verified?' · '+esc(proof.phoneMasked):''}</p>
+      <p class="muted">Your verified number controls workspace access and your saved billing edition. To authorize a subscription, confirm that your business is based in ${ind?'India':'the United States'} and verify a phone number. A dial code alone does not prove a business location.</p>
+      ${!proof.providerReady?'<p class="form-error">Phone verification is not yet configured on this server. The trial is still available. Contact support before paying.</p>':''}
+      ${proof.mode==='development'?'<p class="billing-dev-tip">Local development only: no text message is sent. Enter the test code <strong>000000</strong> after requesting a code.</p>':''}
+      <form id="billing-phone-start" class="billing-verify-form">
+        <label class="field">Phone number for verification
+          <input name="phone" type="tel" autocomplete="tel" placeholder="${ind?'+91 98765 43210':'+1 415 555 0123'}" maxlength="40" required ${!proof.providerReady?'disabled':''}>
+        </label>
+        <label class="billing-declaration"><input type="checkbox" name="confirmCountry" required ${!proof.providerReady?'disabled':''}>
+          I confirm that my business billing country is ${ind?'India':'the United States'} and that I control this phone number.</label>
+        <button type="submit" class="button secondary" ${!proof.providerReady?'disabled':''}>${proof.verified?'Verify a different phone':'Send verification code'}</button>
+      </form>
+      ${proof.pending?`<form id="billing-phone-check" class="billing-verify-form">
+        <p class="muted">Enter the code sent to your phone. Codes expire in 10 minutes. Request another only after 90 seconds.</p>
+        <label class="field">One-time code
+          <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" required placeholder="6-digit code">
+        </label>
+        <button type="submit" class="button primary">Confirm phone</button>
+      </form>`:''}
+      <p class="muted">Using a different-country number? Contact <a href="mailto:cerium.founders@gmail.com?subject=Billing%20country%20review">CERIUM support</a> for a manual review. Existing accounts are never repriced just for travelling.</p>
+    </div>
+  </section>`;
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <form id="profile-form" class="settings-content"><div class="form-grid">
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
     ${field('email','Sign-in email',a.email,'email',{readOnly:true})}
-    ${field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
-    <p class="muted full-width">Changing editions is allowed only before adding business records or subscription history. Existing money is never converted.</p>
+    ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true,full:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
+    <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
+    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${ind?'India · INR':'United States · USD'}. ${ind?'GST draft fields and UPI settings are shown below.':'Select India and click Save changes to enable Indian invoice fields and pricing.'}</div>
     ${field('phone','Business phone',ind?a.phone:formatUSPhone(a.phone),'tel',{placeholder:ind?'+91 98765 43210':'(415) 555-0123'})}
     ${field('trade','Trade / industry',a.trade)}
     ${field('location','City / service area',a.location,'text',{placeholder:ind?'e.g. Chennai':'e.g. Austin'})}
@@ -172,14 +209,14 @@ function settingsPage() {
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
   <div class="settings-actions"><button type="submit" class="button primary">Save changes</button></div></form>
-  </section><div class="settings-stack"><section class="panel">
+  </section><div class="settings-stack">${billingIdentityPanel}<section class="panel">
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':'US'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
     <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
-    ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:''}
+    ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration above to unlock the recurring payment authorization button.</p>':''}
     ${a.subscription&&['authenticated','active','pending'].includes(a.subscription.status)?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
-    <p class="muted">${ind?'INR recurring checkout requires an enabled Razorpay INR plan and customer-approved UPI Autopay/card mandate.':'USD checkout requires an enabled US plan.'}</p>
+    <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout requires an enabled US plan.'}</p>
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
     <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON.</p>
@@ -216,9 +253,9 @@ function openRecord(kind,id) {
   $('record-eyebrow').textContent={lead:'CUSTOMERS',followup:'YOUR NEXT ACTION',invoice:'BILLING',review:'REPUTATION'}[kind];
   $('record-description').textContent=kind==='review'?"Track a request you’ve already sent. This saves a record; it doesn’t send a message.":kind==='invoice'?'Create a clear record for your customer. Preview it and save a PDF after saving.':kind==='lead'?'Capture the essentials now. You can add more detail later.':'Set a reminder so the next conversation doesn’t slip away.';
   const v=record||{};let html='';
-  if(kind==='lead')html=field('name','Customer name',v.name,'text',{required:true,full:true})+field('email','Email',v.email,'email')+field('phone','Phone',formatUSPhone(v.phone),'tel',{placeholder:'(415) 555-0123'})+field('stage','Stage',v.stage||'New','text',{choices:STAGES})+field('source','Source',v.source||'Direct','text',{choices:[...new Set([...SOURCES,v.source].filter(Boolean))]})+field('value',`Estimated value (${currency()})`,v.value||'','number',{min:0,step:'.01'})+field('nextFollowUp','Next follow-up',v.nextFollowUp||localDate(),'date')+field('address','Service address',v.address,'text',{full:true,placeholder:'Street, city, state, ZIP'})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(record?'':'<label class="check-field"><input type="checkbox" name="createReminder" checked>Create a follow-up reminder</label>');
-  if(kind==='followup')html=field('contactName','Customer name',v.contactName,'text',{required:true,full:true})+field('task','What needs to happen?',v.task,'text',{required:true,full:true,max:250})+field('dueDate','Due date',v.dueDate||localDate(),'date',{required:true})+field('channel','Contact method',v.channel||'Call','text',{choices:['Call','Text','Email']})+field('phone','US phone',formatUSPhone(v.phone),'tel',{full:true,placeholder:'(415) 555-0123'});
-  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress,'text',{placeholder:'Street, city, state, ZIP'})+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount before tax (${currency()})`,isIndia()?((Number(v.taxable)>0?v.taxable:(v.total??''))):(v.total??''),'number',{required:!v.jobId,min:v.jobId?0:'.01',step:'.01',readOnly:!!v.jobId||!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1&&!v.jobId?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'')+(isIndia()?field('customerGstin','Customer GSTIN (if registered)',v.customerGstin||'','text',{max:15,full:true})+field('placeOfSupply','Place of supply',v.placeOfSupply||state.ws.account.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})+field('hsnSac','HSN / SAC (4–8 digits)',v.hsnSac||'','text',{max:8})+field('gstRate','Applicable GST rate (%)',v.gstRate??0,'number',{min:0,step:'.01'})+'<p class="muted full-width">Tax rate and HSN/SAC must be confirmed against the actual supply. All items currently share one tax code/rate; complex invoices need accountant review.</p>':'');
+  if(kind==='lead')html=field('name','Customer name',v.name,'text',{required:true,full:true})+field('email','Email',v.email,'email')+field('phone','Phone',isIndia()?(v.phone||''):formatUSPhone(v.phone),'tel',{placeholder:isIndia()?'+91 98765 43210':'(415) 555-0123'})+field('stage','Stage',v.stage||'New','text',{choices:STAGES})+field('source','Source',v.source||'Direct','text',{choices:[...new Set([...SOURCES,v.source].filter(Boolean))]})+field('value',`Estimated value (${currency()})`,v.value||'','number',{min:0,step:'.01'})+field('nextFollowUp','Next follow-up',v.nextFollowUp||localDate(),'date')+field('address','Service address',v.address,'text',{full:true,placeholder:isIndia()?'Street, area, city, state, PIN':'Street, city, state, ZIP'})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(record?'':'<label class="check-field"><input type="checkbox" name="createReminder" checked>Create a follow-up reminder</label>');
+  if(kind==='followup')html=field('contactName','Customer name',v.contactName,'text',{required:true,full:true})+field('task','What needs to happen?',v.task,'text',{required:true,full:true,max:250})+field('dueDate','Due date',v.dueDate||localDate(),'date',{required:true})+field('channel','Contact method',v.channel||'Call','text',{choices:['Call','Text','Email']})+field('phone',isIndia()?'Phone':'US phone',isIndia()?(v.phone||''):formatUSPhone(v.phone),'tel',{full:true,placeholder:isIndia()?'+91 98765 43210':'(415) 555-0123'});
+  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress,'text',{placeholder:isIndia()?'Street, area, city, state, PIN':'Street, city, state, ZIP'})+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount before tax (${currency()})`,isIndia()?((Number(v.taxable)>0?v.taxable:(v.total??''))):(v.total??''),'number',{required:!v.jobId,min:v.jobId?0:'.01',step:'.01',readOnly:!!v.jobId||!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1&&!v.jobId?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'')+(isIndia()?field('customerGstin','Customer GSTIN (if registered)',v.customerGstin||'','text',{max:15,full:true})+field('placeOfSupply','Place of supply',v.placeOfSupply||state.ws.account.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})+field('hsnSac','HSN / SAC (4–8 digits)',v.hsnSac||'','text',{max:8})+field('gstRate','Applicable GST rate (%)',v.gstRate??0,'number',{min:0,step:'.01'})+'<p class="muted full-width">Tax rate and HSN/SAC must be confirmed against the actual supply. All items currently share one tax code/rate; complex invoices need accountant review.</p>':'');
   if(kind==='invoice'&&v.jobId){
     const rows=(v.items||[]).map((item,index)=>`<div class="invoice-billing-row" data-invoice-line>
       <label>Item ${index+1} <input data-invoice-line-field="description" value="${esc(item.description)}" maxlength="180" required></label>
@@ -263,7 +300,7 @@ function previewInvoice(id) {
     ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(Number(item.qty)*Number(item.rate))}</td></tr>`))}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
-    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>. Confirm receipt in your bank before marking Paid.</p>`:''}
+    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
     ${gst?'<p class="muted">Draft only. Validate invoice numbering, tax classification, signature, reverse charge, IRN/e-invoicing eligibility and other statutory requirements before issuing.</p>':''}
     <p class="muted">${esc(i.notes)}</p>
   </article>`; $('invoice-dialog').showModal();
@@ -334,6 +371,14 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});
 document.addEventListener('change',e=>{
+  if(e.target.id==='field-country'&&!state.ws.account.regionLocked){
+    const saved=state.ws.account.country;
+    const chosen=e.target.value;
+    const hint=$('edition-save-hint');
+    if(hint)hint.textContent=chosen===saved
+      ?'Saved edition: '+(saved==='IN'?'India · INR':'United States · USD')+'.'
+      :'Pending change to '+(chosen==='IN'?'India · INR (₹500/month)':'United States · USD ($20/month)')+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
+  }
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
@@ -360,12 +405,34 @@ $('confirm-form').addEventListener('submit',e=>{
   perform('confirmation',e.submitter,async()=>{const d=$('confirm-dialog');d.setAttribute('aria-busy','true');try{await c.fn();d.close();state.confirmation=null;}finally{d.removeAttribute('aria-busy');}},'confirm-error');
 });
 document.addEventListener('submit',e=>{
+  if(e.target.id==='billing-phone-start'){
+    e.preventDefault();
+    const form=e.target;
+    const phone=form.elements.phone.value.trim();
+    const confirmCountry=form.elements.confirmCountry.checked;
+    perform('billing-phone-start',e.submitter,async()=>{
+      const result=await API.startBillingPhone(phone,confirmCountry,state.ws.account.country);
+      await refresh();
+      toast(result.mode==='development'?'Local code requested — enter 000000 below.':'Verification code requested. Check your phone.');
+    });
+    return;
+  }
+  if(e.target.id==='billing-phone-check'){
+    e.preventDefault();
+    const code=e.target.elements.code.value.trim();
+    perform('billing-phone-check',e.submitter,async()=>{
+      await API.verifyBillingPhone(code);
+      await refresh();
+      toast('Phone confirmed. You can now authorize regional billing.');
+    });
+    return;
+  }
   if(e.target.id==='profile-form'){
     e.preventDefault();const data=Object.fromEntries(new FormData(e.target));delete data.email;
     if(data.country==='US'&&!validUsZip(data.usZip||'')){formError('profile-error','Enter a ZIP code (12345 or 12345-6789).');return;}
     if(data.country==='IN'&&(!validGSTIN(data.gstin||'')||!validIndianState(data.indiaState||'')||!validUpiVpa(data.upiVpa||''))){formError('profile-error','Check your GSTIN, state and UPI ID.');return;}
     if(data.googlePlaceUrl&&!safeReviewURL(data.googlePlaceUrl)){formError('profile-error','Use a valid HTTPS link for review requests.');return;}
-    perform('profile',e.submitter,async()=>{await API.updateAccount(data);await refresh();toast('Business profile saved.');},'profile-error');
+    perform('profile',e.submitter,async()=>{const previous=state.ws.account.country;await API.updateAccount(data);await refresh();toast(previous!==state.ws.account.country?(isIndia()?'India edition activated — INR and GST/UPI draft fields are now available.':'US edition activated — USD workspace ready.'):'Business profile saved.');},'profile-error');
   }
   if(e.target.id==='support-form'){
     e.preventDefault();const data=Object.fromEntries(new FormData(e.target));

@@ -111,13 +111,51 @@ export function buildConfig(env = process.env) {
 
   if (!subscriptionsConfigured) warnings.push('Recurring subscriptions require RAZORPAY_PLAN_ID and RAZORPAY_WEBHOOK_SECRET. Checkout is disabled until configured.');
 
-  // Market gate requires an actual IP intelligence key in production.
-  // Development keeps localhost working; set MARKET_GATE_ENABLED=true for staging.
-  const marketGateEnabled=get('MARKET_GATE_ENABLED')==='true'||(isProd&&get('MARKET_GATE_ENABLED')!=='false');
-  const marketIpapiKey=get('MARKET_IPAPI_KEY');
-  if(isProd&&get('MARKET_GATE_ENABLED')==='false')problems.push('Production country restrictions cannot be disabled.');
-  if(marketGateEnabled&&(!marketIpapiKey||PLACEHOLDER.test(marketIpapiKey)))
-    problems.push('MARKET_IPAPI_KEY is required when country and proxy restrictions are enabled.');
+  // Region restrictions are mandatory on production deployments. During local
+  // development, explicitly enable the gate only with an external GeoIP key.
+  const regionAccessMode=get('REGION_ACCESS_MODE')||(isProd?'enforce':'off');
+  if(!['enforce','off'].includes(regionAccessMode))
+    problems.push('REGION_ACCESS_MODE must be enforce or off.');
+  const regionEnforced=regionAccessMode==='enforce';
+  if(isProd&&!regionEnforced)problems.push('CERIUM production must enforce region access.');
+  const geoIpApiKey=get('GEOIP_API_KEY');
+  if(regionEnforced&&(geoIpApiKey.length<12||PLACEHOLDER.test(geoIpApiKey)))
+    problems.push('GEOIP_API_KEY is required for server-side US/India region and VPN checks.');
+
+  // Workspace entry policy: tests default off for backwards-compatible fixtures;
+  // local development and production require phone verification BEFORE workspace.
+  // Optional phone_and_mandate adds explicit recurring payment authorization.
+  const workspaceAccessMode=get('WORKSPACE_ACCESS_MODE')||
+    (env.NODE_ENV==='test'?'off':isProd?'phone_and_mandate':'phone');
+  if(!['off','phone','phone_and_mandate'].includes(workspaceAccessMode))
+    problems.push('WORKSPACE_ACCESS_MODE must be off, phone or phone_and_mandate.');
+  // Never accidentally deploy an accessible, payment-free 15-day trial.
+  // Tests and explicit localhost demos may retain lighter gates.
+  if(isProd&&workspaceAccessMode!=='phone_and_mandate')
+    problems.push('Production requires WORKSPACE_ACCESS_MODE=phone_and_mandate so a confirmed payment authorization precedes any free trial.');
+
+  // ---- Optional phone verification for paid checkout.
+  // 'development' never sends SMS and is only allowed on loopback.
+  // 'twilio' calls Verify; production without a verified provider cannot
+  // authorize a NEW recurring subscription.
+  const phoneVerifyMode=get('PHONE_VERIFY_MODE')||(isProd?'off':'development');
+  if(!['off','twilio','development'].includes(phoneVerifyMode))
+    problems.push('PHONE_VERIFY_MODE must be off, twilio or development.');
+  if(isProd&&phoneVerifyMode==='development')
+    problems.push('PHONE_VERIFY_MODE=development is forbidden in production.');
+  if(phoneVerifyMode==='development'&&!LOCAL_HOSTS.includes(new URL(baseUrl).hostname))
+    problems.push('PHONE_VERIFY_MODE=development is only allowed on a loopback BASE_URL.');
+  const twilioAccountSid=get('TWILIO_ACCOUNT_SID');
+  const twilioAuthToken=get('TWILIO_AUTH_TOKEN');
+  const twilioVerifyServiceSid=get('TWILIO_VERIFY_SERVICE_SID');
+  const phoneVerifyConfigured=/^AC[0-9a-f]{32}$/i.test(twilioAccountSid)
+    && twilioAuthToken.length>=20 && !PLACEHOLDER.test(twilioAuthToken)
+    && /^VA[0-9a-f]{32}$/i.test(twilioVerifyServiceSid);
+  if(phoneVerifyMode==='twilio'&&!phoneVerifyConfigured)
+    warnings.push('Twilio Verify credentials are missing or incomplete. New recurring checkout is unavailable until configured.');
+  if(isProd&&phoneVerifyMode!=='twilio')
+    warnings.push('Phone OTP is not configured; new recurring checkout is disabled. Existing subscriptions are unaffected.');
+
   // ---- SESSION_SECRET: signs the short note kept while a person is at Google and cookie notes
   let sessionSecret = get('SESSION_SECRET');
   if (sessionSecret.length < 32 || PLACEHOLDER.test(sessionSecret)) {
@@ -198,9 +236,16 @@ export function buildConfig(env = process.env) {
     subscriptionsConfigured,
     priceCents,
     currency,
+    regionEnforced,
+    regionAccessMode,
+    workspaceAccessMode,
+    geoIpApiKey,
+    phoneVerifyMode,
+    phoneVerifyConfigured,
+    twilioAccountSid,
+    twilioAuthToken,
+    twilioVerifyServiceSid,
     sessionSecret,
-    marketGateEnabled,
-    marketIpapiKey,
     databasePath,
     trustProxy,
     adminEmails: Object.freeze(adminEmails),
