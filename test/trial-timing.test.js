@@ -161,3 +161,36 @@ test('signed webhook honors safe trial and cancels early-billing first authoriza
     assert.equal((await b.req('/api/workspace')).status,403);
   }finally{await t2.close();}
 });
+
+test('expired authorization attempt is cancelled before a new 15-day schedule is offered',async()=>{
+  const cancelled=[];
+  let planRequests=0;
+  const razorpay={
+    getSubscription:async id=>{
+      assert.equal(id,'sub_old_attempt');
+      return {status:'created'};
+    },
+    cancelSubscription:async id=>{cancelled.push(id);return {status:'cancelled'};},
+    getPlan:async()=>{planRequests++;return {period:'monthly',interval:1,item:{amount:2000,currency:'USD'}};},
+    createSubscription:async args=>({id:'sub_fresh_attempt',status:'created',
+      start_at:args.startAt,expire_by:args.expireBy}),
+  };
+  const t=await startServer({env:VALID_ENV,razorpay});
+  try{
+    const b=t.browser();
+    await signIn(t,b,{profile:ALICE});
+    const csrf=await verifyPhone(t,b);
+    const id=t.db.getUserByEmail(ALICE.email).id;
+    t.db.createSubscription(id,'sub_old_attempt',Math.floor(Date.now()/1000)+TRIAL_SECONDS-60);
+    const r=await b.req('/api/billing/subscription',{method:'POST',csrf});
+    assert.equal(r.status,200,await r.clone().text());
+    const data=await r.json();
+    assert.equal(data.subscriptionId,'sub_fresh_attempt');
+    assert.equal(planRequests,1);
+    assert.deepEqual(cancelled,['sub_old_attempt']);
+    assert.equal(t.db.getSubscription('sub_old_attempt').status,'cancelled');
+    assert.equal(t.db.getUserSubscription(id).subscription_id,'sub_fresh_attempt');
+    assert.ok(data.startAt*1000-Date.now()>=TRIAL_SECONDS*1000);
+    assert.equal((await b.req('/api/workspace')).status,403);
+  }finally{await t.close();}
+});
