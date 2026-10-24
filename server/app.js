@@ -1008,7 +1008,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       if(config.workspaceAccessMode==='phone_and_mandate' &&
-         (Number(created.start_at)!==startAt || Number(created.expire_by)!==schedule.expireBy)){
+         (Number(created.expire_by)!==schedule.expireBy || !safeTrialSchedule(created,startAt))){
         const cancelled=await rzp.cancelSubscription(created.id,false);
         if(cancelled?.status!=='cancelled')throw new Error('Unsafe provider schedule; cancellation not confirmed: '+created.id);
         return res.status(503).json({error:'billing_schedule_mismatch',message:'Could not confirm the full trial period. Please try again or contact support.'});
