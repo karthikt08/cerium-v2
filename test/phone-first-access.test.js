@@ -119,12 +119,13 @@ test('a second Google account cannot unlock another trial using the same verifie
 
 test('Razorpay pending checkout never reports authorization or starts the trial',async()=>{
   let providerStatus='pending';
+  const startAt=Math.ceil(Date.now()/1000)+15*86400+3600;
   const fakeRazorpay={
     verifySubscription:({subscriptionId,paymentId,signature})=>
       subscriptionId==='sub_pending123'&&paymentId==='pay_test'&&signature==='signed-test',
     getSubscription:async id=>{
       assert.equal(id,'sub_pending123');
-      return {status:providerStatus};
+      return {status:providerStatus,start_at:startAt,charge_at:startAt};
     }
   };
   const t=await startServer({
@@ -136,7 +137,7 @@ test('Razorpay pending checkout never reports authorization or starts the trial'
     await signIn(t,b,{profile:ALICE});
     await signAndPhone(t,b,'+14155550123','US');
     const id=t.db.getUserByEmail(ALICE.email).id;
-    t.db.createSubscription(id,'sub_pending123',Math.floor(Date.now()/1000)+15*86400);
+    t.db.createSubscription(id,'sub_pending123',startAt);
     const csrf=(await b.me()).csrfToken;
     const verify=()=>b.req('/api/billing/subscription/verify',{method:'POST',csrf,json:{
       razorpay_subscription_id:'sub_pending123',

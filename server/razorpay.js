@@ -54,13 +54,14 @@ export function makeRazorpay({ keyId, keySecret, webhookSecret, fetchImpl = fetc
     return call('GET', 'plans/' + encodeURIComponent(planId));
   }
 
-  function createSubscription({ planId, startAt, totalCount = 120, notes = {} }) {
+  function createSubscription({ planId, startAt, expireBy, totalCount = 120, notes = {} }) {
     return call('POST', 'subscriptions', {
       plan_id: planId,
       total_count: totalCount,
       quantity: 1,
       customer_notify: true,
       start_at: startAt,
+      expire_by: expireBy,
       notes,
     });
   }

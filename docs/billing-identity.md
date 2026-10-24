@@ -10,9 +10,15 @@ Before CERIUM starts any new free trial in production:
 4. The backend validates the Razorpay callback signature and re-checks the
    subscription with Razorpay; only an authenticated/active/charged provider
    state can unlock the workspace and start the one-time 15-day trial.
-5. The first regular subscription debit is scheduled 15 days after successful
-   authorization. Disclose the full monthly amount, currency, possible
-   authorization transaction and cancellation conditions before checkout.
+5. The first regular subscription debit is scheduled for **at least 15 full
+   days after successful authorization**. Razorpay fixes the billing start at
+   subscription creation, so CERIUM permits authorization within the next
+   60 minutes and adds that hour to the 15-day start date. Depending on when
+   the customer authorizes, the free period may be up to roughly one hour
+   longer; it must never be shorter. A late or mismatched provider schedule
+   fails closed and is cancelled, or flagged for urgent support if cancellation
+   cannot be confirmed. Disclose the actual payment date, full monthly amount,
+   currency, possible authorization transaction and cancellation conditions.
 
 **Production enforces WORKSPACE_ACCESS_MODE=phone_and_mandate.** Using
 `phone` or `off` in production will fail configuration validation. Your
@@ -51,8 +57,11 @@ bypass the server gate. The access screen is `/verify.html`.
 5. Optional `WORKSPACE_ACCESS_MODE=phone_and_mandate` additionally requires
    confirmed Razorpay subscription authorization before workspace entry.
    India can use available UPI AutoPay or cards; US can use an eligible card.
-   The subscription start date is scheduled 15 days from creation in this mode,
-   and no month-to-month debit is authorized without the user's explicit consent.
+   The subscription start date is scheduled 15 days plus the one-hour
+   authorization window from creation. New customers receive at least
+   15 full days after authorization, with an exact UTC trial end matching the
+   provider-scheduled billing start. Authorization expires after one hour.
+   No month-to-month debit is authorized without explicit customer consent.
    Checkout availability depends on Razorpay merchant and payment-method
    eligibility. Enable this mode only after live/test payment checkout works.
 
@@ -98,7 +107,7 @@ provider setup is ready or you will be locked out of the workspace.
 
 Set production secrets in a secure hosting environment, not GitHub:
 ```ini
-WORKSPACE_ACCESS_MODE=phone
+WORKSPACE_ACCESS_MODE=phone_and_mandate
 PHONE_VERIFY_MODE=twilio
 TWILIO_ACCOUNT_SID=<account SID>
 TWILIO_AUTH_TOKEN=<private token>
