@@ -238,6 +238,33 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
+  // Account-scoped billing verification. Never infer country from the dial code alone.
+  // PII remains in the private SQLite database and is deleted with the account.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS billing_identities (
+      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      billing_country TEXT NOT NULL DEFAULT '',
+      billing_country_attested_at INTEGER NOT NULL DEFAULT 0,
+      phone_e164 TEXT NOT NULL DEFAULT '',
+      phone_verified_at INTEGER NOT NULL DEFAULT 0,
+      pending_phone TEXT NOT NULL DEFAULT '',
+      pending_country TEXT NOT NULL DEFAULT '',
+      pending_expires_at INTEGER NOT NULL DEFAULT 0,
+      last_sent_at INTEGER NOT NULL DEFAULT 0,
+      window_started_at INTEGER NOT NULL DEFAULT 0,
+      send_count INTEGER NOT NULL DEFAULT 0,
+      attempts INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+  const billingRow=db.prepare('SELECT * FROM billing_identities WHERE user_id=?');
+  const billingInit=db.prepare('INSERT OR IGNORE INTO billing_identities(user_id) VALUES(?)');
+  const billingPending=db.prepare(`UPDATE billing_identities SET pending_phone=?,pending_country=?,
+    pending_expires_at=?,last_sent_at=?,window_started_at=?,send_count=?,attempts=0 WHERE user_id=?`);
+  const billingIncrement=db.prepare('UPDATE billing_identities SET attempts=attempts+1 WHERE user_id=?');
+  const billingFinish=db.prepare(`UPDATE billing_identities SET phone_e164=pending_phone,
+    phone_verified_at=?,billing_country=pending_country,billing_country_attested_at=?,
+    pending_phone='',pending_country='',pending_expires_at=0,attempts=0 WHERE user_id=?`);
+  const billingReset=db.prepare('DELETE FROM billing_identities WHERE user_id=?');
   // Non-destructive US profile migration. Preserve all historical invoices and currency.
   const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
   for(const [column,ddl] of [
@@ -653,6 +680,55 @@ export function openDb(file) {
       return q.purgeSessions.run(now).changes;
     },
 
+    // ---------------------------------------------------------------- Phone possession + self-attested billing country
+    getBillingIdentity(userId) {
+      return billingRow.get(userId)||null;
+    },
+
+    billingEligible(userId) {
+      const user=q.getUserById.get(userId), proof=billingRow.get(userId);
+      if(!user||!proof||proof.phone_verified_at<=0||proof.billing_country_attested_at<=0)return false;
+      if(proof.billing_country!==user.country)return false;
+      if(user.country==='IN')return /^\\+91[6-9][0-9]{9}$/.test(proof.phone_e164);
+      if(user.country==='US')return /^\\+1[2-9][0-9]{9}$/.test(proof.phone_e164);
+      return false;
+    },
+
+    beginBillingPhone(userId, phone, country, at=Date.now()) {
+      const user=q.getUserById.get(userId);
+      if(!user||user.country!==country) return {ok:false,reason:'country_mismatch'};
+      return db.transaction(()=>{
+        billingInit.run(userId);
+        const old=billingRow.get(userId);
+        const windowStart=at-old.window_started_at>=86400000?at:old.window_started_at;
+        const sends=windowStart===at?0:old.send_count;
+        if(at-old.last_sent_at<90000)return {ok:false,reason:'cooldown'};
+        if(sends>=3)return {ok:false,reason:'daily_limit'};
+        billingPending.run(phone,country,at+10*60000,at,windowStart,sends+1,userId);
+        return {ok:true};
+      })();
+    },
+
+    beginBillingCheck(userId,at=Date.now()) {
+      return db.transaction(()=>{
+        const proof=billingRow.get(userId);
+        if(!proof?.pending_phone||proof.pending_expires_at<at) return {ok:false,reason:'expired'};
+        if(proof.attempts>=5)return {ok:false,reason:'attempt_limit'};
+        billingIncrement.run(userId);
+        return {ok:true,phone:proof.pending_phone,country:proof.pending_country};
+      })();
+    },
+
+    completeBillingPhone(userId,phone,country,at=Date.now()) {
+      return db.transaction(()=>{
+        const proof=billingRow.get(userId),user=q.getUserById.get(userId);
+        if(!proof||!user||user.country!==country||proof.pending_country!==country||
+           proof.pending_phone!==phone||proof.pending_expires_at<at||proof.attempts>5)return false;
+        billingFinish.run(at,at,userId);
+        return true;
+      })();
+    },
+
     // ---------------------------------------------------------------- Users
     createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
@@ -736,6 +812,7 @@ export function openDb(file) {
           googlePlaceUrl!==undefined?googlePlaceUrl.trim():null,now,id
         );
         q.updateIndiaProfile.run(inState,taxId,vpa,id);
+        if(switching)billingReset.run(id); // Old country phone evidence never carries over.
       });
       save();
       return q.getUserById.get(id);
