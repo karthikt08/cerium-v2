@@ -36,7 +36,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true, marketGateOverride = null }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -157,7 +157,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Webhooks and health checks bypass visitor restrictions; no login or
   // workspace action can occur without an allowed visitor IP in production.
   const marketGate=createMarketGate({enabled:config.marketGateEnabled,apiKey:config.marketIpapiKey});
-  app.use(marketGate.middleware);
+  app.use(marketGateOverride || marketGate.middleware);
 
   // ------------------------------------------------------------ Parsers & Session Loading
   app.use(cookieParser());
