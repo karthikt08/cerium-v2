@@ -288,7 +288,7 @@ export function openDb(file) {
   // not while they are waiting for phone/provider verification.
   if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('onboarding_completed_at'))
     db.exec("ALTER TABLE users ADD COLUMN onboarding_completed_at INTEGER NOT NULL DEFAULT 0");
-  const beginTrialOnEntry=db.prepare(`UPDATE users SET trial_started_at=?,
+  const startTrialStmt=db.prepare(`UPDATE users SET trial_started_at=?,
     onboarding_completed_at=?,updated_at=?
     WHERE id=? AND onboarding_completed_at=0 AND plan_status='trial'`);
   const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
@@ -692,7 +692,7 @@ export function openDb(file) {
 
     // Start the one-time free-trial clock when access becomes usable.
     beginTrialOnEntry(userId,at=Date.now()) {
-      return beginTrialOnEntry.run(toDateStr(new Date(at)),at,at,userId).changes>0;
+      return startTrialStmt.run(toDateStr(new Date(at)),at,at,userId).changes>0;
     },
 
     // ---------------------------------------------------------------- Phone possession + self-attested billing country
