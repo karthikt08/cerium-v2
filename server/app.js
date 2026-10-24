@@ -456,7 +456,7 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
     const fail = (code) => res.redirect(303, `${page}?error=${code}`);
 
     if (!note || typeof note.e !== 'number' || note.e < now()) return fail('expired');
-    if(config.regionEnforced && (!req.region || note.country!==req.region.country)) return fail('invalid');
+    // The callback may occur from a different network. Only new accounts require an approved region.
     if (req.query.error) return fail(req.query.error === 'access_denied' ? 'denied' : 'failed');
 
     const { code, state } = req.query;
@@ -475,6 +475,7 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
 
     let user = db.getUserByGoogleSub(profile.sub) || db.getUserByEmail(profile.email);
     if (!user) {
+      if(config.regionEnforced && (!req.region || !note.country || note.country!==req.region.country)) return fail('region-unavailable');
       user = db.createUser({
         email: profile.email,
         name: profile.name,
@@ -528,7 +529,7 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
   // Public, server-verified market selection; deliberately excludes visitor IP.
   api.get('/region', (req,res)=>{
     res.setHeader('Cache-Control','no-store');
-    if(!req.region)return res.json({mode:'development',country:null,currency:null,monthlyPrice:null});
+    if(!req.region)return res.json({mode:config.regionEnforced?'unavailable':'development',country:null,currency:null,monthlyPrice:null,reason:req.regionIssue?.reason||null});
     const {country,currency,monthlyPrice}=req.region;
     return res.json({mode:'enforced',country,currency,monthlyPrice});
   });
@@ -569,9 +570,9 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
-    if(config.regionEnforced && req.body?.country && req.body.country!==req.region.country)
+    if(config.regionEnforced && req.body?.country && req.body.country!==(req.user?.country||'US'))
       return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
-    const body=config.regionEnforced?{...(req.body||{}),country:req.region.country,currency:req.region.currency}:(req.body||{});
+    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country,currency:req.user.currency}:(req.body||{});
     try { updated = db.updateUser(req.session.userId, body); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
