@@ -217,3 +217,17 @@ test('provider schedule mismatch cancels rather than storing a potentially early
     assert.equal((await b.req('/api/workspace')).status,403);
   }finally{await t.close();}
 });
+
+test('local phone-only trial has exactly fifteen 24-hour days, not a calendar-day cutoff',async()=>{
+  const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
+  try{
+    const b=t.browser();
+    await signIn(t,b,{profile:ALICE});
+    await verifyPhone(t,b);
+    const user=t.db.getUserByEmail(ALICE.email);
+    assert.equal(user.trial_ends_at-user.onboarding_completed_at,TRIAL_SECONDS*1000);
+    const workspace=(await (await b.req('/api/workspace')).json()).account;
+    assert.equal(workspace.trialEndsAt,new Date(user.trial_ends_at).toISOString());
+    assert.equal(workspace.planStatus,'trial');
+  }finally{await t.close();}
+});
