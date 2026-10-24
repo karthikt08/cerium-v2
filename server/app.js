@@ -11,6 +11,7 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
+import {createMarketGate} from './market-gate.js';
 import {verifyOptOut} from './reminders.js';
 import {
   sign, unsign, cleanText, csvCell,
@@ -152,6 +153,12 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     }
   );
 
+  // ------------------------------------------------------------ IP territory and proxy gating
+  // Webhooks and health checks bypass visitor restrictions; no login or
+  // workspace action can occur without an allowed visitor IP in production.
+  const marketGate=createMarketGate({enabled:config.marketGateEnabled,apiKey:config.marketIpapiKey});
+  app.use(marketGate.middleware);
+
   // ------------------------------------------------------------ Parsers & Session Loading
   app.use(cookieParser());
   app.use(express.json({ limit: '2kb' }));
@@ -281,7 +288,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const verificationToken = generateToken(32);
     const verificationExpires = now() + 24 * 60 * 60 * 1000;
 
-    const user = db.createUser({
+    let user = db.createUser({
       email: cleanEmail,
       passwordHash,
       name: cleanName,
@@ -293,6 +300,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       now: now(),
     });
 
+    if(req.market?.country==='IN')user=db.updateUser(user.id,{country:'IN'});
     const session = db.createSession({
       userId: user.id,
       email: user.email,
@@ -478,6 +486,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         termsVersion: config.termsVersion,
         now: now(),
       });
+      if(req.market?.country==='IN')user=db.updateUser(user.id,{country:'IN'});
     }
 
     if (note.i === 'join') {
@@ -551,9 +560,20 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     });
   });
 
+  api.get('/market', (req,res)=>{
+    res.set('Cache-Control','no-store');
+    const m=req.market;
+    res.json({country:m?.country||null,currency:m?.currency||null,monthlyPrice:m?.monthlyPrice||null,
+      verified:Boolean(m?.country),developmentBypass:Boolean(m?.developmentBypass)});
+  });
+
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
+    // Country selection is based on verified network location when enabled.
+    // The user cannot spoof a different billing region via the profile API.
+    if(config.marketGateEnabled&&req.body?.country&&req.body.country!==req.market?.country)
+      return res.status(403).json({error:'country_mismatch',message:'Your selected country does not match your verified region.'});
     try { updated = db.updateUser(req.session.userId, req.body || {}); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
@@ -797,6 +817,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
     const user = db.getUserById(req.session.userId);
+    if(config.marketGateEnabled&&user.country!==req.market?.country)
+      return res.status(403).json({error:'country_mismatch',message:'Billing country and verified location do not match. Contact support if your business operates across regions.'});
     const indian=user.country==='IN'&&user.currency==='INR';
     const american=user.country==='US'&&user.currency==='USD';
     if(!indian&&!american)
