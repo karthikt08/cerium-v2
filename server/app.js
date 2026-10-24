@@ -130,6 +130,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
           if (allowed.includes(status)) {
             const normalized = status === 'completed' ? 'expired' : status;
             db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
+              if(config.workspaceAccessMode==='phone_and_mandate' &&
+                 ['authenticated','active','charged'].includes(normalized)){
+                const savedSub=db.getSubscription(subscription.id);
+                if(savedSub&&db.billingEligible(savedSub.user_id))
+                  db.beginTrialOnEntry(savedSub.user_id);
+              }
           }
         }
         if (event.event === 'payment.captured' || event.event === 'order.paid') {
@@ -252,7 +258,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   const accessStatus=userId=>{
     const verified=db.billingEligible(userId);
     const sub=db.getUserSubscription(userId);
-    const mandate=Boolean(sub&&['authenticated','active','charged','pending'].includes(sub.status));
+    const mandate=Boolean(sub&&['authenticated','active','charged'].includes(sub.status));
     const mode=config.workspaceAccessMode;
     return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
   };
@@ -905,6 +911,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         return res.status(400).json({error:'invalid_code',message:'That code was not approved. Try again.'});
       if(!db.completeBillingPhone(req.session.userId,claim.phone,claim.country))
         return res.status(409).json({error:'verification_expired',message:'This code expired or your billing country changed.'});
+      if(config.workspaceAccessMode==='phone')db.beginTrialOnEntry(req.session.userId);
       return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country,currency:claim.country==='IN'?'INR':'USD'});
     }catch{
       return res.status(502).json({error:'sms_unavailable',message:'Verification service is unavailable. Try again shortly.'});
@@ -932,7 +939,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       return res.status(409).json({error:'billing_verification_required',message:'Confirm your business billing country and verify your phone in Settings before authorizing a subscription.'});
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
-      const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
+      const startAt=config.workspaceAccessMode==='phone_and_mandate'
+        ?Math.floor(Date.now()/1000)+15*86400
+        :Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
       const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
           Number(plan.item?.amount) !== billingAmount ||
@@ -959,6 +968,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       const status = String(remote.status || '');
       if (['authenticated','active','pending','charged'].includes(status)) {
         db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
+        if(config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId)&&
+           ['authenticated','active','charged'].includes(status))db.beginTrialOnEntry(req.session.userId);
         return res.json({ verified: true, status });
       }
       return res.status(409).json({ verified: false, status, message: 'Subscription is not authorized yet.' });
