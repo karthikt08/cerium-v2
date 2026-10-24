@@ -11,6 +11,7 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
+import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {
@@ -36,7 +37,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, phoneVerifier = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -50,6 +51,7 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
   const cookieBase = { httpOnly: true, secure: config.cookieSecure, sameSite: 'lax', path: '/' };
 
   const rzp = razorpay || makeRazorpay(config);
+  const phones = phoneVerifier || makePhoneVerifier(config);
 
   const app = express();
   app.disable('x-powered-by');
@@ -814,6 +816,68 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
     res.json({ ok: true });
   });
 
+  // Billing identity: phone possession plus an explicit billing-country declaration.
+  // SMS verification is deliberately AFTER trial signup and BEFORE any new paid
+  // subscription. Phone codes are never accepted from profile fields or the browser.
+  api.get('/billing/identity',requireSession,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const saved=db.getBillingIdentity(req.session.userId);
+    const user=db.getUserById(req.session.userId);
+    const verified=db.billingEligible(req.session.userId);
+    res.json({
+      country:user.country,currency:user.currency,verified,
+      countryAttested:verified,
+      phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
+      pending:Boolean(saved?.pending_phone && saved.pending_expires_at>Date.now()),
+      providerReady:Boolean(phones.ready),
+      mode:phones.mode==='development'?'development':phones.ready?'sms':'unavailable',
+      // Dial prefixes identify phone routing only, not residency or incorporation.
+      note:'SMS confirms access to a number, not legal business location. Billing country is your declaration.'
+    });
+  });
+
+  api.post('/billing/identity/start',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const country=req.user?.country||db.getUserById(req.session.userId)?.country;
+    if(req.body?.confirmCountry!==true)
+      return res.status(400).json({error:'country_confirmation_required',message:'Confirm that your business is based in your saved billing country.'});
+    const phone=normalizeBillingPhone(req.body?.phone,country);
+    if(!phone)return res.status(400).json({error:'phone_invalid',message:country==='IN'?'Enter an Indian mobile number beginning +91.':'Enter a US +1 phone number. If your business uses another number, contact support for review.'});
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone verification is not available yet. Your free trial is unaffected; contact support.'});
+    const claimed=db.beginBillingPhone(req.session.userId,phone,country);
+    if(!claimed.ok){
+      const messages={country_mismatch:'Saved billing country requires review.',cooldown:'You can request another code after 90 seconds.',daily_limit:'Daily SMS verification limit reached. Try again tomorrow or contact support.'};
+      return res.status(claimed.reason==='country_mismatch'?409:429).json({error:claimed.reason,message:messages[claimed.reason]||'Verification is temporarily unavailable.'});
+    }
+    try{
+      if(!(await phones.send(phone)))throw new Error('not pending');
+      return res.json({ok:true,pending:true,phoneMasked:maskBillingPhone(phone),mode:phones.mode==='development'?'development':'sms'});
+    }catch(err){
+      return res.status(502).json({error:'sms_unavailable',message:'Could not send a code. No subscription was created. Try later or contact support.'});
+    }
+  });
+
+  api.post('/billing/identity/verify',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const code=req.body?.code;
+    if(typeof code!=='string'||!/^[0-9]{4,10}$/.test(code))
+      return res.status(400).json({error:'invalid_code',message:'Enter the numeric verification code.'});
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured'});
+    const claim=db.beginBillingCheck(req.session.userId);
+    if(!claim.ok)return res.status(claim.reason==='attempt_limit'?429:409).json({
+      error:claim.reason,message:claim.reason==='attempt_limit'?'Too many attempts. Request a new code later.':'No active verification. Request a new code.'
+    });
+    try{
+      if(!(await phones.check(claim.phone,code)))
+        return res.status(400).json({error:'invalid_code',message:'That code was not approved. Try again.'});
+      if(!db.completeBillingPhone(req.session.userId,claim.phone,claim.country))
+        return res.status(409).json({error:'verification_expired',message:'This code expired or your billing country changed.'});
+      return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country});
+    }catch{
+      return res.status(502).json({error:'sms_unavailable',message:'Verification service is unavailable. Try again shortly.'});
+    }
+  });
+
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
     const user = db.getUserById(req.session.userId);
@@ -830,6 +894,9 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
     }
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Paid checkout requires phone verification. Your 15-day trial remains available.'});
+    if(!db.billingEligible(user.id))
+      return res.status(409).json({error:'billing_verification_required',message:'Confirm your business billing country and verify your phone in Settings before authorizing a subscription.'});
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
       const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
@@ -883,7 +950,7 @@ export function createApp({ config, db, google = null, razorpay = null, regionLo
     const ws = db.getWorkspace(req.session.userId);
     const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
     const american=ws?.account.country==='US'&&ws?.account.currency==='USD';
-    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured)) });
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured))&&phones.ready&&db.billingEligible(req.session.userId)),billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
