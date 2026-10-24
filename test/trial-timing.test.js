@@ -15,9 +15,9 @@ async function verifyPhone(t,b){
   const csrf=(await b.me()).csrfToken;
   const req=await b.req('/api/billing/identity/start',{method:'POST',csrf,
     json:{phone:'+14155550123',confirmCountry:true,declaredCountry:'US'}});
-  assert.equal(req.status,200,await req.text());
+  assert.equal(req.status,200,await req.clone().text());
   const code=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
-  assert.equal(code.status,200,await code.text());
+  assert.equal(code.status,200,await code.clone().text());
   return csrf;
 }
 
@@ -52,7 +52,7 @@ test('creation sends bounded expire_by and an exactly matching scheduled provide
     const csrf=await verifyPhone(t,b);
     const started=Date.now();
     const res=await b.req('/api/billing/subscription',{method:'POST',csrf});
-    assert.equal(res.status,200,await res.text());
+    assert.equal(res.status,200,await res.clone().text());
     const data=await res.json();
     assert.equal(data.startAt-createdArgs.expireBy,TRIAL_SECONDS);
     assert.equal(data.expireBy,createdArgs.expireBy);
@@ -81,7 +81,7 @@ test('provider callback confirms exact UTC trial deadline; late confirmation is 
     const payload={razorpay_subscription_id:'sub_callback',razorpay_payment_id:'pay_fake',razorpay_signature:'sig_fake'};
     const verify=()=>b.req('/api/billing/subscription/verify',{method:'POST',csrf,json:payload});
     const approved=await verify();
-    assert.equal(approved.status,200,await approved.text());
+    assert.equal(approved.status,200,await approved.clone().text());
     assert.equal((await approved.json()).verified,true);
     const user=t.db.getUserById(id);
     assert.equal(user.trial_ends_at,providerStart*1000);
@@ -104,7 +104,7 @@ test('provider callback confirms exact UTC trial deadline; late confirmation is 
     t2.db.createSubscription(id,'sub_late',providerStart);
     const denied=await b.req('/api/billing/subscription/verify',{method:'POST',csrf,
       json:{razorpay_subscription_id:'sub_late',razorpay_payment_id:'pay_fake',razorpay_signature:'sig_fake'}});
-    assert.equal(denied.status,409,await denied.text());
+    assert.equal(denied.status,409,await denied.clone().text());
     assert.equal((await denied.json()).error,'trial_schedule_unsafe');
     assert.deepEqual(cancelled,['sub_late']);
     assert.equal(t2.db.getUserById(id).onboarding_completed_at,0);
@@ -134,7 +134,7 @@ test('signed webhook honors safe trial and cancels early-billing first authoriza
       }}}})
     });
     const safe=await webhook('authenticated');
-    assert.equal(safe.status,200,await safe.text());
+    assert.equal(safe.status,200,await safe.clone().text());
     assert.equal(t.db.getUserById(id).trial_ends_at,scheduledAt*1000);
     assert.equal((await b.req('/api/workspace')).status,200);
     assert.equal(cancelled.length,0);
@@ -154,7 +154,7 @@ test('signed webhook honors safe trial and cancels early-billing first authoriza
         id:'sub_badwebhook',status:'authenticated',start_at:scheduledAt,charge_at:scheduledAt
       }}}})
     });
-    assert.equal(bad.status,200,await bad.text());
+    assert.equal(bad.status,200,await bad.clone().text());
     assert.equal((await bad.json()).status,'cancelled_for_trial_safety');
     assert.deepEqual(cancelled,['sub_badwebhook']);
     assert.equal(t2.db.getUserById(id).onboarding_completed_at,0);
