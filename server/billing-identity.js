@@ -8,6 +8,14 @@ export function normalizeBillingPhone(raw, country) {
   return null;
 }
 
+// Phone prefix routes the account to an edition, while the customer separately
+// attests their actual business country. +1 alone cannot distinguish Canada.
+export function editionFromPhone(raw) {
+  if(normalizeBillingPhone(raw,'IN'))return 'IN';
+  if(normalizeBillingPhone(raw,'US'))return 'US';
+  return null;
+}
+
 export function maskBillingPhone(phone) {
   return phone ? phone.slice(0,phone.startsWith('+91')?3:2)+'••••••'+phone.slice(-3) : '';
 }
