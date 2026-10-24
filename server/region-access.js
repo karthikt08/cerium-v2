@@ -108,6 +108,10 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
     // anywhere; the callback separately checks region before creating an account.
     if(req.path==='/api/region'||req.path==='/auth/google/callback')return next();
     if(req.path==='/auth/google'&&req.body?.intent!=='join')return next();
+    // New phone-first users receive a provisional account without workspace
+    // access. Their confirmed phone + business declaration decide the edition,
+    // so geolocation is advisory rather than a signup price lock.
+    if(config.workspaceAccessMode!=='off' && creatingAccount)return next();
     if(!decision.ok)return deny(req,res,decision);
     return next();
   };
