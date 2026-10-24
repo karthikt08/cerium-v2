@@ -78,3 +78,21 @@ test('phone and Razorpay mandate requirement keeps workspace locked until provid
     assert.equal((await b.req('/api/workspace')).status,200);
   }finally{await t.close();}
 });
+
+test('travelling owner can join provisionally and gets India edition only after +91 OTP, not IP',async()=>{
+  const t=await startServer({
+    env:{WORKSPACE_ACCESS_MODE:'phone',REGION_ACCESS_MODE:'enforce',GEOIP_API_KEY:'regtoken-1234567890abcdef'},
+    regionLookup:async()=>({location:{country_code:'FR'},is_vpn:false,is_proxy:false,is_tor:false})
+  });
+  try{
+    const b=t.browser();
+    const login=await signIn(t,b,{profile:ALICE});
+    assert.equal(login.cb.status,303);
+    assert.equal((await b.req('/api/workspace')).status,403);
+    await signAndPhone(t,b,'+919876543210','IN');
+    const account=(await (await b.req('/api/workspace')).json()).account;
+    assert.equal(account.country,'IN');
+    assert.equal(account.currency,'INR');
+    assert.equal((await b.req('/app.html')).status,200);
+  }finally{await t.close();}
+});
