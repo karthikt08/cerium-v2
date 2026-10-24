@@ -11,7 +11,7 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
-import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
+import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhone} from './billing-identity.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {
@@ -247,6 +247,19 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     next();
   });
 
+  // Enforce onboarding BEFORE delivering the private workspace shell.
+  // Never rely on hiding buttons: the private API has the same gate below.
+  const accessStatus=userId=>{
+    const verified=db.billingEligible(userId);
+    const sub=db.getUserSubscription(userId);
+    const mandate=Boolean(sub&&['authenticated','active','charged','pending'].includes(sub.status));
+    const mode=config.workspaceAccessMode;
+    return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
+  };
+  app.get(['/app','/app.html'],(req,res,next)=>{
+    if(!req.session||accessStatus(req.session.userId).unlocked)return next();
+    return res.redirect(303,'/verify.html');
+  });
   // Serve static public assets
   app.use(express.static(path.join(ROOT, 'public'), { dotfiles: 'ignore', index: 'index.html', extensions: ['html'] }));
 
@@ -569,10 +582,26 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     });
   });
 
+  // Protect all workspace APIs, not just the page. Billing/onboarding,
+  // account deletion and data export remain accessible while gated.
+  api.use((req,res,next)=>{
+    if(!req.session || config.workspaceAccessMode==='off')return next();
+    if(accessStatus(req.session.userId).unlocked)return next();
+    const permitted=[
+      /^\/billing\/identity(?:\/start|\/verify)?$/,
+      /^\/billing\/(?:status|subscription(?:\/verify|\/cancel)?)$/,
+      /^\/me\/export$/,
+      /^\/me$/
+    ];
+    if(permitted.some(re=>re.test(req.path)) && !(req.path==='/me'&&req.method!=='GET'))return next();
+    if(req.path==='/me'&&req.method==='DELETE')return next();
+    return res.status(403).json({error:'onboarding_required',message:'Verify your phone'+(config.workspaceAccessMode==='phone_and_mandate'?' and authorize the subscription mandate':'')+' before accessing CERIUM.'});
+  });
+
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
-    if(config.regionEnforced && req.body?.country && req.body.country!==(req.user?.country||'US'))
+    if((config.regionEnforced||config.workspaceAccessMode!=='off') && req.body?.country && req.body.country!==(req.user?.country||'US'))
       return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
     const body=config.regionEnforced?{...(req.body||{}),country:req.user.country,currency:req.user.currency}:(req.body||{});
     try { updated = db.updateUser(req.session.userId, body); }
@@ -602,7 +631,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const ws = db.getWorkspace(req.session.userId);
     if (!ws) return res.status(404).json({ error: 'workspace_not_found' });
     // Region restrictions are server-enforced; disable edition selection in UI.
-    res.json({...ws,account:{...ws.account,regionLocked:config.regionEnforced}});
+    res.json({...ws,account:{...ws.account,regionLocked:config.regionEnforced||config.workspaceAccessMode!=='off'}});
   });
 
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
@@ -826,6 +855,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const verified=db.billingEligible(req.session.userId);
     res.json({
       country:user.country,currency:user.currency,verified,
+      accessMode:config.workspaceAccessMode,
+      paymentAuthorized:accessStatus(req.session.userId).mandate,
+      workspaceUnlocked:accessStatus(req.session.userId).unlocked,
+      checkoutConfigured:Boolean(user.country==='IN'?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured),
       countryAttested:verified,
       phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
       pending:Boolean(saved?.pending_phone && saved.pending_expires_at>Date.now()),
@@ -838,11 +871,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   api.post('/billing/identity/start',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
     res.setHeader('Cache-Control','no-store');
-    const country=req.user?.country||db.getUserById(req.session.userId)?.country;
-    if(req.body?.confirmCountry!==true)
-      return res.status(400).json({error:'country_confirmation_required',message:'Confirm that your business is based in your saved billing country.'});
-    const phone=normalizeBillingPhone(req.body?.phone,country);
-    if(!phone)return res.status(400).json({error:'phone_invalid',message:country==='IN'?'Enter an Indian mobile number beginning +91.':'Enter a US +1 phone number. If your business uses another number, contact support for review.'});
+    const country=editionFromPhone(req.body?.phone);
+    if(!country)return res.status(400).json({error:'phone_invalid',message:'Enter a valid +91 Indian mobile or +1 US number. Other numbering plans require manual review.'});
+    if(req.body?.confirmCountry!==true || req.body?.declaredCountry!==country)
+      return res.status(400).json({error:'country_confirmation_required',message:'Confirm that your business is based in the country suggested by your phone prefix. Phone ownership alone is not proof.'});
+    const phone=normalizeBillingPhone(req.body.phone,country);
     if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone verification is not available yet. Your free trial is unaffected; contact support.'});
     const claimed=db.beginBillingPhone(req.session.userId,phone,country);
     if(!claimed.ok){
@@ -851,7 +884,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     }
     try{
       if(!(await phones.send(phone)))throw new Error('not pending');
-      return res.json({ok:true,pending:true,phoneMasked:maskBillingPhone(phone),mode:phones.mode==='development'?'development':'sms'});
+      return res.json({ok:true,pending:true,country,phoneMasked:maskBillingPhone(phone),mode:phones.mode==='development'?'development':'sms'});
     }catch(err){
       return res.status(502).json({error:'sms_unavailable',message:'Could not send a code. No subscription was created. Try later or contact support.'});
     }
@@ -872,7 +905,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         return res.status(400).json({error:'invalid_code',message:'That code was not approved. Try again.'});
       if(!db.completeBillingPhone(req.session.userId,claim.phone,claim.country))
         return res.status(409).json({error:'verification_expired',message:'This code expired or your billing country changed.'});
-      return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country});
+      return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country,currency:claim.country==='IN'?'INR':'USD'});
     }catch{
       return res.status(502).json({error:'sms_unavailable',message:'Verification service is unavailable. Try again shortly.'});
     }
