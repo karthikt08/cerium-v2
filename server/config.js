@@ -122,6 +122,28 @@ export function buildConfig(env = process.env) {
   if(regionEnforced&&(geoIpApiKey.length<12||PLACEHOLDER.test(geoIpApiKey)))
     problems.push('GEOIP_API_KEY is required for server-side US/India region and VPN checks.');
 
+  // ---- Optional phone verification for paid checkout.
+  // 'development' never sends SMS and is only allowed on loopback.
+  // 'twilio' calls Verify; production without a verified provider cannot
+  // authorize a NEW recurring subscription.
+  const phoneVerifyMode=get('PHONE_VERIFY_MODE')||(isProd?'off':'development');
+  if(!['off','twilio','development'].includes(phoneVerifyMode))
+    problems.push('PHONE_VERIFY_MODE must be off, twilio or development.');
+  if(isProd&&phoneVerifyMode==='development')
+    problems.push('PHONE_VERIFY_MODE=development is forbidden in production.');
+  if(phoneVerifyMode==='development'&&!LOCAL_HOSTS.includes(new URL(baseUrl).hostname))
+    problems.push('PHONE_VERIFY_MODE=development is only allowed on a loopback BASE_URL.');
+  const twilioAccountSid=get('TWILIO_ACCOUNT_SID');
+  const twilioAuthToken=get('TWILIO_AUTH_TOKEN');
+  const twilioVerifyServiceSid=get('TWILIO_VERIFY_SERVICE_SID');
+  const phoneVerifyConfigured=/^AC[0-9a-f]{32}$/i.test(twilioAccountSid)
+    && twilioAuthToken.length>=20 && !PLACEHOLDER.test(twilioAuthToken)
+    && /^VA[0-9a-f]{32}$/i.test(twilioVerifyServiceSid);
+  if(phoneVerifyMode==='twilio'&&!phoneVerifyConfigured)
+    warnings.push('Twilio Verify credentials are missing or incomplete. New recurring checkout is unavailable until configured.');
+  if(isProd&&phoneVerifyMode!=='twilio')
+    warnings.push('Phone OTP is not configured; new recurring checkout is disabled. Existing subscriptions are unaffected.');
+
   // ---- SESSION_SECRET: signs the short note kept while a person is at Google and cookie notes
   let sessionSecret = get('SESSION_SECRET');
   if (sessionSecret.length < 32 || PLACEHOLDER.test(sessionSecret)) {
@@ -205,6 +227,11 @@ export function buildConfig(env = process.env) {
     regionEnforced,
     regionAccessMode,
     geoIpApiKey,
+    phoneVerifyMode,
+    phoneVerifyConfigured,
+    twilioAccountSid,
+    twilioAuthToken,
+    twilioVerifyServiceSid,
     sessionSecret,
     databasePath,
     trustProxy,
