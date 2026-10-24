@@ -961,7 +961,28 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
+      const authorizedBefore=Number(db.getBillingIdentity(user.id)?.mandate_authorized_at)>0;
+      // An unapproved one-hour checkout cannot be reused indefinitely:
+      // doing so could make its first scheduled debit less than 15 days away.
+      if(config.workspaceAccessMode==='phone_and_mandate' && !authorizedBefore &&
+         existing.start_at*1000 < Date.now()+15*DAY) {
+        try {
+          const remote=await rzp.getSubscription(existing.subscription_id);
+          if(['cancelled','expired'].includes(remote.status))
+            db.updateSubscription(existing.subscription_id,remote.status);
+          else if(!(await cancelUnsafeSubscription(existing.subscription_id)))
+            return res.status(503).json({error:'billing_cancellation_unconfirmed',
+              message:'The previous authorization window expired, but cancellation has not been confirmed. Contact support before retrying.'});
+        }catch(err){
+          console.error('[billing] stale checkout review required:',existing.subscription_id,err?.message);
+          return res.status(503).json({error:'billing_cancellation_unconfirmed',
+            message:'Unable to confirm cancellation of the previous authorization. Contact support before retrying.'});
+        }
+      } else {
+        return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id,
+          status: existing.status, startAt:existing.start_at,
+          amount:billingAmount,currency:billingCurrency });
+      }
     }
     if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone and payment verification are required before trial entry. This checkout is temporarily unavailable.'});
     if(!db.billingEligible(user.id))
