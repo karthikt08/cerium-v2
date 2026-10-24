@@ -265,9 +265,6 @@ export function openDb(file) {
     phone_verified_at=?,billing_country=pending_country,billing_country_attested_at=?,
     pending_phone='',pending_country='',pending_expires_at=0,attempts=0 WHERE user_id=?`);
   const billingReset=db.prepare('DELETE FROM billing_identities WHERE user_id=?');
-  const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
-    us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
-    updated_at=? WHERE id=?`);
   // Non-destructive US profile migration. Preserve all historical invoices and currency.
   const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
   for(const [column,ddl] of [
@@ -284,6 +281,9 @@ export function openDb(file) {
     ['gstin',"ALTER TABLE users ADD COLUMN gstin TEXT NOT NULL DEFAULT ''"],
     ['upi_vpa',"ALTER TABLE users ADD COLUMN upi_vpa TEXT NOT NULL DEFAULT ''"],
   ]) if(!userColumns.has(col))db.exec(ddl);
+  const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
+    us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
+    updated_at=? WHERE id=?`);
   const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
   for(const [col,ddl] of [
     ['invoice_currency',"ALTER TABLE invoices ADD COLUMN invoice_currency TEXT"],
