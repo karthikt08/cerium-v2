@@ -35,7 +35,7 @@ test('a phone prefix is not accepted as proof until code and country declaration
       json:{phone:'+14155550123',confirmCountry:false,declaredCountry:'US'}});
     assert.equal(withoutDeclaration.status,400);
     const wrongEdition=await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+919876543210',confirmCountry:true,declaredCountry:'IN'}});
+      json:{phone:'+919876543210',confirmCountry:true,declaredCountry:'US'}});
     assert.equal(wrongEdition.status,400);
     const started=await b.req('/api/billing/identity/start',{method:'POST',csrf,
       json:{phone:'+1 (415) 555-0123',confirmCountry:true,declaredCountry:'US'}});
