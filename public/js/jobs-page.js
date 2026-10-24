@@ -119,8 +119,8 @@ function formJob(ws,id='',date=today()) {
     <label>Start time (business local)<input name="startAt" type="datetime-local" required value="${esc(start)}"></label>
     <label>End time (business local)<input name="endAt" type="datetime-local" required value="${esc(end)}"></label>
     <label>Status<select name="status">${selectOptions(statuses.map(s=>({value:s,label:s})),j?.status||'Scheduled')}</select></label>
-    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(ws.account?.country==='IN'?(j?.customerPhone||''):formatUSPhone(j?.customerPhone||''))}" placeholder="(415) 555-0123"></label>
-    <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="Street, city, state, ZIP"></label>
+    <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(ws.account?.country==='IN'?(j?.customerPhone||''):formatUSPhone(j?.customerPhone||''))}" placeholder="${ws.account?.country==='IN'?'+91 98765 43210':'(415) 555-0123'}"></label>
+    <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="${ws.account?.country==='IN'?'Street, area, city, state, PIN':'Street, city, state, ZIP'}"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
     <p class="muted jobs-wide">Appointment times use your business time zone: ${esc((ws.account?.timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[ws.account?.timeZone])||'not set — browser clock until configured in Settings')}.</p>
     <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
