@@ -147,11 +147,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
             const savedSub=db.getSubscription(subscription.id);
             if(savedSub) {
               const verified=db.billingEligible(savedSub.user_id);
+              const authorizationAt=Date.now();
               const alreadyAuthorized=Number(db.getBillingIdentity(savedSub.user_id)?.mandate_authorized_at)>0;
               if(config.workspaceAccessMode==='phone_and_mandate' &&
                 ['authenticated','active','charged'].includes(normalized) &&
                 !alreadyAuthorized &&
-                (!verified || !safeTrialSchedule(subscription,savedSub.start_at))) {
+                (!verified || !safeTrialSchedule(subscription,savedSub.start_at,authorizationAt))) {
                 const cancelled=await cancelUnsafeSubscription(subscription.id);
                 if(!cancelled)return res.status(503).json({error:'unsafe_billing_schedule'});
                 return res.json({status:'cancelled_for_trial_safety'});
@@ -159,7 +160,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
               db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
               if(config.workspaceAccessMode==='phone_and_mandate' &&
                  ['authenticated','active','charged'].includes(normalized)&&verified&&!alreadyAuthorized)
-                db.beginTrialOnEntry(savedSub.user_id,Date.now(),savedSub.start_at*1000);
+                db.beginTrialOnEntry(savedSub.user_id,authorizationAt,savedSub.start_at*1000);
             }
           }
         }
@@ -1031,10 +1032,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try {
       const remote = await rzp.getSubscription(razorpay_subscription_id);
       const status = String(remote.status || '');
+      const authorizationAt=Date.now();
       const alreadyAuthorized=Number(db.getBillingIdentity(req.session.userId)?.mandate_authorized_at)>0;
       if(config.workspaceAccessMode==='phone_and_mandate' &&
          ['authenticated','active','charged'].includes(status) && !alreadyAuthorized &&
-         !safeTrialSchedule(remote,saved.start_at)) {
+         !safeTrialSchedule(remote,saved.start_at,authorizationAt)) {
         const cancelled=await cancelUnsafeSubscription(saved.subscription_id);
         return res.status(cancelled?409:503).json({
           verified:false,error:'trial_schedule_unsafe',
@@ -1048,7 +1050,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         // confirms a mandate-authorized state.
         if (['authenticated','active','charged'].includes(status)) {
           if (config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId)&&!alreadyAuthorized)
-            db.beginTrialOnEntry(req.session.userId,Date.now(),saved.start_at*1000);
+            db.beginTrialOnEntry(req.session.userId,authorizationAt,saved.start_at*1000);
           return res.json({ verified: true, status });
         }
       }
