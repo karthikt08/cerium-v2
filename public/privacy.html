@@ -141,7 +141,8 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <li><b>Sign-in record.</b> To keep you signed in, our server keeps a short-lived record. It holds your Google ID, your name, and your email address. It ends when you sign out, when it runs out after <span class="todo">15 days</span>, or when you delete your data.</li>
 <li><b>Trial details.</b> The date your free trial started.</li>
 <li><b>What you add to Cerium.</b> Leads, job notes, follow-up dates, invoices, and payment records. This can include your customers’ names, phone numbers, email addresses, and job addresses.</li>
-<li><b>Payment information, only if you subscribe.</b> Our payment provider, Stripe, collects your card details on its own secure page. We never see or store your full card number.</li>
+<li><b>Payment information, only if you subscribe.</b> Razorpay manages subscription authorization and payment details through its secure checkout. Cerium keeps provider transaction and subscription identifiers, statuses, and billing records; we do not store your full card number or UPI authentication secret.</li>
+<li><b>Optional phone verification before paid signup.</b> To authorize a new subscription, we ask you to declare the country where your business is based and prove control of a phone number by entering a one-time code. We store the number, confirmation time and rate-limiting information in our database. If SMS delivery is configured, our verification provider (Twilio Verify) receives your phone number to deliver and check the code. This checks phone possession, not legal residence or company registration. You can use the free trial without giving us a phone number.</li>
 <li><b>Bank information, only if you connect your bank.</b> Read-only details, such as deposits and other transactions, that our bank connection provider shares with us.</li>
 <li><b>Basic technical information.</b> To keep CERIUM safe, our server processes your IP address for rate limits and sends it to our IP-intelligence provider, ipapi.is, to check whether your connection appears to be in India or the United States and whether the address is flagged as a VPN, proxy or Tor exit. The app briefly caches the access decision (about five minutes) in server memory. Location and anonymity indicators can be wrong; email support if you are incorrectly blocked. Our hosting provider may also process technical request logs. We do not use this lookup for advertising.</li>
 </ul>
@@ -159,8 +160,8 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <!-- CHECK: keep "We do not sell your personal information" only if it is true. -->
 <p>We do not sell your personal information. We share it only in these cases:</p>
 <ul>
-<li><b>Service providers.</b> Companies that help us run Cerium, such as hosting, sign-in, payments, bank connections, email, and text messaging. Today this includes Google (sign-in and fonts) and <span class="todo">our hosting provider</span>. When the app opens, it will also include Stripe (payments). They can use your information only to do their job for us.</li>
-<li><b>Service providers.</b> Companies that help us run Cerium, such as hosting, sign-in, payments, bank connections, email, and text messaging. Today this includes Google (sign-in and fonts) and Oracle Cloud (hosting). When the app opens, it may also include a payment provider. They can use your information only to do their job for us.</li><li><b>A sale of Cerium.</b> If Cerium is sold or merged with another company, your information may go to the new owner. We would tell you.</li>
+<li><b>Service providers.</b> Google provides authentication and fonts; Razorpay handles payment authorization if you subscribe. If phone verification is activated, Twilio Verify may process the phone number and verification request. Our hosting and IP-classification providers process information needed to operate and protect the service. Providers process data for those services, subject to their terms.</li>
+<li><b>A sale of Cerium.</b> If Cerium is sold or merged with another company, your information may go to the new owner. We would tell you.</li>
 </ul>
 
 <p><b>IP verification provider.</b> CERIUM uses ipapi.is to interpret the client IP address and detect reported VPN/proxy/Tor connections. That provider handles IP addresses under its own terms and privacy practices. Our server does not expose your API secret or financial records to this service.</p>
@@ -174,10 +175,10 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <p>We never see or store your bank password. You can turn the connection off whenever you want.</p>
 
 <h2 id="keep">How long we keep it</h2>
-<p>While you are on the waitlist, we keep your details until we send you the launch email, or until you delete them. When you press <b>Delete my data</b>, we delete them from our live database right away and sign you out on every device. Copies in backups are overwritten within <span class="todo">30 days</span>. We may keep some records longer if the law requires it, such as billing records.</p>
+<p>While you are on the waitlist, we keep your details until the launch communication or until deletion. Workspace data, including phone-verification information, is deleted from the live database when you delete your account. Backups follow our configured retention schedule; legally required payment and business records may have longer retention obligations. OTP request rate-limit records remain while the account is active.</p>
 
 <h2 id="rights">Your choices</h2>
-<p>On the <a href="waitlist.html">waitlist page</a> you can download a copy of your details, or delete them for good. Log in with Google to get there. For anything else, such as fixing your details or asking what we hold about you, email us and we will help.</p>
+<p>From your signed-in Workspace Settings, you can export data or delete your account. The waitlist page also provides controls for waitlist information. For questions about correcting a phone number or reviewing an eligible business country, email <a href="mailto:cerium.founders@gmail.com">CERIUM support</a>.</p>
 <p>Deleting your data does not remove Cerium from the list of apps connected to your Google Account. You can remove it yourself in your Google Account, under Security, in “Your connections to third-party apps &amp; services”.</p>
 <p>If you live in a state with privacy laws, such as California, you may have more rights, like asking what information we collected about you. We may need to confirm it is you before we act on a request.</p>
 
