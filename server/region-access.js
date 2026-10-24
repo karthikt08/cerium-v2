@@ -86,7 +86,9 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
     // Existing authenticated workspaces are tied to their stored billing country,
     // not the network currently used to access them. Travel and corporate VPNs
     // must never interrupt legitimate customer operations or cancellation.
-    if(req.user&&req.session)return next();
+    const creatingAccount=req.path==='/auth/register'||
+      (req.path==='/auth/google'&&req.body?.intent==='join');
+    if(req.user&&req.session&&!creatingAccount)return next();
 
     // Marketing, legal, waitlist, static resources and login remain accessible
     // worldwide. New accounts and billing still require verified launch markets.
