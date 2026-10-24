@@ -1,23 +1,18 @@
-# CERIUM regional launch gate (draft, US + India)
+# CERIUM regional launch: US and India
 
-CERIUM's **server** checks the connecting public IP using ipapi.is. It does not
-trust country, payment amount or VPN status supplied by the browser.
+## Customer-facing policy
 
-- **United States (US):** USD $20/month after the 15-day trial
-- **India (IN):** INR ₹500/month after the 15-day trial
-- **Other countries:** denied (HTTP 403).
-- **Reported VPN / proxy / Tor:** denied (HTTP 403) until the client disconnects,
-  returns on an accepted ordinary connection and refreshes.
-- **Unknown / provider unavailable:** no signup or workspace access (HTTP 503).
-  Fail-closed avoids accidental price/market assignment.
-- The account is permanently assigned its verified market at signup. Existing
-  accounts are never silently repriced and money/ledger records are not converted.
-  Different-country sign-ins show a support message (HTTP 409).
-- Billing cancellation, account deletion, export, verified webhooks, and legal
-  notices remain accessible even while market access is restricted.
-- **A detected IP location is an estimate, not proof of a person's residence.**
-  VPN / proxy databases have false positives and false negatives. If a user is
-  incorrectly blocked, support should be able to review the case before billing.
+- New US workspaces: USD $20/month after an authorized 15-day trial.
+- New Indian workspaces: INR ₹500/month after an authorized 15-day trial.
+- Server-verified IP market chooses the *initial* plan; API callers cannot choose a cheaper plan.
+- New registrations from unsupported countries, detected VPN/proxy/Tor, or unverifiable IPs are restricted. IP intelligence is fallible; offer support for mistaken blocks.
+- Public marketing pages, pricing, login and legal notices remain available to visitors worldwide, including waitlist access.
+- Existing users can sign in and use their original workspace while travelling or using privacy networks. Their stored country and currency never change based on a new connection.
+- The original subscription must be cancelled and reviewed before any legitimate business-country migration; historical financial values are never relabelled.
+- India invoice UPI: invoice previews can open the payer's UPI app with merchant VPA, amount and note. **This is an external payment intent, not confirmation of transfer.** Merchants must reconcile bank receipts manually.
+- India CERIUM subscription: Razorpay subscription checkout may offer **UPI AutoPay** if Razorpay enabled it for the merchant and customer's app/bank. No recurring debit without explicit user approval, signed verification and provider confirmation.
+
+## Setup and launch blockers
 
 ## Configure
 
@@ -69,9 +64,7 @@ previewing ordinary localhost without a public IP and API key.
   per IP; provider failures are not cached. The raw IP is not sent to the browser.
 - Do not classify data-center, carrier or mobile IPs as VPNs just because they
   use such networks; only explicit provider VPN/proxy/Tor flags are blocked.
-- A customer travelling abroad or using a corporate privacy proxy might lose
-  workspace access. Explicit cancellation/export/account rights are excluded
-  from the gate; send appeals and billing requests to support.
+- Existing accounts remain usable from abroad. New signups from flagged networks must contact support or register from a verified supported-market connection.
 - Do not promise 100% VPN detection; residential proxy traffic can evade
   IP intelligence and legitimate network privacy tools can be false positives.
 - This is a **launch gate**, not legal confirmation of US/Indian customer
