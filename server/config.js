@@ -125,11 +125,14 @@ export function buildConfig(env = process.env) {
   // Workspace entry policy: tests default off for backwards-compatible fixtures;
   // local development and production require phone verification BEFORE workspace.
   // Optional phone_and_mandate adds explicit recurring payment authorization.
-  const workspaceAccessMode=get('WORKSPACE_ACCESS_MODE')||(env.NODE_ENV==='test'?'off':'phone');
+  const workspaceAccessMode=get('WORKSPACE_ACCESS_MODE')||
+    (env.NODE_ENV==='test'?'off':isProd?'phone_and_mandate':'phone');
   if(!['off','phone','phone_and_mandate'].includes(workspaceAccessMode))
     problems.push('WORKSPACE_ACCESS_MODE must be off, phone or phone_and_mandate.');
-  if(isProd&&workspaceAccessMode==='off')
-    problems.push('Production requires a verified phone before workspace access.');
+  // Never accidentally deploy an accessible, payment-free 15-day trial.
+  // Tests and explicit localhost demos may retain lighter gates.
+  if(isProd&&workspaceAccessMode!=='phone_and_mandate')
+    problems.push('Production requires WORKSPACE_ACCESS_MODE=phone_and_mandate so a confirmed payment authorization precedes any free trial.');
 
   // ---- Optional phone verification for paid checkout.
   // 'development' never sends SMS and is only allowed on loopback.
