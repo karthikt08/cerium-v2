@@ -32,17 +32,17 @@ test('a phone prefix is not accepted as proof until code and country declaration
     assert.equal(before.status,409);
     assert.equal((await before.json()).error,'billing_verification_required');
     const withoutDeclaration=await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+14155550123',confirmCountry:false}});
+      json:{phone:'+14155550123',confirmCountry:false,declaredCountry:'US'}});
     assert.equal(withoutDeclaration.status,400);
     const wrongEdition=await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+919876543210',confirmCountry:true}});
+      json:{phone:'+919876543210',confirmCountry:true,declaredCountry:'IN'}});
     assert.equal(wrongEdition.status,400);
     const started=await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+1 (415) 555-0123',confirmCountry:true}});
+      json:{phone:'+1 (415) 555-0123',confirmCountry:true,declaredCountry:'US'}});
     assert.equal(started.status,200);
     assert.equal((await started.json()).pending,true);
     const resend=await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+14155550123',confirmCountry:true}});
+      json:{phone:'+14155550123',confirmCountry:true,declaredCountry:'US'}});
     assert.equal(resend.status,429);
     const bad=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'123456'}});
     assert.equal(bad.status,400);
@@ -68,7 +68,7 @@ test('India edition uses confirmed +91 phone before its ₹500 subscription beco
     const csrf=(await b.me()).csrfToken;
     assert.equal((await b.req('/api/me',{method:'PATCH',csrf,json:{country:'IN',indiaState:'33'}})).status,200);
     assert.equal((await b.req('/api/billing/identity/start',{method:'POST',csrf,
-      json:{phone:'+919876543210',confirmCountry:true}})).status,200);
+      json:{phone:'+919876543210',confirmCountry:true,declaredCountry:'IN'}})).status,200);
     assert.equal((await b.req('/api/billing/identity/verify',{method:'POST',csrf,
       json:{code:'000000'}})).status,200);
     const status=await (await b.req('/api/billing/identity')).json();
