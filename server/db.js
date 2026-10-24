@@ -717,6 +717,10 @@ export function openDb(file) {
       return db.transaction(()=>{
         billingInit.run(userId);
         const old=billingRow.get(userId);
+        // A previously verified billing edition stays pinned. Changing country
+        // on an established account requires a manual review, not a new SIM.
+        if(old.phone_verified_at>0&&old.billing_country!==country)
+          return {ok:false,reason:'country_mismatch'};
         const resetWindow=at-old.window_started_at>=86400000;
         const windowStart=resetWindow?at:old.window_started_at;
         const sends=resetWindow?0:old.send_count;
