@@ -700,8 +700,9 @@ export function openDb(file) {
       return db.transaction(()=>{
         billingInit.run(userId);
         const old=billingRow.get(userId);
-        const windowStart=at-old.window_started_at>=86400000?at:old.window_started_at;
-        const sends=windowStart===at?0:old.send_count;
+        const resetWindow=at-old.window_started_at>=86400000;
+        const windowStart=resetWindow?at:old.window_started_at;
+        const sends=resetWindow?0:old.send_count;
         if(at-old.last_sent_at<90000)return {ok:false,reason:'cooldown'};
         if(sends>=3)return {ok:false,reason:'daily_limit'};
         billingPending.run(phone,country,at+10*60000,at,windowStart,sends+1,userId);
