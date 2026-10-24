@@ -1,7 +1,9 @@
-name: India edition checks
+name: CERIUM cross-platform checks
 on:
   push:
-    branches: [feat/india-edition-gst, feat/region-pricing-access]
+    branches: [main, feat/india-edition-gst, feat/region-pricing-access]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
