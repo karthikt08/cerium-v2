@@ -973,11 +973,16 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       const status = String(remote.status || '');
       if (['authenticated','active','pending','charged'].includes(status)) {
         db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
-        if(config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId)&&
-           ['authenticated','active','charged'].includes(status))db.beginTrialOnEntry(req.session.userId);
-        return res.json({ verified: true, status });
+        // A pending subscription has NOT completed recurring authorization.
+        // Never return verified:true (or begin the trial) until Razorpay
+        // confirms a mandate-authorized state.
+        if (['authenticated','active','charged'].includes(status)) {
+          if (config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId))
+            db.beginTrialOnEntry(req.session.userId);
+          return res.json({ verified: true, status });
+        }
       }
-      return res.status(409).json({ verified: false, status, message: 'Subscription is not authorized yet.' });
+      return res.status(409).json({ verified: false, status, message: 'Razorpay has not confirmed recurring payment authorization yet. Check your payment app or retry later.' });
     } catch {
       return res.status(502).json({ error: 'billing_service_unavailable' });
     }
