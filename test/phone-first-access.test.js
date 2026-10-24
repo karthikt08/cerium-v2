@@ -116,3 +116,48 @@ test('a second Google account cannot unlock another trial using the same verifie
     assert.equal((await second.req('/api/workspace')).status,403);
   }finally{await t.close();}
 });
+
+test('Razorpay pending checkout never reports authorization or starts the trial',async()=>{
+  let providerStatus='pending';
+  const fakeRazorpay={
+    verifySubscription:({subscriptionId,paymentId,signature})=>
+      subscriptionId==='sub_pending123'&&paymentId==='pay_test'&&signature==='signed-test',
+    getSubscription:async id=>{
+      assert.equal(id,'sub_pending123');
+      return {status:providerStatus};
+    }
+  };
+  const t=await startServer({
+    env:{WORKSPACE_ACCESS_MODE:'phone_and_mandate'},
+    razorpay:fakeRazorpay
+  });
+  try{
+    const b=t.browser();
+    await signIn(t,b,{profile:ALICE});
+    await signAndPhone(t,b,'+14155550123','US');
+    const id=t.db.getUserByEmail(ALICE.email).id;
+    t.db.createSubscription(id,'sub_pending123',Math.floor(Date.now()/1000)+15*86400);
+    const csrf=(await b.me()).csrfToken;
+    const verify=()=>b.req('/api/billing/subscription/verify',{method:'POST',csrf,json:{
+      razorpay_subscription_id:'sub_pending123',
+      razorpay_payment_id:'pay_test',
+      razorpay_signature:'signed-test'
+    }});
+    const pending=await verify();
+    assert.equal(pending.status,409);
+    assert.deepEqual((({verified,status})=>({verified,status}))(await pending.json()),
+      {verified:false,status:'pending'});
+    assert.equal(t.db.getUserSubscription(id).status,'pending');
+    assert.equal(t.db.getUserById(id).onboarding_completed_at,0);
+    assert.equal((await b.req('/api/workspace')).status,403);
+    const state=(await (await b.req('/api/billing/identity')).json());
+    assert.equal(state.paymentAuthorized,false);
+    assert.equal(state.workspaceUnlocked,false);
+    providerStatus='authenticated';
+    const approved=await verify();
+    assert.equal(approved.status,200);
+    assert.deepEqual(await approved.json(),{verified:true,status:'authenticated'});
+    assert.ok(t.db.getUserById(id).onboarding_completed_at>0);
+    assert.equal((await b.req('/api/workspace')).status,200);
+  }finally{await t.close();}
+});
