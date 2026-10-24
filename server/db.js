@@ -7,6 +7,7 @@ import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
+import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, businessLocalDate } from '../public/js/us-market.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
@@ -38,6 +39,64 @@ function addDays(dateStr, n) {
   const d = parseDateStr(dateStr);
   d.setDate(d.getDate() + n);
   return toDateStr(d);
+}
+
+const invalidInvoice=message=>Object.assign(new Error(message),{code:'invalid_invoice',status:400});
+function invoiceFields(value,creating=false) {
+  if(!value||typeof value!=='object'||Array.isArray(value))throw invalidInvoice('Enter valid invoice details.');
+  const p={...value};
+  if(creating&&p.jobTitle===undefined)p.jobTitle='Service labor & materials';
+  for(const [key,max] of Object.entries({customerName:120,customerEmail:254,customerAddress:500,jobTitle:180,notes:2000,
+    terms:40,customerGstin:15,placeOfSupply:2,hsnSac:8})) {
+    if(p[key]===undefined)continue;
+    if(typeof p[key]!=='string'||p[key].trim().length>max)throw invalidInvoice(key+' must be text of at most '+max+' characters.');
+    p[key]=p[key].trim();
+  }
+  for(const key of ['customerName','jobTitle'])
+    if((creating||p[key]!==undefined)&&!p[key])throw invalidInvoice('Enter '+key+'.');
+  if(p.customerEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.customerEmail))throw invalidInvoice('Enter a valid customer email.');
+  if(p.status!==undefined&&!['Draft','Sent','Overdue','Paid'].includes(p.status))throw invalidInvoice('Choose a valid invoice status.');
+  if(p.terms!==undefined&&p.terms!=='Due on receipt'&&!/^Net [1-9]\d{0,2}$/.test(p.terms))throw invalidInvoice('Choose valid payment terms.');
+  for(const key of ['issueDate','dueDate']) {
+    if(p[key]===undefined)continue;
+    const d=typeof p[key]==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(p[key])?new Date(p[key]+'T00:00:00Z'):new Date(NaN);
+    if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==p[key])throw invalidInvoice('Enter a valid '+key+'.');
+  }
+  if(p.amount!==undefined&&(!numericInput(p.amount)||Number(p.amount)<0||Number(p.amount)>1_000_000||
+    Math.abs(Number(p.amount)*100-Math.round(Number(p.amount)*100))>0.000001))throw invalidInvoice('Enter a valid amount with at most 2 decimals.');
+  return p;
+}
+const numericInput=v=>(typeof v==='number'||(typeof v==='string'&&v.trim()!==''))&&Number.isFinite(Number(v));
+function workspaceFields(kind,value,creating=false) {
+  const bad=message=>Object.assign(new Error(message),{code:'invalid_record',status:400});
+  if(!value||typeof value!=='object'||Array.isArray(value))throw bad('Enter valid record details.');
+  const schemas={
+    lead:{name:120,phone:40,email:254,address:500,source:80,stage:30,notes:1500,nextFollowUp:10},
+    followup:{contactName:120,phone:40,channel:20,task:500,dueDate:10,leadId:100},
+    review:{customerName:120,customerPhone:40,customerEmail:254,jobTitle:180},
+    message:{category:80,subject:180,body:4000,replyTo:254,via:40},
+  };
+  const required={lead:['name'],followup:['contactName','task'],review:['customerName','jobTitle'],message:['subject','body']}[kind];
+  const p={...value};
+  for(const [key,max] of Object.entries(schemas[kind])){
+    if(p[key]===undefined)continue;
+    if(typeof p[key]!=='string'||p[key].trim().length>max)throw bad(key+' must be text of at most '+max+' characters.');
+    p[key]=p[key].trim();
+  }
+  for(const key of required)if((creating||p[key]!==undefined)&&!p[key])throw bad('Enter '+key+'.');
+  for(const key of ['email','customerEmail','replyTo'])if(p[key]&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p[key]))throw bad('Enter a valid email.');
+  if(p.stage!==undefined&&!['New','Quoted','Booked','Done'].includes(p.stage))throw bad('Choose a valid lead stage.');
+  if(p.channel!==undefined&&!['Call','Text','Email'].includes(p.channel))throw bad('Choose Call, Text or Email.');
+  if(p.value!==undefined){
+    if(p.value==='')p.value=0;
+    if(!numericInput(p.value)||Number(p.value)<0||Number(p.value)>1_000_000_000)throw bad('Enter a valid nonnegative value.');
+    p.value=Math.round(Number(p.value)*100)/100;
+  }
+  for(const key of ['nextFollowUp','dueDate'])if(p[key]){
+    const d=/^\d{4}-\d{2}-\d{2}$/.test(p[key])?new Date(p[key]+'T00:00:00Z'):new Date(NaN);
+    if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==p[key])throw bad('Enter a valid '+key+'.');
+  }
+  return p;
 }
 
 export function openDb(file) {
@@ -344,11 +403,13 @@ export function openDb(file) {
       AND NOT EXISTS (SELECT 1 FROM leads WHERE leads.user_id=users.id AND COALESCE(leads.value,0)<>0)
   `).run(Date.now());
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
+  if(!new Set(db.prepare('PRAGMA table_info(recurring_subscriptions)').all().map(c=>c.name)).has('last_event_at'))
+    db.exec('ALTER TABLE recurring_subscriptions ADD COLUMN last_event_at INTEGER NOT NULL DEFAULT 0');
   // Stable ordering even when a cancelled checkout and its replacement were
   // inserted within the same millisecond (common on fast Windows test runs).
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
-  const subscriptionUpdate = db.prepare('UPDATE recurring_subscriptions SET status=?,current_end=? WHERE subscription_id=?');
+  const subscriptionUpdate = db.prepare('UPDATE recurring_subscriptions SET status=?,current_end=COALESCE(?,current_end),last_event_at=MAX(last_event_at,?) WHERE subscription_id=?');
 
   const q = {
     // Users
@@ -404,6 +465,9 @@ export function openDb(file) {
     updatePassword: db.prepare(`
       UPDATE users SET
         password_hash = ?,
+        email_verified = 1,
+        verification_token = NULL,
+        verification_expires = NULL,
         reset_token = NULL,
         reset_expires = NULL,
         updated_at = ?
@@ -514,6 +578,7 @@ export function openDb(file) {
 
     // Bank Transactions
     getBankTransactions: db.prepare('SELECT * FROM bank_transactions WHERE user_id = ? ORDER BY date DESC'),
+    getBankTransaction: db.prepare('SELECT * FROM bank_transactions WHERE id = ? AND user_id = ?'),
     insertBankTx: db.prepare(`
       INSERT INTO bank_transactions (id, user_id, date, description, amount, type, status, suggested_invoice_id, matched_invoice_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -521,8 +586,8 @@ export function openDb(file) {
     resolveBankMatch: db.prepare(`
       UPDATE bank_transactions SET
         status = ?,
-        suggested_invoice_id = COALESCE(?, suggested_invoice_id),
-        matched_invoice_id = COALESCE(?, matched_invoice_id)
+        suggested_invoice_id = ?,
+        matched_invoice_id = ?
       WHERE id = ? AND user_id = ?
     `),
 
@@ -567,7 +632,7 @@ export function openDb(file) {
     `),
     getPaymentByOrder: db.prepare('SELECT * FROM payments WHERE razorpay_order_id = ?'),
     markPaymentPaid: db.prepare("UPDATE payments SET status = 'paid', razorpay_payment_id = ?, paid_at = ? WHERE razorpay_order_id = ?"),
-    markPaymentFailed: db.prepare("UPDATE payments SET status = 'failed' WHERE razorpay_order_id = ?"),
+    markPaymentFailed: db.prepare("UPDATE payments SET status = 'failed' WHERE razorpay_order_id = ? AND status != 'paid'"),
 
     // Waitlist & legacy
     getMember: db.prepare('SELECT * FROM waitlist WHERE google_sub = ?'),
@@ -590,7 +655,7 @@ export function openDb(file) {
   );
   const editionTax=(user,items,p={})=>{
     if(user.country!=='IN')return null;
-    const base=Math.round(items.reduce((sum,i)=>sum+Number(i.qty)*Number(i.rate),0)*100)/100;
+    const base=lineItemsTotal(items);
     const gstin=user.gstin||'';
     const gstRate=p.gstRate===undefined?0:Number(p.gstRate);
     const place=p.placeOfSupply||user.india_state||'';
@@ -621,7 +686,7 @@ export function openDb(file) {
     const items = job.billableItems.length
       ? job.billableItems
       : [{description: job.title, qty: 1, rate: 0}];
-    const total = Math.round(items.reduce((sum, item) => sum + item.qty * item.rate, 0) * 100) / 100;
+    const total = lineItemsTotal(items);
     const invoiceId = String(q.nextInvoiceNumber.run().lastInsertRowid);
     const notes = 'Draft generated from completed job. Review items and pricing before sending.';
     const linkedLead = job.leadId ? q.getLead.get(job.leadId, userId) : null;
@@ -819,6 +884,21 @@ export function openDb(file) {
       return q.getUserByResetToken.get(token) || null;
     },
 
+    linkVerifiedGoogleIdentity(userId,sub) {
+      return db.transaction(()=>{
+        const user=q.getUserById.get(userId);
+        if(!user || (user.google_sub&&user.google_sub!==sub))return null;
+        // A password set before proving this email belongs to its creator cannot
+        // remain a back door after the real owner signs in with verified Google.
+        if(!user.email_verified){
+          q.deleteSessionsForUser.run(userId);
+          db.prepare('UPDATE users SET password_hash=NULL,reset_token=NULL,reset_expires=NULL WHERE id=?').run(userId);
+        }
+        db.prepare('UPDATE users SET google_sub=?,email_verified=1,verification_token=NULL,verification_expires=NULL WHERE id=?').run(sub,userId);
+        return q.getUserById.get(userId);
+      })();
+    },
+
     updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl, indiaState, gstin, upiVpa }) {
       const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
       const prior=q.getUserById.get(id);
@@ -891,7 +971,7 @@ export function openDb(file) {
 
     // ---------------------------------------------------------------- Workspace Data & Entitlements
     getWorkspace(userId) {
-      const user = q.getUserById.get(userId);
+      let user = q.getUserById.get(userId);
       if (!user) return null;
 
       const today = todayStr();
@@ -904,13 +984,14 @@ export function openDb(file) {
 
       let effectivePlanStatus = user.plan_status;
       const recurring = subscriptionForUser.get(userId);
-      if (recurring && ['active','charged'].includes(recurring.status) && Date.now() >= recurring.start_at * 1000 && effectivePlanStatus !== 'active') {
-        const end = recurring.current_end && recurring.current_end > Date.now() ? recurring.current_end : Date.now() + 32 * 86400000;
+      if (recurring && ['active','charged'].includes(recurring.status) && Date.now() >= recurring.start_at * 1000 && recurring.current_end > Date.now() && effectivePlanStatus !== 'active') {
+        const end = recurring.current_end;
         q.setUserPlan.run('pro','active',recurring.subscription_id,end,Date.now(),userId);
+        user=q.getUserById.get(userId);
         effectivePlanStatus = 'active';
       }
       if (effectivePlanStatus === 'active') {
-        if (user.subscription_expires_at && user.subscription_expires_at < Date.now()) {
+        if (user.subscription_expires_at && user.subscription_expires_at <= Date.now()) {
           effectivePlanStatus = 'expired';
           q.setUserPlan.run('expired', 'expired', user.subscription_id, user.subscription_expires_at, Date.now(), userId);
         }
@@ -1063,6 +1144,7 @@ export function openDb(file) {
     ...quotesStore,
 
     createLead(userId, payload) {
+      payload=workspaceFields('lead',payload,true);
       const today = userBusinessToday(userId);
       const id = 'LD-' + randomBytes(4).toString('hex');
       const lead = {
@@ -1096,6 +1178,7 @@ export function openDb(file) {
     },
 
     updateLead(userId, leadId, updates) {
+      updates=workspaceFields('lead',updates);
       const previous = q.getLead.get(leadId, userId);
       if (!previous) return { ok: true };
       const now = userBusinessToday(userId);
@@ -1112,11 +1195,18 @@ export function openDb(file) {
     },
 
     deleteLead(userId, leadId) {
-      q.deleteLead.run(leadId, userId);
-      return { ok: true };
+      return db.transaction(()=>{
+        db.prepare('UPDATE follow_ups SET lead_id=NULL WHERE lead_id=? AND user_id=?').run(leadId,userId);
+        db.prepare('UPDATE jobs SET lead_id=NULL WHERE lead_id=? AND user_id=?').run(leadId,userId);
+        q.deleteLead.run(leadId, userId);
+        return { ok: true };
+      })();
     },
 
     createFollowUp(userId, payload) {
+      payload=workspaceFields('followup',payload,true);
+      if(payload.leadId&&!q.getLead.get(payload.leadId,userId))
+        throw Object.assign(new Error('Choose a lead from your workspace.'),{code:'invalid_record',status:400});
       const id = 'FU-' + randomBytes(4).toString('hex');
       const fu = {
         id,
@@ -1133,6 +1223,7 @@ export function openDb(file) {
     },
 
     updateFollowUp(userId, id, updates) {
+      updates=workspaceFields('followup',updates);
       q.updateFollowUp.run(updates.contactName, updates.phone, updates.channel, updates.task, updates.dueDate, id, userId);
       return { ok: true };
     },
@@ -1148,14 +1239,16 @@ export function openDb(file) {
     },
 
     createInvoice(userId, payload) {
+      return db.transaction(()=>{
+      payload=invoiceFields(payload,true);
       const today = userBusinessToday(userId);
       const terms = payload.terms || 'Net 15';
-      const items = payload.items && payload.items.length ? payload.items : [
-        { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: Number(payload.amount) || 0 },
-      ];
+      const items = this.validateInvoiceItems(payload.items !== undefined ? payload.items : [
+        { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: payload.amount === undefined ? 0 : Number(payload.amount) },
+      ]);
       const user=q.getUserById.get(userId);
       const tax=editionTax(user,items,payload);
-      const total=tax?tax.total:items.reduce((s,it)=>s+(Number(it.qty)||1)*(Number(it.rate)||0),0);
+      const total=tax?tax.total:lineItemsTotal(items);
       const id = String(q.nextInvoiceNumber.run().lastInsertRowid);
       const inv = {
         id,
@@ -1179,6 +1272,7 @@ export function openDb(file) {
       );
       persistInvoiceTax(userId,id,tax);
       return {...inv,currency:tax?'INR':'USD',...(tax||{})};
+      })();
     },
 
     // Validate editable invoice line items before committing any financial totals.
@@ -1190,7 +1284,7 @@ export function openDb(file) {
       return items.map(item => {
         const description = typeof item?.description === 'string' ? item.description.trim() : '';
         const qty = Number(item?.qty), rate = Number(item?.rate);
-        if (!description || description.length > 180 || !Number.isFinite(qty) || !Number.isFinite(rate) ||
+        if (!description || description.length > 180 || !numericInput(item?.qty) || !numericInput(item?.rate) ||
             qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
             Math.abs(qty*100-Math.round(qty*100)) > 0.000001 ||
             Math.abs(rate*100-Math.round(rate*100)) > 0.000001)
@@ -1200,21 +1294,23 @@ export function openDb(file) {
     },
 
     updateInvoice(userId, id, p) {
+      return db.transaction(()=>{
+      p=invoiceFields(p);
       const inv = q.getInvoice.get(String(id), userId);
-      if (!inv) throw new Error('Invoice not found');
+      if (!inv) throw Object.assign(new Error('Invoice not found.'),{code:'not_found',status:404});
       let items = [];
       try { items = JSON.parse(inv.items_json); } catch { items = []; }
-      if (p.amount !== undefined && p.amount !== null && p.amount !== '' && items.length <= 1) {
-        items = [{ description: p.jobTitle || inv.job_title || 'Service labor & materials', qty: 1, rate: Number(p.amount) || 0 }];
-      } else if (p.items) {
+      if (p.items !== undefined) {
         items = p.items;
+      } else if (p.amount !== undefined && items.length <= 1) {
+        items = [{ description: p.jobTitle || inv.job_title || 'Service labor & materials', qty: 1, rate: Number(p.amount) }];
       }
       items = this.validateInvoiceItems(items);
       const user=q.getUserById.get(userId);
       const gstFields={gstRate:p.gstRate??inv.gst_rate,customerGstin:p.customerGstin??inv.customer_gstin,
         placeOfSupply:p.placeOfSupply??inv.place_of_supply,hsnSac:p.hsnSac??inv.hsn_sac};
       const tax=editionTax(user,items,gstFields);
-      const total=tax?tax.total:Math.round(items.reduce((s,it)=>s+it.qty*it.rate,0)*100)/100;
+      const total=tax?tax.total:lineItemsTotal(items);
       const terms = p.terms || inv.terms;
       const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
@@ -1230,9 +1326,12 @@ export function openDb(file) {
       );
       persistInvoiceTax(userId,id,tax);
       return { ok: true };
+      })();
     },
 
     updateInvoiceStatus(userId, id, status) {
+      invoiceFields({status});
+      if(status===undefined)throw invalidInvoice('Choose an invoice status.');
       const original = q.getInvoice.get(String(id), userId);
       if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
       const owner=q.getUserById.get(userId);
@@ -1242,17 +1341,29 @@ export function openDb(file) {
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
         throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
-      const paidAt = status === 'Paid' ? userBusinessToday(userId) : null;
+      const paidAt = status === 'Paid' ? (original.paid_at || userBusinessToday(userId)) : null;
       q.updateInvoiceStatus.run(status, paidAt, String(id), userId);
       return { ok: true };
     },
 
     deleteInvoice(userId, id) {
-      q.deleteInvoice.run(String(id), userId);
-      return { ok: true };
+      return db.transaction(()=>{
+        const inv=q.getInvoice.get(String(id),userId);
+        if(!inv)throw Object.assign(new Error('Invoice not found.'),{code:'not_found',status:404});
+        db.prepare(`UPDATE bank_transactions SET
+          status=CASE WHEN matched_invoice_id=? OR status='suggested' THEN 'unmatched' ELSE status END,
+          suggested_invoice_id=CASE WHEN suggested_invoice_id=? THEN NULL ELSE suggested_invoice_id END,
+          matched_invoice_id=CASE WHEN matched_invoice_id=? THEN NULL ELSE matched_invoice_id END
+          WHERE user_id=? AND (suggested_invoice_id=? OR matched_invoice_id=?)`)
+          .run(String(id),String(id),String(id),userId,String(id),String(id));
+        q.deleteInvoice.run(String(id), userId);
+        return { ok: true };
+      })();
     },
 
     resolveBankMatch(userId, txId, action, targetInvoiceId) {
+      return db.transaction(()=>{
+      if(!['confirm','dismiss'].includes(action))throw Object.assign(new Error('Choose confirm or dismiss.'),{code:'invalid_match',status:400});
       if (action === 'confirm' && targetInvoiceId) {
         const source = q.getInvoice.get(String(targetInvoiceId), userId);
         if (!source) throw Object.assign(new Error('The selected invoice was not found.'), {code:'not_found',status:404});
@@ -1263,15 +1374,27 @@ export function openDb(file) {
           throw Object.assign(new Error('Set invoice pricing before recording a payment against this job draft.'), {code:'invoice_needs_pricing',status:409});
         }
       }
+      const tx=typeof txId==='string'?q.getBankTransaction.get(txId,userId):null;
+      if(!tx)throw Object.assign(new Error('Bank transaction not found.'),{code:'not_found',status:404});
       if (action === 'confirm') {
+        if(!targetInvoiceId)throw Object.assign(new Error('Select an invoice.'),{code:'invalid_match',status:400});
+        const source=q.getInvoice.get(String(targetInvoiceId),userId);
+        if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*100)!==Math.round(Number(source.total)*100))
+          throw Object.assign(new Error('Match a deposit equal to the invoice total.'),{code:'amount_mismatch',status:409});
+        if(tx.matched_invoice_id&&tx.matched_invoice_id!==String(targetInvoiceId))
+          throw Object.assign(new Error('This transaction is already matched.'),{code:'already_matched',status:409});
+        if(source.status==='Paid'&&tx.matched_invoice_id!==String(targetInvoiceId))
+          throw Object.assign(new Error('This invoice is already paid.'),{code:'already_paid',status:409});
         q.resolveBankMatch.run('matched', targetInvoiceId || null, targetInvoiceId || null, txId, userId);
         if (targetInvoiceId) {
-          q.updateInvoiceStatus.run('Paid', userBusinessToday(userId), String(targetInvoiceId), userId);
+          q.updateInvoiceStatus.run('Paid', source.paid_at || userBusinessToday(userId), String(targetInvoiceId), userId);
         }
       } else {
+        if(tx.matched_invoice_id)throw Object.assign(new Error('A matched payment cannot be dismissed.'),{code:'already_matched',status:409});
         q.resolveBankMatch.run('dismissed', null, null, txId, userId);
       }
       return { ok: true };
+      })();
     },
 
     syncBankFeed(userId) {
@@ -1282,6 +1405,7 @@ export function openDb(file) {
     },
 
     createReview(userId, payload) {
+      payload=workspaceFields('review',payload,true);
       const id = 'RV-' + randomBytes(4).toString('hex');
       const today = todayStr();
       q.insertReview.run(
@@ -1293,6 +1417,7 @@ export function openDb(file) {
     },
 
     updateReview(userId, id, updates) {
+      updates=workspaceFields('review',updates);
       q.updateReview.run(updates.customerName, updates.customerPhone, updates.customerEmail, updates.jobTitle, id, userId);
       return { ok: true };
     },
@@ -1313,6 +1438,7 @@ export function openDb(file) {
     },
 
     createMessage(userId, payload) {
+      payload=workspaceFields('message',payload,true);
       const id = 'MSG-' + randomBytes(4).toString('hex');
       q.insertMessage.run(
         id, userId, payload.category || 'Question', (payload.subject || '').trim(),
@@ -1355,19 +1481,27 @@ export function openDb(file) {
     // ---------------------------------------------------------------- Recurring subscriptions
     getSubscription(id) { return subscriptionFind.get(id) || null; },
     getUserSubscription(userId) { return subscriptionForUser.get(userId) || null; },
+    getUserSubscriptions(userId) { return db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id=? ORDER BY created_at DESC,rowid DESC').all(userId); },
     createSubscription(userId, id, startAt) {
       if (subscriptionFind.get(id)) return;
       subscriptionInsert.run(id, userId, 'created', startAt, Date.now());
     },
-    updateSubscription(id, status, currentEnd = null) {
+    updateSubscription(id, status, currentEnd = null, eventAt = 0) {
       const row = subscriptionFind.get(id);
       if (!row) return false;
+      if(eventAt && eventAt<row.last_event_at)return false;
+      // Cancelled/expired mandates cannot be restarted by delayed webhook snapshots.
+      if(['cancelled','expired'].includes(row.status)&&status!==row.status)return false;
+      if(currentEnd!==null&&(!Number.isSafeInteger(currentEnd)||currentEnd<=0))return false;
       // Never grant access based on checkout callback alone; confirmed provider events determine status.
-      subscriptionUpdate.run(status, currentEnd, id);
+      subscriptionUpdate.run(status, currentEnd, eventAt, id);
+      // Events for an older checkout may update its history, never the current plan.
+      if(subscriptionForUser.get(row.user_id)?.subscription_id!==id)return true;
       if(['authenticated','active','charged'].includes(status) && this.billingEligible(row.user_id))
         markMandateAuthorized.run(Date.now(),row.user_id);
-      if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000) {
-        q.setUserPlan.run('pro', 'active', id, currentEnd || Date.now() + 32 * 86400000, Date.now(), row.user_id);
+      const paidThrough=currentEnd??row.current_end;
+      if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000 && paidThrough > Date.now()) {
+        q.setUserPlan.run('pro', 'active', id, paidThrough, Date.now(), row.user_id);
       } else if (['cancelled','halted','expired'].includes(status) && (row.start_at * 1000 <= Date.now())) {
         q.setUserPlan.run('expired', 'expired', id, currentEnd || Date.now(), Date.now(), row.user_id);
       }
@@ -1401,6 +1535,8 @@ export function openDb(file) {
     markPaid({ orderId, paymentId, amount, currency }) {
       const row = q.getPaymentByOrder.get(orderId);
       if (!row) return null;
+      if(typeof paymentId!=='string'||!paymentId||!Number.isSafeInteger(amount)||amount!==row.amount||currency!==row.currency)return false;
+      if(row.status==='paid')return row.razorpay_payment_id===paymentId;
       const now = new Date().toISOString();
       const run = db.transaction(() => {
         q.markPaymentPaid.run(paymentId, now, orderId);

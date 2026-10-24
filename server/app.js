@@ -15,6 +15,7 @@ import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhon
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {makeTrialSchedule,safeTrialSchedule} from './trial-timing.js';
+import {lineItemsTotal} from '../public/js/money.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -38,7 +39,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, phoneVerifier = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, phoneVerifier = null, accountEmailSender = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -53,6 +54,13 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   const rzp = razorpay || makeRazorpay(config);
   const phones = phoneVerifier || makePhoneVerifier(config);
+  const billingInFlight=new Set();
+  const withBillingLock=handler=>async(req,res,next)=>{
+    const id=req.session.userId;
+    if(billingInFlight.has(id))return res.status(409).json({error:'billing_in_progress',message:'Another billing change is in progress. Please wait and retry.'});
+    billingInFlight.add(id);
+    try {await handler(req,res,next);} finally {billingInFlight.delete(id);}
+  };
 
   const app = express();
   app.disable('x-powered-by');
@@ -141,7 +149,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         const subscription = event.payload?.subscription?.entity;
         if (subscription && typeof subscription.id === 'string' && subscription.id.startsWith('sub_')) {
           const status = String(subscription.status || '');
-          const allowed = ['authenticated','active','charged','pending','halted','cancelled','expired','completed'];
+          const allowed = ['authenticated','active','charged','pending','halted','paused','cancelled','expired','completed'];
           if (allowed.includes(status)) {
             const normalized = status === 'completed' ? 'expired' : status;
             const savedSub=db.getSubscription(subscription.id);
@@ -157,8 +165,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
                 if(!cancelled)return res.status(503).json({error:'unsafe_billing_schedule'});
                 return res.json({status:'cancelled_for_trial_safety'});
               }
-              db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
-              if(config.workspaceAccessMode==='phone_and_mandate' &&
+              const updated=db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null,
+                Number.isSafeInteger(event.created_at)&&event.created_at>0?event.created_at*1000:0);
+              if(updated&&db.getUserSubscription(savedSub.user_id)?.subscription_id===subscription.id&&config.workspaceAccessMode==='phone_and_mandate' &&
                  ['authenticated','active','charged'].includes(normalized)&&verified&&!alreadyAuthorized)
                 db.beginTrialOnEntry(savedSub.user_id,authorizationAt,savedSub.start_at*1000);
             }
@@ -189,6 +198,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   // ------------------------------------------------------------ Parsers & Session Loading
   app.use(cookieParser());
+  // Business documents support 20 line items plus notes, including UTF-8 text.
+  // Keep the smaller cap on authentication and simple public forms.
+  app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me'], express.json({ limit: '64kb' }));
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
@@ -238,7 +250,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         {style:'currency',currency:quote.currency==='INR'?'INR':'USD'}).format(n);
       const rows=quote.items.map(i=>'<tr><td>'+escapeQuoteHtml(i.description)+
         '</td><td>'+escapeQuoteHtml(i.qty)+'</td><td>'+escapeQuoteHtml(money(i.rate))+
-        '</td><td>'+escapeQuoteHtml(money(i.qty*i.rate))+'</td></tr>').join('');
+        '</td><td>'+escapeQuoteHtml(money(lineItemsTotal([i])))+'</td></tr>').join('');
       const token=escapeQuoteHtml(req.query.token);
       const actions=quote.status==='Sent'?
         '<p>Review the details carefully. Only choose Accept if you agree to the work and listed prices.</p>'+
@@ -421,6 +433,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   auth.post('/forgot-password', authLimiter, sameOrigin, async (req, res) => {
     const { email } = req.body || {};
     const cleanEmail = cleanText(email, 254).toLowerCase();
+    if(config.isProd&&!accountEmailSender)return res.status(503).json({error:'email_not_configured',
+      message:'Password reset email delivery is unavailable. Please contact CERIUM support.'});
 
     if (cleanEmail) {
       const user = db.getUserByEmail(cleanEmail);
@@ -428,6 +442,16 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         const token = generateToken(32);
         const expiresAt = now() + 60 * MINUTE;
         db.setResetToken(user.id, token, expiresAt);
+        if(accountEmailSender){
+          try {
+            await accountEmailSender({to:user.email,subject:'Reset your CERIUM password',
+              body:'Use this link to reset your CERIUM password. It expires in one hour:\n\n'+
+                config.baseUrl+'/reset-password.html?token='+encodeURIComponent(token)+
+                '\n\nIf you did not request this, you can ignore this email.'});
+          } catch {
+            return res.status(502).json({error:'email_delivery_failed',message:'We could not confirm delivery of the reset email. Please try again later.'});
+          }
+        }
         if (!config.isProd) {
           return res.json({
             ok: true,
@@ -524,6 +548,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (req.sessionToken) db.deleteSession(req.sessionToken);
 
     let user = db.getUserByGoogleSub(profile.sub) || db.getUserByEmail(profile.email);
+    if(user){
+      user=db.linkVerifiedGoogleIdentity(user.id,profile.sub);
+      if(!user)return fail('invalid');
+    }
     if (!user) {
       if(config.regionEnforced && config.workspaceAccessMode==='off' &&
          (!req.region || !note.country || note.country!==req.region.country)) return fail('region-unavailable');
@@ -752,6 +780,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try { res.json(db.deleteJob(req.session.userId,req.params.id)); }
     catch(err) { scheduleError(res,err); }
   });
+  api.post('/jobs/:id/invoice', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
+    try { res.status(201).json(db.createJobInvoice(req.session.userId,req.params.id)); }
+    catch(err) { scheduleError(res,err); }
+  });
 
   // Owner-approved automated invoice payment reminders.
   api.post('/reminders', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
@@ -802,8 +834,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   // Invoice writes are protected by the same plan guard as every other business tool.
   api.post('/invoices', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    const inv = db.createInvoice(req.session.userId, req.body || {});
-    res.status(201).json(inv);
+    try { res.status(201).json(db.createInvoice(req.session.userId, req.body || {})); }
+    catch(err) { scheduleError(res,err); }
   });
 
   api.patch('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
@@ -812,13 +844,13 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
 
   api.patch('/invoices/:id/status', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    try { db.updateInvoiceStatus(req.session.userId, req.params.id, req.body && req.body.status ? req.body.status : 'Paid');res.json({ ok: true }); }
+    try { db.updateInvoiceStatus(req.session.userId, req.params.id, req.body?.status);res.json({ ok: true }); }
     catch(err) { scheduleError(res,err); }
   });
 
   api.delete('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
-    db.deleteInvoice(req.session.userId, req.params.id);
-    res.json({ ok: true });
+    try { res.json(db.deleteInvoice(req.session.userId, req.params.id)); }
+    catch(err) { scheduleError(res,err); }
   });
 
   // Bank matching API
@@ -949,7 +981,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
 
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
-  api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+  api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
     const user = db.getUserById(req.session.userId);
     const indian=user.country==='IN'&&user.currency==='INR';
     const american=user.country==='US'&&user.currency==='USD';
@@ -961,7 +993,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
       return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
     const existing = db.getUserSubscription(user.id);
-    if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
+    if (existing && !['cancelled','expired'].includes(existing.status)) {
+      if(['halted','paused'].includes(existing.status))return res.status(409).json({error:'cancel_subscription_first',message:'Cancel the previous subscription before starting another authorization.'});
       const authorizedBefore=Number(db.getBillingIdentity(user.id)?.mandate_authorized_at)>0;
       // An unapproved one-hour checkout cannot be reused indefinitely:
       // doing so could make its first scheduled debit less than 15 days away.
@@ -1022,12 +1055,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
     }
-  });
+  }));
 
-  api.post('/billing/subscription/verify', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+  api.post('/billing/subscription/verify', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
     const { razorpay_subscription_id, razorpay_payment_id, razorpay_signature } = req.body || {};
     const saved = db.getSubscription(razorpay_subscription_id);
     if (!saved || saved.user_id !== req.session.userId) return res.status(404).json({ error: 'subscription_not_found' });
+    if(['cancelled','expired'].includes(saved.status)||db.getUserSubscription(req.session.userId)?.subscription_id!==saved.subscription_id)
+      return res.status(409).json({verified:false,error:'subscription_not_current',message:'This checkout is no longer current. Refresh your billing status.'});
     if (!rzp.verifySubscription({ subscriptionId: razorpay_subscription_id, paymentId: razorpay_payment_id, signature: razorpay_signature })) return res.status(400).json({ error: 'invalid_signature' });
     try {
       const remote = await rzp.getSubscription(razorpay_subscription_id);
@@ -1044,7 +1079,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         });
       }
       if (['authenticated','active','pending','charged'].includes(status)) {
-        db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
+        if(!db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null))
+          return res.status(409).json({verified:false,error:'subscription_not_current'});
         // A pending subscription has NOT completed recurring authorization.
         // Never return verified:true (or begin the trial) until Razorpay
         // confirms a mandate-authorized state.
@@ -1058,9 +1094,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     } catch {
       return res.status(502).json({ error: 'billing_service_unavailable' });
     }
-  });
+  }));
 
-  api.post('/billing/subscription/cancel', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
+  api.post('/billing/subscription/cancel', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
     const saved = db.getUserSubscription(req.session.userId);
     if (!saved || ['cancelled','expired'].includes(saved.status)) return res.status(409).json({ error: 'no_active_subscription' });
     try {
@@ -1070,7 +1106,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     } catch (err) {
       res.status(502).json({ error: 'cancellation_failed', message: 'Cancellation could not be confirmed. Please contact support.' });
     }
-  });
+  }));
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
@@ -1105,9 +1141,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
 
   // Complete account and data deletion
-  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
-    const subscription = db.getUserSubscription(req.session.userId);
-    if (subscription && !['cancelled','expired','halted'].includes(subscription.status)) {
+  api.delete('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
+    const subscriptions = db.getUserSubscriptions(req.session.userId);
+    for (const subscription of subscriptions.filter(s=>!['cancelled','expired'].includes(s.status))) {
       try {
         const cancelled = await rzp.cancelSubscription(subscription.subscription_id, false);
         if (cancelled.status !== 'cancelled') return res.status(409).json({ error: 'cancel_subscription_first', message: 'Recurring billing could not be cancelled. Please cancel it in Settings before deleting your account.' });
@@ -1119,7 +1155,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     db.deleteAccount(req.session.sub || req.session.userId);
     res.clearCookie(config.sessionCookie, cookieBase);
     res.json({ deleted: true });
-  });
+  }));
 
   // Logout from /api/logout
   api.post('/logout', sameOrigin, (req, res) => {
@@ -1175,6 +1211,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const status = err && err.status >= 400 && err.status < 500 ? err.status : 500;
     if (status === 500) console.error('[error]', err && err.message);
     if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+      if(status===400&&err.code==='invalid_record')return res.status(400).json({error:err.code,message:err.message});
       return res.status(status).json({ error: status === 500 ? 'server_error' : 'bad_request' });
     }
     res.status(status).type('text/plain').send(status === 500 ? 'Something went wrong.' : 'Bad request.');

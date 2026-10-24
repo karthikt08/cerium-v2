@@ -293,7 +293,7 @@ describe('Google sign-in flow', () => {
 
     // A code works once.
     const b2 = t.browser();
-    const flow = await signIn(t, b2, { intent: 'login', profile: { ...CAROL, sub: 'g-once' } });
+    const flow = await signIn(t, b2, { intent: 'login', profile: { ...CAROL, sub: 'g-once', email:'once@example.com' } });
     assert.equal(flow.cb.headers.get('location'), '/app.html');
     const b3 = t.browser();
     await b3.req('/auth/google', { method: 'POST', form: { intent: 'login' } });
@@ -304,12 +304,12 @@ describe('Google sign-in flow', () => {
 
   it('gives every sign-in a new session id and ends the old one', async () => {
     const b = t.browser();
-    await signIn(t, b, { intent: 'login', profile: { ...CAROL, sub: 'g-fix' } });
+    await signIn(t, b, { intent: 'login', profile: { ...CAROL, sub: 'g-fix', email:'session-fix@example.com' } });
     const oldToken = b.cookie(t.config.sessionCookie);
     const old = t.browser();
     old.jar.set(t.config.sessionCookie, oldToken);
     assert.equal((await old.me()).signedIn, true);
-    await signIn(t, b, { intent: 'login', profile: { ...CAROL, sub: 'g-fix' } });
+    await signIn(t, b, { intent: 'login', profile: { ...CAROL, sub: 'g-fix', email:'session-fix@example.com' } });
     assert.notEqual(b.cookie(t.config.sessionCookie), oldToken);
     assert.equal((await old.me()).signedIn, false, 'the old session id must stop working');
   });
@@ -615,6 +615,11 @@ describe('running in production', () => {
     const r = await t.browser().req('/');
     assert.match(r.headers.get('strict-transport-security'), /max-age=15552000/);
     assert.match(r.headers.get('content-security-policy'), /upgrade-insecure-requests/);
+  });
+
+  it('reports unavailable password recovery when no production email sender is configured', async () => {
+    const r=await t.browser().req('/auth/forgot-password',{method:'POST',json:{email:'recover@example.com'}});
+    assert.equal(r.status,503);assert.equal((await r.json()).error,'email_not_configured');
   });
 
   it('uses locked cookies (__Host-, Secure, HttpOnly, SameSite=Lax)', async () => {

@@ -139,6 +139,13 @@ SMTP sender is configured. To run the separate worker on an Oracle VM:
 npm run reminders:worker
 ```
 
+The web server also uses this explicitly enabled SMTP sender for requested password
+reset emails. Configure `REMINDER_DELIVERY_MODE=live`, `REMINDER_SMTP_HOST`,
+`REMINDER_SMTP_PORT=465`, `REMINDER_SMTP_USER`, `REMINDER_SMTP_PASSWORD`, and
+`REMINDER_FROM` before offering password recovery in production. Without a sender,
+the reset endpoint returns an unavailable error; it never claims an email was sent.
+Starting the web server alone does not start the invoice-reminder worker.
+
 For the complete Oracle VM, systemd, consent, unsubscribe and deployment checklist,
 see docs/oracle-reminders.md. Do not send real reminders until your own inbox tests
 and appropriate customer permission checks pass.
