@@ -344,7 +344,9 @@ export function openDb(file) {
       AND NOT EXISTS (SELECT 1 FROM leads WHERE leads.user_id=users.id AND COALESCE(leads.value,0)<>0)
   `).run(Date.now());
   const subscriptionFind = db.prepare('SELECT * FROM recurring_subscriptions WHERE subscription_id = ?');
-  const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+  // Stable ordering even when a cancelled checkout and its replacement were
+  // inserted within the same millisecond (common on fast Windows test runs).
+  const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
   const subscriptionUpdate = db.prepare('UPDATE recurring_subscriptions SET status=?,current_end=? WHERE subscription_id=?');
 
