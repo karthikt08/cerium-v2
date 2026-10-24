@@ -76,6 +76,8 @@ test('phone and Razorpay mandate requirement keeps workspace locked until provid
     t.db.updateSubscription('sub_test123','authenticated');
     assert.equal((await b.req('/app.html')).status,200);
     assert.equal((await b.req('/api/workspace')).status,200);
+    t.db.updateSubscription('sub_test123','cancelled');
+    assert.equal((await b.req('/api/workspace')).status,200,'cancelling a future mandate does not end earned trial access');
   }finally{await t.close();}
 });
 
