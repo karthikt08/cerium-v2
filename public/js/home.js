@@ -51,6 +51,24 @@ if('IntersectionObserver' in window&&rv.length){
   rv.forEach(function(n){io.observe(n)});
 }
 
+/* Preserve landing background parallax independently of the custom pointer.
+   Cursor rendering is now shared with the workspace; no competing rings. */
+if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+  var ambientFrame=0,ambientPointer=null;
+  addEventListener('pointermove',function(e){
+    if(e.pointerType==='touch')return;
+    ambientPointer=e;
+    if(ambientFrame)return;
+    ambientFrame=requestAnimationFrame(function(){
+      ambientFrame=0;
+      if(!ambientPointer)return;
+      var root=document.documentElement;
+      root.style.setProperty('--px',(ambientPointer.clientX/innerWidth-.5).toFixed(3));
+      root.style.setProperty('--py',(ambientPointer.clientY/innerHeight-.5).toFixed(3));
+    });
+  },{passive:true});
+}
+
 /* Floating chips drift a little with the mouse */
 if(matchMedia('(hover:hover)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&$('c1')){
   var q=0,p;
