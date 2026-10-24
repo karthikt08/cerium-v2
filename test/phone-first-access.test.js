@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {startServer,signIn,ALICE} from './helpers.js';
+import {startServer,signIn,ALICE,BOB} from './helpers.js';
 
 async function signAndPhone(t,b,phone,country) {
   const csrf=(await b.me()).csrfToken;
@@ -96,5 +96,23 @@ test('travelling owner can join provisionally and gets India edition only after 
     assert.equal(account.country,'IN');
     assert.equal(account.currency,'INR');
     assert.equal((await b.req('/app.html')).status,200);
+  }finally{await t.close();}
+});
+
+test('a second Google account cannot unlock another trial using the same verified phone',async()=>{
+  const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
+  try{
+    const first=t.browser();await signIn(t,first,{profile:ALICE});
+    await signAndPhone(t,first,'+14155550123','US');
+    assert.equal((await first.req('/api/workspace')).status,200);
+    const second=t.browser();await signIn(t,second,{profile:BOB});
+    const csrf=(await second.me()).csrfToken;
+    const begun=await second.req('/api/billing/identity/start',{method:'POST',csrf,json:{
+      phone:'+14155550123',confirmCountry:true,declaredCountry:'US'
+    }});
+    assert.equal(begun.status,200);
+    const verify=await second.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
+    assert.equal(verify.status,409);
+    assert.equal((await second.req('/api/workspace')).status,403);
   }finally{await t.close();}
 });
