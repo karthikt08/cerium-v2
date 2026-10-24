@@ -12,7 +12,7 @@ export function createMarketGate({enabled=false,apiKey='',fetchImpl=fetch,cacheM
    return {allowed:true,reason:null,country,currency:country==='IN'?'INR':'USD',monthlyPrice:country==='IN'?500:20};
  };
  async function lookup(ip){
-   if(!isIP(ip))return {allowed:false,reason:'unknown_location',country:null};
+   if(!isIP(ip)||ip==='127.0.0.1'||ip==='::1'||ip==='0.0.0.0')return {allowed:false,reason:'unknown_location',country:null};
    const previous=cache.get(ip);
    if(previous&&previous.expires>Date.now())return previous.value;
    const url='https://api.ipapi.is/?q='+encodeURIComponent(ip)+'&key='+encodeURIComponent(apiKey);
