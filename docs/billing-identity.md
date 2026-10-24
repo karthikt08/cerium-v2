@@ -1,5 +1,36 @@
 # CERIUM verified-phone onboarding and regional checkout (pilot)
 
+## Production trial security — payment first
+Before CERIUM starts any new free trial in production:
+1. User signs in and receives an OTP on an eligible mobile phone.
+2. CERIUM saves the verified number and pins its India/US edition (after the
+   customer separately declares their actual business billing country).
+3. Razorpay's hosted checkout requests authorization for a recurring
+   subscription. CERIUM never collects PAN, CVV, bank OTP or UPI PIN.
+4. The backend validates the Razorpay callback signature and re-checks the
+   subscription with Razorpay; only an authenticated/active/charged provider
+   state can unlock the workspace and start the one-time 15-day trial.
+5. The first regular subscription debit is scheduled 15 days after successful
+   authorization. Disclose the full monthly amount, currency, possible
+   authorization transaction and cancellation conditions before checkout.
+
+**Production enforces WORKSPACE_ACCESS_MODE=phone_and_mandate.** Using
+`phone` or `off` in production will fail configuration validation. Your
+localhost sandbox can explicitly choose `phone` for non-payment UI testing.
+Live deployment still requires active Razorpay India/US recurring
+plans, credentials, verified webhooks and the payment methods enabled by the
+merchant provider. Without these, checkout fails CLOSED; never fake approval.
+
+**Anti-abuse:** one ACTIVE account per verified phone, persistent SMS rate
+limits, no new trial on a repeat login to the same account, signed checkout
+responses and server-side provider state. This does not prove unique humanity:
+someone may have several phones or payment methods, and a deleted account
+releases its phone claim. Additional stable provider-supported instrument
+fingerprints or manual reviews may help if available, but do not store raw
+card data or assume Razorpay exposes a suitable fingerprint. Businesses
+sharing a legitimate phone need support review, not silent repricing.
+
+
 ## Customer journey
 CERIUM shows public pages and allows sign-in before onboarding. A signed-in
 customer cannot open `/app.html`, `/app`, or any workspace API until
@@ -15,7 +46,7 @@ bypass the server gate. The access screen is `/verify.html`.
    verification succeeds; if there is existing priced history or a subscription,
    a conflicting edition requires manual review. Browser changes never relabel
    USD/INR amounts.
-4. On default `WORKSPACE_ACCESS_MODE=phone`, phone approval starts the
+4. On LOCAL test mode `WORKSPACE_ACCESS_MODE=phone`, phone approval starts the
    15-day trial and unlocks the app.
 5. Optional `WORKSPACE_ACCESS_MODE=phone_and_mandate` additionally requires
    confirmed Razorpay subscription authorization before workspace entry.
