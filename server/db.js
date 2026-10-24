@@ -247,6 +247,7 @@ export function openDb(file) {
       billing_country_attested_at INTEGER NOT NULL DEFAULT 0,
       phone_e164 TEXT NOT NULL DEFAULT '',
       phone_verified_at INTEGER NOT NULL DEFAULT 0,
+      mandate_authorized_at INTEGER NOT NULL DEFAULT 0,
       pending_phone TEXT NOT NULL DEFAULT '',
       pending_country TEXT NOT NULL DEFAULT '',
       pending_expires_at INTEGER NOT NULL DEFAULT 0,
@@ -256,7 +257,10 @@ export function openDb(file) {
       attempts INTEGER NOT NULL DEFAULT 0
     );
   `);
+  if(!new Set(db.prepare('PRAGMA table_info(billing_identities)').all().map(c=>c.name)).has('mandate_authorized_at'))
+    db.exec('ALTER TABLE billing_identities ADD COLUMN mandate_authorized_at INTEGER NOT NULL DEFAULT 0');
   const billingRow=db.prepare('SELECT * FROM billing_identities WHERE user_id=?');
+  const markMandateAuthorized=db.prepare('UPDATE billing_identities SET mandate_authorized_at=MAX(mandate_authorized_at,?) WHERE user_id=?');
   const billingInit=db.prepare('INSERT OR IGNORE INTO billing_identities(user_id) VALUES(?)');
   const billingPending=db.prepare(`UPDATE billing_identities SET pending_phone=?,pending_country=?,
     pending_expires_at=?,last_sent_at=?,window_started_at=?,send_count=?,attempts=0 WHERE user_id=?`);
@@ -1343,6 +1347,8 @@ export function openDb(file) {
       if (!row) return false;
       // Never grant access based on checkout callback alone; confirmed provider events determine status.
       subscriptionUpdate.run(status, currentEnd, id);
+      if(['authenticated','active','charged'].includes(status) && this.billingEligible(row.user_id))
+        markMandateAuthorized.run(Date.now(),row.user_id);
       if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000) {
         q.setUserPlan.run('pro', 'active', id, currentEnd || Date.now() + 32 * 86400000, Date.now(), row.user_id);
       } else if (['cancelled','halted','expired'].includes(status) && (row.start_at * 1000 <= Date.now())) {
