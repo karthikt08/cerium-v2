@@ -182,6 +182,6 @@ describe('the sign-in pages', () => {
     assert.doesNotMatch(html, /confirmation email/i, 'no confirmation email is sent any more');
     assert.doesNotMatch(html, /strong password/i, 'there are no passwords');
     assert.doesNotMatch(html, /profile photo, and/i);
-    assert.match(html, /Last updated: October 12, 2026/);
+    assert.match(html, /Last updated: October 24, 2026/);
   });
 });

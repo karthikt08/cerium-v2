@@ -22,7 +22,7 @@
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
-        description: '15-day trial, then $20/month. Authorize recurring billing. Cancel anytime.',
+        description: result.currency === 'INR' ? '15-day trial, then ₹500/month plus applicable taxes. UPI AutoPay may be available subject to eligibility; approve the recurring mandate. Cancel anytime.' : '15-day trial, then $20/month. Authorize recurring billing. Cancel anytime.',
         theme: { color: '#6954b8' },
         handler: async response => {
           try {

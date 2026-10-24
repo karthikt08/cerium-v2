@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pricing &amp; Plans — CERIUM</title>
-<meta name="description" content="Simple, predictable pricing for service businesses. Try CERIUM free for 15 days, then authorize $20/month billing if it fits your team.">
+<meta name="description" content="Simple, predictable pricing for service businesses. Try CERIUM free for 15 days, then authorize region-specific monthly billing if it fits your team.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,7 +83,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
           <strong>$0</strong>
           <span>for 15 days</span>
         </div>
-        <p class="pcard-sub">Test the full Cerium workspace on your live jobs. No credit card required.</p>
+        <p class="pcard-sub">Test the full workspace after phone verification. Razorpay payment-method authorization is required before the 15-day trial begins.</p>
         <ul class="pcard-features">
           <li>Full workspace access</li>
           <li>Leads pipeline &amp; customer notes</li>
@@ -100,7 +100,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
         <span class="pcard-tag">Most Popular</span>
         <h3>Cerium Pro</h3>
         <div class="pcard-price">
-          <strong>$20</strong>
+          <strong data-region-price>$20</strong>
           <span>/ month</span>
         </div>
         <p class="pcard-sub">Complete contractor operations platform. Unlimited jobs, invoices, and matching.</p>
@@ -124,11 +124,11 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
     <div style="display:grid;gap:18px">
       <div class="pcard" style="padding:24px 28px" data-rv style="--i:0">
         <h4 style="margin:0 0 8px;font-size:17px">Do I need a credit card to start the trial?</h4>
-        <p style="margin:0;color:var(--mut);font-size:15px">No. You can sign up with your email or Google account in under 60 seconds with no credit card, EIN, or business documents required.</p>
+        <p style="margin:0;color:var(--mut);font-size:15px">You can create an account with email or Google without providing card details. Before using the workspace, you must confirm your phone; Razorpay payment-method authorization is required before trial access. An eligible UPI AutoPay method may be used in India instead of a credit card.</p>
       </div>
       <div class="pcard" style="padding:24px 28px" data-rv style="--i:1">
         <h4 style="margin:0 0 8px;font-size:17px">What happens when the 15-day trial ends?</h4>
-        <p style="margin:0;color:var(--mut);font-size:15px">Your data is never deleted. You can still log in, review existing records, and export your entire workspace as a JSON download. To continue creating new invoices and reconciling bank feeds, authorize your $20/month recurring subscription. No charge is made without authorization.</p>
+        <p style="margin:0;color:var(--mut);font-size:15px">Your data is never deleted. You can still log in, review existing records, and export your entire workspace as a JSON download. To continue creating new invoices and reconciling bank feeds, authorize your <span data-region-price>$20</span>/month recurring subscription. No charge is made without authorization.</p>
       </div>
       <div class="pcard" style="padding:24px 28px" data-rv style="--i:2">
         <h4 style="margin:0 0 8px;font-size:17px">Can I cancel anytime?</h4>
@@ -170,5 +170,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <script src="js/cursor.js"></script>
 <script src="js/local-check.js"></script>
 <script src="js/nav-auth.js"></script>
+<script src="js/region-pricing.js" defer></script>
 </body>
 </html>

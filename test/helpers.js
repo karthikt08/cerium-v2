@@ -53,7 +53,7 @@ export function fakeOAuthClient(config) {
   };
 }
 
-export async function startServer({ env = {}, limits, db: givenDb } = {}) {
+export async function startServer({ env = {}, limits, db: givenDb, regionLookup, razorpay } = {}) {
   const port = await freePort();
   const config = buildConfig({
     NODE_ENV: 'test',
@@ -71,7 +71,7 @@ export async function startServer({ env = {}, limits, db: givenDb } = {}) {
   // Big limits by default, so that many test sign-ins are not slowed down.
   // The tests about rate limits give small limits on purpose.
   const BIG = { windowMs: 60_000, limit: 100_000 };
-  const app = createApp({ config, db, google, limits: { global: BIG, auth: BIG, write: BIG, ...limits }, log: false });
+  const app = createApp({ config, db, google, regionLookup, razorpay, limits: { global: BIG, auth: BIG, write: BIG, ...limits }, log: false });
   const server = await new Promise((resolve) => {
     const s = app.listen(port, '127.0.0.1', () => resolve(s));
   });

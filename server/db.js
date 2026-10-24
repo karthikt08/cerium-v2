@@ -8,6 +8,7 @@ import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
 import { validUsState, validUsZip, validUsTimeZone, businessLocalDate } from '../public/js/us-market.js';
+import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -237,6 +238,41 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS recurring_subscriptions_user ON recurring_subscriptions(user_id);
   `);
+  // Account-scoped billing verification. Never infer country from the dial code alone.
+  // PII remains in the private SQLite database and is deleted with the account.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS billing_identities (
+      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      billing_country TEXT NOT NULL DEFAULT '',
+      billing_country_attested_at INTEGER NOT NULL DEFAULT 0,
+      phone_e164 TEXT NOT NULL DEFAULT '',
+      phone_verified_at INTEGER NOT NULL DEFAULT 0,
+      mandate_authorized_at INTEGER NOT NULL DEFAULT 0,
+      pending_phone TEXT NOT NULL DEFAULT '',
+      pending_country TEXT NOT NULL DEFAULT '',
+      pending_expires_at INTEGER NOT NULL DEFAULT 0,
+      last_sent_at INTEGER NOT NULL DEFAULT 0,
+      window_started_at INTEGER NOT NULL DEFAULT 0,
+      send_count INTEGER NOT NULL DEFAULT 0,
+      attempts INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+  if(!new Set(db.prepare('PRAGMA table_info(billing_identities)').all().map(c=>c.name)).has('mandate_authorized_at'))
+    db.exec('ALTER TABLE billing_identities ADD COLUMN mandate_authorized_at INTEGER NOT NULL DEFAULT 0');
+  const billingRow=db.prepare('SELECT * FROM billing_identities WHERE user_id=?');
+  // One active verified account per phone. Numbers can be reassigned in real
+  // life; support must handle verified ownership transfers manually.
+  const billingPhoneOtherOwner=db.prepare(`SELECT user_id FROM billing_identities
+    WHERE phone_e164=? AND phone_verified_at>0 AND user_id<>? LIMIT 1`);
+  const markMandateAuthorized=db.prepare('UPDATE billing_identities SET mandate_authorized_at=MAX(mandate_authorized_at,?) WHERE user_id=?');
+  const billingInit=db.prepare('INSERT OR IGNORE INTO billing_identities(user_id) VALUES(?)');
+  const billingPending=db.prepare(`UPDATE billing_identities SET pending_phone=?,pending_country=?,
+    pending_expires_at=?,last_sent_at=?,window_started_at=?,send_count=?,attempts=0 WHERE user_id=?`);
+  const billingIncrement=db.prepare('UPDATE billing_identities SET attempts=attempts+1 WHERE user_id=?');
+  const billingFinish=db.prepare(`UPDATE billing_identities SET phone_e164=pending_phone,
+    phone_verified_at=?,billing_country=pending_country,billing_country_attested_at=?,
+    pending_phone='',pending_country='',pending_expires_at=0,attempts=0 WHERE user_id=?`);
+  const billingReset=db.prepare('DELETE FROM billing_identities WHERE user_id=?');
   // Non-destructive US profile migration. Preserve all historical invoices and currency.
   const userColumns=new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name));
   for(const [column,ddl] of [
@@ -245,6 +281,43 @@ export function openDb(file) {
     ['time_zone',"ALTER TABLE users ADD COLUMN time_zone TEXT NOT NULL DEFAULT ''"],
   ])if(!userColumns.has(column))db.exec(ddl);
 
+
+  // India edition is opt-in per clean workspace: no existing USD records get
+  // converted. Snapshot the currency and GST amounts for each created invoice.
+  for (const [col,ddl] of [
+    ['india_state',"ALTER TABLE users ADD COLUMN india_state TEXT NOT NULL DEFAULT ''"],
+    ['gstin',"ALTER TABLE users ADD COLUMN gstin TEXT NOT NULL DEFAULT ''"],
+    ['upi_vpa',"ALTER TABLE users ADD COLUMN upi_vpa TEXT NOT NULL DEFAULT ''"],
+  ]) if(!userColumns.has(col))db.exec(ddl);
+  const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
+    us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
+    updated_at=? WHERE id=?`);
+  // Trial starts when the customer FIRST unlocks the gated workspace,
+  // not while they are waiting for phone/provider verification.
+  if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('onboarding_completed_at'))
+    db.exec("ALTER TABLE users ADD COLUMN onboarding_completed_at INTEGER NOT NULL DEFAULT 0");
+  const startTrialStmt=db.prepare(`UPDATE users SET trial_started_at=?,
+    onboarding_completed_at=?,updated_at=?
+    WHERE id=? AND onboarding_completed_at=0 AND plan_status='trial'`);
+  const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
+  for(const [col,ddl] of [
+    ['invoice_currency',"ALTER TABLE invoices ADD COLUMN invoice_currency TEXT"],
+    ['supplier_gstin',"ALTER TABLE invoices ADD COLUMN supplier_gstin TEXT NOT NULL DEFAULT ''"],
+    ['supplier_state',"ALTER TABLE invoices ADD COLUMN supplier_state TEXT NOT NULL DEFAULT ''"],
+    ['customer_gstin',"ALTER TABLE invoices ADD COLUMN customer_gstin TEXT NOT NULL DEFAULT ''"],
+    ['place_of_supply',"ALTER TABLE invoices ADD COLUMN place_of_supply TEXT NOT NULL DEFAULT ''"],
+    ['hsn_sac',"ALTER TABLE invoices ADD COLUMN hsn_sac TEXT NOT NULL DEFAULT ''"],
+    ['gst_rate',"ALTER TABLE invoices ADD COLUMN gst_rate REAL NOT NULL DEFAULT 0"],
+    ['taxable_total',"ALTER TABLE invoices ADD COLUMN taxable_total REAL NOT NULL DEFAULT 0"],
+    ['cgst',"ALTER TABLE invoices ADD COLUMN cgst REAL NOT NULL DEFAULT 0"],
+    ['sgst',"ALTER TABLE invoices ADD COLUMN sgst REAL NOT NULL DEFAULT 0"],
+    ['utgst',"ALTER TABLE invoices ADD COLUMN utgst REAL NOT NULL DEFAULT 0"],
+    ['igst',"ALTER TABLE invoices ADD COLUMN igst REAL NOT NULL DEFAULT 0"],
+    ['upi_vpa_snapshot',"ALTER TABLE invoices ADD COLUMN upi_vpa_snapshot TEXT NOT NULL DEFAULT ''"],
+  ])if(!editionInvoices.has(col))db.exec(ddl);
+  // Historical amounts are *labeled*, never converted. Existing INR/USD
+  // invoices pick up their saved owner's original currency.
+  db.exec("UPDATE invoices SET invoice_currency=COALESCE((SELECT currency FROM users WHERE users.id=invoices.user_id),'USD') WHERE invoice_currency IS NULL");
   // Existing invoices retain their numbers and data. A nullable source job ID
   // lets one automatically generated invoice be linked to its origin.
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
@@ -348,6 +421,7 @@ export function openDb(file) {
         updated_at = ?
       WHERE id = ?
     `),
+    updateIndiaProfile: db.prepare('UPDATE users SET india_state=?,gstin=?,upi_vpa=? WHERE id=?'),
     deleteUser: db.prepare('DELETE FROM users WHERE id = ?'),
 
     // Sessions
@@ -426,6 +500,10 @@ export function openDb(file) {
         paid_at = ?
       WHERE id = ? AND user_id = ?
     `),
+    setInvoiceCurrency: db.prepare('UPDATE invoices SET invoice_currency=? WHERE id=? AND user_id=?'),
+    setIndiaInvoiceTax: db.prepare(`UPDATE invoices SET invoice_currency=?,supplier_gstin=?,supplier_state=?,customer_gstin=?,
+       place_of_supply=?,hsn_sac=?,gst_rate=?,taxable_total=?,cgst=?,sgst=?,utgst=?,igst=?,upi_vpa_snapshot=?
+       WHERE id=? AND user_id=?`),
     updateInvoiceStatus: db.prepare('UPDATE invoices SET status = ?, paid_at = ? WHERE id = ? AND user_id = ?'),
     deleteInvoice: db.prepare('DELETE FROM invoices WHERE id = ? AND user_id = ?'),
 
@@ -501,7 +579,33 @@ export function openDb(file) {
 
   // Business-facing days follow the US service location, not the Oracle VM clock.
   // Keep trial/billing timestamps in their existing UTC semantics.
-  const userBusinessToday=userId=>businessLocalDate(q.getUserById.get(userId)?.time_zone);
+  const userBusinessToday=userId=>{const u=q.getUserById.get(userId);return businessLocalDate(u?.country==='IN'?'Asia/Kolkata':u?.time_zone);};
+  const pricedHistory=userId=>['invoices','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
+    table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId))
+  );
+  const editionTax=(user,items,p={})=>{
+    if(user.country!=='IN')return null;
+    const base=Math.round(items.reduce((sum,i)=>sum+Number(i.qty)*Number(i.rate),0)*100)/100;
+    const gstin=user.gstin||'';
+    const gstRate=p.gstRate===undefined?0:Number(p.gstRate);
+    const place=p.placeOfSupply||user.india_state||'';
+    const customerGSTIN=(p.customerGstin||'').trim().toUpperCase();
+    const hsn=(p.hsnSac||'').trim();
+    if(!validGSTIN(customerGSTIN)||!validGSTIN(gstin))throw Object.assign(new Error('Check GSTIN format.'),{code:'invalid_gst_invoice',status:400});
+    if(gstin&&(!user.india_state||gstin.slice(0,2)!==user.india_state||!validIndianState(place)||
+       !place||!hsn||!/^[0-9]{4,8}$/.test(hsn)||!safeGSTrate(gstRate)))
+      throw Object.assign(new Error('GST invoices need supplier state, place of supply, numeric HSN/SAC and a valid GST rate.'),{code:'invalid_gst_invoice',status:400});
+    if(!gstin&&(gstRate||customerGSTIN||hsn))
+      throw Object.assign(new Error('Add your business GSTIN in Settings before charging GST.'),{code:'invalid_gst_invoice',status:400});
+    const tax=gstin?gstBreakdown(base,gstRate,user.india_state,place):{taxable:base,gstRate:0,cgst:0,sgst:0,utgst:0,igst:0,total:base};
+    return {currency:'INR',supplierGstin:gstin,supplierState:user.india_state||'',customerGstin:customerGSTIN,
+      placeOfSupply:gstin?place:'',hsnSac:hsn,...tax,upiVpa:user.upi_vpa||''};
+  };
+  const persistInvoiceTax=(userId,id,tax)=>{
+    if(!tax)return q.setInvoiceCurrency.run('USD',id,userId);
+    q.setIndiaInvoiceTax.run(tax.currency,tax.supplierGstin,tax.supplierState,tax.customerGstin,
+      tax.placeOfSupply,tax.hsnSac,tax.gstRate,tax.taxable,tax.cgst,tax.sgst,tax.utgst,tax.igst,tax.upiVpa,id,userId);
+  };
 
   // Called inside the Jobs SQLite transaction, only when a job first becomes
   // Completed. Either job completion and invoice draft both commit, or neither.
@@ -518,6 +622,9 @@ export function openDb(file) {
     const linkedLead = job.leadId ? q.getLead.get(job.leadId, userId) : null;
     q.insertInvoice.run(invoiceId, userId, job.customerName, linkedLead?.email || '', job.address, job.title, today,
       'Net 15', addDays(today, 15), 'Draft', JSON.stringify(items), total, notes, null, today);
+    persistInvoiceTax(userId,invoiceId,q.getUserById.get(userId)?.country==='IN'?
+      {currency:'INR',supplierGstin:'',supplierState:'',customerGstin:'',placeOfSupply:'',
+        hsnSac:'',gstRate:0,taxable:total,cgst:0,sgst:0,utgst:0,igst:0,upiVpa:''}:null);
     q.linkInvoiceToJob.run(job.id, invoiceId, userId);
   }
 
@@ -591,10 +698,81 @@ export function openDb(file) {
       return q.purgeSessions.run(now).changes;
     },
 
+    // Start the one-time free-trial clock when access becomes usable.
+    beginTrialOnEntry(userId,at=Date.now()) {
+      return startTrialStmt.run(toDateStr(new Date(at)),at,at,userId).changes>0;
+    },
+
+    // ---------------------------------------------------------------- Phone possession + self-attested billing country
+    getBillingIdentity(userId) {
+      return billingRow.get(userId)||null;
+    },
+
+    billingEligible(userId) {
+      const user=q.getUserById.get(userId), proof=billingRow.get(userId);
+      if(!user||!proof||proof.phone_verified_at<=0||proof.billing_country_attested_at<=0)return false;
+      if(proof.billing_country!==user.country)return false;
+      if(user.country==='IN')return /^\+91[6-9][0-9]{9}$/.test(proof.phone_e164);
+      if(user.country==='US')return /^\+1[2-9][0-9]{9}$/.test(proof.phone_e164);
+      return false;
+    },
+
+    beginBillingPhone(userId, phone, country, at=Date.now()) {
+      const user=q.getUserById.get(userId);
+      if(!user || !['IN','US'].includes(country)) return {ok:false,reason:'country_mismatch'};
+      if(user.country!==country && (pricedHistory(userId)||user.subscription_id))
+        return {ok:false,reason:'country_mismatch'};
+      return db.transaction(()=>{
+        billingInit.run(userId);
+        const old=billingRow.get(userId);
+        // A previously verified billing edition stays pinned. Changing country
+        // on an established account requires a manual review, not a new SIM.
+        if(old.phone_verified_at>0&&old.billing_country!==country)
+          return {ok:false,reason:'country_mismatch'};
+        const resetWindow=at-old.window_started_at>=86400000;
+        const windowStart=resetWindow?at:old.window_started_at;
+        const sends=resetWindow?0:old.send_count;
+        if(at-old.last_sent_at<90000)return {ok:false,reason:'cooldown'};
+        if(sends>=3)return {ok:false,reason:'daily_limit'};
+        billingPending.run(phone,country,at+10*60000,at,windowStart,sends+1,userId);
+        return {ok:true};
+      })();
+    },
+
+    beginBillingCheck(userId,at=Date.now()) {
+      return db.transaction(()=>{
+        const proof=billingRow.get(userId);
+        if(!proof?.pending_phone||proof.pending_expires_at<at) return {ok:false,reason:'expired'};
+        if(proof.attempts>=5)return {ok:false,reason:'attempt_limit'};
+        billingIncrement.run(userId);
+        return {ok:true,phone:proof.pending_phone,country:proof.pending_country};
+      })();
+    },
+
+    completeBillingPhone(userId,phone,country,at=Date.now()) {
+      return db.transaction(()=>{
+        const proof=billingRow.get(userId),user=q.getUserById.get(userId);
+        if(!proof||!user||proof.pending_country!==country||
+           proof.pending_phone!==phone||proof.pending_expires_at<at||proof.attempts>5)return false;
+        // Do not allow repeated signups to unlock trials using the same
+        // verified phone, even if they use different Google accounts.
+        if(billingPhoneOtherOwner.get(phone,userId))return false;
+        // Edition changes only AFTER OTP success, and never relabel stored money.
+        if(user.country!==country){
+          if(pricedHistory(userId)||user.subscription_id)return false;
+          updateCountryForVerifiedPhone.run(country,country==='IN'?'INR':'USD',
+            country==='IN'?'Asia/Kolkata':'',at,userId);
+        }
+        billingFinish.run(at,at,userId);
+        return true;
+      })();
+    },
+
     // ---------------------------------------------------------------- Users
-    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now() }) {
+    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
       const cleanEmail = email.trim().toLowerCase();
+      if(!['US','IN'].includes(country))throw new Error('Unsupported signup country.');
       q.insertUser.run(
         id,
         cleanEmail,
@@ -602,7 +780,7 @@ export function openDb(file) {
         name.trim(),
         businessName ? businessName.trim() : null,
         null, null, null,
-        'US', 'USD',
+        country, country==='IN'?'INR':'USD',
         googleSub || null, null,
         emailVerified ? 1 : 0,
         verificationToken, verificationExpires,
@@ -611,6 +789,7 @@ export function openDb(file) {
         todayStr(), 15,
         now, now, termsVersion
       );
+      if(country==='IN')db.prepare("UPDATE users SET time_zone='Asia/Kolkata' WHERE id=?").run(id);
       return q.getUserById.get(id);
     },
 
@@ -634,34 +813,47 @@ export function openDb(file) {
       return q.getUserByResetToken.get(token) || null;
     },
 
-    updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl }) {
+    updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl, indiaState, gstin, upiVpa }) {
       const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
-      if(country!==undefined&&country!=='US')invalid('CERIUM currently supports US businesses only.');
-      if(currency!==undefined&&currency!=='USD')invalid('CERIUM billing is USD-only. Existing non-USD data is not converted automatically.');
-      // A legacy INR workspace must never be relabeled USD without a reviewed migration.
-      const storedCurrency=q.getUserById.get(id)?.currency;
-      if(currency==='USD'&&storedCurrency&&storedCurrency!=='USD')
-        invalid('Legacy '+storedCurrency+' amounts cannot be relabeled USD. Contact support for a reviewed currency migration.');
-      for(const [name,value,valid] of [
-        ['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone],
-      ])if(value!==undefined&&(typeof value!=='string'||!valid(value.trim())))
-        invalid('Enter a valid '+name+'.');
+      const prior=q.getUserById.get(id);
+      if(!prior)invalid('Account not found.');
+      const nextCountry=country===undefined?prior.country||'US':country;
+      if(!['US','IN'].includes(nextCountry))invalid('Choose United States or India.');
+      const nextCurrency=nextCountry==='IN'?'INR':'USD';
+      if(currency!==undefined&&currency!==nextCurrency)invalid('Currency must match the selected edition.');
+      const switching=nextCountry!==prior.country;
+      if(switching&&(pricedHistory(id)||prior.subscription_id))
+        invalid('To switch editions, start with a new empty workspace. Existing records and payment history cannot be relabeled.');
+      if(!switching&&prior.currency!==nextCurrency&&currency!==undefined)
+        invalid('Legacy currency records require review and cannot be relabeled.');
+      if(nextCountry==='US'){
+        for(const [label,v,valid] of [['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone]])
+          if(v!==undefined&&(typeof v!=='string'||!valid(v.trim())))invalid('Enter a valid '+label+'.');
+      }
       if(phone!==undefined&&(typeof phone!=='string'||phone.length>40))invalid('Phone number is too long.');
-      const now = Date.now();
-      q.updateUser.run(
-        name !== undefined ? name.trim() : null,
-        businessName !== undefined ? businessName.trim() : null,
-        trade !== undefined ? trade.trim() : null,
-        phone !== undefined ? phone.trim() : null,
-        location !== undefined ? location.trim() : null,
-        country !== undefined ? country.trim() : null,
-        currency !== undefined ? currency.trim() : null,
-        usState !== undefined ? usState.trim() : null,
-        usZip !== undefined ? usZip.trim() : null,
-        timeZone !== undefined ? timeZone.trim() : null,
-        googlePlaceUrl !== undefined ? googlePlaceUrl.trim() : null,
-        now, id
-      );
+      const inState=nextCountry==='IN'?(indiaState===undefined?(switching?'':prior.india_state):String(indiaState).trim()):'';
+      const taxId=nextCountry==='IN'?(gstin===undefined?(switching?'':prior.gstin):String(gstin).trim().toUpperCase()):'';
+      const vpa=nextCountry==='IN'?(upiVpa===undefined?(switching?'':prior.upi_vpa):String(upiVpa).trim()):'';
+      if(!validIndianState(inState)||!validGSTIN(taxId)||!validUpiVpa(vpa))
+        invalid('Enter a valid Indian state code, GSTIN and UPI ID.');
+      if(taxId&&inState&&taxId.slice(0,2)!==inState)invalid('GSTIN state does not match your selected state.');
+      if(taxId&&!inState)invalid('Select a registered business state for the GSTIN.');
+      const now=Date.now();
+      const save=db.transaction(()=>{
+        q.updateUser.run(
+          name!==undefined?name.trim():null,businessName!==undefined?businessName.trim():null,
+          trade!==undefined?trade.trim():null,phone!==undefined?phone.trim():null,
+          location!==undefined?location.trim():null,
+          nextCountry,!switching&&prior.currency!==nextCurrency?prior.currency:nextCurrency,
+          nextCountry==='US'?(usState===undefined?(switching?'':null):usState.trim()):'',
+          nextCountry==='US'?(usZip===undefined?(switching?'':null):usZip.trim()):'',
+          nextCountry==='IN'?'Asia/Kolkata':(timeZone===undefined?(switching?'':null):timeZone.trim()),
+          googlePlaceUrl!==undefined?googlePlaceUrl.trim():null,now,id
+        );
+        q.updateIndiaProfile.run(inState,taxId,vpa,id);
+        if(switching)billingReset.run(id); // Old country phone evidence never carries over.
+      });
+      save();
       return q.getUserById.get(id);
     },
 
@@ -771,6 +963,12 @@ export function openDb(file) {
           notes: i.notes || '',
           paidAt: i.paid_at || undefined,
           jobId: i.job_id || null,
+          currency: i.invoice_currency || user.currency || 'USD',
+          supplierGstin: i.supplier_gstin || '', supplierState:i.supplier_state || '',
+          customerGstin:i.customer_gstin || '',placeOfSupply:i.place_of_supply || '',hsnSac:i.hsn_sac || '',
+          gstRate:Number(i.gst_rate)||0,taxable:Number(i.taxable_total)||0,
+          cgst:Number(i.cgst)||0,sgst:Number(i.sgst)||0,utgst:Number(i.utgst)||0,igst:Number(i.igst)||0,
+          upiVpa:i.upi_vpa_snapshot||'',
         };
       });
 
@@ -819,6 +1017,9 @@ export function openDb(file) {
           location: user.location || '',
           country: user.country || 'US',
           currency: user.currency || 'USD',
+          indiaState: user.india_state || '',
+          gstin: user.gstin || '',
+          upiVpa: user.upi_vpa || '',
           usState: user.us_state || '',
           usZip: user.us_zip || '',
           timeZone: user.time_zone || '',
@@ -828,7 +1029,7 @@ export function openDb(file) {
           trialDaysRemaining: trialDaysRemaining,
           planStatus: effectivePlanStatus,
           subscription: this.getUserSubscription(userId) ? { status: this.getUserSubscription(userId).status, id: this.getUserSubscription(userId).subscription_id } : null,
-          monthlyPrice: 20,
+          monthlyPrice: user.country==='IN'?500:20,
           bankConnected: Boolean(user.bank_connected),
           bankName: user.bank_name || '',
           bankLastSynced: user.bank_last_synced || '',
@@ -942,7 +1143,9 @@ export function openDb(file) {
       const items = payload.items && payload.items.length ? payload.items : [
         { description: payload.jobTitle || 'Service labor & materials', qty: 1, rate: Number(payload.amount) || 0 },
       ];
-      const total = items.reduce((s, it) => s + (Number(it.qty) || 1) * (Number(it.rate) || 0), 0);
+      const user=q.getUserById.get(userId);
+      const tax=editionTax(user,items,payload);
+      const total=tax?tax.total:items.reduce((s,it)=>s+(Number(it.qty)||1)*(Number(it.rate)||0),0);
       const id = String(q.nextInvoiceNumber.run().lastInsertRowid);
       const inv = {
         id,
@@ -964,7 +1167,8 @@ export function openDb(file) {
         inv.jobTitle, inv.issueDate, inv.terms, inv.dueDate, inv.status,
         JSON.stringify(inv.items), inv.total, inv.notes, inv.paidAt, today
       );
-      return inv;
+      persistInvoiceTax(userId,id,tax);
+      return {...inv,currency:tax?'INR':'USD',...(tax||{})};
     },
 
     // Validate editable invoice line items before committing any financial totals.
@@ -996,7 +1200,11 @@ export function openDb(file) {
         items = p.items;
       }
       items = this.validateInvoiceItems(items);
-      const total = Math.round(items.reduce((s, it) => s + it.qty * it.rate, 0) * 100) / 100;
+      const user=q.getUserById.get(userId);
+      const gstFields={gstRate:p.gstRate??inv.gst_rate,customerGstin:p.customerGstin??inv.customer_gstin,
+        placeOfSupply:p.placeOfSupply??inv.place_of_supply,hsnSac:p.hsnSac??inv.hsn_sac};
+      const tax=editionTax(user,items,gstFields);
+      const total=tax?tax.total:Math.round(items.reduce((s,it)=>s+it.qty*it.rate,0)*100)/100;
       const terms = p.terms || inv.terms;
       const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
@@ -1010,12 +1218,17 @@ export function openDb(file) {
         terms, dueDate, status, JSON.stringify(items), total, p.notes,
         paidAt, String(id), userId
       );
+      persistInvoiceTax(userId,id,tax);
       return { ok: true };
     },
 
     updateInvoiceStatus(userId, id, status) {
       const original = q.getInvoice.get(String(id), userId);
       if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
+      const owner=q.getUserById.get(userId);
+      if (owner?.country==='IN'&&owner.gstin&&status!=='Draft'&&
+          (!original.supplier_gstin||!original.hsn_sac||!original.place_of_supply))
+        throw Object.assign(new Error('Review and save GST details before marking this invoice Sent or Paid.'),{code:'gst_review_required',status:409});
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
         throw Object.assign(new Error('Review and enter the invoice pricing before marking it sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
@@ -1033,6 +1246,9 @@ export function openDb(file) {
       if (action === 'confirm' && targetInvoiceId) {
         const source = q.getInvoice.get(String(targetInvoiceId), userId);
         if (!source) throw Object.assign(new Error('The selected invoice was not found.'), {code:'not_found',status:404});
+        const owner=q.getUserById.get(userId);
+        if(owner?.country==='IN'&&owner.gstin&&(!source.supplier_gstin||!source.hsn_sac||!source.place_of_supply))
+          throw Object.assign(new Error('Finish reviewing GST details before recording this invoice as paid.'),{code:'gst_review_required',status:409});
         if (source.job_id && Number(source.total) <= 0) {
           throw Object.assign(new Error('Set invoice pricing before recording a payment against this job draft.'), {code:'invoice_needs_pricing',status:409});
         }
@@ -1138,6 +1354,8 @@ export function openDb(file) {
       if (!row) return false;
       // Never grant access based on checkout callback alone; confirmed provider events determine status.
       subscriptionUpdate.run(status, currentEnd, id);
+      if(['authenticated','active','charged'].includes(status) && this.billingEligible(row.user_id))
+        markMandateAuthorized.run(Date.now(),row.user_id);
       if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000) {
         q.setUserPlan.run('pro', 'active', id, currentEnd || Date.now() + 32 * 86400000, Date.now(), row.user_id);
       } else if (['cancelled','halted','expired'].includes(status) && (row.start_at * 1000 <= Date.now())) {

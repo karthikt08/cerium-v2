@@ -11,7 +11,9 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
+import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhone} from './billing-identity.js';
 import {verifyOptOut} from './reminders.js';
+import {createRegionGate} from './region-access.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -35,7 +37,7 @@ function workspaceReturnTarget(value) {
   }
 }
 
-export function createApp({ config, db, google = null, razorpay = null, now = () => Date.now(), limits = {}, log = true }) {
+export function createApp({ config, db, google = null, razorpay = null, phoneVerifier = null, regionLookup = undefined, now = () => Date.now(), limits = {}, log = true }) {
   const limit = {
     global: { windowMs: 15 * MINUTE, limit: 1200 },
     auth: { windowMs: 15 * MINUTE, limit: 60 },
@@ -49,6 +51,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   const cookieBase = { httpOnly: true, secure: config.cookieSecure, sameSite: 'lax', path: '/' };
 
   const rzp = razorpay || makeRazorpay(config);
+  const phones = phoneVerifier || makePhoneVerifier(config);
 
   const app = express();
   app.disable('x-powered-by');
@@ -127,6 +130,12 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
           if (allowed.includes(status)) {
             const normalized = status === 'completed' ? 'expired' : status;
             db.updateSubscription(subscription.id, normalized, Number(subscription.current_end) ? subscription.current_end * 1000 : null);
+              if(config.workspaceAccessMode==='phone_and_mandate' &&
+                 ['authenticated','active','charged'].includes(normalized)){
+                const savedSub=db.getSubscription(subscription.id);
+                if(savedSub&&db.billingEligible(savedSub.user_id))
+                  db.beginTrialOnEntry(savedSub.user_id);
+              }
           }
         }
         if (event.event === 'payment.captured' || event.event === 'order.paid') {
@@ -157,6 +166,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
+  // Apply before static pages, sign-in endpoints, workspace routes and billing.
+  // Verified provider webhooks, uptime checks and opt-outs remain reachable.
+  app.use(createRegionGate({config,...(regionLookup?{lookup:regionLookup}:{})}));
 
   // Token-gated unsubscribe endpoint. Opening an email does NOT mutate settings;
   // the recipient must confirm by POST. No sign-in required for the recipient.
@@ -241,6 +253,23 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     next();
   });
 
+  // Enforce onboarding BEFORE delivering the private workspace shell.
+  // Never rely on hiding buttons: the private API has the same gate below.
+  const accessStatus=userId=>{
+    const verified=db.billingEligible(userId);
+    const sub=db.getUserSubscription(userId);
+    const receipt=db.getBillingIdentity(userId);
+    // Once authorized, a cancelled mandate should not end the already granted
+    // free trial. Trial expiry still makes business writes read-only.
+    const mandate=Boolean(receipt?.mandate_authorized_at>0 ||
+      (sub&&['authenticated','active','charged'].includes(sub.status)));
+    const mode=config.workspaceAccessMode;
+    return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
+  };
+  app.get(['/app','/app.html'],(req,res,next)=>{
+    if(!req.session||accessStatus(req.session.userId).unlocked)return next();
+    return res.redirect(303,'/verify.html');
+  });
   // Serve static public assets
   app.use(express.static(path.join(ROOT, 'public'), { dotfiles: 'ignore', index: 'index.html', extensions: ['html'] }));
 
@@ -287,6 +316,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       name: cleanName,
       businessName: cleanBusiness,
       termsVersion: config.termsVersion,
+      country: req.region?.country || 'US',
       emailVerified: 0,
       verificationToken,
       verificationExpires,
@@ -438,7 +468,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const verifier = randomToken(48);
     const business = intent === 'join' ? cleanText(req.body && req.body.business, 80) : '';
 
-    const note = sign(config.sessionSecret, { s: state, n: nonce, v: verifier, i: intent, b: business, r: returnTo, e: now() + LOGIN_TIME });
+    const note = sign(config.sessionSecret, { s: state, n: nonce, v: verifier, i: intent, b: business, r: returnTo, country: req.region?.country || null, e: now() + LOGIN_TIME });
     res.cookie(config.oauthCookie, note, { ...cookieBase, maxAge: LOGIN_TIME });
     res.redirect(303, google.buildAuthUrl({ state, nonce, codeChallenge: pkceChallenge(verifier) }));
   });
@@ -451,6 +481,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     const fail = (code) => res.redirect(303, `${page}?error=${code}`);
 
     if (!note || typeof note.e !== 'number' || note.e < now()) return fail('expired');
+    // The callback may occur from a different network. Only new accounts require an approved region.
     if (req.query.error) return fail(req.query.error === 'access_denied' ? 'denied' : 'failed');
 
     const { code, state } = req.query;
@@ -469,6 +500,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
     let user = db.getUserByGoogleSub(profile.sub) || db.getUserByEmail(profile.email);
     if (!user) {
+      if(config.regionEnforced && config.workspaceAccessMode==='off' &&
+         (!req.region || !note.country || note.country!==req.region.country)) return fail('region-unavailable');
       user = db.createUser({
         email: profile.email,
         name: profile.name,
@@ -476,6 +509,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         googleSub: profile.sub,
         emailVerified: 1,
         termsVersion: config.termsVersion,
+        country: req.region?.country || 'US',
         now: now(),
       });
     }
@@ -518,6 +552,14 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   // ------------------------------------------------------------ Workspace & Private API (/api)
   const api = express.Router();
 
+  // Public, server-verified market selection; deliberately excludes visitor IP.
+  api.get('/region', (req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    if(!req.region)return res.json({mode:config.regionEnforced?'unavailable':'development',country:null,currency:null,monthlyPrice:null,reason:req.regionIssue?.reason||null});
+    const {country,currency,monthlyPrice}=req.region;
+    return res.json({mode:'enforced',country,currency,monthlyPrice});
+  });
+
   // Current session & user status
   api.get('/me', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -538,7 +580,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
             location: user.location || '',
             country: user.country || 'US',
             currency: user.currency || 'USD',
-            usState: user.us_state || '',
+            indiaState: user.india_state || '', gstin: user.gstin || '', upiVpa: user.upi_vpa || '',
+          usState: user.us_state || '',
             usZip: user.us_zip || '',
             timeZone: user.time_zone || '',
             plan: user.plan,
@@ -550,10 +593,29 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     });
   });
 
+  // Protect all workspace APIs, not just the page. Billing/onboarding,
+  // account deletion and data export remain accessible while gated.
+  api.use((req,res,next)=>{
+    if(!req.session || config.workspaceAccessMode==='off')return next();
+    if(accessStatus(req.session.userId).unlocked)return next();
+    const permitted=[
+      /^\/billing\/identity(?:\/start|\/verify)?$/,
+      /^\/billing\/(?:status|subscription(?:\/verify|\/cancel)?)$/,
+      /^\/me\/export$/,
+      /^\/me$/
+    ];
+    if(permitted.some(re=>re.test(req.path)) && !(req.path==='/me'&&req.method!=='GET'))return next();
+    if(req.path==='/me'&&req.method==='DELETE')return next();
+    return res.status(403).json({error:'onboarding_required',message:'Verify your phone'+(config.workspaceAccessMode==='phone_and_mandate'?' and authorize the subscription mandate':'')+' before accessing CERIUM.'});
+  });
+
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
-    try { updated = db.updateUser(req.session.userId, req.body || {}); }
+    if((config.regionEnforced||config.workspaceAccessMode!=='off') && req.body?.country && req.body.country!==(req.user?.country||'US'))
+      return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
+    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country,currency:req.user.currency}:(req.body||{});
+    try { updated = db.updateUser(req.session.userId, body); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
       ok: true,
@@ -566,6 +628,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
         location: updated.location || '',
         country: updated.country || 'US',
         currency: updated.currency || 'USD',
+        indiaState: updated.india_state || '', gstin: updated.gstin || '', upiVpa: updated.upi_vpa || '',
         usState: updated.us_state || '',
         usZip: updated.us_zip || '',
         timeZone: updated.time_zone || '',
@@ -578,7 +641,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
   api.get('/workspace', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
     if (!ws) return res.status(404).json({ error: 'workspace_not_found' });
-    res.json(ws);
+    // Region restrictions are server-enforced; disable edition selection in UI.
+    res.json({...ws,account:{...ws.account,regionLocked:config.regionEnforced||config.workspaceAccessMode!=='off'}});
   });
 
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
@@ -598,7 +662,8 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     // Never allow new amounts to be created under that denomination in the
     // dollar-only product. Account export and deliberate workspace clearing
     // remain available outside this middleware.
-    if (workspace.account.currency !== 'USD') {
+    if (!((workspace.account.country==='US'&&workspace.account.currency==='USD')||
+          (workspace.account.country==='IN'&&workspace.account.currency==='INR'))) {
       return res.status(409).json({
         error: 'currency_review_required',
         message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
@@ -791,29 +856,107 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
     res.json({ ok: true });
   });
 
+  // Billing identity: phone possession plus an explicit billing-country declaration.
+  // SMS verification is deliberately AFTER trial signup and BEFORE any new paid
+  // subscription. Phone codes are never accepted from profile fields or the browser.
+  api.get('/billing/identity',requireSession,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const saved=db.getBillingIdentity(req.session.userId);
+    const user=db.getUserById(req.session.userId);
+    const verified=db.billingEligible(req.session.userId);
+    res.json({
+      country:user.country,currency:user.currency,verified,
+      accessMode:config.workspaceAccessMode,
+      paymentAuthorized:accessStatus(req.session.userId).mandate,
+      workspaceUnlocked:accessStatus(req.session.userId).unlocked,
+      checkoutConfigured:Boolean(user.country==='IN'?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured),
+      countryAttested:verified,
+      phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
+      pending:Boolean(saved?.pending_phone && saved.pending_expires_at>Date.now()),
+      providerReady:Boolean(phones.ready),
+      mode:phones.mode==='development'?'development':phones.ready?'sms':'unavailable',
+      // Dial prefixes identify phone routing only, not residency or incorporation.
+      note:'SMS confirms access to a number, not legal business location. Billing country is your declaration.'
+    });
+  });
+
+  api.post('/billing/identity/start',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const country=editionFromPhone(req.body?.phone);
+    if(!country)return res.status(400).json({error:'phone_invalid',message:'Enter a valid +91 Indian mobile or +1 US number. Other numbering plans require manual review.'});
+    if(req.body?.confirmCountry!==true || req.body?.declaredCountry!==country)
+      return res.status(400).json({error:'country_confirmation_required',message:'Confirm that your business is based in the country suggested by your phone prefix. Phone ownership alone is not proof.'});
+    const phone=normalizeBillingPhone(req.body.phone,country);
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone verification is not available yet. Your free trial is unaffected; contact support.'});
+    const claimed=db.beginBillingPhone(req.session.userId,phone,country);
+    if(!claimed.ok){
+      const messages={country_mismatch:'Saved billing country requires review.',cooldown:'You can request another code after 90 seconds.',daily_limit:'Daily SMS verification limit reached. Try again tomorrow or contact support.'};
+      return res.status(claimed.reason==='country_mismatch'?409:429).json({error:claimed.reason,message:messages[claimed.reason]||'Verification is temporarily unavailable.'});
+    }
+    try{
+      if(!(await phones.send(phone)))throw new Error('not pending');
+      return res.json({ok:true,pending:true,country,phoneMasked:maskBillingPhone(phone),mode:phones.mode==='development'?'development':'sms'});
+    }catch(err){
+      return res.status(502).json({error:'sms_unavailable',message:'Could not send a code. No subscription was created. Try later or contact support.'});
+    }
+  });
+
+  api.post('/billing/identity/verify',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    const code=req.body?.code;
+    if(typeof code!=='string'||!/^[0-9]{4,10}$/.test(code))
+      return res.status(400).json({error:'invalid_code',message:'Enter the numeric verification code.'});
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured'});
+    const claim=db.beginBillingCheck(req.session.userId);
+    if(!claim.ok)return res.status(claim.reason==='attempt_limit'?429:409).json({
+      error:claim.reason,message:claim.reason==='attempt_limit'?'Too many attempts. Request a new code later.':'No active verification. Request a new code.'
+    });
+    try{
+      if(!(await phones.check(claim.phone,code)))
+        return res.status(400).json({error:'invalid_code',message:'That code was not approved. Try again.'});
+      if(!db.completeBillingPhone(req.session.userId,claim.phone,claim.country))
+        return res.status(409).json({error:'verification_expired',message:'This code expired or your billing country changed.'});
+      if(config.workspaceAccessMode==='phone')db.beginTrialOnEntry(req.session.userId);
+      return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country,currency:claim.country==='IN'?'INR':'USD'});
+    }catch{
+      return res.status(502).json({error:'sms_unavailable',message:'Verification service is unavailable. Try again shortly.'});
+    }
+  });
+
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, async (req, res) => {
-    if (!config.subscriptionsConfigured) return res.status(503).json({ error: 'billing_not_configured', message: 'Subscription checkout is not ready. Your free trial remains available.' });
     const user = db.getUserById(req.session.userId);
-    if(user.country!=='US'||user.currency!=='USD')
-      return res.status(403).json({error:'us_billing_only',message:'CERIUM subscription checkout is available only to USD-denominated US workspaces. Contact support to review legacy currency records.'});
+    const indian=user.country==='IN'&&user.currency==='INR';
+    const american=user.country==='US'&&user.currency==='USD';
+    if(!indian&&!american)
+      return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
+    const billingPlanId=indian?config.razorpayIndiaPlanId:config.razorpayPlanId;
+    const billingAmount=indian?config.priceInPaise:config.priceCents;
+    const billingCurrency=indian?'INR':'USD';
+    if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
+      return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
     const existing = db.getUserSubscription(user.id);
     if (existing && !['cancelled','expired','halted'].includes(existing.status)) {
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id, status: existing.status, amount:billingAmount,currency:billingCurrency });
     }
+    if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone and payment verification are required before trial entry. This checkout is temporarily unavailable.'});
+    if(!db.billingEligible(user.id))
+      return res.status(409).json({error:'billing_verification_required',message:'Verify your phone and confirm your business billing country before authorizing the trial payment method.'});
     try {
       // Trial begins when account is created. Use its original end date, not a fresh 15 days.
-      const startAt = Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
-      const plan = await rzp.getPlan(config.razorpayPlanId);
+      const startAt=config.workspaceAccessMode==='phone_and_mandate'
+        ?Math.floor(Date.now()/1000)+15*86400
+        :Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
+      const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
-          Number(plan.item?.amount) !== config.priceCents ||
-          plan.item?.currency !== config.currency) {
+          Number(plan.item?.amount) !== billingAmount ||
+          plan.item?.currency !== billingCurrency) {
         return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
       }
-      const created = await rzp.createSubscription({ planId: config.razorpayPlanId, startAt, notes: { userId: user.id } });
+      const created = await rzp.createSubscription({ planId: billingPlanId, startAt, notes: { userId: user.id, edition: indian?'IN':'US' } });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       db.createSubscription(user.id, created.id, startAt);
-      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: config.priceCents, currency: config.currency });
+      return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status, startAt, amount: billingAmount, currency: billingCurrency });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
@@ -830,9 +973,16 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       const status = String(remote.status || '');
       if (['authenticated','active','pending','charged'].includes(status)) {
         db.updateSubscription(saved.subscription_id, status, remote.current_end ? remote.current_end * 1000 : null);
-        return res.json({ verified: true, status });
+        // A pending subscription has NOT completed recurring authorization.
+        // Never return verified:true (or begin the trial) until Razorpay
+        // confirms a mandate-authorized state.
+        if (['authenticated','active','charged'].includes(status)) {
+          if (config.workspaceAccessMode==='phone_and_mandate'&&db.billingEligible(req.session.userId))
+            db.beginTrialOnEntry(req.session.userId);
+          return res.json({ verified: true, status });
+        }
       }
-      return res.status(409).json({ verified: false, status, message: 'Subscription is not authorized yet.' });
+      return res.status(409).json({ verified: false, status, message: 'Razorpay has not confirmed recurring payment authorization yet. Check your payment app or retry later.' });
     } catch {
       return res.status(502).json({ error: 'billing_service_unavailable' });
     }
@@ -852,7 +1002,9 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
 
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
-    res.json({ planStatus: ws?.account.planStatus || 'trial', trialDaysRemaining: ws?.account.trialDaysRemaining ?? 15, monthlyPrice: config.priceCents/100, currency: config.currency, subscription: ws?.account.subscription || null, checkoutAvailable: Boolean(config.subscriptionsConfigured && ws?.account.country==='US' && ws?.account.currency==='USD') });
+    const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
+    const american=ws?.account.country==='US'&&ws?.account.currency==='USD';
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured))&&phones.ready&&db.billingEligible(req.session.userId)),billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.
@@ -868,6 +1020,7 @@ export function createApp({ config, db, google = null, razorpay = null, now = ()
       signIn: { provider: req.session.sub ? 'Google' : 'Email', email: req.session.email, name: req.session.name },
       waitlist: member && { joinedAt: member.joinedAt, business: member.business, termsVersionAccepted: member.termsVersion },
       workspace: ws,
+      billingIdentity: db.getBillingIdentity(req.session.userId),
     };
     res.set('Content-Disposition', 'attachment; filename="cerium-my-data.json"');
     res.type('application/json').send(JSON.stringify(data, null, 2));
