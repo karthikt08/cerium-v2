@@ -172,7 +172,7 @@ function settingsPage() {
   const billingIdentityPanel=`<section class="panel">${panelHeader('payments','Billing verification',proof.verified?'Verified for paid checkout':'Required before your first paid subscription')}
     <div class="settings-content billing-verify-content">
       <p class="billing-verify-status ${proof.verified?'is-verified':''}" role="status">${proof.verified?'✓ Phone confirmed':'Phone confirmation pending'} · ${ind?'India (INR)':'United States (USD)'}${proof.verified?' · '+esc(proof.phoneMasked):''}</p>
-      <p class="muted">Your 15-day trial works without SMS. Before authorizing recurring payments, confirm that your business is based in ${ind?'India':'the United States'} and verify a phone number. A dial code alone does not prove a business location.</p>
+      <p class="muted">Your verified number controls workspace access and your saved billing edition. To authorize a subscription, confirm that your business is based in ${ind?'India':'the United States'} and verify a phone number. A dial code alone does not prove a business location.</p>
       ${!proof.providerReady?'<p class="form-error">Phone verification is not yet configured on this server. The trial is still available. Contact support before paying.</p>':''}
       ${proof.mode==='development'?'<p class="billing-dev-tip">Local development only: no text message is sent. Enter the test code <strong>000000</strong> after requesting a code.</p>':''}
       <form id="billing-phone-start" class="billing-verify-form">
