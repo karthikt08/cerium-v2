@@ -58,7 +58,7 @@ export function invoicePrintHTML({invoiceMarkup, paper = 'A4', title = 'Invoice'
   .invoice-preserve-lines{font-size:10.4px;line-height:1.62;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
   .invoice-document a{color:#273247;text-decoration:none;overflow-wrap:anywhere}
   .invoice-document [data-no-print]{display:none!important}
-  @page{size:${page};margin:16mm 16mm 17mm}
+  @page{size:${page};margin:16mm 16mm 17mm;@bottom-right{content:"Page " counter(page) " / " counter(pages);font:8px Arial,Helvetica,sans-serif;color:#647087}}
   @media print{
     html,body{background:white!important;width:auto!important;min-width:0!important;margin:0!important;padding:0!important}
     .print-toolbar{display:none!important}
