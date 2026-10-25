@@ -83,3 +83,21 @@ test('benefits page inherits the landing purple ambient glow and magnetic cursor
   assert.match(read('js/home.js'),/pg\.style\.setProperty\('--px'/,'ambient moves with pointer');
   assert.match(read('js/workspace-cursor.js'),/className='workspace-cursor'/,'reuse magnetic ring');
 });
+
+test('benefits categories use workspace-style rounded rectangles and every card stacks its text',()=>{
+  const html=read('benefits.html');
+  assert.equal((html.match(/<article class="feature cd" data-rv>/g)||[]).length,14);
+  assert.match(html,/\.pg\.home\.benefits-page \.hero-nav a\{[^}]*border-radius:9px/,'category controls must be rounded rectangles, not full pills');
+  assert.doesNotMatch(html,/\.hero-nav a\{[^}]*border-radius:99px/,'avoid oversized pill styling');
+  assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd\{display:flex;flex-direction:column;align-items:flex-start/,'cards stack content');
+  assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd \.num\{display:block/,'category labels start on a separate line');
+  assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd h3\{display:block/,'headings no longer sit inline with category labels');
+  assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd > p:not\(\.note\)\{display:block/,'body descriptions occupy their own paragraph');
+  assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd > p\.note\{display:block/,'notes get a separate row');
+  for(const destination of ['#win-work','#deliver-work','#get-paid','#run-business'])
+    assert.ok(html.includes('href="'+destination+'"'),'keep live in-page navigation: '+destination);
+  assert.match(html,/css\/spatial\.css/,'preserve ambient purple glow');
+  assert.match(html,/js\/workspace-cursor\.js/,'preserve the magnetic cursor');
+  assert.match(html,/rgba\(102,69,221,\.38\)/,'preserve purple card halo');
+  assert.match(html,/prefers-reduced-motion:reduce/,'respect reduced motion preference');
+});
