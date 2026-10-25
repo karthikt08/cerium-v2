@@ -1,7 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap');
 /* Cerium spatial skin. Link AFTER each page's inline <style>. */
 html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fixed}
-.pg{--ac:#4263eb;--ink:#14171c;--mut:#5d6573;--ln:rgba(20,23,28,.1);--hf:"Instrument Sans",system-ui,sans-serif;--bf:"Instrument Sans",system-ui,sans-serif;--gl:rgba(255,255,255,.62);--ge:rgba(255,255,255,.75);background:transparent;font-size:17px}
+.pg{--ac:#4263eb;--ink:#14171c;--mut:#5d6573;--ln:rgba(20,23,28,.1);--hf:"Figtree",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;--gl:rgba(255,255,255,.62);--ge:rgba(255,255,255,.75);background:transparent;font-size:17px}
 .pg::before{content:"";position:fixed;inset:-14%;z-index:0;pointer-events:none;background:radial-gradient(34% 38% at calc(18% + var(--px,0)*16%) calc(14% + var(--py,0)*12%),rgba(117,83,255,.42),transparent 70%),radial-gradient(38% 36% at calc(84% + var(--px,0)*12%) calc(62% + var(--py,0)*14%),rgba(237,124,255,.28),transparent 70%),radial-gradient(30% 30% at 40% 95%,rgba(89,203,219,.22),transparent 70%);transform:translate3d(calc(var(--px,0)*-48px),calc(var(--py,0)*-48px),0);transition:transform .42s ease-out}
 .pg>:not(.sp-cur):not(.gl):not(.rg):not(.grid-bg):not(.sp-grid){position:relative;z-index:1}
 
