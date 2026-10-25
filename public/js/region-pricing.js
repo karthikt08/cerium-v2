@@ -22,29 +22,7 @@ const paintAnnual=plan=>{
     if(typeof country!=='string'||!/^[A-Z]{2}$/.test(country))return; // Local anonymous preview uses default copy.
     const plan=billingPlan(country);
     if(picker?.value)return; // A visitor's explicit preview wins over a late network response.
-    const monthly=(plan.currency==='INR'?'₹':'
-    for(const element of document.querySelectorAll('[data-region-price]'))
-      element.textContent=monthly;
-    for(const element of document.querySelectorAll('[data-region-description]'))
-      element.textContent=country==='IN'?'India price · INR billing':plan.discountPercent?plan.discountPercent+'% country discount · USD billing':'Standard price · USD billing';
-  }catch {
-    // Cosmetic only. No payment amount may come from browser content.
-  }
-})();
-
-const picker=document.getElementById('pricing-country');
-if(picker){
-  const {COUNTRY_OPTIONS,priceLabel}=await import('./countries.js');
-  for(const country of COUNTRY_OPTIONS){const option=document.createElement('option');option.value=country.value;option.textContent=country.label;picker.append(option);}
-  picker.addEventListener('change',()=>{
-    const plan=billingPlan(picker.value);if(!plan)return;
-    paintAnnual(plan);
-    for(const element of document.querySelectorAll('[data-region-price]'))element.textContent=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
-    for(const element of document.querySelectorAll('[data-region-description]'))element.textContent='Country price preview · '+plan.currency+' billing';
-    document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Same features in every country. Confirmed at business setup.';
-  });
-}
-)+plan.monthlyPrice;
+    const monthly=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
     paintAnnual(plan);
     for(const element of document.querySelectorAll('[data-region-price]'))
       element.textContent=monthly;
@@ -61,6 +39,7 @@ if(picker){
   for(const country of COUNTRY_OPTIONS){const option=document.createElement('option');option.value=country.value;option.textContent=country.label;picker.append(option);}
   picker.addEventListener('change',()=>{
     const plan=billingPlan(picker.value);if(!plan)return;
+    paintAnnual(plan);
     for(const element of document.querySelectorAll('[data-region-price]'))element.textContent=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
     for(const element of document.querySelectorAll('[data-region-description]'))element.textContent='Country price preview · '+plan.currency+' billing';
     document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Same features in every country. Confirmed at business setup.';
