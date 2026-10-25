@@ -9,7 +9,8 @@ import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
 import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
-import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
+import {billingPlan,validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
+import {subscriptionPrice} from './country-pricing.js';
 import {normalizeBillingPhone} from './billing-identity.js';
 import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError,businessSetupSteps,advanceBusinessSetup} from './business-profile.js';
 import {defaultModules,isIndustry,normalizeModules,suggestIndustry} from '../public/js/industry-workspaces.js';
@@ -429,6 +430,14 @@ export function openDb(file) {
     db.exec('ALTER TABLE recurring_subscriptions ADD COLUMN last_event_at INTEGER NOT NULL DEFAULT 0');
   // Stable ordering even when a cancelled checkout and its replacement were
   // inserted within the same millisecond (common on fast Windows test runs).
+  const subscriptionColumns=new Set(db.prepare('PRAGMA table_info(recurring_subscriptions)').all().map(c=>c.name));
+  for(const [name,type] of [['price_amount','INTEGER'],['price_currency','TEXT'],['price_tier','TEXT'],['price_version','TEXT'],['price_plan_id','TEXT']])
+    if(!subscriptionColumns.has(name))db.exec('ALTER TABLE recurring_subscriptions ADD COLUMN '+name+' '+type);
+  db.exec(`UPDATE recurring_subscriptions SET
+    price_amount=CASE WHEN (SELECT country FROM users WHERE id=user_id)='IN' THEN 50000 ELSE 2000 END,
+    price_currency=CASE WHEN (SELECT country FROM users WHERE id=user_id)='IN' THEN 'INR' ELSE 'USD' END,
+    price_tier='legacy',price_version='pre-country-tiers'
+    WHERE price_amount IS NULL`);
   const subscriptionForUser = db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1');
   const subscriptionInsert = db.prepare('INSERT INTO recurring_subscriptions (subscription_id,user_id,status,start_at,created_at) VALUES (?,?,?,?,?)');
   const subscriptionUpdate = db.prepare('UPDATE recurring_subscriptions SET status=?,current_end=COALESCE(?,current_end),last_event_at=MAX(last_event_at,?) WHERE subscription_id=?');
@@ -1250,7 +1259,9 @@ export function openDb(file) {
           trialDaysRemaining: trialDaysRemaining,
           planStatus: effectivePlanStatus,
           subscription: this.getUserSubscription(userId) ? { status: this.getUserSubscription(userId).status, id: this.getUserSubscription(userId).subscription_id } : null,
-          monthlyPrice: user.country==='IN'?500:20,
+          monthlyPrice: subscriptionPrice(user.country,this.getUserSubscription(userId))?.monthlyPrice,
+          billingPrice: subscriptionPrice(user.country,this.getUserSubscription(userId)),
+          availableBillingPrice: billingPlan(user.country),
           bankConnected: Boolean(user.bank_connected),
           bankName: user.bank_name || '',
           bankLastSynced: user.bank_last_synced || '',
@@ -1631,9 +1642,14 @@ export function openDb(file) {
     getSubscription(id) { return subscriptionFind.get(id) || null; },
     getUserSubscription(userId) { return subscriptionForUser.get(userId) || null; },
     getUserSubscriptions(userId) { return db.prepare('SELECT * FROM recurring_subscriptions WHERE user_id=? ORDER BY created_at DESC,rowid DESC').all(userId); },
-    createSubscription(userId, id, startAt) {
+    createSubscription(userId, id, startAt, price=null) {
       if (subscriptionFind.get(id)) return;
-      subscriptionInsert.run(id, userId, 'created', startAt, Date.now());
+      db.transaction(()=>{
+        subscriptionInsert.run(id, userId, 'created', startAt, Date.now());
+        const saved=price||billingPlan(q.getUserById.get(userId)?.country);
+        db.prepare('UPDATE recurring_subscriptions SET price_amount=?,price_currency=?,price_tier=?,price_version=?,price_plan_id=? WHERE subscription_id=?')
+          .run(saved.minorUnits,saved.currency,saved.tier,saved.version,saved.planId||null,id);
+      })();
     },
     updateSubscription(id, status, currentEnd = null, eventAt = 0) {
       const row = subscriptionFind.get(id);

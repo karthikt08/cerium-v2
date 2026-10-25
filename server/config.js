@@ -91,6 +91,10 @@ export function buildConfig(env = process.env) {
     /^plan_[A-Za-z0-9]+$/.test(razorpayPlanId) &&
     razorpayWebhookSecret.length >= 16 && !PLACEHOLDER.test(razorpayWebhookSecret);
 
+  const razorpayUpperMiddlePlanId=get('RAZORPAY_UPPER_MIDDLE_PLAN_ID');
+  const razorpayLowerMiddlePlanId=get('RAZORPAY_LOWER_MIDDLE_PLAN_ID');
+  const razorpayLowPlanId=get('RAZORPAY_LOW_PLAN_ID');
+  const webhookConfigured=razorpayWebhookSecret.length>=16&&!PLACEHOLDER.test(razorpayWebhookSecret);
   const priceCents = 2000;
   if (get('PRICE_CENTS')&&Number(get('PRICE_CENTS'))!==priceCents)
     problems.push('PRICE_CENTS must be 2000: the global plan costs USD 20/month.');
@@ -230,6 +234,7 @@ export function buildConfig(env = process.env) {
     razorpayWebhookSecret,
     razorpayPlanId,
     razorpayIndiaPlanId,
+    razorpayUpperMiddlePlanId,razorpayLowerMiddlePlanId,razorpayLowPlanId,webhookConfigured,
     indiaSubscriptionsConfigured,
     priceInPaise,
     razorpayConfigured,

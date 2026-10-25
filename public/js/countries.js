@@ -1,4 +1,5 @@
 import {COUNTRY_CALLING_CODES} from './country-codes.js';
+import {incomeGroup,INCOME_PRICES,INCOME_CLASSIFICATION_VERSION} from './country-income.js';
 
 export {COUNTRY_CALLING_CODES};
 export const validCountry=code=>typeof code==='string'&&Object.hasOwn(COUNTRY_CALLING_CODES,code);
@@ -9,8 +10,13 @@ export const COUNTRY_OPTIONS=Object.freeze(Object.keys(COUNTRY_CALLING_CODES)
   .sort((a,b)=>a.label.localeCompare(b.label,'en')));
 export const currencyForCountry=country=>validCountry(country)?(country==='IN'?'INR':'USD'):null;
 export const billingPlan=country=>validCountry(country)?{
-  country,currency:currencyForCountry(country),monthlyPrice:country==='IN'?500:20,minorUnits:country==='IN'?50000:2000
+  country,currency:currencyForCountry(country),monthlyPrice:country==='IN'?500:INCOME_PRICES[incomeGroup(country)],
+  minorUnits:country==='IN'?50000:INCOME_PRICES[incomeGroup(country)]*100,
+  tier:country==='IN'?'india':incomeGroup(country),
+  discountPercent:country==='IN'?null:100-INCOME_PRICES[incomeGroup(country)]*5,
+  version:INCOME_CLASSIFICATION_VERSION
 }:null;
+export const priceLabel=country=>{const p=billingPlan(country);return p?(p.currency==='INR'?'₹':'$')+p.monthlyPrice+' '+p.currency:'';};
 export const matchesBillingCurrency=(country,currency)=>validCountry(country)&&currency===currencyForCountry(country);
 export const editionLabel=country=>country==='IN'?'India edition · INR':country==='US'?'US edition · USD':'Global edition · USD';
 export const phonePlaceholder=country=>country==='IN'?'98765 43210':country==='US'?'(415) 555-0123':'National number or +country code';
