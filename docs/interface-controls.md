@@ -15,6 +15,12 @@ touch and option selection remain native; multiple/expanded listboxes and the
 phone country picker's hidden backing select are excluded. Forced-colors mode
 restores the system arrow.
 
+On modern browsers supporting `appearance: base-select` (Chromium 135+), the
+open dropdown listbox (`::picker(select)`) and its options are styled to blend
+cleanly with Cerium's software cards: 12px rounded pop-up card, soft elevation
+shadow, slim custom scrollbar, 7px option pills with Cerium blue selected highlight
+and checkmark, and rotating chevrons. Fallback browsers retain standard option styling.
+
 The stylesheet loads after page-specific styles on the workspace, verification
 and public pages. The standalone preview embeds it through the existing CSS
 export step, including its SVG chevron, so it needs no external asset request.

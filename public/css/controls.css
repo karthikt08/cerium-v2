@@ -44,3 +44,133 @@
     -webkit-appearance:auto;appearance:auto;background-image:none;
   }
 }
+
+:is(.app-page,.verify-layout,.pg) select option{background-color:#fff;color:#273a59;font:500 13px system-ui,sans-serif;padding:8px 12px}
+
+/* CERIUM customizable select theme — blends dropdown popups with software UI cards and tables */
+@supports (appearance: base-select) {
+  :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]),
+  :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"])::picker(select) {
+    appearance: base-select;
+  }
+
+  :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]) {
+    background-image: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-inline-end: 12px;
+    cursor: pointer;
+  }
+
+  :is(.app-page,.verify-layout,.pg) select::picker-icon {
+    color: #5f6f87;
+    font-size: 11px;
+    margin-inline-start: 8px;
+    transition: transform .18s ease;
+  }
+  :is(.app-page,.verify-layout,.pg) select:open::picker-icon {
+    transform: rotate(180deg);
+  }
+
+  :is(.app-page,.verify-layout,.pg) select::picker(select) {
+    background-color: #ffffff;
+    border: 1px solid #d8e2f0;
+    border-radius: 12px;
+    box-shadow: 0 22px 65px rgba(22,38,70,.18), 0 4px 14px rgba(22,38,70,.06);
+    padding: 6px;
+    margin-top: 5px;
+    max-height: min(44vh, 320px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    animation: select-drop .16s cubic-bezier(.2,.86,.2,1);
+  }
+
+  :is(.app-page,.verify-layout,.pg) select::picker(select)::-webkit-scrollbar {
+    width: 6px;
+  }
+  :is(.app-page,.verify-layout,.pg) select::picker(select)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  :is(.app-page,.verify-layout,.pg) select::picker(select)::-webkit-scrollbar-thumb {
+    background: #cbd7e9;
+    border-radius: 99px;
+  }
+  :is(.app-page,.verify-layout,.pg) select::picker(select)::-webkit-scrollbar-thumb:hover {
+    background: #9db1d0;
+  }
+  :is(.app-page,.verify-layout,.pg) select::picker(select)::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  :is(.app-page,.verify-layout,.pg) select option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 7px;
+    color: #273750;
+    font: 500 12px/1.35 system-ui, sans-serif;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  :is(.app-page,.verify-layout,.pg) select option:hover,
+  :is(.app-page,.verify-layout,.pg) select option:focus {
+    background-color: #f3f7ff;
+    color: #1d4bb5;
+  }
+  :is(.app-page,.verify-layout,.pg) select option:checked {
+    background-color: #ecf2ff;
+    color: #1d46a2;
+    font-weight: 600;
+  }
+  :is(.app-page,.verify-layout,.pg) select option::checkmark {
+    order: 1;
+    color: #4263eb;
+    margin-left: 12px;
+  }
+  :is(.app-page,.verify-layout,.pg):dir(rtl) select option::checkmark {
+    order: -1;
+    margin-left: 0;
+    margin-right: 12px;
+  }
+  :is(.app-page,.verify-layout,.pg):dir(rtl) select::picker-icon {
+    margin-inline-start: 0;
+    margin-inline-end: 8px;
+  }
+
+  .app-page select.small-select {
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .app-page select.small-select::picker(select) {
+    padding: 4px;
+  }
+  .app-page select.small-select option {
+    padding: 5px 8px;
+    font-size: 11px;
+    border-radius: 5px;
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    :is(.app-page,.verify-layout,.pg) select::picker-icon {
+      transition: none;
+    }
+    :is(.app-page,.verify-layout,.pg) select::picker(select) {
+      animation: none;
+    }
+  }
+
+  @media(forced-colors:active){
+    :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]),
+    :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"])::picker(select) {
+      appearance: auto;
+    }
+  }
+}
+@keyframes select-drop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
