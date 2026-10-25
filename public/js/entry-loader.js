@@ -31,6 +31,7 @@
     scene.classList.add('no-video');
     video?.pause();
   } else if (video) {
+    video.src = video.dataset.asset;
     video.playbackRate = 2;
     video.addEventListener('error', () => scene.classList.add('no-video'), {once:true});
     video.play().catch(() => scene.classList.add('no-video'));
