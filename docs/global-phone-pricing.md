@@ -7,7 +7,14 @@ country. A US customer can enter `4155550123`, `(415) 555-0123`,
 | Business country | Monthly subscription | Provider plan |
 | --- | --- | --- |
 | India | INR ₹500 / 50000 paise | `RAZORPAY_IN_PLAN_ID` |
-| Every other country | USD $20 / 2000 cents | `RAZORPAY_PLAN_ID` |
+| High income / unclassified | USD $20 / 2000 cents | `RAZORPAY_PLAN_ID` |
+| Upper-middle income | USD $16 / 1600 cents | `RAZORPAY_UPPER_MIDDLE_PLAN_ID` |
+| Lower-middle income | USD $12 / 1200 cents | `RAZORPAY_LOWER_MIDDLE_PLAN_ID` |
+| Low income | USD $8 / 800 cents | `RAZORPAY_LOW_PLAN_ID` |
+
+See [country pricing and local invoices](country-pricing-invoices.md) for the
+pinned classification, existing mandate protection, local business currencies
+and invoice formatting.
 
 The first production trial still requires verified phone possession and a
 provider-confirmed recurring mandate. The 15-day trial protections remain.
@@ -32,12 +39,12 @@ must be 2000 if supplied. A mismatched provider plan fails closed.
 - Reloading an outstanding verification preserves its pending country.
 - Signup, geolocation pricing, workspace write permissions, checkout and
   settings accept international countries. India keeps GST/UPI fields. Other
-  countries use USD; only US accounts get US state/ZIP-specific fields or US
+  countries subscribe in USD and can choose a separate business currency; only US accounts get US state/ZIP-specific fields or US
   phone formatting. International accounts can select their business time zone.
 - Scheduling supports quarter-hour offsets such as Nepal. Valid saved time-zone
   aliases remain selectable across differing browser/Node ICU versions.
 
-No new database migration is introduced by this change. Existing financial
+The original phone expansion needed no migration; country pricing and invoice snapshots now add non-destructive columns. Existing financial
 history and subscriptions are not converted or repriced when an owner travels.
 Country changes on established accounts still require review.
 
@@ -49,8 +56,8 @@ and Razorpay merchant/card eligibility remain in effect. Unavailable providers
 do not unlock the workspace or fake a successful payment.
 
 1. Install locked dependencies with `npm ci` after updating the code.
-2. Keep the INR 500 monthly plan and USD 20 monthly plan configured separately.
-   Enable international card subscriptions for the USD plan with Razorpay.
+2. Configure the INR 500 plan and each USD tier separately as listed above.
+   Enable eligible international card subscriptions with Razorpay.
 3. Configure Twilio Verify geographic permissions for the countries served and
    confirm actual SMS delivery there. Some destinations may be unavailable.
 4. Exercise OTP, mandate authorization, the scheduled first charge, cancellation
@@ -60,7 +67,10 @@ The existing GeoIP/network controls remain; the old India/US country allowlist
 is removed. Production phone-first onboarding uses a provisional account and
 the verified phone plus business declaration to determine its saved country.
 
-## Validation
+## Original phone-expansion validation
+
+The following records the initial phone rollout. See the country pricing guide
+and current CI for the expanded pricing/invoice checks.
 
 - Three regression tests reproduced the original failure before the repairs.
 - **457 Node tests passed**, zero failed or skipped, including 21 new tests.

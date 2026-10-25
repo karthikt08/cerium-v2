@@ -54,8 +54,8 @@ bypass the server gate. The access screen is `/verify.html`.
    a national-format number (US `4155550123`, India `9876543210`, France
    `06 12 34 56 78`) or a full international number. The server parses it with
    `libphonenumber-js/max`, validates it against the selected calling code and
-   stores canonical E.164. India is INR ₹500/month; all other countries are
-   USD $20/month. **The customer also declares their business country.**
+   stores canonical E.164. India is INR ₹500/month; other countries are
+   USD $20 / $16 / $12 / $8 per month under the [country pricing policy](country-pricing-invoices.md). **The customer also declares their business country.**
 3. Receive SMS OTP (or local test code). The edition becomes permanent when
    verification succeeds; if there is existing priced history or a subscription,
    a conflicting edition requires manual review. Browser changes never relabel
