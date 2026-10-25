@@ -23,13 +23,13 @@
         ?scheduled.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
         :'the disclosed subscription start date';
       const trialDescription=result.trialEligible===false?'Monthly billing. ':'At least 15 full days free. ';
+      if(!Number.isSafeInteger(result.amount)||result.amount<=0||!['USD','INR'].includes(result.currency))throw new Error('Unable to confirm the subscription price. Please retry.');
+      const disclosedPrice=(result.currency==='INR'?'₹':'$')+(result.amount/100);
       const rzp = new global.Razorpay({
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
-        description: result.currency === 'INR'
-          ?trialDescription+'First ₹500/month debit scheduled '+firstCharge+' plus applicable taxes. UPI AutoPay subject to eligibility. Cancel anytime.'
-          :trialDescription+'First $20/month debit scheduled '+firstCharge+'. Authorize recurring billing. Cancel anytime.',
+        description: trialDescription+'First '+disclosedPrice+'/month '+result.currency+' debit scheduled '+firstCharge+' plus applicable taxes. Cancel anytime.',
         theme: { color: '#6954b8' },
         handler: async response => {
           try {

@@ -12,6 +12,7 @@ import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js'
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
 import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
+import {checkoutPlan,subscriptionPrice,checkoutAvailable} from './country-pricing.js';
 import {validCountry,matchesBillingCurrency} from '../public/js/countries.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
@@ -248,7 +249,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try{
       const {quote,businessName,expiresAt}=db.getPublicQuote(req.params.id,req.query.token,config.sessionSecret);
       const money=n=>new Intl.NumberFormat(quote.currency==='INR'?'en-IN':'en-US',
-        {style:'currency',currency:quote.currency==='INR'?'INR':'USD'}).format(n);
+        {style:'currency',currency:quote.currency||'USD'}).format(n);
       const rows=quote.items.map(i=>'<tr><td>'+escapeQuoteHtml(i.description)+
         '</td><td>'+escapeQuoteHtml(i.qty)+'</td><td>'+escapeQuoteHtml(money(i.rate))+
         '</td><td>'+escapeQuoteHtml(money(lineItemsTotal([i])))+'</td></tr>').join('');
@@ -721,7 +722,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     let updated;
     if((config.regionEnforced||config.workspaceAccessMode!=='off') && req.body?.country && req.body.country!==(req.user?.country||'US'))
       return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
-    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country,currency:req.user.currency}:(req.body||{});
+    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country}:(req.body||{});
     try { updated = db.updateUser(req.session.userId, body); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({
@@ -981,7 +982,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       workspaceUnlocked:access.unlocked,
       businessComplete:access.businessComplete,businessProfile:db.getBusinessProfile(req.session.userId),
       subscriptionStatus:db.getUserSubscription(req.session.userId)?.status||null,
-      checkoutConfigured:Boolean(user.country==='IN'?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured),
+      checkoutConfigured:checkoutAvailable(config,user.country,db.getUserSubscription(user.id)),
+      billingPrice:subscriptionPrice(user.country,db.getUserSubscription(user.id)),
       countryAttested:verified,
       phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
       pending,pendingCountry:pending?saved.pending_country:null,
@@ -1044,11 +1046,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const international=user.country!=='IN'&&matchesBillingCurrency(user.country,user.currency);
     if(!indian&&!international)
       return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
-    const billingPlanId=indian?config.razorpayIndiaPlanId:config.razorpayPlanId;
-    const billingAmount=indian?config.priceInPaise:config.priceCents;
-    const billingCurrency=indian?'INR':'USD';
-    if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
-      return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
+    const selectedPlan=checkoutPlan(config,user.country);
+    const billingPlanId=selectedPlan.planId;
+    const billingAmount=selectedPlan.minorUnits;
+    const billingCurrency=selectedPlan.currency;
     const existing = db.getUserSubscription(user.id);
     const firstTrial=config.workspaceAccessMode==='phone_and_mandate'&&
       !user.onboarding_completed_at&&!Number(db.getBillingIdentity(user.id)?.mandate_authorized_at);
@@ -1074,9 +1075,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       } else {
         return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id,
           status: existing.status, startAt:existing.start_at,
-          amount:billingAmount,currency:billingCurrency,trialEligible:firstTrial });
+          amount:existing.price_amount,currency:existing.price_currency,trialEligible:firstTrial });
       }
     }
+    if(!selectedPlan.configured)return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for your country price. Contact support; a higher-priced plan will not be substituted.'});
     if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone and payment verification are required before trial entry. This checkout is temporarily unavailable.'});
     if(!db.billingEligible(user.id))
       return res.status(409).json({error:'billing_verification_required',message:'Verify your phone and confirm your business billing country before authorizing the trial payment method.'});
@@ -1098,7 +1100,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       const created = await rzp.createSubscription({
         planId: billingPlanId, startAt,
         expireBy:firstTrial?schedule.expireBy:undefined,
-        notes: { userId: user.id, edition: indian?'IN':'GLOBAL',country:user.country }
+        notes: { userId: user.id, edition: indian?'IN':'GLOBAL',country:user.country,tier:selectedPlan.tier,priceVersion:selectedPlan.version }
       });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       if(config.workspaceAccessMode==='phone_and_mandate' &&
@@ -1108,7 +1110,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         if(cancelled?.status!=='cancelled')throw new Error('Unsafe provider schedule; cancellation not confirmed: '+created.id);
         return res.status(503).json({error:'billing_schedule_mismatch',message:'Could not confirm the full trial period. Please try again or contact support.'});
       }
-      db.createSubscription(user.id, created.id, startAt);
+      db.createSubscription(user.id, created.id, startAt, selectedPlan);
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status,
         startAt, expireBy:firstTrial?schedule.expireBy:null,trialEligible:firstTrial,
         amount: billingAmount, currency: billingCurrency });
@@ -1180,7 +1182,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const ws = db.getWorkspace(req.session.userId);
     const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
     const international=ws?.account.country!=='IN'&&matchesBillingCurrency(ws?.account.country,ws?.account.currency);
-    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian&&config.indiaSubscriptionsConfigured)||(international&&config.subscriptionsConfigured))&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId))),billingIdentityVerified:db.billingEligible(req.session.userId) });
+    const price=subscriptionPrice(ws?.account.country,db.getUserSubscription(req.session.userId));
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:price?.monthlyPrice,currency:price?.currency,billingPrice:price,subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian||international)&&checkoutAvailable(config,ws?.account.country,db.getUserSubscription(req.session.userId)))&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId))),billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.

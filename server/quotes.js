@@ -129,7 +129,7 @@ export function createQuotesStore(db,{jobsStore}){
     createQuote(userId,p){
       const val=validateQuoteInput(p,userId,q),user=db.prepare('SELECT currency FROM users WHERE id=?').get(userId);
       if(!user)throw new QuoteError('not_found','Workspace not found.',404);
-      const id=randomUUID(),now=new Date().toISOString(),currency=['USD','INR'].includes(user.currency)?user.currency:'USD';
+      const id=randomUUID(),now=new Date().toISOString(),currency=user.currency||'USD';
       q.insert.run(id,userId,val.leadId,val.customerName,val.customerEmail,val.customerPhone,val.address,
         val.title,val.notes,JSON.stringify(val.items),val.totalCents,currency,now,now);
       return quoteOut(q.byId.get(id,userId));

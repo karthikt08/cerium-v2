@@ -1,10 +1,11 @@
+import {INVOICE_CURRENCIES,invoiceCurrencyHint,invoiceCountry,invoiceMoney,invoiceDate} from './invoice-country.js';
 import API from './api.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
 import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer,renderOverviewTools,customizeOverview} from './workspace-customizer.js';
 import {INDUSTRY_OPTIONS} from './industry-workspaces.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
-import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency} from './countries.js';
+import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency,billingPlan,priceLabel} from './countries.js';
 import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVpa} from './india-market.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
@@ -31,7 +32,7 @@ const trialNotice = () => currencyMismatch()
 const cash = (n) => money(n,currency());
 // Zero represents no debt in any currency; keep an empty dashboard dollar-native
 // without changing the denomination of stored legacy transactions.
-const dashboardCash = (n) => money(n,Number(n)===0&&!isIndia()?'USD':currency());
+const dashboardCash = (n) => money(n,currencyMismatch()&&Number(n)===0?'USD':currency());
 const initials = (name) => String(name || 'C').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 const button = (text,action,extra='',style='primary') => `<button type="button" class="button ${style}" data-action="${action}" ${extra}>${text}</button>`;
 const addButton = (kind,label) => button(icon('plus')+label,'new',`data-kind="${kind}"`);
@@ -74,7 +75,7 @@ function renderChrome() {
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
   const india=a.country==='IN'&&a.currency==='INR';
   $('edition-label').textContent=editionLabel(a.country);
-  $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':'Global · USD';
+  $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':countryName(a.country)+' · '+a.currency;
   document.body.dataset.edition=india?'in':a.country==='US'?'us':'global';
   for(const [name,value] of Object.entries({leads:m.leads,followups:m.due,invoices:state.ws.invoices.filter(x=>x.status==='Overdue').length,reviews:m.reviews})) {
     const el=$('count-'+name);el.textContent=value;el.hidden=!value;
@@ -189,7 +190,8 @@ function settingsPage() {
       +field('timeZone','Business time zone',a.timeZone||'UTC','text',{choices:businessTimeZoneOptions(a.timeZone)})
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=COUNTRY_OPTIONS.map(c=>({value:c.value,label:c.label+' — '+(c.value==='IN'?'INR':'USD')}));
-  const moneyPrice=ind?'₹500':'$20';
+  const plan=a.billingPrice||billingPlan(a.country);
+  const moneyPrice=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
   const canAuthorize=!a.subscription||['created','cancelled','expired'].includes(a.subscription.status);
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
@@ -221,9 +223,11 @@ function settingsPage() {
     ${field('phone','Business phone',contactPhone(a.phone),'tel',{placeholder:phonePlaceholder(a.country)})}
     ${field('trade','Trade / industry',a.trade)}
     ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices})}
-    <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
-    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':'India is ₹500/month; all other countries are $20 USD/month.'}</div>
+    <p class="muted full-width">${a.regionLocked?'Your business country is confirmed. Choose your invoice currency before creating financial records.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
+    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':priceLabel(a.country)+'/month for new subscriptions. Same features at every country price.'}</div>
     ${regionFields}
+    ${field('currency','Invoice & workspace currency',a.currency,'text',{choices:(a.country==='IN'?['INR']:a.country==='US'?['USD']:INVOICE_CURRENCIES).map(code=>({value:code,label:code+(code===invoiceCurrencyHint(a.country)?' — local currency':'')}))})}
+    <p class="muted full-width">${invoiceCurrencyHint(a.country)?'Local currency: '+esc(invoiceCurrencyHint(a.country))+'. ':''}Choose before creating business records. Existing amounts are never converted. Your CERIUM subscription stays in ${esc(plan.currency)}. Rates support up to two decimal places.</p>
     <p class="muted full-width">Currency: ${esc(a.currency)}. ${legacy}</p>
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
@@ -232,7 +236,8 @@ function settingsPage() {
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
-    <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
+    <p class="muted">${plan.currency} billing${plan.discountPercent?` · ${plan.discountPercent}% country discount`:""}. Same features in every country. The price excludes applicable tax.</p>
+    ${a.subscription&&a.availableBillingPrice&&plan.monthlyPrice!==a.availableBillingPrice.monthlyPrice?`<p class="muted">Your current authorization retains its agreed price. New country pricing is ${esc(priceLabel(a.country))}/month. Cancel future renewals before authorizing a new plan; paid access is retained.</p>`:""}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
     ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
@@ -275,7 +280,19 @@ function openRecord(kind,id) {
   const v=record||{};let html='';
   if(kind==='lead')html=field('name','Customer name',v.name,'text',{required:true,full:true})+field('email','Email',v.email,'email')+field('phone','Phone',contactPhone(v.phone),'tel',{placeholder:phonePlaceholder(state.ws.account.country)})+field('stage','Stage',v.stage||'New','text',{choices:STAGES})+field('source','Source',v.source||'Direct','text',{choices:[...new Set([...SOURCES,v.source].filter(Boolean))]})+field('value',`Estimated value (${currency()})`,v.value||'','number',{min:0,step:'.01'})+field('nextFollowUp','Next follow-up',v.nextFollowUp||localDate(),'date')+field('address','Service address',v.address,'text',{full:true,placeholder:isIndia()?'Street, area, city, state, PIN':state.ws.account.country==='US'?'Street, city, state, ZIP':'Street, city, region, postal code'})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(record?'':'<label class="check-field"><input type="checkbox" name="createReminder" checked>Create a follow-up reminder</label>');
   if(kind==='followup')html=field('contactName','Customer name',v.contactName,'text',{required:true,full:true})+field('task','What needs to happen?',v.task,'text',{required:true,full:true,max:250})+field('dueDate','Due date',v.dueDate||localDate(),'date',{required:true})+field('channel','Contact method',v.channel||'Call','text',{choices:['Call','Text','Email']})+field('phone','Phone',contactPhone(v.phone),'tel',{full:true,placeholder:phonePlaceholder(state.ws.account.country)});
-  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress,'text',{placeholder:isIndia()?'Street, area, city, state, PIN':state.ws.account.country==='US'?'Street, city, state, ZIP':'Street, city, region, postal code'})+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount before tax (${currency()})`,isIndia()?((Number(v.taxable)>0?v.taxable:(v.total??''))):(v.total??''),'number',{required:!v.jobId,min:v.jobId?0:'.01',step:'.01',readOnly:!!v.jobId||!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1&&!v.jobId?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'')+(isIndia()?field('customerGstin','Customer GSTIN (if registered)',v.customerGstin||'','text',{max:15,full:true})+field('placeOfSupply','Place of supply',v.placeOfSupply||state.ws.account.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})+field('hsnSac','HSN / SAC (4–8 digits)',v.hsnSac||'','text',{max:8})+field('gstRate','Applicable GST rate (%)',v.gstRate??0,'number',{min:0,step:'.01'})+'<p class="muted full-width">Tax rate and HSN/SAC must be confirmed against the actual supply. All items currently share one tax code/rate; complex invoices need accountant review.</p>':'');
+  if(kind==='invoice')html=field('customerName','Customer name',v.customerName,'text',{required:true,full:true})+field('customerEmail','Email',v.customerEmail,'email')+field('customerAddress','Billing address',v.customerAddress,'text',{placeholder:isIndia()?'Street, area, city, state, PIN':state.ws.account.country==='US'?'Street, city, state, ZIP':'Street, city, region, postal code'})+field('jobTitle','Work / description',v.jobTitle,'text',{required:true,full:true})+field('amount',`Amount before tax (${currency()})`,v.details?.subtotal??(isIndia()?((Number(v.taxable)>0?v.taxable:(v.total??''))):(v.total??'')),'number',{required:!v.jobId,min:v.jobId?0:'.01',step:'.01',readOnly:!!v.jobId||!!(v.items?.length>1)})+field('terms','Payment terms',v.terms||'Net 15','text',{choices:['Due on receipt','Net 7','Net 15','Net 30']})+field('status','Status',v.status||'Draft','text',{choices:['Draft','Sent','Overdue','Paid'],full:true})+field('notes','Notes',v.notes,'textarea',{full:true,max:350})+(v.items?.length>1&&!v.jobId?'<p class="muted">This invoice has multiple line items. The existing item totals are preserved.</p>':'')+(isIndia()?field('customerGstin','Customer GSTIN (if registered)',v.customerGstin||'','text',{max:15,full:true})+field('placeOfSupply','Place of supply',v.placeOfSupply||state.ws.account.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})+field('hsnSac','HSN / SAC (4–8 digits)',v.hsnSac||'','text',{max:8})+field('gstRate','Applicable GST rate (%)',v.gstRate??0,'number',{min:0,step:'.01'})+'<p class="muted full-width">Tax rate and HSN/SAC must be confirmed against the actual supply. All items currently share one tax code/rate; complex invoices need accountant review.</p>':'');
+  if(kind==='invoice'){
+    const preset=invoiceCountry(v.details?.country||state.ws.account.country),details=v.details||{};
+    html+=`<section class="invoice-local-fields full-width"><h3>Local invoice details · ${esc(countryName(preset.country))}</h3>
+      <p class="muted">${esc(preset.guidance)} ${preset.paper} print layout · ${esc(currency())} amounts.</p>
+      <div class="form-grid">${field('supplyDate','Date goods / services supplied',details.supplyDate||v.issueDate||localDate(),'date',{required:true})}
+      ${!isIndia()?field('supplierTaxId',esc(preset.taxIdLabel)+' (business)',details.supplierTaxId||'','text',{max:80})+field('customerTaxId','Customer tax registration ID (if applicable)',details.customerTaxId||'','text',{max:80,full:true})+field('taxTreatment','Tax treatment',details.taxLines?.length?'tax':'none','text',{choices:[{value:'none',label:'No tax charged'},{value:'tax',label:'Add '+preset.taxLabel+' / other tax components'}],full:true}):''}
+      </div>
+      ${!isIndia()?`<div id="invoice-tax-fields" class="form-grid" ${details.taxLines?.length?'':'hidden'}>${Array.from({length:4},(_,index)=>field('taxLabel'+index,index===0?'Tax name':'Additional tax name (optional)',details.taxLines?.[index]?.label||(index===0?preset.taxLabel:''),'text',{max:40})+field('taxRate'+index,'Rate (%)',details.taxLines?.[index]?.rate??'','number',{min:0,step:'.0001'})).join('')}</div><p class="muted">Tax rows apply independently to the amount before tax. For mixed rates, compounded taxes or statutory e-invoicing, use your local accounting workflow.</p>`:''}
+      <div class="form-grid">${field('taxNote','Exemption / reverse-charge reference or tax note',details.taxNote||'','textarea',{full:true,max:500})}
+      ${field('paymentInstructions','Customer payment instructions',details.paymentInstructions||'','textarea',{full:true,max:500,placeholder:'Bank transfer reference or other payment instructions'})}</div>
+    </section>`;
+  }
   if(kind==='invoice'&&v.jobId){
     const rows=(v.items||[]).map((item,index)=>`<div class="invoice-billing-row" data-invoice-line>
       <label>Item ${index+1} <input data-invoice-line-field="description" value="${esc(item.description)}" maxlength="180" required></label>
@@ -295,10 +312,12 @@ function requestConfirmation(title,description,fn,phrase=false) {
 function previewInvoice(id) {
   const i=getRecord('invoice',id);if(!i)return;const a=state.ws.account;
   const ind=i.currency==='INR'||isIndia();
-  const bp=a.businessProfile;
-  const address=bp?.complete?[bp.businessAddress,bp.businessCity,ind?INDIAN_STATES[i.supplierState||a.indiaState]:a.usState||bp.businessRegion,bp.businessPostalCode,countryName(a.country)].filter(Boolean).join(', '):ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
-    [a.location,[a.usState,a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-  const fmt=n=>money(n,i.currency||currency());
+  const bp=a.businessProfile,details=i.details,preset=invoiceCountry(details?.country||a.country);
+  const supplier=details?.supplier;
+  const printedDate=value=>invoiceDate(value,preset.country);
+  const address=supplier?supplier.address:(bp?.complete?[bp.businessAddress,bp.businessCity,ind?INDIAN_STATES[i.supplierState||a.indiaState]:a.usState||bp.businessRegion,bp.businessPostalCode,countryName(a.country)].filter(Boolean).join(', '):ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
+    [a.location,[a.usState,a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', '));
+  const fmt=n=>invoiceMoney(n,i.currency||currency(),preset.country);
   const gst=ind&&Boolean(i.supplierGstin);
   const taxLines=gst?`<div class="invoice-tax-summary">
     <p><strong>Taxable amount</strong> ${fmt(i.taxable)}</p>
@@ -306,27 +325,34 @@ function previewInvoice(id) {
     ${i.sgst?`<p>SGST ${fmt(i.sgst)}</p>`:''}
     ${i.utgst?`<p>UTGST ${fmt(i.utgst)}</p>`:''}
     ${i.igst?`<p>IGST ${fmt(i.igst)}</p>`:''}
-    <p>GST rate: ${esc(i.gstRate)}%</p></div>`:'';
+    <p>GST rate: ${esc(i.gstRate)}%</p></div>`:details?.taxLines?.length?`<div class="invoice-tax-summary"><p><strong>Subtotal</strong> ${fmt(details.subtotal)}</p>${details.taxLines.map(row=>`<p>${esc(row.label)} (${esc(row.rate)}%) <strong>${fmt(row.amount)}</strong></p>`).join('')}</div>`:'';
   const invoiceTitle=gst?'DRAFT GST TAX INVOICE':'INVOICE';
-  const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:i.total);
-  $('invoice-sheet').innerHTML=`<article class="invoice-document">
-    <div class="invoice-top"><div><h2>${esc(a.businessName||a.name)}</h2>
-      <p>${esc(address)}<br>${esc(bp?.complete?bp.businessEmail:a.email)}${a.phone?'<br>'+esc(contactPhone(a.phone)):''}
-      ${gst?'<br>GSTIN: '+esc(i.supplierGstin):''}</p></div>
+  const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:details?.subtotal??i.total);
+  $('invoice-sheet').innerHTML=`<article class="invoice-document invoice-paper-${preset.paper.toLowerCase()}">
+    <div class="invoice-top"><div><h2>${esc(supplier?.name??(a.businessName||a.name))}</h2>
+      <p>${esc(address)}<br>${esc(supplier?.email??(bp?.complete?bp.businessEmail:a.email))}${(supplier?supplier.phone:a.phone)?'<br>'+esc(supplier?supplier.phone:contactPhone(a.phone)):''}<br>${esc(countryName(preset.country))}
+      ${gst?'<br>GSTIN: '+esc(i.supplierGstin):details?.supplierTaxId?'<br>'+esc(preset.taxIdLabel)+': '+esc(details.supplierTaxId):''}</p></div>
       <div><p class="eyebrow">${invoiceTitle} #${esc(i.id)}</p>${badge(i.status)}</div></div>
     <div class="invoice-info"><div><small>Billed to</small><strong>${esc(i.customerName)}</strong>
-      <p>${esc(i.customerAddress||i.customerEmail)}</p>${i.customerGstin?'<p>Customer GSTIN: '+esc(i.customerGstin)+'</p>':''}</div>
-      <div><small>Issued</small>${dateLabel(i.issueDate)}<p>${esc(i.terms)}</p></div>
-      <div><small>Due</small>${dateLabel(i.dueDate)}</div></div>
+      <p>${esc(i.customerAddress||i.customerEmail)}</p>${i.customerGstin?'<p>Customer GSTIN: '+esc(i.customerGstin)+'</p>':details?.customerTaxId?'<p>Tax registration ID: '+esc(details.customerTaxId)+'</p>':''}</div>
+      <div><small>Issued</small>${printedDate(i.issueDate)}<p>${esc(i.terms)}</p></div>
+      <div><small>Due</small>${printedDate(i.dueDate)}</div></div>
+    <p class="muted">Invoice currency: ${esc(i.currency||currency())}${details?.supplyDate?' · Supply date: '+printedDate(details.supplyDate):''}</p>
     ${gst?`<p class="muted">Place of supply: ${esc(INDIAN_STATES[i.placeOfSupply]||i.placeOfSupply)} (${esc(i.placeOfSupply)}) · HSN/SAC: ${esc(i.hsnSac)}</p>`:''}
-    ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
+    ${table(['Description','Qty','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
     ${rounding?`<p class="muted">Rounding adjustment ${fmt(rounding)}</p>`:''}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
-    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
+    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(supplier?.name||a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
     ${gst?'<p class="muted">Draft only. Validate invoice numbering, tax classification, signature, reverse charge, IRN/e-invoicing eligibility and other statutory requirements before issuing.</p>':''}
+    ${details?.taxNote?`<p class="invoice-preserve-lines"><strong>Tax note:</strong> ${esc(details.taxNote)}</p>`:''}
+    ${details?.paymentInstructions?`<p class="invoice-preserve-lines"><strong>Payment instructions:</strong> ${esc(details.paymentInstructions)}</p>`:''}
     <p class="muted">${esc(i.notes)}</p>
-  </article>`; $('invoice-dialog').showModal();
+  </article>`;
+  let printStyle=$('invoice-print-page');
+  if(!printStyle){printStyle=document.createElement('style');printStyle.id='invoice-print-page';document.head.append(printStyle);}
+  printStyle.textContent='@page { size: '+preset.paper+'; margin: 16mm; }';
+  $('invoice-dialog').showModal();
 }
 
 async function copyReview(id) {
@@ -395,20 +421,32 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});
 document.addEventListener('change',e=>{
+  if(e.target.name==='taxTreatment'&&$('invoice-tax-fields'))$('invoice-tax-fields').hidden=e.target.value!=='tax';
   if(e.target.id==='field-country'&&!state.ws.account.regionLocked){
     const saved=state.ws.account.country;
     const chosen=e.target.value;
     const hint=$('edition-save-hint');
     if(hint)hint.textContent=chosen===saved
       ?'Saved edition: '+countryName(saved)+' · '+(saved==='IN'?'INR':'USD')+'.'
-      :'Pending change to '+countryName(chosen)+' · '+(chosen==='IN'?'INR (₹500/month)':'USD ($20/month)')+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
+      :'Pending change to '+countryName(chosen)+' · '+priceLabel(chosen)+'/month'+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
   }
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
+$('invoice-dialog').addEventListener('close',()=>$('invoice-print-page')?.remove());
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(d.hasAttribute('aria-busy'))e.preventDefault();}));
 $('record-form').addEventListener('submit',e=>{
   e.preventDefault();if(readOnly()){toast('Your trial has ended. Business records are read-only.',true);return;}const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});
+  if(kind==='invoice'&&!isIndia()){
+    values.taxLines=[];
+    for(let index=0;index<4;index++){
+      const label=values['taxLabel'+index],rate=values['taxRate'+index];
+      if(values.taxTreatment==='tax'&&(rate!==''||index>0&&label))values.taxLines.push({label,rate});
+      delete values['taxLabel'+index];delete values['taxRate'+index];
+    }
+    if(values.taxTreatment==='tax'&&!values.taxLines.length){formError('record-error','Enter a tax rate, including 0 for a confirmed zero-rated supply.');return;}
+    delete values.taxTreatment;
+  }
   const isJobInvoice=kind==='invoice'&&id&&Boolean(getRecord(kind,id)?.jobId);
   if(isJobInvoice){
     values.items=[...form.querySelectorAll('[data-invoice-line]')].map(row=>{

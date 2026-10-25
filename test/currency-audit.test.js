@@ -1,3 +1,4 @@
+import {billingPlan} from '../public/js/countries.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -23,7 +24,7 @@ test('rupee pricing is limited to India pricing disclosures and edition-specific
     const source=read(file);
     // path.join() uses backslashes on Windows; exceptions use portable repo paths.
     const portablePath=file.split(path.sep).join('/');
-    if(!['public/js/app.js','public/js/billing.js','public/js/region-pricing.js','public/js/verify-phone.js','public/verify.html','public/pricing.html','public/index.html','public/terms.html'].includes(portablePath))
+    if(!['public/js/countries.js','public/js/app.js','public/js/billing.js','public/js/region-pricing.js','public/js/verify-phone.js','public/verify.html','public/pricing.html','public/index.html','public/terms.html'].includes(portablePath))
       assert.equal(source.includes(String.fromCharCode(0x20b9)),false,
         portablePath+' unexpectedly contains a rupee glyph outside the India edition pricing UI');
     if(file.endsWith('.html')){
@@ -35,7 +36,7 @@ test('rupee pricing is limited to India pricing disclosures and edition-specific
   }
   assert.ok(files.length>20,'must scan the complete shipped frontend');
   assert.match(read('public/js/app.js'),/₹500/,'India edition pricing must remain visible');
-  assert.ok(read('public/js/app.js').includes('$20'),'US edition pricing must remain visible');
+  assert.equal(billingPlan('US').monthlyPrice,20,'US standard price must remain visible through the shared policy');
 });
 
 test('dollar defaults, legacy safeguards and active backend write barrier stay enforced',()=>{

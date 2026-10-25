@@ -49,6 +49,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <link rel="stylesheet" href="css/landing-workspace-cursor.css">
 <link rel="stylesheet" href="css/brand-motion.css">
 <link rel="stylesheet" href="css/controls.css">
+<link rel="stylesheet" href="css/country-pricing.css">
 </head>
 <body>
 <div class="pg" id="pg">
@@ -77,7 +78,22 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
   </section>
 
   <section class="w">
-    <p style="text-align:center;color:var(--mut);margin:0 0 24px">India: ₹500 INR/month. All other countries: $20 USD/month. Your verified business country determines your plan.</p>
+    <p style="text-align:center;color:var(--mut);margin:0 0 24px">Country pricing: $20 / $16 / $12 / $8 USD per month. India stays ₹500 INR/month. Your verified business country determines your plan.</p>
+    <div class="country-pricing-panel">
+      <h2>One platform. A fairer starting point.</h2>
+      <p>The same tools and support at every price. Discounts reflect the country where your business operates, never your ethnicity or nationality.</p>
+      <div class="country-price-tiers" aria-label="Monthly country prices">
+        <div><strong>$20</strong><span>High income</span><small>Standard price</small></div>
+        <div><strong>$16</strong><span>Upper-middle income</span><small>20% off</small></div>
+        <div><strong>$12</strong><span>Lower-middle income</span><small>40% off</small></div>
+        <div><strong>$8</strong><span>Low income</span><small>60% off</small></div>
+        <div><strong>₹500</strong><span>India</span><small>Local INR price</small></div>
+      </div>
+      <label for="pricing-country">Find your business country</label>
+      <select id="pricing-country"><option value="">Choose a country</option></select>
+      <p id="country-price-result" role="status" aria-live="polite">Prices are monthly, before applicable taxes. Your business country is confirmed during setup.</p>
+      <p class="country-pricing-note">Based on World Bank FY2027 income groups. Unclassified economies use the $20 standard price. Existing authorized subscriptions keep their agreed price until changed. <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups">Classification source ↗</a></p>
+    </div>
     <div class="pricing-grid">
       <!-- Card 1: 15-Day Free Trial -->
       <div class="pcard" data-rv style="--i:0">
@@ -172,6 +188,6 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <script src="js/workspace-cursor.js" defer></script>
 <script src="js/local-check.js"></script>
 <script src="js/nav-auth.js"></script>
-<script src="js/region-pricing.js" defer></script>
+<script type="module" src="js/region-pricing.js"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ test('hosted checkout discloses a free trial only for an eligible first authoriz
     let checkout,opened=false;
     const window={
       CeriumAPI:{createRecurringSubscription:async()=>({keyId:'test-key',subscriptionId:'sub_test',
-        status:'created',startAt:1800000000,currency,trialEligible})},
+        status:'created',startAt:1800000000,currency,amount:currency==='INR'?50000:2000,trialEligible})},
       Razorpay:class {constructor(options){checkout=options;}on(){}open(){opened=true;}},
     };
     runInNewContext(script,{window});

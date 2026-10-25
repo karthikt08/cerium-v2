@@ -36,7 +36,7 @@ function updateJobBillingTotal(form){
   let amount;try{amount=lineItemsTotal(items);}catch{amount=0;}
   const currency=dispatch?.getWorkspace()?.account?.currency||'USD';
   const target=form.querySelector('[data-job-billing-total]');
-  if(target)target.textContent=new Intl.NumberFormat(currency==='INR'?'en-IN':'en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
+  if(target)target.textContent=new Intl.NumberFormat(currency==='INR'?'en-IN':'en-US',{style:'currency',currency:currency||'USD'}).format(amount);
 }
 const active = j => j.status !== 'Cancelled' && j.status !== 'Completed';
 const selectOptions = (options,selected) => options.map(x=>`<option value="${safeData(x.value)}" ${x.value===selected?'selected':''}>${esc(x.label)}</option>`).join('');

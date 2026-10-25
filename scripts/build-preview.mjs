@@ -34,7 +34,7 @@ function demoAdapter() {
     catch{throw new Error('Business setup could not be saved. Enable browser storage and retry.');}
   };
   const applyProfile=()=>{
-    ws.account.country=country;ws.account.currency=country==='IN'?'INR':'USD';
+    ws.account.country=country;ws.account.currency=profile?.invoiceCurrency||(country==='IN'?'INR':'USD');
     if(complete())Object.assign(ws.account,profile,{email:profile.businessEmail,usZip:country==='US'?profile.businessPostalCode:'',location:profile.businessCity,businessProfile:{...profile,complete:true}});
   };
   const requireSetup=()=>{if(!complete())throw new Error('Complete required business setup before using the workspace.');};
@@ -94,12 +94,15 @@ function demoAdapter() {
     async toggleFollowUp(id) { const row=record('followUps',id);row.done=!row.done; },
     async deleteFollowUp(id) { remove('followUps',id); },
     async createInvoice(payload) {
-      const total=Number(payload.amount)||0;
-      return create('invoices',{id:String(++invoiceNumber),customerEmail:'',customerAddress:'',notes:'Thank you for your business!',issueDate:day(0),terms:'Net 15',...payload,total,items:[{description:payload.jobTitle,qty:1,rate:total}],dueDate:payload.dueDate||nextDue(payload.terms||'Net 15'),paidAt:payload.status==='Paid'?day(0):null});
+      const items=[{description:payload.jobTitle,qty:1,rate:Number(payload.amount)||0}];
+      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,india_state:profile.indiaState,business_postal_code:profile.businessPostalCode},items,payload,null,{issueDate:day(0)});
+      const total=details.total;
+      return create('invoices',{id:String(++invoiceNumber),customerEmail:'',customerAddress:'',notes:'Thank you for your business!',issueDate:day(0),terms:'Net 15',...payload,total,details,currency:ws.account.currency,items,dueDate:payload.dueDate||nextDue(payload.terms||'Net 15'),paidAt:payload.status==='Paid'?day(0):null});
     },
     async updateInvoice(id,payload) {
-      const row=update('invoices',id,payload);
-      if(payload.amount!==undefined){row.total=Number(payload.amount);row.items=[{description:row.jobTitle,qty:1,rate:row.total}];}
+      const original=record('invoices',id),items=payload.amount!==undefined?[{description:payload.jobTitle||original.jobTitle,qty:1,rate:Number(payload.amount)}]:original.items;
+      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,india_state:profile.indiaState,business_postal_code:profile.businessPostalCode},items,payload,original.details,{issued:original.status!=='Draft',issueDate:original.issueDate});
+      const row=update('invoices',id,{...payload,items,details,total:details.total});
       if(payload.terms)row.dueDate=nextDue(payload.terms);
       row.paidAt=row.status==='Paid'?day(0):null;
     },
@@ -112,7 +115,8 @@ function demoAdapter() {
     async deleteReview(id) { remove('reviews',id); },
     async updateAccount(payload) {
       requireSetup();
-      const candidate={...profile,...payload,businessPostalCode:payload.usZip??profile.businessPostalCode};
+      if(payload.currency&&payload.currency!==ws.account.currency&&['leads','followUps','invoices','quotes','jobs','bankTransactions'].some(key=>ws[key].length))throw new Error('Existing financial records cannot be relabeled.');
+      const candidate={...profile,...payload,invoiceCurrency:payload.currency??profile.invoiceCurrency,businessPostalCode:payload.usZip??profile.businessPostalCode};
       if(country==='IN'&&payload.gstin!==undefined)candidate.gstRegistration=payload.gstin?'registered':'not_registered';
       const validated=validateBusinessProfile(candidate,country),before=profile,beforeSetup=setup;
       profile={...validated,completedAt:profile.completedAt};
@@ -144,7 +148,7 @@ let html = await read('public/app.html');
 const modules=new Map();
 async function embedModule(file){
   if(modules.has(file))return modules.get(file);
-  let source=file==='api.js'?`import {businessSetupSteps,advanceBusinessSetup,validateBusinessProfile} from './business-profile.js';import {validCountry} from './countries.js';const API=(${demoAdapter.toString()})();export default API;`:await read('public/js/'+file);
+  let source=file==='api.js'?`import {businessSetupSteps,advanceBusinessSetup,validateBusinessProfile} from './business-profile.js';import {validCountry} from './countries.js';import {makeInvoiceDetails} from './invoice-details.js';const API=(${demoAdapter.toString()})();export default API;`:await read('public/js/'+file);
   for(const match of [...source.matchAll(/(?:import|export)\s[^;]*?\sfrom\s*['"]\.\/([^'"]+)['"]/g)]){
     const dependency=await embedModule(match[1]);
     source=source.replace(match[0],match[0].replace('./'+match[1],dependency));

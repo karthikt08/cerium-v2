@@ -19,7 +19,7 @@ preview to test the current flow.
 
 ---
 
-**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. India is ₹500/month; all other countries are $20 USD/month. Country-aware phone verification and business-local scheduling are built in.
+**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. India is ₹500/month; other countries are $8–$20 USD/month by country income group, with equal features at every price. Country-aware phone verification and business-local scheduling are built in.
 
 It merges the marketing landing suite, authentication system, operations web application, and premium subscription billing into one unified software product.
 
@@ -47,10 +47,10 @@ It merges the marketing landing suite, authentication system, operations web app
    - Complete data isolation: every database record is owned by and isolated to the authenticated user.
    - Zero-leak account deletion ("Delete my data") with SQLite `secure_delete = ON`.
 
-3. **Premium Subscription Tier (India ₹500 / Global $20 per month)**:
+3. **Premium Subscription Tier (India ₹500 / Global $8–$20 per month)**:
    - Required phone verification and business setup before payment authorization and workspace access.
    - One-time 15-day free trial begins after successful provider authorization, with countdown tracking.
-   - Cerium Pro tier (₹500/month in India; $20 USD/month elsewhere) for unlimited leads, invoices, and automated matching.
+   - Cerium Pro tier (₹500/month in India; $8–$20 USD/month elsewhere) for unlimited leads, invoices, and automated matching.
    - Server-side recurring subscription creation (`/api/billing/subscription`).
    - Signature-verified authorization and provider-state confirmation (`/api/billing/subscription/verify`).
    - Raw JSON webhook signature verification (`/webhooks/razorpay`).
@@ -109,4 +109,4 @@ See [workspace rebuild and verification](docs/workspace-rebuild.md) for the new 
 
 ## Worldwide phone verification and pricing
 
-Choose a business country and enter a national-format number (for example, `(415) 555-0123` for the US), or the full international number. Production access requires **phone verification → business setup → recurring payment authorization**. India uses the ₹500 INR plan; every other supported country uses the $20 USD plan. See [global phone and pricing](docs/global-phone-pricing.md) for provider setup and coverage, and [required business setup](docs/business-setup.md) for required fields, existing-account behavior and validation.
+Choose a business country and enter a national-format number (for example, `(415) 555-0123` for the US), or the full international number. Production access requires **phone verification → business setup → recurring payment authorization**. India uses the ₹500 INR plan; other supported countries use $20 / $16 / $12 / $8 USD plans by income group. See [country pricing and local invoices](docs/country-pricing-invoices.md) for the current policy, plan configuration and invoice currencies, [global phone and pricing](docs/global-phone-pricing.md) for provider setup and coverage, and [required business setup](docs/business-setup.md) for required fields, existing-account behavior and validation.

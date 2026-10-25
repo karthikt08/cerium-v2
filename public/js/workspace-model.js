@@ -28,8 +28,9 @@ export function dateLabel(value) {
 }
 export function money(value, currency = 'USD') {
   // Keep legacy historical amounts legible until they are explicitly migrated.
-  const safeCurrency = ['USD','INR'].includes(currency) ? currency : 'USD';
-  return new Intl.NumberFormat(safeCurrency === 'INR' ? 'en-IN' : 'en-US', {style:'currency',currency:safeCurrency,minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(value) || 0);
+  const safeCurrency = Intl.supportedValuesOf('currency').includes(currency) ? currency : 'USD';
+  const digits=Math.max(2,new Intl.NumberFormat('en',{style:'currency',currency:safeCurrency}).resolvedOptions().maximumFractionDigits);
+  return new Intl.NumberFormat(safeCurrency === 'INR' ? 'en-IN' : 'en-US', {style:'currency',currency:safeCurrency,currencyDisplay:['USD','INR'].includes(safeCurrency)?'symbol':'code',minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value) || 0);
 }
 export function metrics(ws, today = businessLocalDate(ws.account?.timeZone)) {
   const openInvoices = ws.invoices.filter(x => ['Sent','Overdue'].includes(x.status));

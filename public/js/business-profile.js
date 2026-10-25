@@ -1,3 +1,4 @@
+import {validWorkspaceCurrency} from './invoice-country.js';
 import {validCountry} from './countries.js';
 import {defaultModules,isIndustry,normalizeModules,suggestIndustry} from './industry-workspaces.js';
 import {validIndianState,validGSTIN} from './india-market.js';
@@ -19,6 +20,7 @@ export function profileFromUser(user){
     businessEmail:user.business_email||user.email||'',businessAddress:user.business_address||'',
     businessCity:user.business_city||'',businessRegion:user.business_region||'',
     businessPostalCode:user.business_postal_code||user.us_zip||'',
+    invoiceCurrency:user.currency,
     country:user.country,timeZone:user.time_zone||'',usState:user.us_state||'',
     indiaState:user.india_state||'',gstin:user.gstin||'',
     gstRegistration:user.gst_registration||(user.gstin?'registered':''),
@@ -46,6 +48,8 @@ export function validateBusinessProfile(input,country,onlyFields=null){
     out[key]=value.trim();
     if(required&&!out[key])fields[key]='Enter your '+label.toLowerCase()+'.';
   }
+  out.invoiceCurrency=input.invoiceCurrency||(country==='IN'?'INR':'USD');
+  if(!validWorkspaceCurrency(country,out.invoiceCurrency))fields.invoiceCurrency='Choose a supported invoice currency.';
   const category=out.industryCategory||suggestIndustry(out.trade).category;
   if(!isIndustry(category))fields.industryCategory='Choose a valid business category.';
   let modules=defaultModules(isIndustry(category)?category:'other');
@@ -83,7 +87,7 @@ export function businessProfileComplete(user){
 
 export const BUSINESS_SETUP_FIELDS=Object.freeze({
   basics:['name','businessName','trade','businessEmail','industryCategory','workspaceModules'],
-  address:['businessAddress','businessCity','businessRegion','businessPostalCode','timeZone','usState','indiaState'],
+  address:['invoiceCurrency','businessAddress','businessCity','businessRegion','businessPostalCode','timeZone','usState','indiaState'],
   tax:['gstRegistration','gstin']
 });
 export const businessSetupSteps=country=>country==='IN'?['basics','address','tax','review']:['basics','address','review'];
