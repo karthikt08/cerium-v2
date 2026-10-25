@@ -461,8 +461,23 @@ function showLocalBusinessSetup(setup,editing=false){
   if(!panel){panel=document.createElement('main');panel.id='business-setup-preview';panel.className='business-setup-preview';document.body.append(panel);}
   panel.innerHTML='<h1>'+ (editing?'Update your business.':'First, set up your business.')+'</h1><p>Complete each step before using the workspace. This offline preview does not send SMS or collect payments. Setup details are saved in this browser.</p><div id="preview-business-form"></div>';
   mountBusinessSetup($('preview-business-form'),{api:API,editing,onComplete:async()=>{panel.remove();await initialize();}}).show(setup);
+  signalEntryReady();
+}
+function signalEntryReady(failed=false){
+  window.CeriumWorkspaceReady=failed?'failed':'ready';
+  window.dispatchEvent(new Event('cerium:workspace-ready'));
+  const reveal=()=>{
+    if(window.CeriumEntryLoader){if(failed)window.CeriumEntryLoader.fail();else window.CeriumEntryLoader.complete();}
+    else{
+      const scene=document.querySelector('[data-cerium-entry]');
+      if(scene){scene.hidden=true;}
+    }
+  };
+  if(window.CeriumEntryLoader||document.readyState==='complete')reveal();
+  else window.addEventListener('load',reveal,{once:true});
 }
 async function initialize() {
+  window.CeriumWorkspaceReady='pending';
   $('workspace').hidden=true;$('load-state').hidden=false;$('page-body').hidden=true;
   try {
     const me=await API.getMe();
@@ -474,7 +489,7 @@ async function initialize() {
       return;
     }
     await refresh();$('workspace').hidden=false;
-    window.CeriumEntryLoader?.complete();
+    signalEntryReady();
   }
   catch(err){
     $('workspace').hidden=true;
@@ -482,7 +497,7 @@ async function initialize() {
     if(!panel){panel=document.createElement('main');panel.id='workspace-entry-error';panel.className='business-setup-preview';document.body.append(panel);}
     panel.innerHTML=`<h1>We couldn’t check your setup</h1><p>${esc(err.message||'Check your connection and try again.')}</p><button type="button" class="button primary" id="retry-workspace-entry">Try again</button>`;
     $('retry-workspace-entry').addEventListener('click',()=>{panel.remove();initialize();});
-    window.CeriumEntryLoader?.fail();
+    signalEntryReady(true);
   }
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});

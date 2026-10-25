@@ -1,93 +1,102 @@
-/* CERIUM workspace entry. Public loading UI never substitutes for server auth. */
+/* CERIUM workspace entry. The animation never grants authentication or access. */
 (function () {
   'use strict';
-  const scene = document.querySelector('[data-cerium-entry]');
-  if (!scene) return;
-  const skip = scene.querySelector('[data-entry-skip]');
-  const mode = scene.dataset.ceriumEntry;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // The one-time URL marker is removed immediately on the workspace page.
-  // The entrance uses a temporary URL flag without persisting user data.
-  const validNext = value => {
-    if (!value || !value.startsWith('/') || value.startsWith('//')) return '/app.html';
-    try {
-      const u = new URL(value, location.origin);
-      return u.origin === location.origin && ['/app', '/app.html'].includes(u.pathname)
-        ? u.pathname + u.search + u.hash : '/app.html';
-    } catch { return '/app.html'; }
+  const scene=document.querySelector('[data-cerium-entry]');
+  if(!scene||scene.hidden)return;
+  const skip=scene.querySelector('[data-entry-skip]'),retry=scene.querySelector('[data-entry-retry]');
+  const caption=scene.querySelector('.entry-caption'),mode=scene.dataset.ceriumEntry;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false;
+  const validNext=value=>{
+    if(!value||!value.startsWith('/')||value.startsWith('//'))return '/app.html';
+    try{
+      const u=new URL(value,location.origin);
+      return u.origin===location.origin&&['/app', '/app.html'].includes(u.pathname)?u.pathname+u.search+u.hash:'/app.html';
+    }catch{return '/app.html';}
   };
-  const next = validNext(new URLSearchParams(location.search).get('next'));
-  if (mode === 'workspace' && new URLSearchParams(location.search).get('ceriumIntro') === 'done') {
-    const url = new URL(location.href);
-    url.searchParams.delete('ceriumIntro');
-    history.replaceState(null, '', url.pathname + url.search + url.hash);
-    scene.hidden = true;
-    window.CeriumEntryLoader = { complete() {}, fail() {} };
-    return;
-  }
-  if (reduced) scene.classList.add('entry-reduced-motion');
-
-  const begun = performance.now();
-  const minimumMs = reduced ? 0 : 2900;
-  let ready = false;
-  let skipRequested = false;
-  let finished = false;
-  let pendingTimer;
-  function exit() {
-    if (finished || !ready) return;
-    finished = true;
-    clearTimeout(pendingTimer);
-    if (mode === 'redirect') {
-      // Carry an ephemeral marker only to the immediate workspace navigation.
-      // If the server sends the customer to verification, the marker is lost
-      // and the logo can play again after business setup finishes.
-      const target = new URL(next, location.origin);
-      target.searchParams.set('ceriumIntro', 'done');
-      location.replace(target.pathname + target.search + target.hash);
-    } else {
-      scene.classList.add('is-leaving');
-      setTimeout(() => { scene.hidden = true; }, reduced ? 0 : 260);
+  const next=validNext(new URLSearchParams(location.search).get('next'));
+  let handoff=false;
+  if(mode==='workspace'){
+    const current=new URL(location.href);
+    if(current.searchParams.has('ceriumIntro')){
+      try{
+        const referrer=new URL(document.referrer);
+        handoff=current.searchParams.get('ceriumIntro')==='done'&&referrer.origin===location.origin&&referrer.pathname==='/enter.html'&&
+          performance.getEntriesByType('navigation')[0]?.type==='navigate';
+      }catch{}
+      current.searchParams.delete('ceriumIntro');
+      history.replaceState(history.state,'',current.pathname+current.search+current.hash);
     }
   }
-  function schedule(force = false) {
-    if (!ready || finished) return;
-    const delay = force || skipRequested ? 0 : Math.max(0, minimumMs - (performance.now() - begun));
-    clearTimeout(pendingTimer);
-    if (delay) pendingTimer = setTimeout(exit, delay);
-    else exit();
-  }
-  skip?.addEventListener('click', () => {
-    skipRequested = true;
-    schedule(true);
-    if (!ready && mode === 'workspace') {
-      // Do not display an uninitialized workspace before its API calls finish.
-      scene.querySelector('.entry-caption').textContent = 'Finishing workspace setup…';
+  const workspace=document.querySelector('#workspace'),skipLink=document.querySelector('.skip-link');
+  const wasInert=workspace?.inert||false,linkWasInert=skipLink?.inert||false;
+  if(workspace)workspace.inert=true;
+  if(skipLink)skipLink.inert=true;
+  let ready=false,introDone=handoff||reduced,finished=false,introTimer,workspaceTimer;
+  function restore(){
+    scene.hidden=true;
+    if(workspace)workspace.inert=wasInert;
+    if(skipLink)skipLink.inert=linkWasInert;
+    if(scene.contains(document.activeElement)){
+      const target=document.querySelector(workspace&&!workspace.hidden?'#workspace-main':'#business-step-title')||document.querySelector('#retry-workspace-entry');
+      target?.focus();
     }
+  }
+  function exit(){
+    if(finished||!ready||!introDone)return;
+    finished=true;clearTimeout(introTimer);clearTimeout(workspaceTimer);
+    window.removeEventListener('cerium:workspace-ready',onReady);
+    if(mode==='redirect'){
+      // One navigation marker avoids replaying the intro. It contains no user data,
+      // is consumed immediately, and never bypasses the app's readiness checks.
+      const target=new URL(next,location.origin);target.searchParams.set('ceriumIntro','done');
+      location.replace(target.pathname+target.search+target.hash);
+    }else{
+      scene.classList.add('is-leaving');setTimeout(restore,reduced||handoff?0:260);
+    }
+  }
+  function schedule(){
+    if(!ready||!introDone||finished)return;
+    
+    exit();
+  }
+  function finishIntro(instant=false){
+    introDone=true;clearTimeout(introTimer);
+    if(instant)scene.classList.add('entry-instant');
+    schedule();
+  }
+  function complete(){ready=true;clearTimeout(workspaceTimer);schedule();}
+  function fail(){ready=true;introDone=true;scene.classList.add('entry-instant');schedule();}
+  function onReady(){
+    if(window.CeriumWorkspaceReady==='ready')complete();
+    else if(window.CeriumWorkspaceReady==='failed')fail();
+  }
+  skip?.addEventListener('click',()=>{
+    finishIntro(true);
+    if(!ready&&mode==='workspace')caption.textContent='Finishing workspace setup…';
   });
-  if (mode === 'workspace') {
-    window.CeriumEntryLoader = {
-      complete() { ready = true; schedule(); },
-      fail() { ready = true; schedule(true); },
-    };
-    // Let the application's error panel appear even when initialization fails
-    // before it can call fail(). This is a UI fallback, not an auth bypass.
-    setTimeout(() => { if (!ready) { ready = true; schedule(true); } }, 9000);
-  } else {
-    fetch('/api/me', { credentials:'same-origin', cache:'no-store',
-      signal:AbortSignal.timeout(7000) })
-      .then(res => { if (!res.ok) throw new Error('Session unavailable'); return res.json(); })
-      .then(me => {
-        if (!me.signedIn) {
-          finished = true;
-          location.replace('/login.html?returnTo=' + encodeURIComponent(next));
-          return;
-        }
-        ready = true; schedule();
+  retry?.addEventListener('click',()=>location.reload());
+  if(mode==='workspace'){
+    window.CeriumEntryLoader={complete,fail};
+    window.addEventListener('cerium:workspace-ready',onReady);
+    workspaceTimer=setTimeout(()=>{
+      if(ready||finished)return;
+      caption.textContent='Opening your workspace is taking longer. Check your connection and try again.';
+      if(retry)retry.hidden=false;
+      finishIntro(true); // Keep the cover in place until the application is ready.
+    },12000);
+    onReady(); // Initialization may have finished before this deferred script loaded.
+  }
+  if(introDone)finishIntro(true);
+  else introTimer=setTimeout(()=>finishIntro(),2900);
+  if(mode==='redirect'){
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),7000);
+    Promise.resolve().then(()=>fetch('/api/me',{credentials:'same-origin',cache:'no-store',signal:controller.signal}))
+      .then(res=>{if(!res.ok)throw new Error('Session unavailable');return res.json();})
+      .then(me=>{
+        if(!me.signedIn){finished=true;clearTimeout(introTimer);location.replace('/login.html?returnTo='+encodeURIComponent(next));return;}
+        complete();
       })
-      .catch(() => {
-        // The protected workspace checks auth again and redirects to login if
-        // required; don't trap the user behind a broken loading screen.
-        ready = true; schedule(true);
-      });
+      .catch(()=>{ready=true;introDone=true;schedule();})
+      .finally(()=>clearTimeout(timeout));
   }
 })();
