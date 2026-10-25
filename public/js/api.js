@@ -192,6 +192,13 @@ export const CeriumAPI = {
   async addCrew(payload) { return request('/api/crew', { method:'POST', body:JSON.stringify(payload) }); },
   async archiveCrew(id) { return request('/api/crew/'+encodeURIComponent(id), { method:'DELETE' }); },
 
+  async previewLeadImport(upload) {
+    return request('/api/import/leads/preview', { method:'POST', body:JSON.stringify(upload) });
+  },
+  async commitLeadImport(upload) {
+    return request('/api/import/leads/commit', { method:'POST', body:JSON.stringify(upload) });
+  },
+
   async createLead(payload) {
     return request('/api/leads', { method: 'POST', body: JSON.stringify(payload) });
   },
