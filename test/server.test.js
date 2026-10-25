@@ -144,7 +144,7 @@ describe('Google sign-in flow', () => {
   it('returns a verified Google user only to the protected workspace', async () => {
     const b = t.browser();
     const signedIn = await signIn(t, b, { intent: 'login', profile: CAROL, returnTo: 'https://evil.example/steal' });
-    assert.equal(signedIn.cb.headers.get('location'), '/app.html');
+    assert.equal(signedIn.cb.headers.get('location'), '/enter.html?next=%2Fapp.html');
   });
 
   it('only accepts the sign-in start from our own pages', async () => {
@@ -174,7 +174,7 @@ describe('Google sign-in flow', () => {
     const b = t.browser();
     const flow = await signIn(t, b, { intent: 'join', business: 'Plumbing', profile: ALICE });
     assert.equal(flow.cb.status, 303);
-    assert.equal(flow.cb.headers.get('location'), '/app.html#settings');
+    assert.equal(flow.cb.headers.get('location'), '/enter.html?next=%2Fapp.html%23settings');
     const session = readSetCookie(flow.cb, t.config.sessionCookie);
     assert.match(session, /HttpOnly/i);
     assert.match(session, /SameSite=Lax/i);
@@ -294,7 +294,7 @@ describe('Google sign-in flow', () => {
     // A code works once.
     const b2 = t.browser();
     const flow = await signIn(t, b2, { intent: 'login', profile: { ...CAROL, sub: 'g-once', email:'once@example.com' } });
-    assert.equal(flow.cb.headers.get('location'), '/app.html');
+    assert.equal(flow.cb.headers.get('location'), '/enter.html?next=%2Fapp.html');
     const b3 = t.browser();
     await b3.req('/auth/google', { method: 'POST', form: { intent: 'login' } });
     const n3 = unsignNote(t, b3);
