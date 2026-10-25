@@ -10,7 +10,7 @@ const editingBusiness=new URLSearchParams(location.search).get('edit')==='busine
 let busy=false, mode='phone', details=null, initialized=false;
 for(const country of COUNTRY_OPTIONS){
   const option=document.createElement('option');
-  option.value=country.value;option.textContent=country.label+' (+'+country.callingCode+')';
+  option.value=country.value;option.textContent=country.label+'  |  +'+country.callingCode;
   countrySelect.append(option);
 }
 const countryPicker=mountCountryPicker({
