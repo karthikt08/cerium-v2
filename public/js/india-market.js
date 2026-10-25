@@ -20,16 +20,21 @@ export const validUpiVpa=value=>{
   const v=String(value||'').trim();
   return !v||(/^[a-zA-Z0-9._-]{2,128}@[a-zA-Z0-9.-]{2,64}$/.test(v)&&v.length<=194);
 };
-export const safeGSTrate=value=>Number.isFinite(Number(value))&&Number(value)>=0&&Number(value)<=40&&Math.round(Number(value)*100)===Number(value)*100;
+export const safeGSTrate=value=>(typeof value==='number'||(typeof value==='string'&&value.trim()!==''))&&Number.isFinite(Number(value))&&Number(value)>=0&&Number(value)<=40&&Math.abs(Math.round(Number(value)*100)-Number(value)*100)<0.000001;
 export const rupees=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 export function gstBreakdown(subtotal,rate,supplierState,placeOfSupply){
   if(!validIndianState(supplierState)||!supplierState||!validIndianState(placeOfSupply)||!placeOfSupply)throw new Error('Choose supplier and place-of-supply states.');
   if(!safeGSTrate(rate)||!Number.isFinite(Number(subtotal))||Number(subtotal)<0)throw new Error('Enter a valid taxable amount and GST rate.');
-  const taxable=rupees(subtotal), r=Number(rate), fullTax=rupees(taxable*r/100);
+  const taxable=rupees(subtotal), r=Number(rate);
+  const taxablePaise=Math.round(taxable*100),rateHundredths=Math.round(r*100);
+  const numerator=taxablePaise*rateHundredths;
+  if(!Number.isSafeInteger(numerator))throw new Error('Taxable amount is too large.');
+  const taxPaise=Math.round(numerator/10000),fullTax=taxPaise/100;
   const interstate=supplierState!==placeOfSupply;
   const unionTerritory=new Set(['04','26','31','34','35','38']).has(supplierState);
-  const cgst=interstate?0:rupees(fullTax/2);
-  const sgst=interstate?0:rupees(fullTax-cgst);
+  const centralPaise=interstate?0:Math.round(taxPaise/2);
+  const cgst=centralPaise/100;
+  const sgst=interstate?0:(taxPaise-centralPaise)/100;
   const igst=interstate?fullTax:0;
-  return {taxable,gstRate:r,cgst,sgst:unionTerritory?0:sgst,utgst:unionTerritory?sgst:0,igst,total:rupees(taxable+fullTax)};
+  return {taxable,gstRate:r,cgst,sgst:unionTerritory?0:sgst,utgst:unionTerritory?sgst:0,igst,total:(taxablePaise+taxPaise)/100};
 }

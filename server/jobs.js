@@ -13,6 +13,7 @@ const text = (v, label, max, required = false) => {
   return v.trim();
 };
 const opt = (v,label,max) => text(v ?? '',label,max);
+const numericInput=v=>(typeof v==='number'||(typeof v==='string'&&v.trim()!==''))&&Number.isFinite(Number(v));
 const normalizeDateTime = (v) => {
   // Native pickers may serialize whole-minute values with seconds/fractions.
   if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::00(?:\.0{1,3})?)?$/.test(v)) return null;
@@ -21,7 +22,7 @@ const normalizeDateTime = (v) => {
 };
 const jobOut = r => ({id:r.id,leadId:r.lead_id || null,workerId:r.worker_id || null,title:r.title,
   billableItems: JSON.parse(r.billable_items_json || '[]'), invoiceGenerated: Boolean(r.invoice_generated),
-  customerName:r.customer_name,customerPhone:r.customer_phone,address:r.address,notes:r.notes,
+  customerName:r.customer_name,customerPhone:r.customer_phone,customerEmail:r.customer_email||'',address:r.address,notes:r.notes,
   startAt:r.starts_at,endAt:r.ends_at,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at});
 const crewOut = r => ({id:r.id,name:r.name,role:r.role,phone:r.phone,active:Boolean(r.active)});
 
@@ -46,6 +47,13 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
   const columns = new Set(db.prepare('PRAGMA table_info(jobs)').all().map(c => c.name));
   if (!columns.has('billable_items_json')) db.exec("ALTER TABLE jobs ADD COLUMN billable_items_json TEXT NOT NULL DEFAULT '[]'");
   if (!columns.has('invoice_generated')) db.exec('ALTER TABLE jobs ADD COLUMN invoice_generated INTEGER NOT NULL DEFAULT 0');
+  if (!columns.has('customer_email')) {
+    db.exec("ALTER TABLE jobs ADD COLUMN customer_email TEXT NOT NULL DEFAULT ''");
+    // Recover contact information on existing converted jobs once, without
+    // overwriting later intentional edits when the application restarts.
+    if(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='quotes'").get())
+      db.exec("UPDATE jobs SET customer_email=COALESCE((SELECT customer_email FROM quotes WHERE quotes.job_id=jobs.id AND quotes.user_id=jobs.user_id),'')");
+  }
   const q = {
     jobs:db.prepare('SELECT * FROM jobs WHERE user_id=? ORDER BY starts_at ASC,id ASC'),
     job:db.prepare('SELECT * FROM jobs WHERE id=? AND user_id=?'),
@@ -56,8 +64,8 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     assigned:db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE user_id=? AND worker_id=? AND status IN ('Scheduled','Confirmed','In progress')"),
     newCrew:db.prepare('INSERT INTO crew_members(id,user_id,name,role,phone,created_at) VALUES(?,?,?,?,?,?)'),
     archive:db.prepare('UPDATE crew_members SET active=0 WHERE id=? AND user_id=?'),
-    newJob:db.prepare('INSERT INTO jobs(id,user_id,lead_id,worker_id,title,customer_name,customer_phone,address,notes,starts_at,ends_at,status,created_at,updated_at,billable_items_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
-    editJob:db.prepare('UPDATE jobs SET lead_id=?,worker_id=?,title=?,customer_name=?,customer_phone=?,address=?,notes=?,starts_at=?,ends_at=?,status=?,billable_items_json=?,updated_at=? WHERE id=? AND user_id=?'),
+    newJob:db.prepare('INSERT INTO jobs(id,user_id,lead_id,worker_id,title,customer_name,customer_phone,customer_email,address,notes,starts_at,ends_at,status,created_at,updated_at,billable_items_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
+    editJob:db.prepare('UPDATE jobs SET lead_id=?,worker_id=?,title=?,customer_name=?,customer_phone=?,customer_email=?,address=?,notes=?,starts_at=?,ends_at=?,status=?,billable_items_json=?,updated_at=? WHERE id=? AND user_id=?'),
     generated:db.prepare('UPDATE jobs SET invoice_generated=1 WHERE id=? AND user_id=?'),
     deleteJob:db.prepare('DELETE FROM jobs WHERE id=? AND user_id=?'),
     detachInvoice:db.prepare('UPDATE invoices SET job_id=NULL WHERE user_id=? AND job_id=?'),
@@ -67,7 +75,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
   function normalize(p,userId,id='') {
     if (!p || typeof p !== 'object' || Array.isArray(p)) throw new JobsError('invalid_job','Enter job details.');
     const j = {title:text(p.title,'Job title',120,true),customerName:text(p.customerName,'Customer name',120,true),
-      customerPhone:opt(p.customerPhone,'Phone',40),address:opt(p.address,'Service address',240),
+      customerPhone:opt(p.customerPhone,'Phone',40),customerEmail:opt(p.customerEmail,'Email',254),address:opt(p.address,'Service address',240),
       notes:opt(p.notes,'Notes',1500),startAt:normalizeDateTime(p.startAt),endAt:normalizeDateTime(p.endAt),
       status:p.status === undefined ? 'Scheduled' : p.status,workerId:p.workerId || null,leadId:p.leadId || null,
       billableItems: p.billableItems === undefined ? [] : p.billableItems};
@@ -79,11 +87,13 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       if (!description || description.length > 180)
         throw new JobsError('invalid_items','Line item description must contain 1–180 characters.');
       const qty = Number(item.qty), rate = Number(item.rate);
-      if (!Number.isFinite(qty) || !Number.isFinite(rate) || qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
+      if (!numericInput(item.qty) || !numericInput(item.rate) || qty <= 0 || qty > 10000 || rate < 0 || rate > 1000000 ||
           Math.abs(qty * 100 - Math.round(qty * 100)) > 0.000001 || Math.abs(rate * 100 - Math.round(rate * 100)) > 0.000001)
         throw new JobsError('invalid_items','Line item quantity and rate must be valid numbers with at most 2 decimals.');
       return {description,qty,rate};
     });
+    if(j.customerEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(j.customerEmail))
+      throw new JobsError('invalid_email','Enter a valid customer email.');
     if (!j.startAt || !j.endAt || j.startAt>=j.endAt)
       throw new JobsError('invalid_schedule','Choose valid start/end times with the end after the start.');
     if ((new Date(j.endAt+':00Z')-new Date(j.startAt+':00Z'))>72*3600000)
@@ -118,7 +128,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     },
     createJob(userId,p){return db.transaction(()=>{
       const j=normalize(p,userId),id=randomUUID(),now=new Date().toISOString();
-      q.newJob.run(id,userId,j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.address,j.notes,j.startAt,j.endAt,j.status,now,now,JSON.stringify(j.billableItems));
+      q.newJob.run(id,userId,j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,now,now,JSON.stringify(j.billableItems));
       if (j.status==='Completed') { onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},
@@ -127,7 +137,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       if(!previous)throw new JobsError('not_found','Job not found.',404);
       if (!p || typeof p!=='object' || Array.isArray(p))throw new JobsError('invalid_job','Enter valid job changes.');
       const j=normalize({...jobOut(previous),...p},userId,id);
-      q.editJob.run(j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.address,j.notes,j.startAt,j.endAt,j.status,JSON.stringify(j.billableItems),new Date().toISOString(),id,userId);
+      q.editJob.run(j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,JSON.stringify(j.billableItems),new Date().toISOString(),id,userId);
       if (j.status==='Completed' && !previous.invoice_generated) { onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},

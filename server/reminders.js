@@ -20,7 +20,7 @@ export function signOptOut({userId,email},secret){
   return data+'.'+signature;
 }
 export function verifyOptOut(token,secret){
-  if(typeof token!=='string'||token.length>1024||!token.includes('.'))return null;
+  if(typeof token!=='string'||token.length>1024||!(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/).test(token))return null;
   const parts=token.split('.');
   if(parts.length!==2)return null;
   const expected=createHmac('sha256',secret).update('cerium:unsubscribe:v1:'+parts[0]).digest();
@@ -80,7 +80,8 @@ export function createReminderStore(db){
       if(typeof p.dueAt!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(p.dueAt))
         throw new ReminderError('invalid_schedule','Schedule the reminder in UTC ISO format.');
       const due=Date.parse(p.dueAt);
-      if(!Number.isFinite(due)||due<now-60000||due>now+180*86400000)
+      const canonical=p.dueAt.includes('.')?p.dueAt:p.dueAt.slice(0,-1)+'.000Z';
+      if(!Number.isFinite(due)||new Date(due).toISOString()!==canonical||due<now-60000||due>now+180*86400000)
         throw new ReminderError('invalid_schedule','Choose a time in the next 180 days.');
       return db.transaction(()=>{
         const invoice=q.invoice.get(invoiceId,userId);

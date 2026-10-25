@@ -22,13 +22,14 @@
       const firstCharge=Number.isFinite(scheduled.getTime())
         ?scheduled.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
         :'the disclosed subscription start date';
+      const trialDescription=result.trialEligible===false?'Monthly billing. ':'At least 15 full days free. ';
       const rzp = new global.Razorpay({
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
         description: result.currency === 'INR'
-          ?'At least 15 full days free. First ₹500/month debit scheduled '+firstCharge+' plus applicable taxes. UPI AutoPay subject to eligibility. Cancel anytime.'
-          :'At least 15 full days free. First $20/month debit scheduled '+firstCharge+'. Authorize recurring billing. Cancel anytime.',
+          ?trialDescription+'First ₹500/month debit scheduled '+firstCharge+' plus applicable taxes. UPI AutoPay subject to eligibility. Cancel anytime.'
+          :trialDescription+'First $20/month debit scheduled '+firstCharge+'. Authorize recurring billing. Cancel anytime.',
         theme: { color: '#6954b8' },
         handler: async response => {
           try {

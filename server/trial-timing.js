@@ -13,11 +13,17 @@ export function makeTrialSchedule(now = Date.now()) {
   };
 }
 
-export function safeTrialSchedule(provider, savedStartAt, verifiedAt = Date.now()) {
+export function safeSubscriptionSchedule(provider,savedStartAt){
   const expected = Number(savedStartAt);
   if (!Number.isSafeInteger(expected) || expected <= 0 || !provider) return false;
   // Check the provider's actual schedule, not just the timestamp in SQLite.
   if (Number(provider.start_at) !== expected) return false;
-  if (provider.charge_at != null && Number(provider.charge_at) < expected) return false;
+  if (provider.charge_at != null && (!Number.isSafeInteger(Number(provider.charge_at))||Number(provider.charge_at) < expected)) return false;
+  return true;
+}
+
+export function safeTrialSchedule(provider, savedStartAt, verifiedAt = Date.now()) {
+  if(!safeSubscriptionSchedule(provider,savedStartAt))return false;
+  const expected=Number(savedStartAt);
   return expected * 1000 >= verifiedAt + TRIAL_SECONDS * 1000;
 }

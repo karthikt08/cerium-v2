@@ -1,5 +1,5 @@
 import API from './api.js';
-import {lineItemsTotal} from './money.js';
+import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
 import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVpa} from './india-market.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
@@ -169,6 +169,8 @@ function settingsPage() {
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=[{value:'US',label:'United States — USD'},{value:'IN',label:'India — INR'}];
   const moneyPrice=ind?'₹500':'$20';
+  const canAuthorize=!a.subscription||['created','cancelled','expired'].includes(a.subscription.status);
+  const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
   const billingIdentityPanel=`<section class="panel">${panelHeader('payments','Billing verification',proof.verified?'Verified for paid checkout':'Required before your first paid subscription')}
     <div class="settings-content billing-verify-content">
@@ -215,8 +217,8 @@ function settingsPage() {
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':'US'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
     <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
-    ${!currencyMismatch()&&a.planStatus!=='active'&&!['authenticated','active','pending'].includes(a.subscription?.status)?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration above to unlock the recurring payment authorization button.</p>':''}
-    ${a.subscription&&['authenticated','active','pending'].includes(a.subscription.status)?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
+    ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration above to unlock the recurring payment authorization button.</p>':''}
+    ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout requires an enabled US plan.'}</p>
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
@@ -288,6 +290,7 @@ function previewInvoice(id) {
     ${i.igst?`<p>IGST ${fmt(i.igst)}</p>`:''}
     <p>GST rate: ${esc(i.gstRate)}%</p></div>`:'';
   const invoiceTitle=gst?'DRAFT GST TAX INVOICE':'INVOICE';
+  const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:i.total);
   $('invoice-sheet').innerHTML=`<article class="invoice-document">
     <div class="invoice-top"><div><h2>${esc(a.businessName||a.name)}</h2>
       <p>${esc(address)}<br>${esc(a.email)}${a.phone?'<br>'+esc(ind?a.phone:formatUSPhone(a.phone)):''}
@@ -299,6 +302,7 @@ function previewInvoice(id) {
       <div><small>Due</small>${dateLabel(i.dueDate)}</div></div>
     ${gst?`<p class="muted">Place of supply: ${esc(INDIAN_STATES[i.placeOfSupply]||i.placeOfSupply)} (${esc(i.placeOfSupply)}) · HSN/SAC: ${esc(i.hsnSac)}</p>`:''}
     ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
+    ${rounding?`<p class="muted">Rounding adjustment ${fmt(rounding)}</p>`:''}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
     ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
@@ -367,7 +371,7 @@ document.addEventListener('click',e=>{
     else if(action==='export')await API.exportMyData();
     else if(action==='logout')await API.logout();
     else if(action==='upgrade'){await window.CeriumBilling.startSubscriptionCheckout({onComplete:()=>perform('billing-refresh',null,async()=>{await refresh();toast('Subscription authorized. Your trial continues until its end date.');}),onError:err=>toast(err.message,true)});}
-    else if(action==='cancel-subscription'){requestConfirmation('Cancel recurring payments?','Your recurring subscription will be cancelled. You can still export your records.',async()=>{await API.cancelRecurringSubscription();await refresh();toast('Subscription cancellation requested.');});}
+    else if(action==='cancel-subscription'){requestConfirmation('Cancel recurring payments?','Future renewals will stop. Access already granted by your trial or paid period remains until its original end date.',async()=>{await API.cancelRecurringSubscription();await refresh();toast('Future recurring payments cancelled.');});}
   });
 });
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});

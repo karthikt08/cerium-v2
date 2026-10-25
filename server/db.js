@@ -56,6 +56,7 @@ function invoiceFields(value,creating=false) {
     if((creating||p[key]!==undefined)&&!p[key])throw invalidInvoice('Enter '+key+'.');
   if(p.customerEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.customerEmail))throw invalidInvoice('Enter a valid customer email.');
   if(p.status!==undefined&&!['Draft','Sent','Overdue','Paid'].includes(p.status))throw invalidInvoice('Choose a valid invoice status.');
+  if(p.gstRate!==undefined&&!safeGSTrate(p.gstRate))throw invalidInvoice('Enter a valid GST rate with at most 2 decimals.');
   if(p.terms!==undefined&&p.terms!=='Due on receipt'&&!/^Net [1-9]\d{0,2}$/.test(p.terms))throw invalidInvoice('Choose valid payment terms.');
   for(const key of ['issueDate','dueDate']) {
     if(p[key]===undefined)continue;
@@ -560,6 +561,7 @@ export function openDb(file) {
         customer_email = COALESCE(?, customer_email),
         customer_address = COALESCE(?, customer_address),
         job_title = COALESCE(?, job_title),
+        issue_date = COALESCE(?, issue_date),
         terms = COALESCE(?, terms),
         due_date = COALESCE(?, due_date),
         status = COALESCE(?, status),
@@ -579,6 +581,7 @@ export function openDb(file) {
     // Bank Transactions
     getBankTransactions: db.prepare('SELECT * FROM bank_transactions WHERE user_id = ? ORDER BY date DESC'),
     getBankTransaction: db.prepare('SELECT * FROM bank_transactions WHERE id = ? AND user_id = ?'),
+    getInvoicePayment: db.prepare('SELECT id FROM bank_transactions WHERE user_id=? AND matched_invoice_id=? LIMIT 1'),
     insertBankTx: db.prepare(`
       INSERT INTO bank_transactions (id, user_id, date, description, amount, type, status, suggested_invoice_id, matched_invoice_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -676,6 +679,11 @@ export function openDb(file) {
     q.setIndiaInvoiceTax.run(tax.currency,tax.supplierGstin,tax.supplierState,tax.customerGstin,
       tax.placeOfSupply,tax.hsnSac,tax.gstRate,tax.taxable,tax.cgst,tax.sgst,tax.utgst,tax.igst,tax.upiVpa,id,userId);
   };
+  const protectRecordedPayment=(userId,invoice,total,status)=>{
+    if(q.getInvoicePayment.get(userId,invoice.id)&&
+       (status!=='Paid'||Math.round(total*100)!==Math.round(invoice.total*100)))
+      throw Object.assign(new Error('This invoice is linked to a recorded payment. Its paid status and total must stay consistent with that payment.'),{code:'payment_linked_invoice',status:409});
+  };
 
   // Called inside the Jobs SQLite transaction, only when a job first becomes
   // Completed. Either job completion and invoice draft both commit, or neither.
@@ -690,7 +698,7 @@ export function openDb(file) {
     const invoiceId = String(q.nextInvoiceNumber.run().lastInsertRowid);
     const notes = 'Draft generated from completed job. Review items and pricing before sending.';
     const linkedLead = job.leadId ? q.getLead.get(job.leadId, userId) : null;
-    q.insertInvoice.run(invoiceId, userId, job.customerName, linkedLead?.email || '', job.address, job.title, today,
+    q.insertInvoice.run(invoiceId, userId, job.customerName, job.customerEmail || linkedLead?.email || '', job.address, job.title, today,
       'Net 15', addDays(today, 15), 'Draft', JSON.stringify(items), total, notes, null, today);
     persistInvoiceTax(userId,invoiceId,q.getUserById.get(userId)?.country==='IN'?
       {currency:'INR',supplierGstin:'',supplierState:'',customerGstin:'',placeOfSupply:'',
@@ -899,8 +907,15 @@ export function openDb(file) {
       })();
     },
 
-    updateUser(id, { name, businessName, trade, phone, location, country, currency, usState, usZip, timeZone, googlePlaceUrl, indiaState, gstin, upiVpa }) {
+    updateUser(id, payload) {
       const invalid=(message)=>{const error=new Error(message);error.code='invalid_us_profile';error.status=400;throw error;};
+      if(!payload||typeof payload!=='object'||Array.isArray(payload))invalid('Enter valid profile details.');
+      for(const [key,max] of Object.entries({name:120,businessName:120,trade:120,phone:40,location:240,googlePlaceUrl:2048,indiaState:2,gstin:15,upiVpa:194})){
+        if(payload[key]===undefined)continue;
+        if(typeof payload[key]!=='string'||payload[key].trim().length>max)invalid(key+' must be text of at most '+max+' characters.');
+      }
+      if(payload.name!==undefined&&!payload.name.trim())invalid('Enter your name.');
+      const {name,businessName,trade,phone,location,country,currency,usState,usZip,timeZone,googlePlaceUrl,indiaState,gstin,upiVpa}=payload;
       const prior=q.getUserById.get(id);
       if(!prior)invalid('Account not found.');
       const nextCountry=country===undefined?prior.country||'US':country;
@@ -1300,27 +1315,45 @@ export function openDb(file) {
       if (!inv) throw Object.assign(new Error('Invoice not found.'),{code:'not_found',status:404});
       let items = [];
       try { items = JSON.parse(inv.items_json); } catch { items = []; }
+      const originalItems=items;
+      const summaryAmount=inv.invoice_currency==='INR'?(inv.taxable_total||lineItemsTotal(items)):inv.total;
       if (p.items !== undefined) {
         items = p.items;
-      } else if (p.amount !== undefined && items.length <= 1) {
+      } else if (p.amount !== undefined && items.length <= 1 &&
+        (Math.round(Number(p.amount)*100)!==Math.round(summaryAmount*100)||
+         (items[0]?.qty===1&&items[0]?.description===inv.job_title))) {
         items = [{ description: p.jobTitle || inv.job_title || 'Service labor & materials', qty: 1, rate: Number(p.amount) }];
       }
       items = this.validateInvoiceItems(items);
       const user=q.getUserById.get(userId);
       const gstFields={gstRate:p.gstRate??inv.gst_rate,customerGstin:p.customerGstin??inv.customer_gstin,
         placeOfSupply:p.placeOfSupply??inv.place_of_supply,hsnSac:p.hsnSac??inv.hsn_sac};
-      const tax=editionTax(user,items,gstFields);
-      const total=tax?tax.total:lineItemsTotal(items);
+      // Issued documents retain the supplier and payment snapshots captured when
+      // they were issued. Drafts can still pick up corrected profile details.
+      const supplier=inv.status==='Draft'?user:{...user,gstin:inv.supplier_gstin,
+        india_state:inv.supplier_state,upi_vpa:inv.upi_vpa_snapshot};
+      const tax=editionTax(supplier,items,gstFields);
+      const preserveAmounts=inv.status!=='Draft'&&items.length===originalItems.length&&
+        items.every((item,i)=>item.qty===Number(originalItems[i].qty)&&item.rate===Number(originalItems[i].rate))&&
+        Number(gstFields.gstRate)===Number(inv.gst_rate)&&gstFields.placeOfSupply===inv.place_of_supply;
+      // Existing issued amounts are historical records, including any old
+      // rounding. Recalculate only when the owner changes pricing or tax inputs.
+      if(preserveAmounts&&tax)Object.assign(tax,{taxable:inv.taxable_total,cgst:inv.cgst,sgst:inv.sgst,
+        utgst:inv.utgst,igst:inv.igst,total:inv.total});
+      const total=preserveAmounts?inv.total:tax?tax.total:lineItemsTotal(items);
       const terms = p.terms || inv.terms;
-      const dueDate = p.dueDate || (p.terms ? addDays(inv.issue_date || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
+      const issueDate=p.issueDate||inv.issue_date;
+      const scheduleChanged=(p.terms!==undefined&&p.terms!==inv.terms)||(p.issueDate!==undefined&&p.issueDate!==inv.issue_date);
+      const dueDate = p.dueDate || (scheduleChanged ? addDays(issueDate || userBusinessToday(userId), termsToDays(terms)) : inv.due_date);
       const status = p.status || inv.status;
+      protectRecordedPayment(userId,inv,total,status);
       if (inv.job_id && status !== 'Draft' && total <= 0) {
         throw Object.assign(new Error('Enter and save a positive invoice amount before marking this job invoice as sent or paid.'), {code:'invoice_needs_pricing',status:409});
       }
       const paidAt = status === 'Paid' ? (inv.paid_at || userBusinessToday(userId)) : null;
 
       q.updateInvoice.run(
-        p.customerName, p.customerEmail, p.customerAddress, p.jobTitle,
+        p.customerName, p.customerEmail, p.customerAddress, p.jobTitle, issueDate,
         terms, dueDate, status, JSON.stringify(items), total, p.notes,
         paidAt, String(id), userId
       );
@@ -1334,8 +1367,9 @@ export function openDb(file) {
       if(status===undefined)throw invalidInvoice('Choose an invoice status.');
       const original = q.getInvoice.get(String(id), userId);
       if (!original) throw Object.assign(new Error('Invoice not found.'), {code:'not_found',status:404});
+      protectRecordedPayment(userId,original,original.total,status);
       const owner=q.getUserById.get(userId);
-      if (owner?.country==='IN'&&owner.gstin&&status!=='Draft'&&
+      if (owner?.country==='IN'&&owner.gstin&&original.status==='Draft'&&status!=='Draft'&&
           (!original.supplier_gstin||!original.hsn_sac||!original.place_of_supply))
         throw Object.assign(new Error('Review and save GST details before marking this invoice Sent or Paid.'),{code:'gst_review_required',status:409});
       if (original.job_id && status !== 'Draft' && Number(original.total) <= 0) {
@@ -1503,7 +1537,11 @@ export function openDb(file) {
       if ((status === 'active' || status === 'charged') && Date.now() >= row.start_at * 1000 && paidThrough > Date.now()) {
         q.setUserPlan.run('pro', 'active', id, paidThrough, Date.now(), row.user_id);
       } else if (['cancelled','halted','expired'].includes(status) && (row.start_at * 1000 <= Date.now())) {
-        q.setUserPlan.run('expired', 'expired', id, currentEnd || Date.now(), Date.now(), row.user_id);
+        const owner=q.getUserById.get(row.user_id);
+        // Stopping future renewals cannot revoke time already paid for. Never
+        // create or extend access from a cancellation/failure event itself.
+        if(!(owner?.plan_status==='active'&&owner.subscription_id===id&&owner.subscription_expires_at>Date.now()))
+          q.setUserPlan.run('expired', 'expired', id, owner?.subscription_expires_at || Date.now(), Date.now(), row.user_id);
       }
       return true;
     },
