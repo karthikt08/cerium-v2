@@ -41,7 +41,7 @@
   overflow:auto;overscroll-behavior:contain;background:#fff;color:#25354b;
   box-shadow:0 40px 115px #111d3652,0 8px 28px #1b356025}
 .workspace-config-dialog::backdrop{background:rgba(17,30,55,.57);backdrop-filter:blur(7px)}
-.workspace-config-dialog[open]{animation:ws-dialog-in .22s cubic-bezier(.2,.86,.2,1) both}
+.workspace-config-dialog[open]{animation:ws-dialog-in .2s ease-out}
 .ws-config-hero{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;
   padding:26px 29px 24px;background:
   radial-gradient(ellipse 68% 150% at 100% 0%,#dfeaff 0%,transparent 78%),
@@ -83,7 +83,7 @@
 .ws-config-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;
   border-top:1px solid #e6ebf4;padding-top:18px}
 .workspace-config-dialog :is(select,textarea,button,input):focus-visible{outline:3px solid #9ab5ff;outline-offset:3px}
-@keyframes ws-dialog-in{from{opacity:0;transform:translateY(11px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes ws-dialog-in{from{opacity:0}to{opacity:1}}
 @media(max-width:710px){.ws-launch{flex-wrap:wrap}.ws-launch button{margin-left:66px}
   .workspace-config-dialog .ws-config-form{padding:19px}.ws-config-hero{padding:21px 19px}}
 @media(max-width:490px){.ws-launch{gap:12px;padding:17px}.ws-launch-icon{width:40px;height:40px;padding:9px}

@@ -101,7 +101,7 @@ function overview() {
   const hour=tz?Number(new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'numeric',hourCycle:'h23'}).format(now)):now.getHours();
   const first=ws.account.name.trim().split(/\s+/)[0]||'there';
   const title=`Good ${hour<12?'morning':hour<18?'afternoon':'evening'}, ${first}.`;
-  const preference=ws.account.workspacePreferences||{},primaryModule=preference.modules?.[0];
+  const preference=ws.account.workspacePreferences||{};
   const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
   const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
   const industryNote=`<div class="notice" role="status"><div><strong>${esc(workspaceTitle)}</strong><p>Your selected tools, arranged for your work. <a href="#settings" data-nav="settings">Customize your tools →</a></p></div></div>`;
@@ -115,7 +115,7 @@ function overview() {
     <div class="india-guide-actions"><a class="button secondary" href="#settings" data-nav="settings">Set up GST & UPI</a>${button('Create INR invoice','new','data-kind="invoice"')}</div>
   </section>`:'';
   const metric=(label,value,foot,nav,ic,warn=false)=>`<a href="#${nav}" data-nav="${nav}" data-workspace-module="${nav}" class="metric ${warn?'warning':''}"><div class="metric-top"><span>${label}</span>${icon(ic)}</div><strong class="metric-value">${value}</strong><span class="metric-foot"><i class="dot"></i>${foot}</span></a>`;
-  return pageHeading(title,`Here's what needs your attention today.`,primaryModule&&SECTIONS[primaryModule]?viewLink(primaryModule,'Open '+SECTIONS[primaryModule][0]):addButton('lead','New lead'),day)+industryNote+
+  return pageHeading(title,`Here's what needs your attention today.`,addButton('lead','New lead'),day)+industryNote+
     (!currencyMismatch()?'':'<div class="notice" role="status"><div><strong>Previous currency records</strong><p>Your workspace still contains earlier amounts in '+esc(ws.account.currency)+'. They are preserved as originally recorded; see Settings before creating new dollar invoices.</p></div></div>')+
     indiaWelcome+
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',dashboardCash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',dashboardCash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+

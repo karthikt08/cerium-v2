@@ -2,7 +2,7 @@
 (() => {
   const fine=matchMedia('(hover:hover) and (pointer:fine)'),reduce=matchMedia('(prefers-reduced-motion:reduce)');
   const root=document.documentElement,c=document.createElement('div');c.className='workspace-cursor';c.setAttribute('aria-hidden','true');
-  const controls='a,button,[role="button"],input[type="checkbox"],summary';
+  const controls='a,button,[role="button"],input[type="checkbox"],summary,.ws-pick-module';
   let x=-50,y=-50,cx=-50,cy=-50,w=14,h=14,r=7,target=null,prevTarget=null,targetRadius=10,frame=0,down=false,active=false;
   function hide(){active=false;c.classList.remove('visible');root.classList.remove('has-workspace-cursor');if(frame)cancelAnimationFrame(frame);frame=0;}
   function targetAtPointer(fromEl){
