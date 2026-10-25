@@ -69,9 +69,10 @@ function demoAdapter() {
     },
     async completeBusinessSetup(confirmed){
       if(setup.step!=='review'||confirmed!==true)throw new Error('Finish each step and confirm your business details.');
-      const validated=validateBusinessProfile(setup.draft,country),before=profile;
+      const validated=validateBusinessProfile(setup.draft,country),before=profile,beforeSetup=setup;
       profile={...validated,completedAt:profile?.completedAt||Date.now()};
-      try{persist();}catch(err){profile=before;throw err;}applyProfile();return {ok:true};
+      setup={step:'basics',draft:{...profile}};
+      try{persist();}catch(err){profile=before;setup=beforeSetup;throw err;}applyProfile();return {ok:true};
     },
     async getMe() { return { signedIn:true }; },
     async getWorkspace() { requireSetup();return clone(ws); },
@@ -109,7 +110,16 @@ function demoAdapter() {
     async sendReviewRequest(id) { update('reviews',id,{status:'Sent'}); },
     async markReviewReceived(id) { update('reviews',id,{status:'Reviewed'}); },
     async deleteReview(id) { remove('reviews',id); },
-    async updateAccount(payload) { Object.assign(ws.account,payload); },
+    async updateAccount(payload) {
+      requireSetup();
+      const candidate={...profile,...payload,businessPostalCode:payload.usZip??profile.businessPostalCode};
+      if(country==='IN'&&payload.gstin!==undefined)candidate.gstRegistration=payload.gstin?'registered':'not_registered';
+      const validated=validateBusinessProfile(candidate,country),before=profile,beforeSetup=setup;
+      profile={...validated,completedAt:profile.completedAt};
+      setup={step:'basics',draft:{...profile}};
+      try{persist();}catch(err){profile=before;setup=beforeSetup;throw err;}
+      applyProfile();Object.assign(ws.account,payload);
+    },
     async exportMyData() {
       const url=URL.createObjectURL(new Blob([JSON.stringify(ws,null,2)],{type:'application/json'}));
       const a=document.createElement('a');a.href=url;a.download='cerium-demo-data.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

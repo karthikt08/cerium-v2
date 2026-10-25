@@ -116,6 +116,9 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   }
   const clearErrors=()=>{el('business-errors').hidden=true;for(const node of form.querySelectorAll('[aria-invalid]'))node.removeAttribute('aria-invalid');};
   el('biz-gst-registration').addEventListener('change',gst);
+  el('business-back').addEventListener('click',event=>{
+    if(api.localBusinessSetup&&editing&&setup.complete){event.preventDefault();onComplete();}
+  });
   el('business-previous').addEventListener('click',()=>{
     if(busy)return;clearErrors();const steps=businessSetupSteps(setup.country);screen=steps[steps.indexOf(screen)-1];render(true);
   });
