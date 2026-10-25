@@ -1,4 +1,5 @@
 import {validCountry} from './countries.js';
+import {defaultModules,isIndustry,normalizeModules,suggestIndustry} from './industry-workspaces.js';
 import {validIndianState,validGSTIN} from './india-market.js';
 import {validUsState,validUsZip,validUsTimeZone,validBusinessTimeZone} from './us-market.js';
 
@@ -13,6 +14,8 @@ export function profileFromUser(user){
   if(!user)return null;
   return {
     name:user.name||'',businessName:user.business_name||'',trade:user.trade||'',
+    industryCategory:user.industry_category||suggestIndustry(user.trade).category,
+    workspaceModules:(()=>{try{return JSON.parse(user.workspace_modules||'null')?.join(',')||'';}catch{return '';}})(),
     businessEmail:user.business_email||user.email||'',businessAddress:user.business_address||'',
     businessCity:user.business_city||'',businessRegion:user.business_region||'',
     businessPostalCode:user.business_postal_code||user.us_zip||'',
@@ -28,7 +31,8 @@ export function validateBusinessProfile(input,country,onlyFields=null){
   const fields={},out={};
   for(const [key,label,max,required] of [
     ['name','Contact name',120,true],['businessName','Business name',120,true],
-    ['trade','Industry or service',120,true],['businessEmail','Business email',254,true],
+    ['trade','Industry or service',120,true],['industryCategory','Business category',32,false],
+    ['workspaceModules','Selected modules',140,false],['businessEmail','Business email',254,true],
     ['businessAddress','Business address',160,true],['businessCity','City or locality',80,true],
     ['businessRegion','State or region',80,false],['businessPostalCode','Postal code',20,false],
     ['timeZone','Business time zone',80,true],['usState','US state',2,false],
@@ -42,6 +46,11 @@ export function validateBusinessProfile(input,country,onlyFields=null){
     out[key]=value.trim();
     if(required&&!out[key])fields[key]='Enter your '+label.toLowerCase()+'.';
   }
+  const category=out.industryCategory||suggestIndustry(out.trade).category;
+  if(!isIndustry(category))fields.industryCategory='Choose a valid business category.';
+  let modules=defaultModules(isIndustry(category)?category:'other');
+  if(out.workspaceModules){try{modules=normalizeModules(out.workspaceModules);}catch{fields.workspaceModules='Choose at least one available module, without duplicates.';}}
+  out.industryCategory=category;out.workspaceModules=modules.join(',');
   if(!validCountry(country)||(input.country!==undefined&&input.country!==country))fields.country='Use your verified business country.';
   if(out.businessEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(out.businessEmail))fields.businessEmail='Enter a valid business email address.';
   out.businessEmail=out.businessEmail.toLowerCase();
@@ -73,7 +82,7 @@ export function businessProfileComplete(user){
 }
 
 export const BUSINESS_SETUP_FIELDS=Object.freeze({
-  basics:['name','businessName','trade','businessEmail'],
+  basics:['name','businessName','trade','businessEmail','industryCategory','workspaceModules'],
   address:['businessAddress','businessCity','businessRegion','businessPostalCode','timeZone','usState','indiaState'],
   tax:['gstRegistration','gstin']
 });

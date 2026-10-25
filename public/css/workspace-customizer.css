@@ -1,0 +1,19 @@
+/* Business-specific CERIUM workspace module configuration. */
+.workspace-customizer{margin-bottom:20px}
+.workspace-customizer form{display:grid;gap:17px}
+.workspace-customizer .ws-custom-field{display:grid;gap:6px;font-size:13px;font-weight:600;color:#435269}
+.workspace-customizer select,.workspace-customizer textarea{
+  width:100%;min-width:0;box-sizing:border-box;border:1px solid #cbd5e6;border-radius:9px;
+  background:#fff;color:#26344f;padding:12px;font:14px/1.5 system-ui,sans-serif
+}
+.workspace-customizer textarea{resize:vertical;min-height:82px}
+.workspace-customizer .ws-recommender{background:#f6f8fc;border:1px solid #e1e7f4;border-radius:12px;padding:16px;display:grid;gap:11px}
+.workspace-customizer .ws-module-fieldset{border:0;padding:0;min-width:0}
+.workspace-customizer .ws-module-fieldset legend{font-size:13px;font-weight:700;margin-bottom:10px;color:#344666}
+.workspace-customizer .ws-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.workspace-customizer .ws-pick-module{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px solid #dce4f0;cursor:pointer;line-height:1.4;font-size:13px;font-weight:600}
+.workspace-customizer .ws-pick-module:has(input:checked){background:#f1f5ff;border-color:#aec4fa}
+.workspace-customizer .ws-pick-module input{accent-color:#4263eb;width:17px;height:17px;flex:none}
+.workspace-customizer .settings-actions{display:flex;flex-wrap:wrap;gap:9px}
+.workspace-customizer :is(input,select,textarea,button):focus-visible{outline:3px solid #7c9fff;outline-offset:3px}
+@media(max-width:600px){.workspace-customizer .ws-module-grid{grid-template-columns:1fr}}
