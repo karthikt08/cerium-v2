@@ -45,7 +45,7 @@ test('legal pages have updated dates, no starter placeholders and accurate billi
   }
   assert.match(terms,/payment-method authorisation/);
   assert.match(terms,/email\/password and Google sign-in/);
-  assert.match(terms,/current bank connection control is not a live bank-data provider integration/);
+  assert.match(terms,/current bank connection control is not a live bank-data provider integration/i);
   assert.match(privacy,/CSV or Excel \(\.xlsx\)/);
   assert.match(privacy,/session cookie/);
   assert.match(privacy,/account-deletion control/);
