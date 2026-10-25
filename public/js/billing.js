@@ -31,7 +31,7 @@
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
-        description: trialDescription+'First '+disclosedPrice+'/'+(confirmedCycle==='annual'?'year':'month')+' '+result.currency+' debit scheduled '+firstCharge+' plus applicable taxes. Cancel future renewals anytime; prior annual payments cover 12 months.',
+        description: trialDescription+'First '+disclosedPrice+'/'+(confirmedCycle==='annual'?'year':'month')+' '+result.currency+' debit scheduled '+firstCharge+' plus applicable taxes. Cancel future renewals anytime.'+(confirmedCycle==='annual'?' Each successful annual payment covers 12 months.':''),
         theme: { color: '#6954b8' },
         handler: async response => {
           try {
