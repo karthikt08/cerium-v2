@@ -1,5 +1,5 @@
 /* Home page only. Linked AFTER spatial.css. */
-.pg.home{--hf:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;--vi:#7c3aed}
+.pg.home{--hf:"Figtree",system-ui,sans-serif;--vi:#7c3aed}
 
 /* ---------- headings with life ---------- */
 .pg.home h1,.pg.home h2{font-weight:700;letter-spacing:-.045em}
