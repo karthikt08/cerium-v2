@@ -14,7 +14,6 @@ export const validInvoiceCurrency=currency=>typeof currency==='string'&&INVOICE_
 export const validWorkspaceCurrency=(country,currency)=>country==='IN'?currency==='INR':
   country==='US'?currency==='USD':validInvoiceCurrency(currency);
 export const currencyDigits=currency=>new Intl.NumberFormat('en',{style:'currency',currency}).resolvedOptions().maximumFractionDigits;
-export const roundCurrency=(value,currency)=>{const factor=10**currencyDigits(currency);return Math.round((Number(value)+Number.EPSILON)*factor)/factor;};
 export function invoiceCountry(country='US'){
   const vat=country==='GB'||eu.includes(country);
   const labels=country==='IN'?['GST','GSTIN']:country==='US'?['Sales tax','Tax registration ID']:

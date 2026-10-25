@@ -77,7 +77,9 @@ tax labels elsewhere. India's existing GSTIN, HSN/SAC, place-of-supply,
 CGST/SGST/UTGST/IGST and UPI calculations remain separate.
 
 No tax is added by default. Each generic component applies independently to the
-same subtotal; rates support up to four decimal places. Non-US tax charges need
+same subtotal; rates support up to four decimal places. Integer minor-unit
+arithmetic rounds half-unit tax boundaries consistently, without floating-point
+undercharges. Non-US tax charges need
 an issuer tax registration ID. Registration IDs are not registry-verified.
 Line-item rates retain the existing two-decimal input limit; totals and tax
 amounts use the invoice currency's precision, including KWD's third decimal.

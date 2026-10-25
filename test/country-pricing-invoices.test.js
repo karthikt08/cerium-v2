@@ -134,3 +134,16 @@ test('existing agreed-price checkout can resume without a newly configured disco
     const me=await b.me(),r=await b.req('/api/billing/subscription',{method:'POST',csrf:me.csrfToken,json:{}});assert.equal(r.status,200);assert.equal((await r.json()).amount,2000);
   }finally{await t.close();}
 });
+
+test('tax rounding uses exact minor-unit half-up arithmetic for fractional rates',()=>{
+  const db=openDb(':memory:');try{
+    const id=fixture(db,'GB','GBP');
+    for(const [amount,rate,tax] of [[29,7.5,2.18],[31.8,7.5,2.39],[42.5,19,8.08],[42.7,5,2.14],[0.29,50,0.15]]){
+      const made=db.createInvoice(id,{...invoice,amount,supplierTaxId:'TEST-ID',taxLines:[{label:'VAT',rate}]});
+      assert.equal(made.details.taxLines[0].amount,tax);assert.equal(made.total,(Math.round(amount*100)+Math.round(tax*100))/100);
+    }
+    const kw=fixture(db,'KW','KWD');
+    const made=db.createInvoice(kw,{...invoice,amount:29,supplierTaxId:'TEST-ID',taxLines:[{label:'Tax',rate:7.5}]});
+    assert.equal(made.details.taxLines[0].amount,2.175);assert.equal(made.total,31.175);
+  }finally{db.close();}
+});
