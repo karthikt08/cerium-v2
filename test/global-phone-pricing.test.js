@@ -8,6 +8,7 @@ import {getCountries,getCountryCallingCode,getExampleNumber} from 'libphonenumbe
 import examples from 'libphonenumber-js/examples.mobile.json';
 import {COUNTRY_OPTIONS,COUNTRY_CALLING_CODES,billingPlan,validCountry} from '../public/js/countries.js';
 import {businessLocalDate,businessLocalToInstant,businessTimeZoneOptions} from '../public/js/us-market.js';
+import {incomeGroup,INCOME_PRICES} from '../public/js/country-income.js';
 import {buildConfig} from '../server/config.js';
 
 test('every country in phone metadata has matching browser choices, national parsing and fixed pricing',()=>{
@@ -19,7 +20,7 @@ test('every country in phone metadata has matching browser choices, national par
       assert.equal(normalizeBillingPhone(input,country),example.number,country+': '+input);
     const plan=billingPlan(country);
     assert.equal(plan.currency,country==='IN'?'INR':'USD',country);
-    assert.equal(plan.minorUnits,country==='IN'?50000:2000,country);
+    assert.equal(plan.minorUnits,country==='IN'?50000:INCOME_PRICES[incomeGroup(country)]*100,country);
   }
 });
 
@@ -28,13 +29,13 @@ test('US national numbers are accepted without requiring the +1 prefix',()=>{
     assert.equal(normalizeBillingPhone(raw,'US'),'+14155550123',raw);
 });
 
-test('all international regions use USD 20 except India INR 500',()=>{
+test('international regions use their income price except India INR 500',()=>{
   for(const country of ['IN','US','CA','GB','FR','DE','AU','JP','BR','ZA','NG','NP']){
     const price=decideRegion({location:{country_code:country},is_vpn:false,is_proxy:false,is_tor:false});
     assert.equal(price.ok,true,country);
     assert.equal(price.country,country);
     assert.equal(price.currency,country==='IN'?'INR':'USD');
-    assert.equal(price.monthlyPrice,country==='IN'?500:20);
+    assert.equal(price.monthlyPrice,country==='IN'?500:INCOME_PRICES[incomeGroup(country)]);
   }
 });
 
@@ -117,15 +118,16 @@ test('shared +1 codes preserve the declared Canadian country and canonical phone
   }finally{await t.close();}
 });
 
-for(const country of ['US','IN','CA','GB','FR','AU','JP','BR','ZA','NP','XK']){
+for(const country of ['US','IN','CA','GB','FR','AU','JP','BR','ZA','NP','XK','UG']){
   test(country+' uses its correct server-selected plan and stays locked until recurring authorization',async()=>{
-    const indian=country==='IN',amount=indian?50000:2000,currency=indian?'INR':'USD';
+    const indian=country==='IN',amount=billingPlan(country).minorUnits,currency=indian?'INR':'USD';
+    const expectedPlan=indian?'plan_india':amount===1600?'plan_upper':amount===1200?'plan_lower':amount===800?'plan_low':'plan_global';
     let schedule,authorized=false;
     const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone_and_mandate',
       RAZORPAY_KEY_ID:'rzp_test_global',RAZORPAY_KEY_SECRET:'global-test-secret',
-      RAZORPAY_WEBHOOK_SECRET:'global-test-webhook-secret',RAZORPAY_PLAN_ID:'plan_global',RAZORPAY_IN_PLAN_ID:'plan_india'},
+      RAZORPAY_WEBHOOK_SECRET:'global-test-webhook-secret',RAZORPAY_PLAN_ID:'plan_global',RAZORPAY_IN_PLAN_ID:'plan_india',RAZORPAY_UPPER_MIDDLE_PLAN_ID:'plan_upper',RAZORPAY_LOWER_MIDDLE_PLAN_ID:'plan_lower',RAZORPAY_LOW_PLAN_ID:'plan_low'},
       razorpay:{
-        getPlan:async id=>{assert.equal(id,indian?'plan_india':'plan_global');return {period:'monthly',interval:1,item:{amount,currency}};},
+        getPlan:async id=>{assert.equal(id,expectedPlan);return {period:'monthly',interval:1,item:{amount,currency}};},
         createSubscription:async params=>{schedule=params;return {id:'sub_global',status:'created',start_at:params.startAt,expire_by:params.expireBy};},
         getSubscription:async()=>({id:'sub_global',status:authorized?'authenticated':'pending',start_at:schedule.startAt,charge_at:schedule.startAt}),
         verifySubscription:()=>true
