@@ -60,7 +60,7 @@ countrySelect.addEventListener('change',updatePreview);
 function setBusy(on){
   busy=on;for(const b of document.querySelectorAll('button:not(#business-setup button)'))b.disabled=on;
   for(const field of document.querySelectorAll('#start-form input, #start-form select, #code-form input'))field.disabled=on;
-  if(!details?.businessComplete||!details?.checkoutConfigured)el('mandate-button').disabled=true;
+  if(!details?.businessComplete||!(details?.checkoutConfigured||details?.annualCheckoutConfigured))el('mandate-button').disabled=true;
 }
 async function view(){
   el('setup-retry').hidden=true;
@@ -80,6 +80,106 @@ async function view(){
   business.hidden=!(details.verified&&(!details.businessComplete||editingBusiness));
   payment.hidden=!(details.verified&&details.businessComplete&&mode==='phone_and_mandate'&&!editingBusiness);
   el('setup-cancel').hidden=!details.subscriptionStatus||['cancelled','expired'].includes(details.subscriptionStatus);
+  const monthOption=document.querySelector('input[name="billing-cycle"][value="monthly"]');
+  const yearOption=document.querySelector('input[name="billing-cycle"][value="annual"]');
+  monthOption.disabled=!details.checkoutConfigured;
+  yearOption.disabled=!details.annualCheckoutConfigured;
+  if((monthOption.checked&&monthOption.disabled)||(yearOption.checked&&yearOption.disabled))
+    (details.checkoutConfigured?monthOption:yearOption).checked=true;
+  const currency=details.billingPrice?.currency||'USD', symbol=currency==='INR'?'₹':'
+  if(!business.hidden){
+    wizard.show(await API.getBusinessSetup(),details);
+    setMessage(editingBusiness?'Update your business details. Your existing trial and billing dates stay the same.':'Phone confirmed. Complete the required business details to continue.');
+    return;
+  }
+  if(details.verified&&details.businessComplete&&mode==='phone_and_mandate'){
+    if(!details.checkoutConfigured&&!details.annualCheckoutConfigured){
+      el('mandate-button').disabled=true;
+      setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
+    }else{
+      el('mandate-button').disabled=false;
+      el('mandate-info').textContent=countryName(details.country)+'. Choose monthly or annual billing; annual costs the equivalent of ten monthly payments for 12 months of service. The first charge starts after your 15-day trial. The precise amount and date are confirmed in Razorpay checkout.';
+      setMessage('Business setup complete. One final step: authorize your payment method.');
+    }
+    return;
+  }
+  if(!details.providerReady){
+    start.hidden=true;
+    setMessage('Phone verification is not configured on this server. Contact CERIUM support. Workspace access is not enabled yet.',true);
+    return;
+  }
+  if(details.verified){setMessage('Phone confirmed. Preparing your workspace…');location.replace('/app.html');return;}
+  setMessage(details.mode==='development'?'Local test: SMS is simulated. Use code 000000 after requesting it.':'Phone verification is required before opening your workspace.');
+  }catch(err){el('setup-retry').hidden=false;throw err;}
+}
+el('setup-retry').addEventListener('click',async()=>{
+  if(busy)return;setBusy(true);
+  try{await view();}catch(err){setMessage(err.message||'Could not load setup. Please try again.',true);}
+  finally{setBusy(false);}
+});
+start.addEventListener('submit',async e=>{
+  e.preventDefault();if(busy)return;
+  const country=countrySelect.value;
+  if(!validCountry(country)){setMessage('Select your business country first.',true);return;}
+  if(!el('country-confirm').checked){setMessage('Confirm your actual business country first.',true);return;}
+  setBusy(true);
+  try{
+    const out=await API.startBillingPhone(phone.value,true,country);
+    await view();
+    setMessage(out.mode==='development'?'Local test: enter code 000000.':'Code requested for '+out.phoneMasked+'.');
+    el('code')?.focus();
+  }catch(err){setMessage(err.message||'Unable to send a code.',true)}
+  finally{setBusy(false)}
+});
+check.addEventListener('submit',async e=>{
+  e.preventDefault();if(busy)return;
+  setBusy(true);
+  try{
+    const out=await API.verifyBillingPhone(el('code').value.trim());
+    setMessage('Verified: '+countryName(out.country)+' · '+out.currency+'.');
+    await view();
+  }catch(err){setMessage(err.message||'Unable to verify the code.',true)}
+  finally{setBusy(false)}
+});
+el('setup-export').addEventListener('click',async()=>{
+  if(busy)return;setBusy(true);try{await API.exportMyData();}catch(err){setMessage(err.message,true);}finally{setBusy(false);}
+});
+el('setup-logout').addEventListener('click',()=>API.logout());
+el('setup-cancel').addEventListener('click',async()=>{
+  if(busy||!confirm('Cancel future recurring payments? Your existing trial or paid period keeps its original end date.'))return;
+  setBusy(true);try{await API.cancelRecurringSubscription();await view();setMessage('Future recurring payments cancelled.');}
+  catch(err){setMessage(err.message,true);}finally{setBusy(false);}
+});
+el('mandate-button').addEventListener('click',async()=>{
+  if(busy)return;
+  const checkout=window.CeriumBilling?.startSubscriptionCheckout;
+  if(typeof checkout!=='function'){setMessage('Secure checkout is not available. Refresh and try again.',true);return;}
+  setBusy(true);
+  try{
+    await checkout({
+      billingCycle:document.querySelector('input[name="billing-cycle"]:checked')?.value||'monthly',
+      onComplete:async()=>{setBusy(false);try{await view()}catch(err){setMessage(err.message,true)}},
+      onError:err=>{setBusy(false);setMessage(err.message||'Mandate authorization was not completed.',true)}
+    });
+    // Razorpay returns as soon as the hosted modal opens. Let customers retry
+    // if they close it; only provider-confirmed authorization unlocks access.
+    setBusy(false);
+  }catch(err){setBusy(false);setMessage(err.message,true)}
+});
+updatePreview();
+view().catch(err=>setMessage(err.message||'Could not load verification state.',true));
+;
+  const existingCycle=details.billingPrice?.billingCycle==='annual'?'annual':'monthly';
+  const monthly=existingCycle==='annual'
+    ?(details.billingPrice?.annualPrice??details.annualPrice??0)/10
+    :details.billingPrice?.monthlyPrice;
+  const annual=existingCycle==='annual'?details.billingPrice?.annualPrice:details.annualPrice;
+  el('monthly-price-label').textContent=details.checkoutConfigured
+    ?symbol+monthly+' '+currency+'/month'
+    :'Not enabled for this account';
+  el('annual-price-label').textContent=details.annualCheckoutConfigured
+    ?symbol+annual+' '+currency+'/year · save 2 months'
+    :'Not enabled for this account';
   if(!business.hidden){
     wizard.show(await API.getBusinessSetup(),details);
     setMessage(editingBusiness?'Update your business details. Your existing trial and billing dates stay the same.':'Phone confirmed. Complete the required business details to continue.');
