@@ -74,10 +74,10 @@ function xlsxRows(buffer){
   const files=zipFiles(buffer);
   const workbook=files.get('xl/workbook.xml')||'';
   const relationships=files.get('xl/_rels/workbook.xml.rels')||'';
-  const date1904=/<workbookPr\b[^>]*\bdate1904="(?:1|true)"/.test(workbook);
+  const date1904=/<(?:[\w.-]+:)?workbookPr\b[^>]*\bdate1904="(?:1|true)"/.test(workbook);
   const listed=[...files.keys()].filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>Number(a.match(/sheet(\d+)/)[1])-Number(b.match(/sheet(\d+)/)[1]));
   let sheet=listed[0];
-  const firstSheet=/<sheet\b[^>]*>/.exec(workbook)?.[0]||'';
+  const firstSheet=/<(?:[\w.-]+:)?sheet\b[^>]*\/?\s*>/.exec(workbook)?.[0]||'';
   const sheetRelation=/\br:id="([^"]+)"/.exec(firstSheet)?.[1];
   if(sheetRelation){
     const relation=[...relationships.matchAll(/<Relationship\b[^>]*\/?\s*>/g)]
@@ -89,14 +89,14 @@ function xlsxRows(buffer){
   if(!sheet)throw bad('No usable worksheet was found in the .xlsx file.');
   const shared=[];
   const sharedXml=files.get('xl/sharedStrings.xml')||'';
-  for(const match of sharedXml.matchAll(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>/g)){
-    shared.push([...match[1].matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map(m=>xmlText(m[1])).join(''));
+  for(const match of sharedXml.matchAll(/<(?:[\w.-]+:)?si\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?si>/g)){
+    shared.push([...match[1].matchAll(/<(?:[\w.-]+:)?t\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?t>/g)].map(m=>xmlText(m[1])).join(''));
     if(shared.length>100000)throw bad('The workbook has too many shared strings.');
   }
   const rows=[];
-  for(const match of files.get(sheet).matchAll(/<row(?:\s[^>]*)?>([\s\S]*?)<\/row>/g)){
+  for(const match of files.get(sheet).matchAll(/<(?:[\w.-]+:)?row\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?row>/g)){
     const row=[];
-    for(const c of match[1].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){
+    for(const c of match[1].matchAll(/<(?:[\w.-]+:)?c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:[\w.-]+:)?c>)/g)){
       const ref=/\br="([A-Z]+)\d+"/.exec(c[1]);
       if(!ref)continue;
       let col=0;for(const ch of ref[1])col=col*26+ch.charCodeAt(0)-64;col--;
@@ -104,10 +104,10 @@ function xlsxRows(buffer){
       if(col>=MAX_COLS)throw bad('The workbook has columns beyond the 40-column limit.');
       const kind=/\bt="([^"]+)"/.exec(c[1])?.[1]||'';
       const body=c[2]||'';
-      const raw=/<v(?:\s[^>]*)?>([\s\S]*?)<\/v>/.exec(body)?.[1]||'';
+      const raw=/<(?:[\w.-]+:)?v\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?v>/.exec(body)?.[1]||'';
       let value;
       if(kind==='s'){const index=Number(raw);value=Number.isInteger(index)?shared[index]:undefined;if(value===undefined)throw bad('Invalid shared-string reference in workbook.');}
-      else if(kind==='inlineStr')value=[...body.matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map(m=>xmlText(m[1])).join('');
+      else if(kind==='inlineStr')value=[...body.matchAll(/<(?:[\w.-]+:)?t\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?t>/g)].map(m=>xmlText(m[1])).join('');
       else if(kind==='e')value='';
       else value=xmlText(raw);
       row[col]=value;
