@@ -319,8 +319,8 @@ export const CeriumAPI = {
   },
 
   // Billing & Subscriptions
-  async createRecurringSubscription() {
-    return request('/api/billing/subscription', { method: 'POST' });
+  async createRecurringSubscription(billingCycle = 'monthly') {
+    return request('/api/billing/subscription', { method: 'POST', body: JSON.stringify({billingCycle}) });
   },
   async verifyRecurringSubscription(data) {
     return request('/api/billing/subscription/verify', { method: 'POST', body: JSON.stringify(data) });
