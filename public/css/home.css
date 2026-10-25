@@ -10,7 +10,7 @@
 /* the blue phrase: a flowing blue-to-violet gradient, a soft glow and a hand-drawn underline */
 .pg.home .ac,.pg.home .en .ac{position:relative;display:inline-block;white-space:nowrap;font-weight:800;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 10px 18px rgba(124,58,237,.28))}
 .pg.home .en .ac{background-image:linear-gradient(100deg,#9db2ff 0%,#c4b5fd 35%,#f0abfc 65%,#9db2ff 100%);filter:drop-shadow(0 8px 22px rgba(167,139,250,.35))}
-.wd.ac{animation:wd-up .85s cubic-bezier(.2,.8,.2,1) both,sheen 7s linear infinite;animation-delay:calc(.12s + var(--i,0)*.06s),0s}
+.wd.ac{animation:wd-up .85s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.12s + var(--i,0)*.06s)}
 .pg.home .ul path{stroke:url(#ug)!important;stroke-width:5}
 .pg.home .ul{filter:drop-shadow(0 6px 8px rgba(124,58,237,.35))}
 /* highlighter swipe behind a few words */
@@ -20,18 +20,19 @@
 .rv-on [data-rv]:not(.in) .wd{animation:none}
 .rv-on [data-rv]:not(.in) .hl::before{transform:scaleX(0)}
 .rv-on [data-rv].in .wd{animation:wd-pop .75s cubic-bezier(.3,1.5,.5,1) both;animation-delay:calc(var(--i,0)*.07s)}
-.rv-on [data-rv].in .wd.ac{animation:wd-pop .75s cubic-bezier(.3,1.5,.5,1) both,sheen 7s linear infinite;animation-delay:calc(var(--i,0)*.07s),0s}
+.rv-on [data-rv].in .wd.ac{animation:wd-pop .75s cubic-bezier(.3,1.5,.5,1) both;animation-delay:calc(var(--i,0)*.07s)}
 @keyframes wd-pop{from{transform:translateY(.38em)}}
 @media print{.rv-on [data-rv] .hl::before{transform:none}}
 /* small live touches */
-.pg.home .ey::before{display:inline-block;content:"";width:9px;height:9px;border-radius:50%;background:var(--vi);animation:pulse 2.2s ease-out infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(124,58,237,.5)}70%,100%{box-shadow:0 0 0 11px rgba(124,58,237,0)}}
+.pg.home .ey::before{display:inline-block;content:"";width:9px;height:9px;border-radius:50%;background:var(--vi);position:relative}
+.pg.home .ey::before::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--vi);animation:pulse 2.2s ease-out infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}70%,100%{transform:scale(2.4);opacity:0}}
 .pg.home .cd h3{position:relative;display:inline-block}
 .pg.home .cd h3::after{content:"";position:absolute;left:0;bottom:-.2em;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,#4263eb,#a855f7);transition:width .4s cubic-bezier(.2,.8,.2,1)}
 .pg.home .cd:hover h3::after{width:100%}
 
 /* ---------- live preview: layout that does not move when you click ---------- */
-.pg.home .mk{background:#ffffff!important;border:1px solid var(--ln);position:relative;z-index:2;box-shadow:0 32px 72px -24px rgba(12,23,41,.2),0 0 0 1px rgba(12,23,41,.04);transition:transform .35s ease-out,box-shadow .35s ease-out;animation:preview-float 6s ease-in-out infinite alternate}
+.pg.home .mk{background:#ffffff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid var(--ln);position:relative;z-index:2;box-shadow:0 32px 72px -24px rgba(12,23,41,.2),0 0 0 1px rgba(12,23,41,.04);transition:transform .35s ease-out,box-shadow .35s ease-out;animation:preview-float 6s ease-in-out infinite alternate}
 .pg.home .mk:hover{animation-play-state:paused;box-shadow:0 38px 80px -20px rgba(12,23,41,.24),0 0 0 1px rgba(47,91,255,.12)}
 .pg.home .tb{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin:-4px -4px 14px;padding:8px 12px 10px;border-bottom:1px solid var(--ln);background:#fafbfe;border-radius:14px 14px 0 0}
 .pg.home .tb i{width:10px;height:10px;border-radius:50%;background:var(--ln);display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
@@ -85,7 +86,7 @@
 /* ---------- "who it is for" strip ---------- */
 .pg.home .mq{padding:0;overflow:visible}
 .mtv{overflow:hidden;padding:20px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.pg.home .mt{padding-right:48px;font-size:clamp(1.2rem,2.2vw,1.6rem);font-weight:600;color:#3a4256}
+.pg.home .mt{padding-right:48px;font-size:clamp(1.2rem,2.2vw,1.6rem);font-weight:600;color:#3a4256;will-change:transform;transform:translate3d(0,0,0)}
 .pg.home .mt span::after{background:var(--vi);width:7px;height:7px}
 .mq:hover .mt{animation-play-state:paused}
 

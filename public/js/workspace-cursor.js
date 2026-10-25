@@ -63,7 +63,8 @@
   addEventListener('pointerup',()=>{down=false;if(active){targetAtPointer();request();}},{passive:true});
   addEventListener('pointercancel',()=>{down=false;hide();});addEventListener('blur',()=>{down=false;hide();});
   document.addEventListener('mouseleave',hide);document.addEventListener('keydown',e=>{if(e.key==='Tab')hide();});
-  document.addEventListener('scroll',()=>{if(active){targetAtPointer();request();}},{passive:true,capture:true});
+  let scrollTicking=false;
+  document.addEventListener('scroll',()=>{if(!active||scrollTicking)return;scrollTicking=true;requestAnimationFrame(()=>{scrollTicking=false;targetAtPointer();request();});},{passive:true,capture:true});
   document.addEventListener('close',()=>{if(active){targetAtPointer();request();}},true);
   fine.addEventListener('change',hide);reduce.addEventListener('change',hide);
   // A closing or opening top-layer dialog must immediately sync pointer ring hosting.

@@ -1,7 +1,7 @@
 /* Cerium spatial skin. Link AFTER each page's inline <style>. */
 html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fixed}
 .pg{--ac:#4263eb;--ink:#14171c;--mut:#5d6573;--ln:rgba(20,23,28,.1);--hf:"Figtree",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;--gl:rgba(255,255,255,.62);--ge:rgba(255,255,255,.75);background:transparent;font-size:17px}
-.pg::before{content:"";position:fixed;inset:-14%;z-index:0;pointer-events:none;background:radial-gradient(34% 38% at calc(18% + var(--px,0)*16%) calc(14% + var(--py,0)*12%),rgba(117,83,255,.42),transparent 70%),radial-gradient(38% 36% at calc(84% + var(--px,0)*12%) calc(62% + var(--py,0)*14%),rgba(237,124,255,.28),transparent 70%),radial-gradient(30% 30% at 40% 95%,rgba(89,203,219,.22),transparent 70%);transform:translate3d(calc(var(--px,0)*-48px),calc(var(--py,0)*-48px),0);transition:transform .42s ease-out}
+.pg::before{content:"";position:fixed;inset:-12%;z-index:0;pointer-events:none;background:radial-gradient(38% 42% at 20% 16%,rgba(117,83,255,.38),transparent 70%),radial-gradient(42% 40% at 84% 60%,rgba(237,124,255,.24),transparent 70%),radial-gradient(32% 32% at 40% 95%,rgba(89,203,219,.20),transparent 70%);transform:translate3d(calc(var(--px,0)*-24px),calc(var(--py,0)*-24px),0);will-change:transform}
 .pg>:not(.sp-cur):not(.gl):not(.rg):not(.grid-bg):not(.sp-grid){position:relative;z-index:1}
 
 /* Grid stays in background behind hero content with smooth radial fade that clears the title tab and header */
@@ -50,8 +50,8 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
   border-radius:99px!important;
   background:var(--gl)!important;
   border:1px solid var(--ge)!important;
-  backdrop-filter:blur(28px) saturate(1.5)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(1.5)!important;
+  backdrop-filter:blur(12px) saturate(1.2)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.2)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 18px 40px -24px rgba(20,30,50,.35)!important;
 }
 .pg .hero{padding-top:72px;padding-bottom:40px}
@@ -71,11 +71,10 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
   background:var(--gl);
   border:1px solid var(--ge);
   border-radius:26px;
-  backdrop-filter:blur(28px) saturate(1.5);
-  -webkit-backdrop-filter:blur(28px) saturate(1.5);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 2px 4px rgba(20,30,50,.04),0 24px 48px -28px rgba(20,30,50,.28);
-  transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s cubic-bezier(.2,.8,.2,1),border-color .35s ease;
-  will-change:transform;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease,border-color .25s ease;
 }
 .pg .doc{border-radius:34px;padding:clamp(28px,4.5vw,56px)}
 .pg .pcard{padding:clamp(28px,4vw,44px);display:flex;flex-direction:column}
@@ -194,14 +193,14 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .sp-cur.dk{border-color:#fff!important;box-shadow:0 0 12px rgba(255,255,255,.55)!important}
 
 /* ---- home: product mockup, floating chips, marquee, quote, pricing ---- */
-.pg .mk{background:var(--gl);border:1px solid var(--ge);border-radius:32px;backdrop-filter:blur(34px) saturate(1.5);-webkit-backdrop-filter:blur(34px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 60px 90px -50px rgba(20,30,50,.45);animation:preview-float 6s ease-in-out infinite alternate}
+.pg .mk{background:#ffffff;border:1px solid var(--ge);border-radius:32px;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 60px 90px -50px rgba(20,30,50,.45);animation:preview-float 6s ease-in-out infinite alternate}
 .pg .mk:hover{animation-play-state:paused}
 @keyframes preview-float{0%{transform:translateY(0)}100%{transform:translateY(-6px)}}
 
 .pg .sts div,.pg .pn{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7)}
 .pg .pn h4{font-weight:500;letter-spacing:0;text-transform:none;font-size:13px}
 .pg .tb i{background:rgba(20,23,28,.14)}
-.pg .fc{background:rgba(255,255,255,.7);border:1px solid var(--ge);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 #fff,0 24px 40px -22px rgba(20,30,50,.45)}
+.pg .fc{background:rgba(255,255,255,.92);border:1px solid var(--ge);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 #fff,0 20px 35px -18px rgba(20,30,50,.35)}
 .pg .fc::before{background:var(--ink)}
 .pg .mc{background:rgba(66,99,235,.1);color:#1c2f80}
 .pg .mc button{background:var(--ink)}.pg .mc .no{background:none;color:#1c2f80;box-shadow:inset 0 0 0 1px rgba(28,47,128,.4)}

@@ -51,31 +51,22 @@ if('IntersectionObserver' in window&&rv.length){
   rv.forEach(function(n){io.observe(n)});
 }
 
-/* Preserve landing background parallax independently of the custom pointer.
-   Cursor rendering is now shared with the workspace; no competing rings. */
+/* Unified, zero-lag ambient parallax and chip drift on a single rAF tick */
 if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
-  var ambientFrame=0,ambientPointer=null;
+  var ambientFrame=0,mx=0,my=0,c1=$('c1'),c2=$('c2'),pg=$('pg')||document.documentElement;
   addEventListener('pointermove',function(e){
     if(e.pointerType==='touch')return;
-    ambientPointer=e;
-    if(ambientFrame)return;
-    ambientFrame=requestAnimationFrame(function(){
-      ambientFrame=0;
-      if(!ambientPointer)return;
-      var root=document.documentElement;
-      root.style.setProperty('--px',(ambientPointer.clientX/innerWidth-.5).toFixed(3));
-      root.style.setProperty('--py',(ambientPointer.clientY/innerHeight-.5).toFixed(3));
-    });
+    mx=(e.clientX/innerWidth-.5);
+    my=(e.clientY/innerHeight-.5);
+    if(!ambientFrame){
+      ambientFrame=requestAnimationFrame(function(){
+        ambientFrame=0;
+        pg.style.setProperty('--px',mx.toFixed(3));
+        pg.style.setProperty('--py',my.toFixed(3));
+        if(c1)c1.style.transform='translate3d('+(mx*-24).toFixed(1)+'px,'+(my*-16).toFixed(1)+'px,0)';
+        if(c2)c2.style.transform='translate3d('+(mx*22).toFixed(1)+'px,'+(my*14).toFixed(1)+'px,0)';
+      });
+    }
   },{passive:true});
-}
-
-/* Floating chips drift a little with the mouse */
-if(matchMedia('(hover:hover)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&$('c1')){
-  var q=0,p;
-  addEventListener('mousemove',function(e){p=e;if(q)return;q=requestAnimationFrame(function(){
-    q=0;var px=p.clientX/innerWidth-.5,py=p.clientY/innerHeight-.5;
-    $('c1').style.transform='translate('+px*-34+'px,'+py*-22+'px)';
-    $('c2').style.transform='translate('+px*30+'px,'+py*20+'px)';
-  })});
 }
 })();
