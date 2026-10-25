@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {startServer,signIn,ALICE} from './helpers.js';
+import {businessDetails} from './business-fixtures.js';
 import {gstBreakdown,safeGSTrate} from '../public/js/india-market.js';
 import {signOptOut} from '../server/reminders.js';
 
@@ -208,6 +209,7 @@ test('expired trial reactivation uses the existing trial deadline instead of ano
   try{
     const b=t.browser();await signIn(t,b,{profile:ALICE});const me=await b.me(),uid=me.user.id;
     t.db.beginBillingPhone(uid,'+14155550123','US');t.db.completeBillingPhone(uid,'+14155550123','US');
+    t.db.saveBusinessProfile(uid,businessDetails());
     t.db.createSubscription(uid,'sub_first_trial',Math.floor(Date.now()/1000)-20*86400);
     t.db.updateSubscription('sub_first_trial','authenticated');
     t.db.beginTrialOnEntry(uid,Date.now()-20*86400000);
@@ -226,6 +228,7 @@ test('reactivation never charges ahead of remaining trial or paid access',async(
     let schedule;
     await setup(async({t,A,uid})=>{
       t.db.beginBillingPhone(uid,'+14155550123','US');t.db.completeBillingPhone(uid,'+14155550123','US');
+      t.db.saveBusinessProfile(uid,businessDetails());
       const at=Date.now(),trialEnd=at+5*86400000,paidEnd=at+8*86400000;
       t.db.beginTrialOnEntry(uid,at-10*86400000,trialEnd);
       t.db.createSubscription(uid,'sub_previous',Math.floor(at/1000)-86400);

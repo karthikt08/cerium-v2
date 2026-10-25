@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
+import {completeBusiness} from './business-fixtures.js';
 
 async function signAndPhone(t,b,phone,country) {
   const csrf=(await b.me()).csrfToken;
@@ -10,6 +11,7 @@ async function signAndPhone(t,b,phone,country) {
   assert.equal(start.status,200,await start.text());
   const checked=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
   assert.equal(checked.status,200,await checked.text());
+  await completeBusiness(t,b,country);
 }
 test('new Indian phone selects India/INR only after successful OTP; workspace and APIs are blocked before it',async()=>{
   const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
@@ -56,6 +58,8 @@ test('US +1 verification unlocks only US/USD; unconfirmed phone does not allow a
     assert.equal((await b.req('/api/workspace')).status,403);
     const ok=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
     assert.equal(ok.status,200);
+    assert.equal((await b.req('/api/workspace')).status,403);
+    await completeBusiness(t,b,'US');
     const account=(await (await b.req('/api/workspace')).json()).account;
     assert.equal(account.country,'US');
     assert.equal(account.currency,'USD');

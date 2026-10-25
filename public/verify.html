@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Verify your business — CERIUM</title>
-<meta name="description" content="Confirm your phone and regional edition before accessing your CERIUM workspace.">
+<meta name="description" content="Verify your phone, complete your business details and authorize your trial before accessing CERIUM.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/verify-phone.css">
 </head>
@@ -11,8 +11,11 @@
   <a class="brand" href="/" aria-label="CERIUM home">CERIUM<span>.</span></a>
   <section class="verify-card" aria-labelledby="verify-title">
     <p class="eyebrow">PRIVATE WORKSPACE · ONE-TIME ONBOARDING</p>
-    <h1 id="verify-title">Verify your phone to enter CERIUM.</h1>
-    <p class="intro">Choose your business country and verify your phone. India is ₹500/month; all other countries are $20 USD/month after your 15-day trial.</p>
+    <h1 id="verify-title">Set up your business in CERIUM.</h1>
+    <p class="intro">Confirm your phone, add your business details, then authorize your trial. India is ₹500/month; all other countries are $20 USD/month after your 15-day trial.</p>
+    <ol class="setup-steps" aria-label="Setup progress">
+      <li id="step-phone">1. Phone</li><li id="step-business">2. Business</li><li id="step-payment">3. Payment</li>
+    </ol>
     <p class="alert" id="message" role="status" aria-live="polite">Checking your account…</p>
     <form id="start-form" hidden>
       <label for="country">Business country / phone country code</label>
@@ -29,8 +32,36 @@
     <form id="code-form" hidden>
       <label for="code">One-time verification code</label>
       <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" placeholder="Enter your code" required>
-      <button type="submit" class="primary">Verify phone and enter</button>
+      <button type="submit" class="primary">Verify phone and continue</button>
       <p class="hint">Codes expire after 10 minutes. Resends are limited to protect customers and prevent SMS abuse.</p>
+    </form>
+    <form id="business-form" hidden>
+      <div class="business-heading"><h2>Tell us about your business</h2>
+        <p class="hint">These details identify your business on customer documents. If you work independently, you can use your own name as your business name.</p></div>
+      <p class="verified-business-country" id="business-country-label"></p>
+      <div class="business-fields">
+        <label>Contact name<input id="biz-contact" name="name" autocomplete="name" maxlength="120" required></label>
+        <label>Business / trading name<input id="biz-name" name="businessName" autocomplete="organization" maxlength="120" required></label>
+        <label>Business contact email<input id="biz-email" name="businessEmail" type="email" autocomplete="email" maxlength="254" required></label>
+        <label>Industry / main service<input id="biz-trade" name="trade" list="business-trades" maxlength="120" placeholder="e.g. Plumbing, consulting, retail" required></label>
+        <datalist id="business-trades"><option value="Home repairs"><option value="Plumbing"><option value="Electrical services"><option value="Cleaning"><option value="Landscaping"><option value="Consulting"><option value="Retail"><option value="Professional services"></datalist>
+        <label class="business-wide">Business street address<input id="biz-address" name="businessAddress" autocomplete="address-line1" maxlength="160" required></label>
+        <label>City / locality<input id="biz-city" name="businessCity" autocomplete="address-level2" maxlength="80" required></label>
+        <label id="biz-us-state-field" hidden>State<select id="biz-us-state" name="usState" autocomplete="address-level1"></select></label>
+        <label id="biz-india-state-field" hidden>State / union territory<select id="biz-india-state" name="indiaState" autocomplete="address-level1"></select></label>
+        <label id="biz-region-field">State / region (optional)<input id="biz-region" name="businessRegion" autocomplete="address-level1" maxlength="80"></label>
+        <label><span id="biz-postal-label">Postal code (optional)</span><input id="biz-postal" name="businessPostalCode" autocomplete="postal-code" maxlength="20"></label>
+        <label class="business-wide">Business time zone<select id="biz-time-zone" name="timeZone" required></select><span class="hint">Appointments and reminders use this time zone.</span></label>
+      </div>
+      <div id="biz-gst-fields" class="business-fields" hidden>
+        <label>Is your business GST-registered?<select id="biz-gst-registration" name="gstRegistration"><option value="">Choose an option</option><option value="not_registered">No, not GST-registered</option><option value="registered">Yes, GST-registered</option></select></label>
+        <label id="biz-gstin-field" hidden>GSTIN<input id="biz-gstin" name="gstin" maxlength="15" placeholder="15-character GSTIN"></label>
+        <p class="hint business-wide">A GSTIN is required only when you select GST-registered. You can use CERIUM without GST registration.</p>
+      </div>
+      <label class="country-check"><input type="checkbox" name="confirmBusinessDetails" id="biz-confirm" required><span>I confirm these details are accurate and I am authorized to manage this business.</span></label>
+      <ul id="business-errors" class="business-errors" role="alert" hidden></ul>
+      <button type="submit" class="primary" id="business-submit">Save and continue</button>
+      <a id="business-back" href="/app.html#settings" hidden>Back to workspace settings</a>
     </form>
     <section id="mandate-panel" hidden aria-label="Payment method authorization">
       <h2>Authorize your payment method to start the trial</h2>
@@ -38,6 +69,11 @@
       <button type="button" class="primary" id="mandate-button">Authorize secure recurring checkout</button>
       <p class="hint">Outside India: eligible international cards. India: eligible cards or UPI AutoPay. Payment methods and SMS delivery depend on provider availability in your country.</p>
     </section>
+    <details class="account-tools"><summary>Account and billing options</summary>
+      <button type="button" id="setup-cancel" class="secondary" hidden>Cancel recurring payments</button>
+      <button type="button" id="setup-export" class="secondary">Export my data</button>
+      <button type="button" id="setup-logout" class="secondary">Sign out</button>
+    </details>
     <p class="footnote">Having trouble? <a href="mailto:cerium.founders@gmail.com?subject=CERIUM%20identity%20review">Request a manual review</a>. Your phone is used for verification, not advertising.</p>
   </section>
   <p class="legal">© 2026 CERIUM · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>

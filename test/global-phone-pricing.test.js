@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizeBillingPhone} from '../server/billing-identity.js';
 import {decideRegion} from '../server/region-access.js';
 import {startServer,signIn,ALICE} from './helpers.js';
+import {completeBusiness} from './business-fixtures.js';
 import {getCountries,getCountryCallingCode,getExampleNumber} from 'libphonenumber-js/max';
 import examples from 'libphonenumber-js/examples.mobile.json';
 import {COUNTRY_OPTIONS,COUNTRY_CALLING_CODES,billingPlan,validCountry} from '../public/js/countries.js';
@@ -52,6 +53,7 @@ test('international national-format phone verification unlocks a usable USD work
     const checked=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
     assert.equal(checked.status,200,await checked.clone().text());
     assert.equal((await (await b.req('/api/billing/identity')).json()).pendingCountry,null);
+    await completeBusiness(t,b,'FR');
     const account=(await (await b.req('/api/workspace')).json()).account;
     assert.equal(account.country,'FR');assert.equal(account.currency,'USD');assert.equal(account.monthlyPrice,20);
     const invoice=await b.req('/api/invoices',{method:'POST',csrf,json:{customerName:'Client',jobTitle:'Service',amount:100}});
@@ -107,6 +109,7 @@ test('shared +1 codes preserve the declared Canadian country and canonical phone
       const verified=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
       assert.equal(verified.status,index===0?200:409);
       if(index===0){
+        await completeBusiness(t,b,'CA');
         const account=(await (await b.req('/api/workspace')).json()).account;
         assert.equal(account.country,'CA');assert.equal(account.currency,'USD');
       }else assert.equal((await b.req('/api/workspace')).status,403);
@@ -133,6 +136,7 @@ for(const country of ['US','IN','CA','GB','FR','AU','JP','BR','ZA','NP','XK']){
       assert.equal((await b.req('/api/billing/identity/start',{method:'POST',csrf,json:{phone,declaredCountry:country,confirmCountry:true}})).status,200);
       assert.equal((await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}})).status,200);
       assert.equal((await b.req('/api/workspace')).status,403);
+      await completeBusiness(t,b,country);
       const billing=await (await b.req('/api/billing/status')).json();
       assert.equal(billing.checkoutAvailable,true);assert.equal(billing.monthlyPrice,amount/100);assert.equal(billing.currency,currency);
       const start=await b.req('/api/billing/subscription',{method:'POST',csrf,json:{amount:1,currency:'XXX',planId:'plan_tampered'}});

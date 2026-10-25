@@ -5,12 +5,14 @@ Before CERIUM starts any new free trial in production:
 1. User signs in and receives an OTP on an eligible mobile phone.
 2. CERIUM saves the verified number and pins its India/INR or global/USD edition (after the
    customer separately declares their actual business billing country).
-3. Razorpay's hosted checkout requests authorization for a recurring
+3. The customer completes [required business setup](business-setup.md): business
+   and contact details, address and time zone, plus the relevant country fields.
+4. Razorpay's hosted checkout requests authorization for a recurring
    subscription. CERIUM never collects PAN, CVV, bank OTP or UPI PIN.
-4. The backend validates the Razorpay callback signature and re-checks the
+5. The backend validates the Razorpay callback signature and re-checks the
    subscription with Razorpay; only an authenticated/active/charged provider
    state can unlock the workspace and start the one-time 15-day trial.
-5. The first regular subscription debit is scheduled for **at least 15 full
+6. The first regular subscription debit is scheduled for **at least 15 full
    days after successful authorization**. Razorpay fixes the billing start at
    subscription creation, so CERIUM permits authorization within the next
    60 minutes and adds that hour to the 15-day start date. Depending on when
@@ -42,7 +44,8 @@ sharing a legitimate phone need support review, not silent repricing.
 ## Customer journey
 CERIUM shows public pages and allows sign-in before onboarding. A signed-in
 customer cannot open `/app.html`, `/app`, or any workspace API until
-their phone has been verified and assigned an edition. The browser alone cannot
+their phone has been verified, their required business details saved, and the
+production payment mandate confirmed. The browser alone cannot
 bypass the server gate. The access screen is `/verify.html`.
 
 1. Sign in with Google or email. A provisional account exists but workspace
@@ -57,9 +60,13 @@ bypass the server gate. The access screen is `/verify.html`.
    verification succeeds; if there is existing priced history or a subscription,
    a conflicting edition requires manual review. Browser changes never relabel
    USD/INR amounts.
-4. On LOCAL test mode `WORKSPACE_ACCESS_MODE=phone`, phone approval starts the
-   15-day trial and unlocks the app.
-5. Optional `WORKSPACE_ACCESS_MODE=phone_and_mandate` additionally requires
+4. Complete required business setup. US and India require state and postal code;
+   India also requires a GST-registration declaration, with GSTIN only for
+   registered businesses. Existing users complete missing setup once; existing
+   trial and paid dates are retained.
+5. On LOCAL test mode `WORKSPACE_ACCESS_MODE=phone`, phone verification plus
+   business completion starts the 15-day trial and unlocks the app.
+6. Production `WORKSPACE_ACCESS_MODE=phone_and_mandate` additionally requires
    confirmed Razorpay subscription authorization before workspace entry.
    India can use available UPI AutoPay or cards; other countries can use eligible international cards.
    The subscription start date is scheduled 15 days plus the one-hour
@@ -68,7 +75,7 @@ bypass the server gate. The access screen is `/verify.html`.
    provider-scheduled billing start. Authorization expires after one hour.
    No month-to-month debit is authorized without explicit customer consent.
    Checkout availability depends on Razorpay merchant and payment-method
-   eligibility. Enable this mode only after live/test payment checkout works.
+   eligibility. Configure and validate providers before production rollout.
 
 A phone's country code is **not proof of legal residency or registration**.
 `+1` includes Canada and other NANP territories; other shared calling plans
@@ -93,7 +100,8 @@ Run `npm test`, then `npm start`. Sign in and visit
 `/verify.html`. Choose a country and enter a fresh test-format number, tick the
 corresponding business-country declaration, and send a code. In loopback
 development mode no SMS is sent; enter **000000**. Your verified phone decides
-the account's edition together with the declaration, and the trial starts when the workspace is first unlocked.
+the account's edition together with the declaration. Complete the business form
+next; the local trial starts when the workspace is first unlocked.
 
 For `phone_and_mandate`, valid Razorpay test-mode keys, an appropriate
 region-specific recurring plan and webhook handling are needed. There is NO
@@ -128,12 +136,15 @@ by CERIUM.
 
 ## Routes
 - `GET /verify.html`: public onboarding UI; signed-in sessions display
-  pending OTP / payment mandate.
+  pending OTP, required business setup or payment mandate.
 - `GET /api/me`: session and CSRF token, allowed before verification.
 - `GET /api/billing/identity`: self-owned masked verification state.
 - `POST /api/billing/identity/start`: request SMS; requires phone,
   declaredCountry matching the phone calling code, and confirmCountry=true. National numbers are interpreted using declaredCountry.
 - `POST /api/billing/identity/verify`: verify OTP; atomically set edition.
+- `GET /api/business/profile`: read the signed-in user's business setup status.
+- `POST /api/business/profile`: validate and save required business details;
+  requires verified phone, CSRF and `confirmBusinessDetails=true`.
 - `POST /api/billing/subscription`: create eligible Razorpay mandate.
 - `GET /api/workspace` and other business APIs: gated until requirements
   are fulfilled.
