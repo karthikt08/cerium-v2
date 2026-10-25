@@ -1,3 +1,4 @@
+import {INVOICE_CURRENCIES,invoiceCurrencyHint} from './invoice-country.js';
 import {COUNTRY_OPTIONS,countryName} from './countries.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions} from './us-market.js';
 import {INDIA_STATE_OPTIONS} from './india-market.js';
@@ -33,6 +34,7 @@ const markup=`<form id="business-form" class="business-wizard" hidden>
         <label id="biz-us-state-field" hidden>State<select id="biz-us-state" name="usState" autocomplete="address-level1"></select></label>
         <label id="biz-india-state-field" hidden>State / union territory<select id="biz-india-state" name="indiaState" autocomplete="address-level1"></select></label>
         <label id="biz-region-field">State / region (optional)<input id="biz-region" name="businessRegion" autocomplete="address-level1" maxlength="80"></label>
+        <label class="business-wide">Invoice & workspace currency<select id="biz-invoice-currency" name="invoiceCurrency" required></select><small>Your subscription price uses a separate billing currency. Existing records are never converted.</small></label>
         <label><span id="biz-postal-label">Postal code (optional)</span><input id="biz-postal" name="businessPostalCode" autocomplete="postal-code" maxlength="20"></label>
         <label class="business-wide">Business time zone<select id="biz-time-zone" name="timeZone" required></select><span class="hint">Appointments and reminders use this time zone.</span></label>
 </div></fieldset>
@@ -75,6 +77,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     select('biz-industry',INDUSTRY_OPTIONS,category);
     el('biz-modules-value').value=p.workspaceModules||defaultModules(category).join(',');
     renderModuleChoices();
+    select('biz-invoice-currency',(ind?['INR']:us?['USD']:INVOICE_CURRENCIES).map(value=>({value,label:value+(value===invoiceCurrencyHint(country)?' — local currency':'')})),p.invoiceCurrency||(ind?'INR':'USD'));
     select('biz-us-state',[{value:'',label:'Choose state'},...US_STATE_OPTIONS],p.usState);
     select('biz-india-state',[{value:'',label:'Choose state / UT'},...INDIA_STATE_OPTIONS],p.indiaState);
     el('biz-us-state-field').hidden=!us;el('biz-us-state').required=us;el('biz-us-state').disabled=!us;
@@ -94,7 +97,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     const p=setup.draft,items=[['Business name',p.businessName],['Contact name',p.name],['Business email',p.businessEmail],['Industry / service',p.trade],
       ['Workspace type',INDUSTRY_OPTIONS.find(v=>v.value===p.industryCategory)?.label||'Custom'],
       ['Enabled tools',(p.workspaceModules||'').split(',').map(id=>WORKSPACE_MODULES.find(m=>m.id===id)?.label).filter(Boolean).join(', ')],
-      ['Country',countryName(setup.country)],['Street address',p.businessAddress],['City / locality',p.businessCity],
+      ['Country',countryName(setup.country)],['Invoice currency',p.invoiceCurrency],['Street address',p.businessAddress],['City / locality',p.businessCity],
       ['State / region',setup.country==='IN'?INDIA_STATE_OPTIONS.find(x=>x.value===p.indiaState)?.label:setup.country==='US'?US_STATE_OPTIONS.find(x=>x.value===p.usState)?.label:p.businessRegion],
       ['Postal code',p.businessPostalCode],['Business time zone',p.timeZone]];
     if(setup.country==='IN')items.push(['GST registration',p.gstRegistration==='registered'?'Registered':'Not registered'],['GSTIN',p.gstin]);
@@ -113,7 +116,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     }
     el('business-step-count').textContent='Step '+(index+1)+' of '+steps.length+' · Finish setup to enter your workspace';
     el('business-step-title').textContent=copy[screen][0];el('business-step-help').textContent=copy[screen][1];
-    el('business-country-label').textContent=countryName(setup.country)+' · '+(setup.country==='IN'?'INR':'USD')+(identity.phoneMasked?' · Verified phone '+identity.phoneMasked:' · Offline preview');
+    el('business-country-label').textContent=countryName(setup.country)+' · '+(setup.draft.invoiceCurrency||(setup.country==='IN'?'INR':'USD'))+(identity.phoneMasked?' · Verified phone '+identity.phoneMasked:' · Offline preview');
     el('business-previous').hidden=index===0;el('business-previous').disabled=busy;
     el('business-submit').disabled=busy;el('business-submit').textContent=screen==='review'?(editing?'Save business details':'Confirm business and continue'):'Save and continue';
     el('preview-country-field').hidden=!setup.countryEditable;el('preview-country').disabled=busy||screen!=='basics';

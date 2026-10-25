@@ -1,3 +1,4 @@
+import {makeInvoiceDetails,readInvoiceDetails} from './invoice-details.js';
 import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 // server/db.js
 //
@@ -388,6 +389,7 @@ export function openDb(file) {
   const editionInvoices=new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c=>c.name));
   for(const [col,ddl] of [
     ['invoice_currency',"ALTER TABLE invoices ADD COLUMN invoice_currency TEXT"],
+    ['invoice_details',"ALTER TABLE invoices ADD COLUMN invoice_details TEXT"],
     ['supplier_gstin',"ALTER TABLE invoices ADD COLUMN supplier_gstin TEXT NOT NULL DEFAULT ''"],
     ['supplier_state',"ALTER TABLE invoices ADD COLUMN supplier_state TEXT NOT NULL DEFAULT ''"],
     ['customer_gstin',"ALTER TABLE invoices ADD COLUMN customer_gstin TEXT NOT NULL DEFAULT ''"],
@@ -602,6 +604,7 @@ export function openDb(file) {
         paid_at = ?
       WHERE id = ? AND user_id = ?
     `),
+    setInvoiceDetails: db.prepare('UPDATE invoices SET invoice_details=? WHERE id=? AND user_id=?'),
     setInvoiceCurrency: db.prepare('UPDATE invoices SET invoice_currency=? WHERE id=? AND user_id=?'),
     setIndiaInvoiceTax: db.prepare(`UPDATE invoices SET invoice_currency=?,supplier_gstin=?,supplier_state=?,customer_gstin=?,
        place_of_supply=?,hsn_sac=?,gst_rate=?,taxable_total=?,cgst=?,sgst=?,utgst=?,igst=?,upi_vpa_snapshot=?
@@ -687,6 +690,7 @@ export function openDb(file) {
   const pricedHistory=userId=>['invoices','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
     table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId))
   );
+  const businessMoneyHistory=userId=>['invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
   const editionTax=(user,items,p={})=>{
     if(user.country!=='IN')return null;
     const base=lineItemsTotal(items);
@@ -712,7 +716,7 @@ export function openDb(file) {
   };
   const protectRecordedPayment=(userId,invoice,total,status)=>{
     if(q.getInvoicePayment.get(userId,invoice.id)&&
-       (status!=='Paid'||Math.round(total*100)!==Math.round(invoice.total*100)))
+       (status!=='Paid'||Math.round(total*1000)!==Math.round(invoice.total*1000)))
       throw Object.assign(new Error('This invoice is linked to a recorded payment. Its paid status and total must stay consistent with that payment.'),{code:'payment_linked_invoice',status:409});
   };
 
@@ -734,6 +738,8 @@ export function openDb(file) {
     persistInvoiceTax(userId,invoiceId,q.getUserById.get(userId)?.country==='IN'?
       {currency:'INR',supplierGstin:'',supplierState:'',customerGstin:'',placeOfSupply:'',
         hsnSac:'',gstRate:0,taxable:total,cgst:0,sgst:0,utgst:0,igst:0,upiVpa:''}:null);
+    const owner=q.getUserById.get(userId);
+    q.setInvoiceDetails.run(JSON.stringify(makeInvoiceDetails(owner,items,{},null,{issueDate:today})),invoiceId,userId);
     q.linkInvoiceToJob.run(job.id, invoiceId, userId);
   }
 
@@ -940,7 +946,8 @@ export function openDb(file) {
         const user=q.getUserById.get(userId);
         if(!user)throw new BusinessProfileError({form:'Account not found.'});
         if(!this.billingEligible(userId))throw new BusinessProfileError({phone:'Verify your phone before completing business setup.'});
-        const p=validateBusinessProfile(payload,user.country);
+        const p=validateBusinessProfile({...payload,invoiceCurrency:payload.invoiceCurrency??user.currency},user.country);
+        if(p.invoiceCurrency!==user.currency&&businessMoneyHistory(userId))throw new BusinessProfileError({invoiceCurrency:'Existing financial records cannot be relabeled. Keep the saved invoice currency.'});
         // A legacy profile edit without workspace fields must not silently
         // reset the customer's explicitly configured tools.
         const priorPrefs=this.getWorkspacePreferences(userId);
@@ -951,7 +958,7 @@ export function openDb(file) {
           p.timeZone,p.usState,p.country==='US'?p.businessPostalCode:'',p.indiaState,p.gstin,p.gstRegistration,
           billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,
           category,JSON.stringify(modules),at,userId);
-        db.prepare("UPDATE users SET business_setup_draft='{}' WHERE id=?").run(userId);
+        db.prepare("UPDATE users SET business_setup_draft='{}',currency=? WHERE id=?").run(p.invoiceCurrency,userId);
         return this.getBusinessProfile(userId);
       })();
     },
@@ -1034,8 +1041,8 @@ export function openDb(file) {
       if(currency!==undefined&&!validWorkspaceCurrency(nextCountry,nextCurrency))invalid('Currency must match the selected edition.');
       if(switching&&(pricedHistory(id)||prior.subscription_id))
         invalid('To switch editions, start with a new empty workspace. Existing records and payment history cannot be relabeled.');
-      if(!switching&&prior.currency!==nextCurrency&&(pricedHistory(id)||!validWorkspaceCurrency(prior.country,prior.currency)))
-        invalid('Existing currency records require review and cannot be relabeled. Choose currency before creating business records or subscriptions.');
+      if(!switching&&prior.currency!==nextCurrency&&(businessMoneyHistory(id)||!validWorkspaceCurrency(prior.country,prior.currency)))
+        invalid('Existing currency records require review and cannot be relabeled. Choose currency before creating business records.');
       if(nextCountry==='US'){
         for(const [label,v,valid] of [['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone]])
           if(v!==undefined&&(typeof v!=='string'||!valid(v.trim())))invalid('Enter a valid '+label+'.');
@@ -1192,6 +1199,7 @@ export function openDb(file) {
           paidAt: i.paid_at || undefined,
           jobId: i.job_id || null,
           currency: i.invoice_currency || user.currency || 'USD',
+          details:readInvoiceDetails(i.invoice_details),
           supplierGstin: i.supplier_gstin || '', supplierState:i.supplier_state || '',
           customerGstin:i.customer_gstin || '',placeOfSupply:i.place_of_supply || '',hsnSac:i.hsn_sac || '',
           gstRate:Number(i.gst_rate)||0,taxable:Number(i.taxable_total)||0,
@@ -1390,7 +1398,8 @@ export function openDb(file) {
       ]);
       const user=q.getUserById.get(userId);
       const tax=editionTax(user,items,payload);
-      const total=tax?tax.total:lineItemsTotal(items);
+      const details=makeInvoiceDetails(user,items,payload,null,{issueDate:payload.issueDate||today});
+      const total=tax?tax.total:details.total;
       const id = String(q.nextInvoiceNumber.run().lastInsertRowid);
       const inv = {
         id,
@@ -1413,7 +1422,8 @@ export function openDb(file) {
         JSON.stringify(inv.items), inv.total, inv.notes, inv.paidAt, today
       );
       persistInvoiceTax(userId,id,tax);
-      return {...inv,currency:user.currency,...(tax||{})};
+      q.setInvoiceDetails.run(JSON.stringify(details),id,userId);
+      return {...inv,details,currency:user.currency,...(tax||{})};
       })();
     },
 
@@ -1443,7 +1453,8 @@ export function openDb(file) {
       let items = [];
       try { items = JSON.parse(inv.items_json); } catch { items = []; }
       const originalItems=items;
-      const summaryAmount=inv.invoice_currency==='INR'?(inv.taxable_total||lineItemsTotal(items)):inv.total;
+      const previousDetails=readInvoiceDetails(inv.invoice_details);
+      const summaryAmount=previousDetails?.subtotal??(inv.invoice_currency==='INR'?(inv.taxable_total||lineItemsTotal(items)):inv.total);
       if (p.items !== undefined) {
         items = p.items;
       } else if (p.amount !== undefined && items.length <= 1 &&
@@ -1460,14 +1471,17 @@ export function openDb(file) {
       const supplier=inv.status==='Draft'?user:{...user,gstin:inv.supplier_gstin,
         india_state:inv.supplier_state,upi_vpa:inv.upi_vpa_snapshot};
       const tax=editionTax(supplier,items,gstFields);
-      const preserveAmounts=inv.status!=='Draft'&&items.length===originalItems.length&&
+      const details=makeInvoiceDetails(user,items,p,previousDetails,{issued:inv.status!=='Draft',issueDate:p.issueDate||inv.issue_date});
+      const sameGenericTax=JSON.stringify(details.taxLines.map(({label,rate})=>({label,rate})))===JSON.stringify((previousDetails?.taxLines||[]).map(({label,rate})=>({label,rate})));
+      const preserveAmounts=inv.status!=='Draft'&&sameGenericTax&&items.length===originalItems.length&&
         items.every((item,i)=>item.qty===Number(originalItems[i].qty)&&item.rate===Number(originalItems[i].rate))&&
         Number(gstFields.gstRate)===Number(inv.gst_rate)&&gstFields.placeOfSupply===inv.place_of_supply;
       // Existing issued amounts are historical records, including any old
       // rounding. Recalculate only when the owner changes pricing or tax inputs.
       if(preserveAmounts&&tax)Object.assign(tax,{taxable:inv.taxable_total,cgst:inv.cgst,sgst:inv.sgst,
         utgst:inv.utgst,igst:inv.igst,total:inv.total});
-      const total=preserveAmounts?inv.total:tax?tax.total:lineItemsTotal(items);
+      const total=preserveAmounts?inv.total:tax?tax.total:details.total;
+      if(preserveAmounts&&previousDetails)Object.assign(details,{subtotal:previousDetails.subtotal,total:previousDetails.total,taxLines:previousDetails.taxLines});
       const terms = p.terms || inv.terms;
       const issueDate=p.issueDate||inv.issue_date;
       const scheduleChanged=(p.terms!==undefined&&p.terms!==inv.terms)||(p.issueDate!==undefined&&p.issueDate!==inv.issue_date);
@@ -1485,6 +1499,7 @@ export function openDb(file) {
         paidAt, String(id), userId
       );
       persistInvoiceTax(userId,id,tax);
+      q.setInvoiceDetails.run(JSON.stringify(details),id,userId);
       return { ok: true };
       })();
     },
@@ -1540,7 +1555,7 @@ export function openDb(file) {
       if (action === 'confirm') {
         if(!targetInvoiceId)throw Object.assign(new Error('Select an invoice.'),{code:'invalid_match',status:400});
         const source=q.getInvoice.get(String(targetInvoiceId),userId);
-        if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*100)!==Math.round(Number(source.total)*100))
+        if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*1000)!==Math.round(Number(source.total)*1000))
           throw Object.assign(new Error('Match a deposit equal to the invoice total.'),{code:'amount_mismatch',status:409});
         if(tx.matched_invoice_id&&tx.matched_invoice_id!==String(targetInvoiceId))
           throw Object.assign(new Error('This transaction is already matched.'),{code:'already_matched',status:409});

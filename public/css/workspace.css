@@ -60,3 +60,13 @@ body[data-edition="in"] .workspace-label small{color:#276c53}
 .billing-declaration input{margin:3px 0 0;flex:none}
 .billing-dev-tip{background:#f1f4fe;border-radius:7px;padding:10px 12px;color:#53628e;font-size:11px;line-height:1.6}
 .billing-verify-content .muted a{color:var(--accent);text-decoration:underline}
+
+/* Country-aware invoice forms and paper layouts. */
+.invoice-local-fields{border-top:1px solid var(--line);padding-top:20px;margin-top:8px}
+.invoice-local-fields h3{font-size:14px;margin-bottom:8px}.invoice-local-fields .muted{margin-bottom:14px}
+.invoice-local-fields [hidden]{display:none!important}.invoice-preserve-lines{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;margin-top:16px}
+.invoice-document{overflow-wrap:anywhere}.invoice-document td{white-space:normal}.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}
+@media(max-width:480px){.invoice-document{padding:12px 0}.invoice-top{flex-direction:column}.invoice-document .invoice-info{grid-template-columns:1fr;gap:12px}.invoice-document th,.invoice-document td{padding:8px 5px;font-size:10px}}
+@page invoice-a4{size:A4;margin:16mm}
+@page invoice-letter{size:Letter;margin:.65in}
+@media print{.invoice-paper-a4{page:invoice-a4}.invoice-paper-letter{page:invoice-letter}.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}.invoice-top{flex-direction:row}.invoice-document thead{display:table-header-group}.invoice-document tr,.invoice-tax-summary,.invoice-total{break-inside:avoid}}

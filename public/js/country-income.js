@@ -1,6 +1,6 @@
 // World Bank FY2027 snapshot, retrieved 2026-10-25. Deliberately pinned: annual
 // classification changes require a reviewed release, never a live price change.
-// https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups
+// Source and update procedure: docs/country-pricing-invoices.md.
 export const INCOME_CLASSIFICATION_VERSION='world-bank-fy2027';
 export const INCOME_GROUPS=Object.freeze({
   low:'AF BF BI CF TD CD ER ET GM GW KP LR MG MW ML MZ NE RW SL SO SS SD SY UG YE'.split(' '),

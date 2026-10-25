@@ -16,7 +16,7 @@ export function decideRegion(raw){
     return {ok:false,status:403,reason:'anonymous_network'};
   const code=raw.location.country_code.toUpperCase();
   const plan=billingPlan(code);
-  return plan?{ok:true,...plan}:{ok:false,status:503,reason:'unverified'};
+  return plan?{ok:true,country:plan.country,currency:plan.currency,monthlyPrice:plan.monthlyPrice,minorUnits:plan.minorUnits}:{ok:false,status:503,reason:'unverified'};
 }
 
 export function makeIpApiLookup(key,{fetchImpl=fetch,timeoutMs=2500}={}){
