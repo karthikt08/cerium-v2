@@ -19,7 +19,7 @@ test('homepage has six concise benefit cards and a visible full benefits link',(
 
 test('feature directory describes implemented modules without claiming a live bank feed',()=>{
   const html=read('benefits.html');
-  assert.equal((html.match(/<article class="feature"/g)||[]).length,14);
+  assert.equal((html.match(/<article class="feature cd" data-rv/g)||[]).length,14);
   for(const heading of ['Lead pipeline','Excel &amp; CSV lead import','Estimates and quotes','Crew assignments','Country-aware invoices','Customisable workspace'])assert.ok(html.includes(heading),heading);
   assert.match(html,/Live bank-feed connections are not yet available/);
   for(const anchor of ['win-work','deliver-work','get-paid','run-business'])assert.ok(html.includes('id="'+anchor+'"'));
@@ -49,4 +49,19 @@ test('legal pages have updated dates, no starter placeholders and accurate billi
   assert.match(privacy,/CSV or Excel \(\.xlsx\)/);
   assert.match(privacy,/session cookie/);
   assert.match(privacy,/account-deletion control/);
+});
+
+test('benefits page inherits the landing purple ambient glow and magnetic cursor without duplicate cursor engines',()=>{
+  const html=read('benefits.html');
+  assert.match(html,/<div class="pg home benefits-page" id="pg"/);
+  assert.match(html,/<div class="sp-grid" aria-hidden="true"><\/div>/);
+  for(const asset of ['css/spatial.css','css/home.css','css/landing-workspace-cursor.css','js/workspace-cursor.js','js/home.js'])
+    assert.ok(html.includes('="'+asset+'"'),'Benefits page must reuse '+asset);
+  assert.equal((html.match(/src="js\/workspace-cursor\.js"/g)||[]).length,1,'one cursor engine');
+  assert.doesNotMatch(html,/src="js\/cursor\.js"/,'do not mix two cursor engines');
+  assert.match(html,/<span class="ac">invoice\.<\/span>/,'reuse landing brand gradient');
+  assert.match(html,/rgba\(102,69,221,\.38\)/,'feature card hover preserves purple halo');
+  assert.match(html,/@media\(prefers-reduced-motion:reduce\)/,'respect reduced motion');
+  assert.match(read('js/home.js'),/pg\.style\.setProperty\('--px'/,'ambient moves with pointer');
+  assert.match(read('js/workspace-cursor.js'),/className='workspace-cursor'/,'reuse magnetic ring');
 });
