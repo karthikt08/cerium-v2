@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // The date of the Terms and the Privacy Policy that people accept when they register or join.
-export const TERMS_VERSION = '2026-10-19';
+export const TERMS_VERSION = '2026-10-26';
 
 export class ConfigError extends Error {
   constructor(problems) {
