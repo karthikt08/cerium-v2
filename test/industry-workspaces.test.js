@@ -92,7 +92,7 @@ test('mandatory onboarding stores the exact custom selection without changing tr
    assert.equal((await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}})).status,200);
    await prepareBusiness(t,b,'US',{trade:'Independent graphic design',industryCategory:'other',workspaceModules:'leads,quotes,invoices'});
    assert.equal((await b.req('/api/workspace')).status,403);
-   const completed=await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true}});
+   const completed=await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true,revision:(await (await b.req('/api/business/setup')).json()).revision}});
    assert.equal(completed.status,200,await completed.clone().text());
    const ws=await (await b.req('/api/workspace')).json();
    assert.deepEqual(ws.account.workspacePreferences,{category:'other',modules:['leads','quotes','invoices']});

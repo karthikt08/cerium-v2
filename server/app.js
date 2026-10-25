@@ -305,6 +305,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     let pathname;
     try{pathname=path.posix.normalize(decodeURIComponent(req.path).replaceAll('\\','/')).toLowerCase().replace(/\/+$/,'');}
     catch{return res.status(400).type('text/plain').send('Invalid URL.');}
+    // NTFS alternate data streams can resolve app.html::$DATA to app.html.
+    // Reject stream/drive syntax before static serving on every platform.
+    if(pathname.includes(':'))return res.status(404).type('text/plain').send('Not found.');
     if(!['/app','/app.html'].includes(pathname))return next();
     // Static serving decodes URLs and Windows file names ignore case. Guard the
     // resolved shell too, rather than only the literal /app.html route.
@@ -680,6 +683,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.get('/business/setup',requireSession,(req,res)=>res.json(db.getBusinessSetup(req.session.userId)));
   const requireBusinessPhone=(req,res,next)=>db.billingEligible(req.session.userId)?next():res.status(409).json({error:'phone_verification_required',message:'Verify your phone before business setup.'});
   const setupError=(err,res)=>{
+    if(err.code==='business_setup_changed')return res.status(409).json({error:err.code,message:err.message});
     if(err.code==='invalid_business_profile')return res.status(400).json({error:err.code,message:err.message,fields:err.fields});
     throw err;
   };
@@ -689,14 +693,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
   api.post('/business/setup/complete',writeLimiter,sameOrigin,requireSession,requireCsrf,requireBusinessPhone,(req,res)=>{
     try{
-      const profile=db.completeBusinessSetup(req.session.userId,req.body?.confirmBusinessDetails);
+      const profile=db.completeBusinessSetup(req.session.userId,req.body?.confirmBusinessDetails,req.body?.revision);
       if(config.workspaceAccessMode==='phone')db.beginTrialOnEntry(req.session.userId);
       return res.json({ok:true,profile,workspaceUnlocked:accessStatus(req.session.userId).unlocked});
     }catch(err){return setupError(err,res);}
   });
   api.post('/business/profile',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
     if(!db.billingEligible(req.session.userId))return res.status(409).json({error:'phone_verification_required',message:'Verify your phone before completing business setup.'});
-    if(!db.businessProfileComplete(req.session.userId)&&db.getBusinessSetup(req.session.userId).step!=='review')
+    if(!db.businessProfileComplete(req.session.userId))
       return res.status(409).json({error:'business_setup_required',message:'Complete each required business setup step before confirming your profile.'});
     try{
       const profile=db.saveBusinessProfile(req.session.userId,req.body);

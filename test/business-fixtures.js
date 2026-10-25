@@ -12,7 +12,7 @@ export const businessDetails=(country='US')=>({
 export async function completeBusiness(t,b,country){
   const me=await b.me();country||=me.user.country;
   await prepareBusiness(t,b,country);
-  const response=await b.req('/api/business/setup/complete',{method:'POST',csrf:me.csrfToken,json:{confirmBusinessDetails:true}});
+  const response=await b.req('/api/business/setup/complete',{method:'POST',csrf:me.csrfToken,json:{confirmBusinessDetails:true,revision:(await (await b.req('/api/business/setup')).json()).revision}});
   assert.equal(response.status,200,await response.clone().text());
   return response.json();
 }
