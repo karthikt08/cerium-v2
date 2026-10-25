@@ -19,22 +19,23 @@
     if(c.parentNode!==host)host.append(c);
   }
   function draw(){
-    frame=0;if(!active)return;let tx=x,ty=y,tw=14,th=14,tr=7;
+    frame=0;if(!active)return;let tx=x,ty=y,tw=14,th=14,tr=7,snapped=false;
     if(down){tw=th=11;tr=5.5;cx=x;cy=y;}
     else if(target?.isConnected){
       const b=target.getBoundingClientRect();
-      if(b.width<=340&&b.height<=80){
+      if(b.width<=640&&b.height<=85){
         tx=b.left+b.width/2+(x-b.left-b.width/2)*.08;
         ty=b.top+b.height/2+(y-b.top-b.height/2)*.08;
         tw=b.width+6;th=b.height+6;
         tr=targetRadius;
+        snapped=true;
       }
     }
-    const k=target?.isConnected && !down ? .55 : .86;
+    const k=snapped && !down ? .55 : .86;
     cx+=(tx-cx)*k;cy+=(ty-cy)*k;w+=(tw-w)*k;h+=(th-h)*k;r+=(tr-r)*k;
     c.style.width=w+'px';c.style.height=h+'px';c.style.borderRadius=r+'px';
     c.style.transform=`translate3d(${cx-w/2}px,${cy-h/2}px,0)`;
-    c.classList.toggle('over-control',!!target&&!down);
+    c.classList.toggle('over-control',snapped&&!down);
     c.classList.toggle('pressed',down);
     if(Math.abs(tx-cx)+Math.abs(ty-cy)+Math.abs(tw-w)+Math.abs(th-h)>.1)frame=requestAnimationFrame(draw);
   }

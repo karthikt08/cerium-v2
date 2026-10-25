@@ -83,6 +83,7 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .pcard.featured{border-color:var(--ac)!important;box-shadow:0 24px 54px -20px color-mix(in srgb,var(--ac) 24%,transparent)!important}
 .pg .nt{border-left:1px solid var(--ge);border-radius:22px}
 
+.auth-page .acard, .auth-page .acard:hover{transform:none!important;will-change:auto!important}
 .pg .cd:hover, .pg .acard:hover, .pg .pcard:hover, .pg .panel:hover, .pg .fmc:hover, .pg .kpi-card:hover, .pg [role=button].cd:hover, .pg [role=button].acard:hover, .pg .brief-preview-card:hover, .pg .welcome-hero-card:hover, .pg .card:hover{
   transform:translateY(-2px) scale(1.006)!important;
   border-color:color-mix(in srgb,var(--ac) 45%,var(--ln))!important;
