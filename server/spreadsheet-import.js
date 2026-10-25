@@ -13,10 +13,10 @@ const xmlText=s=>String(s).replace(/&#(x[0-9a-f]+|\d+);|&(amp|lt|gt|quot|apos);/
   return n>0&&n<=0x10ffff&&!(n>=0xd800&&n<=0xdfff)?String.fromCodePoint(n):'';
 });
 function table(rows){
-  const populated=rows.filter(r=>r.some(v=>String(v).trim()));
+  const populated=rows.filter(r=>r.some(v=>String(v??'').trim()));
   if(populated.length<2)throw bad('The spreadsheet needs a header row and at least one data row.');
   if(populated.length-1>MAX_ROWS)throw bad('Import at most 2,000 rows at a time. Split larger files.');
-  const headers=populated[0].slice(0,MAX_COLS).map(x=>String(x).trim());
+  const headers=populated[0].slice(0,MAX_COLS).map(x=>String(x??'').trim());
   if(!headers.some(Boolean))throw bad('The first row must contain column headers.');
   if(headers.length>MAX_COLS||populated.some(r=>r.length>MAX_COLS&&r.slice(MAX_COLS).some(x=>String(x).trim())))
     throw bad('Use a spreadsheet with at most 40 populated columns.');
