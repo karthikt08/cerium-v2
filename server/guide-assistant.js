@@ -34,7 +34,7 @@ export function validateOllamaBaseURL(value='http://127.0.0.1:11434') {
 let localInferenceCount=0;
 const MAX_LOCAL_INFERENCE=2;
 export async function answerGuide(question,currentSection='overview',{
-  provider=process.env.CERIUM_AI_PROVIDER || (process.env.CERIUM_AI_API_KEY?'openai':'guide'),
+  provider=process.env.CERIUM_AI_PROVIDER||'',
   apiKey=process.env.CERIUM_AI_API_KEY||'',
   model=process.env.CERIUM_AI_MODEL||'',
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
@@ -48,8 +48,9 @@ export async function answerGuide(question,currentSection='overview',{
   const staticGuide=GUIDE_TOPICS.map(t=>t.title+' ('+t.section+'): '+t.answer+' Steps: '+t.steps).join('\n');
   const instructions=SYSTEM_GUIDE+'\nVERIFIED CERIUM GUIDE:\n'+staticGuide+
     '\nCurrent section: '+section+'. Suggested navigation: '+topic.title+'.';
-  if(provider==='guide')return fallback;
-  if(provider==='openai') {
+  const activeProvider=provider||(apiKey?'openai':'guide');
+  if(activeProvider==='guide')return fallback;
+  if(activeProvider==='openai') {
     const chosenModel=model||'gpt-4.1-mini';
     if(!apiKey || !/^[-\w.]{2,80}$/.test(chosenModel))return fallback;
     try{
@@ -67,7 +68,7 @@ export async function answerGuide(question,currentSection='overview',{
       return answer?{...fallback,reply:answer,source:'ai'}:fallback;
     }catch{return fallback;}
   }
-  if(provider==='ollama') {
+  if(activeProvider==='ollama') {
     const base=validateOllamaBaseURL(ollamaBaseURL);
     const chosenModel=model||'qwen3.5:4b';
     // A malformed operator configuration must not turn into an arbitrary network request.
