@@ -50,8 +50,9 @@ test('both sign-in methods and workspace entry use the same fast branded loader'
     assert.match(page,/entry-loader\.js/);
   }
   assert.match(loader,/prefers-reduced-motion/);
-  assert.match(loader,/sessionStorage\.removeItem/);
+  assert.doesNotMatch(loader,/localStorage|sessionStorage|indexedDB/);
+  assert.match(loader,/ceriumIntro/);
   assert.match(loader,/\['\/app', '\/app\.html'\]/);
-  assert.match(loader,/location\.replace\(next\)/);
+  assert.match(loader,/target.pathname/);
   assert.doesNotMatch(loader,/eval\s*\(/);
 });
