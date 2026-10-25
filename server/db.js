@@ -931,11 +931,16 @@ export function openDb(file) {
         if(!user)throw new BusinessProfileError({form:'Account not found.'});
         if(!this.billingEligible(userId))throw new BusinessProfileError({phone:'Verify your phone before completing business setup.'});
         const p=validateBusinessProfile(payload,user.country);
+        // A legacy profile edit without workspace fields must not silently
+        // reset the customer's explicitly configured tools.
+        const priorPrefs=this.getWorkspacePreferences(userId);
+        const category=payload.industryCategory===undefined?priorPrefs.category:p.industryCategory;
+        const modules=payload.workspaceModules===undefined?priorPrefs.modules:normalizeModules(p.workspaceModules);
         if(payload.confirmBusinessDetails!==true)throw new BusinessProfileError({confirmBusinessDetails:'Confirm that these business details are accurate.'});
         saveBusinessProfileStmt.run(p.name,p.businessName,p.trade,p.businessEmail,p.businessAddress,p.businessCity,p.businessRegion,p.businessPostalCode,
           p.timeZone,p.usState,p.country==='US'?p.businessPostalCode:'',p.indiaState,p.gstin,p.gstRegistration,
           billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,
-          p.industryCategory,JSON.stringify(normalizeModules(p.workspaceModules)),at,userId);
+          category,JSON.stringify(modules),at,userId);
         db.prepare("UPDATE users SET business_setup_draft='{}' WHERE id=?").run(userId);
         return this.getBusinessProfile(userId);
       })();
