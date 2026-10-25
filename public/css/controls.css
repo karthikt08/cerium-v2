@@ -1,0 +1,15 @@
+/* Quiet, consistent cues for text actions and native dropdowns. */
+:is(.notice,.muted,.page-description,.form-error,.footnote,.legal,.swap) a:not(.button):not(.btn),
+.field small a,.support-email,#business-back,.text-button,.pg a.tl,.pg .doc a:not(.btn){
+  color:var(--accent,var(--ac,#4263eb));font-weight:500;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);
+  border-radius:2px;transition:text-decoration-color .15s ease;
+}
+:is(.notice,.muted,.page-description,.form-error,.footnote,.legal,.swap) a:not(.button):not(.btn):is(:hover,:focus-visible),
+.field small a:is(:hover,:focus-visible),.support-email:is(:hover,:focus-visible),
+#business-back:is(:hover,:focus-visible),.text-button:is(:hover,:focus-visible),
+.pg a.tl:is(:hover,:focus-visible),.pg .doc a:not(.btn):is(:hover,:focus-visible){
+  text-decoration-color:currentColor;
+}
+@media(prefers-reduced-motion:reduce){.text-button{transition:none}}
