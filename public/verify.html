@@ -30,8 +30,14 @@
           <span class="dial-trigger-right"><span class="dial-code" id="dial-current-code">+—</span><span class="dial-chevron" aria-hidden="true">⌄</span></span>
         </button>
         <div id="dial-panel" class="dial-panel" hidden>
-          <label class="dial-search-label" for="dial-search">Find country or calling code</label>
-          <input id="dial-search" type="search" autocomplete="off" placeholder="Search country or +code" aria-controls="dial-options">
+          <div class="dial-panel-header">
+            <label class="dial-search-label" for="dial-search">Find country or calling code</label>
+            <span class="dial-panel-badge">190+ countries</span>
+          </div>
+          <div class="dial-search-wrap">
+            <svg class="dial-search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="dial-search" type="search" autocomplete="off" placeholder="Search country or +code" aria-controls="dial-options">
+          </div>
           <div class="dial-head" aria-hidden="true"><span>Country name</span><span>Country code</span></div>
           <div id="dial-options" class="dial-options" role="listbox" aria-label="Choose a business country"></div>
           <p class="dial-empty" id="dial-empty" hidden>No matching countries. Try the name or calling code.</p>
