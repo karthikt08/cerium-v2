@@ -41,3 +41,71 @@
 .workspace-module-grid input{accent-color:#3f64e5;width:17px;height:17px;flex:none}
 .workspace-picker button{justify-self:start}
 @media(max-width:620px){.workspace-module-grid{grid-template-columns:1fr}}
+
+
+/* Workspace-aligned business wizard — shared by required verification and local setup preview. */
+.business-wizard{
+  gap:14px;color:var(--ink,#202635);font:12.5px/1.6 var(--font,"Figtree",system-ui,sans-serif);
+}
+.business-wizard .wizard-required{color:#8e97a6;font-size:9px;letter-spacing:.14em;font-weight:600}
+.business-wizard h2{font-size:20px;font-weight:600;line-height:1.3;letter-spacing:-.55px;color:#202635}
+.business-wizard .hint{color:#788191;font-size:11.5px;line-height:1.6}
+.business-wizard .wizard-progress{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:7px;margin-bottom:2px}
+.business-wizard .wizard-progress li{
+  min-width:0;padding:10px 5px;border:1px solid #e5e9f1;border-radius:7px;
+  background:#f8f9fc;color:#7b8698;font-size:11px;font-weight:500;
+}
+.business-wizard .wizard-progress [aria-current=step]{
+  background:#eaf0ff;color:#3456c5;border-color:#cdd9fa;box-shadow:inset 0 -2px 0 #4263eb;font-weight:600;
+}
+.business-wizard .wizard-progress [data-complete=true]{
+  color:#52735f;background:#f3f6f9;border-color:#e0e8ed;box-shadow:none;
+}
+.business-wizard .business-fields{gap:14px}
+.business-wizard label{gap:6px;color:#536075;font-size:12px;font-weight:600}
+.business-wizard label small{font-size:11px;line-height:1.6;color:#788191;font-weight:400}
+.business-wizard input:not([type=checkbox]),.business-wizard select,.business-wizard .workspace-picker textarea{
+  border:1px solid #dfe4ed;border-radius:7px;background:#fff;color:#202635;
+  box-shadow:0 1px 2px #263c6505;padding:11px 12px;min-height:42px;
+  font:12.5px/1.5 var(--font,"Figtree",system-ui,sans-serif);
+}
+.business-wizard :is(input,select,textarea):not(:disabled):hover{border-color:#b6c3dc}
+.business-wizard :is(input,select,textarea,button):focus-visible{outline:3px solid #7289ef;outline-offset:3px}
+.business-wizard .verified-business-country{
+  background:#f4f7fb;border:1px solid #e3e9f2;border-radius:7px;color:#53657b;font-size:11.5px;
+}
+.business-wizard button{
+  min-height:42px;padding:10px 14px;border-radius:7px;font:600 12px/1.4 var(--font,"Figtree",system-ui,sans-serif);
+  transition:background .15s,box-shadow .15s;
+}
+.business-wizard .primary{box-shadow:0 3px 6px #4263eb15}
+.business-wizard .primary:hover{box-shadow:0 4px 8px #4263eb20}
+.business-wizard .secondary{color:#536075;border-color:#dfe4ed}
+.business-wizard .secondary:hover{border-color:#cbd4e5;background:#f7f9fd}
+.business-wizard .wizard-review{padding:16px;border:1px solid #e7e9ef;border-radius:8px;background:#fbfcfe;font-size:12px;gap:10px 16px}
+.business-wizard .wizard-review dt{color:#788191}
+.business-wizard .wizard-review dd{color:#202635;font-weight:600}
+.business-wizard .workspace-picker{
+  border:1px solid #e7e9ef;border-radius:9px;background:#fbfcfe;padding:17px;gap:12px;
+}
+.business-wizard .workspace-picker h3{font-size:13px;font-weight:600;color:#202635}
+.business-wizard .workspace-module-grid label{
+  border-color:#e1e5ed;border-radius:7px;padding:10px;font-size:11.5px;font-weight:500;background:#fff;
+}
+.business-wizard .workspace-module-grid label:has(input:checked){border-color:#cdd9fa;background:#f5f8ff}
+.business-wizard .workspace-module-grid input{accent-color:#4263eb}
+.business-wizard .wizard-actions{margin-top:8px}
+.business-setup-preview{
+  border-color:#e1e5ed;border-radius:12px;box-shadow:0 3px 12px #263c6510;
+  font-family:var(--font,"Figtree",system-ui,sans-serif);
+}
+.business-setup-preview h1{font-size:26px;font-weight:600;letter-spacing:-.75px;color:#202635}
+.business-setup-preview>p{font-size:12.5px;color:#788191}
+@media(max-width:520px){
+  .business-wizard .business-fields{grid-template-columns:1fr}
+  .business-wizard .business-wide{grid-column:auto}
+  .business-wizard .wizard-progress li{padding:9px 3px;font-size:10px}
+  .business-wizard .workspace-picker{padding:13px}
+  .business-setup-preview{padding:24px;margin:18px 12px}
+}
+@media(prefers-reduced-motion:reduce){.business-wizard button{transition:none}}

@@ -13,15 +13,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/onboarding-theme.css">
 <link rel="stylesheet" href="css/typography.css">
 </head>
-<body>
-<main class="verify-layout">
-  <a class="brand" href="/" aria-label="CERIUM home">CERIUM<span class="cerium-blinker" aria-hidden="true">.</span></a>
+<body class="onboarding-page">
+<div class="onboarding-shell">
+  <aside class="onboarding-rail" aria-label="Workspace setup">
+    <a class="onboarding-brand" href="/" aria-label="CERIUM home">
+      <span class="onboarding-brand-mark"><img src="img/cerium-logo-mark-blue.png" width="24" height="26" alt=""></span>
+      <span>CERIUM<span class="cerium-blinker" aria-hidden="true">.</span></span>
+    </a>
+    <div class="onboarding-rail-body">
+      <p class="onboarding-nav-heading">YOUR WORKSPACE</p>
+      <div class="onboarding-workspace-identity"><span class="onboarding-monogram" aria-hidden="true">C</span><div><strong>Business workspace</strong><small>Getting ready</small></div></div>
+      <p class="onboarding-nav-heading">REQUIRED SETUP</p>
+      <ol class="onboarding-rail-steps" aria-label="Setup progress overview">
+        <li id="rail-step-phone"><span class="onboarding-rail-number">01</span><span><strong>Verify phone</strong><small>Confirm your number</small></span></li>
+        <li id="rail-step-business"><span class="onboarding-rail-number">02</span><span><strong>Business details</strong><small>Set up your workspace</small></span></li>
+        <li id="rail-step-payment"><span class="onboarding-rail-number">03</span><span><strong>Payment authorization</strong><small>Activate your trial</small></span></li>
+      </ol>
+    </div>
+    <div class="onboarding-rail-bottom"><span class="onboarding-rail-lock" aria-hidden="true">✓</span><span>Your information is protected. Your workspace stays locked until setup is complete.</span></div>
+  </aside>
+  <main class="verify-layout">
+    <header class="onboarding-topbar">
+      <div class="onboarding-breadcrumb"><span>Workspace</span><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Initial setup</strong></div>
+      <span class="onboarding-topbar-state"><span aria-hidden="true"></span>Required before access</span>
+    </header>
+    <div class="onboarding-content">
   <section class="verify-card" aria-labelledby="verify-title">
-    <p class="eyebrow">PRIVATE WORKSPACE · ONE-TIME ONBOARDING</p>
+    <p class="eyebrow">GETTING STARTED · CERIUM WORKSPACE</p>
     <h1 id="verify-title">Set up your business in CERIUM.</h1>
-    <p class="intro">Complete each required step before opening your workspace: confirm your phone, add and review your business details, then authorize your trial. India is ₹500/month; other countries are $8–$20 USD/month after your 15-day trial.</p>
+    <p class="intro">Confirm your phone, add your business details, and authorize your trial to access the workspace. India is ₹500/month; other countries are $8–$20 USD/month after your 15-day trial.</p>
+    <p class="onboarding-progress-label">SETUP PROGRESS</p>
     <ol class="setup-steps" aria-label="Setup progress">
       <li id="step-phone">1. Phone</li><li id="step-business">2. Business</li><li id="step-payment">3. Payment</li>
     </ol>
@@ -80,7 +104,9 @@
     <p class="footnote">Having trouble? <a href="mailto:cerium.founders@gmail.com?subject=CERIUM%20identity%20review">Request a manual review</a>. Your phone is used for verification, not advertising.</p>
   </section>
   <p class="legal">© 2026 CERIUM · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
-</main>
+    </div>
+  </main>
+</div>
 <script type="module" src="js/verify-phone.js"></script>
 <script src="js/billing.js" defer></script>
 <script src="js/workspace-cursor.js" defer></script>
