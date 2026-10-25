@@ -149,7 +149,7 @@ test('existing paid accounts finish missing setup without losing paid dates, exp
 
 test('a legacy database gains required profile fields without changing invoices, billing or trial dates',()=>{
   const directory=mkdtempSync(join(tmpdir(),'cerium-business-migration-')),file=join(directory,'legacy.sqlite');
-  const columns=['business_email','business_address','business_city','business_region','business_postal_code','gst_registration','business_profile_completed_at'];
+  const columns=['business_email','business_address','business_city','business_region','business_postal_code','gst_registration','business_profile_completed_at','business_setup_draft'];
   let db;
   try{
     db=openDb(file);
