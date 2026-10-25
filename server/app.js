@@ -662,7 +662,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const permitted=[
       /^\/billing\/identity(?:\/start|\/verify)?$/,
       /^\/billing\/(?:status|subscription(?:\/verify|\/cancel)?)$/,
-      /^\/business\/profile$/,
+      /^\/business\/(?:profile|setup(?:\/complete)?)$/,
       /^\/logout$/,
       /^\/me\/export$/,
       /^\/me$/
@@ -675,6 +675,23 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.get('/business/profile',requireSession,(req,res)=>{
     res.set('Cache-Control','no-store');
     return res.json(db.getBusinessProfile(req.session.userId));
+  });
+  api.get('/business/setup',requireSession,(req,res)=>res.json(db.getBusinessSetup(req.session.userId)));
+  const requireBusinessPhone=(req,res,next)=>db.billingEligible(req.session.userId)?next():res.status(409).json({error:'phone_verification_required',message:'Verify your phone before business setup.'});
+  const setupError=(err,res)=>{
+    if(err.code==='invalid_business_profile')return res.status(400).json({error:err.code,message:err.message,fields:err.fields});
+    throw err;
+  };
+  api.post('/business/setup',writeLimiter,sameOrigin,requireSession,requireCsrf,requireBusinessPhone,(req,res)=>{
+    try{return res.json(db.saveBusinessSetupStep(req.session.userId,req.body?.step,req.body?.fields));}
+    catch(err){return setupError(err,res);}
+  });
+  api.post('/business/setup/complete',writeLimiter,sameOrigin,requireSession,requireCsrf,requireBusinessPhone,(req,res)=>{
+    try{
+      const profile=db.completeBusinessSetup(req.session.userId,req.body?.confirmBusinessDetails);
+      if(config.workspaceAccessMode==='phone')db.beginTrialOnEntry(req.session.userId);
+      return res.json({ok:true,profile,workspaceUnlocked:accessStatus(req.session.userId).unlocked});
+    }catch(err){return setupError(err,res);}
   });
   api.post('/business/profile',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
     if(!db.billingEligible(req.session.userId))return res.status(409).json({error:'phone_verification_required',message:'Verify your phone before completing business setup.'});
@@ -1169,6 +1186,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       waitlist: member && { joinedAt: member.joinedAt, business: member.business, termsVersionAccepted: member.termsVersion },
       workspace: ws,
       billingIdentity: db.getBillingIdentity(req.session.userId),
+      businessSetup: db.getBusinessSetup(req.session.userId),
     };
     res.set('Content-Disposition', 'attachment; filename="cerium-my-data.json"');
     res.type('application/json').send(JSON.stringify(data, null, 2));
