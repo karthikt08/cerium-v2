@@ -59,7 +59,7 @@ const copy={
 export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   root.innerHTML=markup;
   const el=id=>root.querySelector('#'+id),form=el('business-form');
-  let setup,identity,screen,busy=false,initializedCountry;
+  let setup,identity,screen,busy=false,completed=false;
   const select=(id,options,value)=>{
     const node=el(id);node.replaceChildren();
     for(const item of options){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;node.append(option);}
@@ -91,7 +91,6 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
       :[{value:'',label:'Choose business time zone'},...(us?US_TIME_ZONE_OPTIONS:businessTimeZoneOptions(p.timeZone))],ind?'Asia/Kolkata':p.timeZone);
     el('biz-gst-registration').required=ind;gst();
     select('preview-country',COUNTRY_OPTIONS,setup.country);
-    initializedCountry=country;
   }
   function review(){
     const p=setup.draft,items=[['Business name',p.businessName],['Contact name',p.name],['Business email',p.businessEmail],['Industry / service',p.trade],
@@ -107,7 +106,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   function render(focus=false){
     const steps=businessSetupSteps(setup.country),index=steps.indexOf(screen);
     for(const fieldset of form.querySelectorAll('[data-business-step]')){
-      fieldset.hidden=fieldset.dataset.businessStep!==screen;fieldset.disabled=fieldset.hidden;
+      fieldset.hidden=fieldset.dataset.businessStep!==screen;fieldset.disabled=fieldset.hidden||busy||completed;
     }
     el('business-step-list').replaceChildren();
     for(const [i,step] of steps.entries()){
@@ -117,8 +116,8 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     el('business-step-count').textContent='Step '+(index+1)+' of '+steps.length+' · Finish setup to enter your workspace';
     el('business-step-title').textContent=copy[screen][0];el('business-step-help').textContent=copy[screen][1];
     el('business-country-label').textContent=countryName(setup.country)+' · '+(setup.draft.invoiceCurrency||(setup.country==='IN'?'INR':'USD'))+(identity.phoneMasked?' · Verified phone '+identity.phoneMasked:' · Offline preview');
-    el('business-previous').hidden=index===0;el('business-previous').disabled=busy;
-    el('business-submit').disabled=busy;el('business-submit').textContent=screen==='review'?(editing?'Save business details':'Confirm business and continue'):'Save and continue';
+    el('business-previous').hidden=index===0||completed;el('business-previous').disabled=busy;
+    el('business-submit').disabled=busy;el('business-submit').textContent=completed?'Continue to next step':screen==='review'?(editing?'Save business details':'Confirm business and continue'):'Save and continue';
     el('preview-country-field').hidden=!setup.countryEditable;el('preview-country').disabled=busy||screen!=='basics';
     el('preview-country').value=setup.country;
     el('business-back').hidden=!(editing&&setup.complete);
@@ -178,10 +177,13 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy)return;clearErrors();busy=true;render();
     try{
-      if(screen==='review'){await api.completeBusinessSetup(el('biz-confirm').checked);await onComplete();return;}
+      if(screen==='review'){
+        if(!completed){await api.completeBusinessSetup(el('biz-confirm').checked);completed=true;}
+        await onComplete();return;
+      }
       const fields={};for(const key of BUSINESS_SETUP_FIELDS[screen])if(!form.elements[key].disabled)fields[key]=form.elements[key].value;
       setup=await api.saveBusinessSetupStep(screen,fields);screen=setup.step;el('biz-confirm').checked=false;render(true);
-    }catch(err){errors(err);}finally{busy=false;render();}
+    }catch(err){busy=false;errors(err);}finally{busy=false;render();}
   });
-  return {show(state,proof={}){setup=state;identity=proof;screen=state.step;if(initializedCountry!==state.country)populate();root.hidden=false;form.hidden=false;render();},hide(){root.hidden=true;}};
+  return {show(state,proof={}){setup=state;identity=proof;screen=state.step;completed=false;populate();el('biz-confirm').checked=false;clearErrors();root.hidden=false;form.hidden=false;render();},hide(){root.hidden=true;}};
 }
