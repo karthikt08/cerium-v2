@@ -20,7 +20,7 @@
   body .pg .btn:hover{transform:translateY(-1px);box-shadow:none!important}
   body .pg .btn.gh{background:transparent;border:1px solid #bfc4c6;color:var(--ink)}
   body .pg .ey{font-size:12px;font-weight:600;letter-spacing:.045em;text-transform:none;color:var(--mut)}
-  body .pg .ey::after,body .pg .ey::before{display:none}
+  body .pg.home .ey::before,body .pg .ey::after,body .pg .ey::before{display:none}
   body .pg .cd,body .pg .acard,body .pg .pcard,body .pg .fmc,body .pg .doc,body .pg .card,body .pg .pr{
     border:1px solid var(--ln);border-radius:7px;background:#fff;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   body .pg :is(.cd,.acard,.pcard,.fmc,.card,.pr):hover{
@@ -118,6 +118,10 @@
   .app-page .badge{font-size:11px;border-radius:3px;color:#52616a;background:#f0f2f1}
   .app-page .badge.blue{background:#edf1fa;color:#3158ad}.app-page .badge.green{background:#edf4ee;color:#38664c}
   .app-page .badge.orange{background:#fcf2e7;color:#8a5422}.app-page .badge.purple{background:#f0edf5;color:#6e5684}
+  .app-page .dashboard-grid .empty-state{display:grid;grid-template-columns:28px 1fr;text-align:left;gap:4px 12px;padding:24px 0}
+  .app-page .dashboard-grid .empty-icon{grid-row:1/3;width:28px;height:28px;margin:0;border:0;border-radius:0;background:none;color:#7b8791}
+  .app-page .dashboard-grid .empty-state h3,.app-page .dashboard-grid .empty-state p,.app-page .dashboard-grid .empty-state .button{grid-column:2;margin:0;max-width:none}
+  .app-page .dashboard-grid .empty-state .button{justify-self:start;margin-top:10px}
   .app-page .data-table{font-size:13px}.app-page .data-table th{color:#606970;font-size:11px;background:#f8f9f6}
   .app-page .data-table td{border-color:#e7e8e3;color:#3b464e;padding-block:16px}
   .app-page .field{font-size:13px;color:#424f57}
@@ -148,6 +152,8 @@
   .business-wizard .workspace-picker{border-radius:5px;background:#f8f9f6;border-color:#dedfdb}
   .pg .pcard.featured{border-color:#8fa3d3;background:#fff}.pg .pcard-tag{background:#edf1fb;color:#3159c9;border-radius:3px;box-shadow:none}
   .pg .country-pricing-panel{background:#fff;border:1px solid #d8dcd7;border-radius:7px;box-shadow:none}
+  .pricing-page .pricing-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+  .pricing-page .pcard{min-width:0}
   .pricing-page .hero{padding-block:54px 36px}
   .pricing-page .country-price-tiers{gap:0;border-block:1px solid #dedfdb}
   .pricing-page .country-price-tiers>div{border:0;border-right:1px solid #dedfdb;border-radius:0;background:none;padding:18px 16px}
@@ -173,11 +179,11 @@
     body .pg.home .hero h1{font-size:42px}.pg.home .hero .ld{font-size:17px}
     body .pg .sc{padding-block:44px}.work-sequence ol{grid-template-columns:1fr;gap:22px}
     .work-sequence li::before{margin-bottom:6px}.work-sequence{margin-bottom:44px}
-    .app-page .metric{flex-basis:130px;padding:16px;border-bottom:1px solid #dedfdb}
+    .app-page .metric{flex:1 1 50%;padding:16px;border-bottom:1px solid #dedfdb}
     .app-page .metric-value{font-size:25px}.app-page .metric-foot{font-size:11px}
     .app-page .page-description{font-size:13px}.app-page .workspace-summary>div{gap:4px}
     .app-page .topbar-right{gap:10px}.app-page .sync-label{display:none}
     .setup-page .verify-layout{padding:20px 14px}.setup-page .verify-card{padding:24px 20px}
   }
-  @media(max-width:400px){body .pg.home .hero h1{font-size:36px}.app-page .metric{flex-basis:110px;padding:14px}}
+  @media(max-width:400px){body .pg.home .hero h1{font-size:36px}.app-page .metric{flex-basis:50%;padding:14px}}
 }
