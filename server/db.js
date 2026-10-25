@@ -966,7 +966,7 @@ export function openDb(file) {
       })();
     },
 
-    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
+    createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-26', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
       const cleanEmail = email.trim().toLowerCase();
       if(!validCountry(country))throw new Error('Unsupported signup country.');
