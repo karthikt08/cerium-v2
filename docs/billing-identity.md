@@ -60,7 +60,8 @@ bypass the server gate. The access screen is `/verify.html`.
    verification succeeds; if there is existing priced history or a subscription,
    a conflicting edition requires manual review. Browser changes never relabel
    USD/INR amounts.
-4. Complete required business setup. US and India require state and postal code;
+4. Complete each required business setup step: business basics, address, India GST
+   when applicable, and final review/confirmation. Drafts resume after reopening. US and India require state and postal code;
    India also requires a GST-registration declaration, with GSTIN only for
    registered businesses. Existing users complete missing setup once; existing
    trial and paid dates are retained.

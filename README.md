@@ -1,17 +1,21 @@
 # CERIUM — Unified Production Platform & Web Workspace
 
-## Latest uploaded V2 demo
+## Run the current application
 
-The user's uploaded **Webapp V2** has been repaired and refined in [`demos/webapp-v2/`](demos/webapp-v2/). Version **2.2.0** rebuilds the launchpad in the glass/lavender theme, unifies action buttons and filters, removes the Launchpad button beside the logo, and renames Morning Overview to Overview. Cursor shadow and card motion are retained.
+Run `npm start` from the repository root and open `http://localhost:3000/app.html`.
+Business setup is required before workspace entry: phone verification, business
+basics, address, India GST declaration when applicable, review/confirmation,
+then production payment authorization. Saved steps resume after a reload.
 
-```sh
-cd demos/webapp-v2
-npm start
-```
+For an offline UI preview, run `npm run preview:export` and open
+`output/cerium-preview.html`. It starts with an empty business and the same
+required wizard; it does not send SMS or collect payments. Setup information
+is saved in this browser, while preview workspace records reset on reload.
 
-Open `http://localhost:8080/app.html`, or download [`preview.html`](demos/webapp-v2/preview.html) for a self-contained preview. Run `npm test` in that folder for the 49 regression checks. See the [demo README](demos/webapp-v2/README.md) and [verification notes](demos/webapp-v2/QA.md).
-
-This uploaded version is a standalone local demonstration with simulated banking and billing. Its records stay in browser storage. The original server application remains in the repository root.
+The earlier upload in `demos/webapp-v2/` is an archived standalone reference.
+Its separate sample-data app and `preview.html` do not represent the current
+server application's onboarding. Use the root application or a newly generated
+preview to test the current flow.
 
 ---
 

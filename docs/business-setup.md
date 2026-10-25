@@ -1,7 +1,8 @@
 # Required business setup
 
 Production onboarding is **phone verification → business details → recurring
-payment authorization → workspace**. The server enforces every step on the
+payment authorization → workspace**. Business setup is a required wizard:
+**Business basics → Address → GST (India) → Review and confirm**. The server enforces every step on the
 workspace shell and APIs. Posting directly to checkout cannot skip business
 setup. The application still supports all 245 country/territory entries in its
 phone catalog. India remains INR ₹500/month; all other countries remain USD
@@ -25,8 +26,11 @@ No new identity-document or banking-document collection is introduced.
 
 The server trims and validates all required fields, rejects non-text and
 overlong values, and saves the complete profile atomically. India GSTIN is
-required only when the user declares GST registration. The form shows field
-errors and retains entered values after a rejected submission.
+required only when the user declares GST registration. The wizard shows one step at a time. Each Continue validates and saves that
+step. The server rejects attempts to skip ahead; saving drafts never unlocks
+the workspace. Final confirmation validates the entire saved profile. Closing
+the tab, signing in again or restarting the server resumes the saved step.
+Field errors preserve entered values, and Back allows corrections.
 
 ## Existing accounts and editing
 
@@ -50,9 +54,11 @@ Previously authorized subscriptions continue to process billing events.
 
 ## Storage and deployment
 
-Startup adds seven columns to `users`: `business_email`, `business_address`,
+The business-profile migration added seven columns to `users`: `business_email`, `business_address`,
 `business_city`, `business_region`, `business_postal_code`, `gst_registration`
-and `business_profile_completed_at`. Existing name, trade, state, GSTIN and
+and `business_profile_completed_at`. This wizard adds `business_setup_draft`,
+a JSON draft containing the saved step and its owner-provided details. A draft
+is never a completion receipt. Existing name, trade, state, GSTIN and
 time-zone fields are reused. The migration is additive and repeatable; no
 existing account is silently marked complete or repriced. Follow the normal
 database-backup process before deployment.
@@ -60,20 +66,24 @@ database-backup process before deployment.
 - `GET /api/business/profile` returns only the current user's profile and status.
 - `POST /api/business/profile` requires session, same origin, CSRF, verified
   phone, all applicable fields and `confirmBusinessDetails=true`.
+- `GET /api/business/setup` reads the owner’s saved step and draft.
+- `POST /api/business/setup` saves only the permitted fields of the current or
+  an earlier step. Editing an earlier step rewinds progress for revalidation.
+- `POST /api/business/setup/complete` requires every step and explicit confirmation.
 - `GET /api/billing/identity` includes `businessComplete` and `businessProfile`.
 - Account export includes the business profile; account deletion removes it.
 - No new dependencies or environment variables are required.
 
 Production requires `WORKSPACE_ACCESS_MODE=phone_and_mandate`. Local `phone`
-mode unlocks only after phone and business completion. Test/development `off`
-mode keeps its explicit bypass; production configuration rejects it.
+mode unlocks only after phone and business completion. `off` is accepted only with
+`NODE_ENV=test` for automated fixtures. Normal local runs cannot disable the
+setup gate. Replace a previous local `WORKSPACE_ACCESS_MODE=off` with `phone`
+and restart the server. Loopback simulated SMS uses code `000000`.
 
 ## Validation
 
-All 472 Node tests passed with no failures or skips. All 87 JavaScript files
-passed syntax checks. Chromium completed 86 checks, and the repository secret
-scan passed. The PR workflow also checks locked installs and tests on Node 22
-Ubuntu and Windows; consult that run for its final status.
+The PR records final automated and browser check results. Tests cover both the
+connected app and the generated offline preview. Provider tests use fixtures.
 
 The regression suite covers missing and malformed data, owner isolation,
 country/pricing spoofing, CSRF, phone prerequisites, workspace and checkout
@@ -85,7 +95,9 @@ preserved invoices/subscriptions, database integrity and foreign keys.
 Chromium workflows exercise US, India, Canada, UK, France and Nepal at
 1440×1000 and 390×844: all setup steps, native required-field checks, reloads,
 country-specific fields, registered/unregistered India flows, payment
-authorization, profile editing and invoice previews. The offline export also
-loads successfully. Provider responses are test fixtures; no live SMS or
+authorization, profile editing and invoice previews. The offline export also requires empty-business setup before displaying
+navigation. It saves setup progress in browser storage and uses shared validation;
+completed details can be edited from Settings. This is a local preview, not a
+replacement for server authentication, SMS or payment authorization. Provider responses are test fixtures; no live SMS or
 payment was sent. Other browser engines and real mobile devices were not
 covered.
