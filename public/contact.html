@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ---------- Base (same on every page) ---------- */
-body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
+body{margin:0;background:#f4f6fa}
 .pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
 .pg *{box-sizing:border-box}.pg a{color:inherit;text-decoration:none}
 .pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
@@ -72,21 +72,30 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 @media(max-width:560px){.fm .row{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="css/spatial.css">
+<link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/landing-workspace-cursor.css">
 <link rel="stylesheet" href="css/brand-motion.css">
 <link rel="stylesheet" href="css/controls.css">
 <link rel="stylesheet" href="css/typography.css">
 </head>
 <body>
-<div class="pg" id="pg">
+<div class="pg home" id="pg" style="--ac:#2f5bff">
+<div class="sp-grid" aria-hidden="true"></div>
 
 <header class="w hd">
-<a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
-<nav aria-label="Main"><a href="index.html#benefits">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html" aria-current="page" style="color:var(--ink);font-weight:600">Contact</a></nav>
-<div style="display:flex;gap:10px;align-items:center">
-  <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
-  <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
-</div>
+  <a class="lg" href="index.html">
+    <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
+    CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
+  <nav aria-label="Main">
+    <a href="index.html#benefits">Benefits</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="about.html">About</a>
+    <a href="contact.html" aria-current="page" style="color:var(--ink);font-weight:600">Contact</a>
+  </nav>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
+    <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
+  </div>
 </header>
 <main id="main">
 <section class="hw"><div class="w hero">
@@ -122,17 +131,38 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 </section>
 </main>
 <footer class="ft">
-<div><a class="lg" href="index.html"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a><p>The simple workspace for small business owners across the US.</p></div>
-<div><h5>Product</h5><a href="index.html#benefits">Benefits</a><a href="index.html#pricing">Pricing</a><a href="pricing.html">Pricing</a><a href="signup.html">Free Trial</a><a href="app.html">Workspace</a><a href="login.html">Log in</a></div>
-<div><h5>Company</h5><a href="about.html">About</a><a href="contact.html" aria-current="page">Contact</a></div>
-<div><h5>Legal</h5><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
-<p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
-<p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
+  <div>
+    <a class="lg" href="index.html">
+      <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
+      CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
+    <p>A simpler workday for independent contractors and service teams.</p>
+  </div>
+  <div>
+    <h5>Product</h5>
+    <a href="index.html#benefits">Benefits</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="signup.html">Free trial</a>
+    <a href="login.html">Log in</a>
+    <a href="app.html">Workspace</a>
+  </div>
+  <div>
+    <h5>Company</h5>
+    <a href="about.html">About</a>
+    <a href="contact.html" aria-current="page" style="color:var(--ink);font-weight:600">Contact</a>
+  </div>
+  <div>
+    <h5>Legal</h5>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </div>
+  <p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
+  <p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
 </footer>
 </div>
 <script src="js/workspace-cursor.js" defer></script>
+<script src="js/local-check.js"></script>
+<script src="js/home.js" defer></script>
 <script src="js/contact.js"></script>
-<script type="module" src="js/waitlist-buttons.js"></script>
 <script src="js/nav-auth.js"></script>
 </body>
 </html>
