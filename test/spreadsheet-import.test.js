@@ -46,6 +46,19 @@ test('XLSX imports shared and inline strings, sparse cells, and Excel follow-up 
   assert.match(mapped[0].data.nextFollowUp,/^2026-/);
   assert.equal(mapped[0].data.value,'123.50');
 });
+test('XLSX honors workbook sheet order and 1904 date system',()=>{
+  const upload=xlsx({
+    'xl/workbook.xml':'<workbook><workbookPr date1904="1"/><sheets><sheet name="Current" sheetId="2" r:id="rId2"/><sheet name="Old" sheetId="1" r:id="rId1"/></sheets></workbook>',
+    'xl/_rels/workbook.xml.rels':'<Relationships><Relationship Id="rId2" Target="worksheets/sheet2.xml"/><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>',
+    'xl/worksheets/sheet1.xml':'<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>Name</t></is></c></row><row><c r="A2" t="inlineStr"><is><t>Wrong sheet</t></is></c></row></sheetData></worksheet>',
+    'xl/worksheets/sheet2.xml':'<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>Name</t></is></c><c r="B1" t="inlineStr"><is><t>Follow-up Date</t></is></c></row><row><c r="A2" t="inlineStr"><is><t>Correct sheet</t></is></c><c r="B2"><v>45000</v></c></row></sheetData></worksheet>'
+  });
+  const parsed=parseSpreadsheet(upload);
+  assert.equal(parsed.date1904,true);
+  const row=mappedLeads(parsed,suggestedMapping(parsed.headers))[0];
+  assert.equal(row.data.name,'Correct sheet');
+  assert.equal(row.data.nextFollowUp,new Date(Date.UTC(1904,0,1)+45000*86400000).toISOString().slice(0,10));
+});
 test('rejects malformed files and duplicate or missing mappings',()=>{
   assert.throws(()=>parseSpreadsheet(csv('Customer Name\n')),/header row/);
   assert.throws(()=>parseSpreadsheet({filename:'bad.xlsx',content:Buffer.from('fake').toString('base64')}),/valid .xlsx/);
