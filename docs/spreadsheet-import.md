@@ -9,7 +9,7 @@ In the connected workspace, open **Leads → Import CSV / Excel**, or **Settings
 3. Review the ready, duplicate, and invalid counts and the row-level errors. No data is written during preview.
 4. Click **Import N leads** to add valid, nonduplicate rows. Close the dialog to cancel without changes.
 
-Supported columns: customer name (required), phone, email, address, source, pipeline stage, estimated value, follow-up date and notes. All other columns are ignored. For .xlsx, the first worksheet (by sheet number) is read; only cached cell values, inline text and shared strings are supported. Formulas are never evaluated. ISO YYYY-MM-DD dates and Excel date serials are supported. New, Quoted, Booked, and Done are valid stages.
+Supported columns: customer name (required), phone, email, address, source, pipeline stage, estimated value, follow-up date and notes. All other columns are ignored. For .xlsx, the first worksheet in the workbook tab order is read, with sheet-number fallback for nonstandard workbooks; only cached cell values, inline text and shared strings are supported. Formulas are never evaluated. ISO YYYY-MM-DD dates and Excel date serials are supported. New, Quoted, Booked, and Done are valid stages.
 
 Limits: 2 MiB uploaded file, at most 2,000 data rows and 40 populated columns per import. Split larger sources into batches. The import enforces server-side name, email, amount, date, and length validation; invalid rows are skipped with visible errors. CSV is UTF-8 with comma, tab or semicolon separators and quoted cells.
 
