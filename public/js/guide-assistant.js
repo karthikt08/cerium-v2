@@ -84,11 +84,13 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
         result=localAnswer(clean,current);
       }
       if(!result || typeof result.reply!=='string')result=localAnswer(clean,current);
-      const safe=GUIDE_SECTIONS.includes(result.section)
+      // A deliberate NavLM abstention has no destination: never invent a link.
+      const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
+      const safe=uncertain||GUIDE_SECTIONS.includes(result.section)
         ? result : {...result,...localAnswer(clean,current)};
       progress.textContent=safe.reply.slice(0,850)+
-        (safe.steps && safe.source==='guide'?'\n\n'+safe.steps.slice(0,400):'');
-      routeButton(safe.section,safe.title||safe.section);
+        (safe.steps && (safe.source==='guide'||safe.source==='navlm')?'\n\n'+safe.steps.slice(0,400):'');
+      if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
     }finally{
       pending=false;input.disabled=false;send.disabled=false;
       messages.scrollTop=messages.scrollHeight;
