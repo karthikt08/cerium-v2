@@ -1,9 +1,14 @@
-# CERIUM HTML/CSS entrance
+# CERIUM badge entrance
 
-The sign-in success transition (`public/enter.html`) and protected workspace
-(`public/app.html`) share the native HTML/CSS/inline-SVG entrance from PR #20.
-A metallic blue C mark forms, the ERIUM wordmark reveals letter by letter,
-and a blue square appears. There are no media files or image dependencies.
+The sign-in transition (`public/enter.html`) and workspace (`public/app.html`)
+share a compact badge modeled on the supplied reference: a glossy blue C on a
+navy rounded-square tile, the full dark CERIUM wordmark, a blue dot, and a thin
+blue rounded frame. The background is soft lavender white.
+
+The outline draws first, the icon settles into place, the letters reveal with
+short staggered transitions, and the dot appears last. It is native HTML, CSS
+and inline SVG, with no media or image dependency. The badge fits at 320px and
+scales through mobile, tablet and desktop widths.
 
 ## Entry and readiness
 
@@ -11,7 +16,7 @@ Email/password sign-in, account creation and successful Google OAuth lead to
 `/enter.html`, then to the protected workspace. Direct workspace visits run the
 same intro. Internal workspace navigation does not replay it.
 
-The CSS intro lasts about 2.9 seconds. Skip intro and reduced-motion mode settle
+The CSS intro lasts about 1.6 seconds. Skip intro and reduced-motion mode settle
 the logo immediately, while account and initialization checks still finish.
 A `ceriumIntro=done` query marker skips only the duplicate animation on the
 immediate same-origin handoff. The app consumes it, checks the intro referrer
@@ -47,10 +52,13 @@ No media installation or additional dependency is required.
 - All 93 JavaScript files passed syntax checks. The secret scan and whitespace
   checks passed. Existing public-file and browser-storage checks retain their
   original restrictions.
-- Eighteen Chromium workflows passed, including desktop/mobile native animation,
+- Twenty-six Chromium workflows passed, including desktop/mobile native animation,
   reloads, handoff, actual email login/sign-up, onboarding enforcement, failed
   and slow initialization, delayed/missing loader script, reduced motion and
-  the self-contained preview. Background controls stayed inert until readiness.
+  the self-contained preview. Eight additional layout checks cover 320, 390,
+  768 and 1440px at normal and reduced motion. Both mobile recovery captions
+  and the badge remain within the viewport. Background controls stay inert
+  until readiness.
 - Google, SMS and payment providers used fixtures. No live messages, accounts
   or payments were changed; other engines and real mobile devices were not tested.
 - See the follow-up PR for clean-install Ubuntu and Windows CI results.
