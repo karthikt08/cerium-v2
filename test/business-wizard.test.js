@@ -186,3 +186,27 @@ test('stale reviews fail when another tab moves back and fresh reviewed changes 
     assert.equal(t.db.getBusinessProfile(uid).businessName,'Corrected name');
   }finally{await t.close();}
 });
+
+test('every incomplete setup stage blocks workspace URL aliases and private API operations',async()=>{
+  const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
+  try{
+    const {b,csrf,uid}=await owner(t);
+    const paths=['/app','/app.html','/APP.HTML','/%61pp.html','/app.html/','/app.html.','/app.html%20','/app.html::$DATA','/folder/../app.html'];
+    for(const stage of ['basics','address','review']){
+      assert.equal(t.db.getBusinessSetup(uid).step,stage);
+      for(const path of paths)for(const method of ['GET','HEAD']){
+        const r=await b.req(path,{method});assert.ok([303,404].includes(r.status),stage+' '+method+' '+path+' returned '+r.status);
+        if(r.status===303)assert.equal(r.headers.get('location'),'/verify.html');
+      }
+      for(const [method,path] of [['GET','/api/workspace'],['GET','/api/workspace/'],['GET','/api/WORKSPACE'],
+        ['GET','/api/jobs'],['GET','/api/invoices'],['GET','/api/leads'],['GET','/api/quotes'],
+        ['POST','/api/jobs'],['POST','/api/invoices'],['PATCH','/api/workspace/preferences'],['PATCH','/api/me']]){
+        const r=await b.req(path,{method,csrf,...(method==='GET'?{}:{json:{businessComplete:true}})});
+        assert.equal(r.status,403,stage+' '+method+' '+path);assert.equal((await r.json()).error,'onboarding_required');
+      }
+      assert.equal((await b.req('/api/me/export')).status,200);
+      assert.equal(t.db.getUserById(uid).onboarding_completed_at,0);
+      if(stage!=='review')await step(b,csrf,stage,fields('US',stage));
+    }
+  }finally{await t.close();}
+});

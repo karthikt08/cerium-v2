@@ -191,7 +191,9 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
           setup=fresh;screen=fresh.step;populate();el('biz-confirm').checked=false;
           // Another tab may already have finished this setup. The next step
           // still checks phone and mandate status on the server.
-          if(fresh.complete&&fresh.step==='basics'){completed=true;screen='review';}
+          if(fresh.complete&&fresh.step==='basics'){
+            completed=true;screen='review';err=new Error('Your business details are already saved. Continue to the next step.');
+          }
         }catch{err=new Error('Could not refresh your business details. Reload this page to resume your saved setup.');}
       }
       errors(err);
