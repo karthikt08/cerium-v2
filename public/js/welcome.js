@@ -121,7 +121,7 @@
       const firstName = rawName.trim().split(/\s+/)[0] || 'there';
 
       if (titleEl) {
-        titleEl.textContent = timeOfDay + ', ' + firstName + '! 👋';
+        titleEl.textContent = timeOfDay + ', ' + firstName + '.';
       }
 
       const businessName = (me.user && me.user.businessName) || '';
@@ -133,7 +133,7 @@
     .catch(function () {
       // If network fails or session check is delayed, preserve polite default greeting
       if (titleEl) {
-        titleEl.textContent = timeOfDay + '! 👋';
+        titleEl.textContent = timeOfDay + '.';
       }
     });
 
