@@ -76,3 +76,45 @@ test('assistant endpoint requires login, origin, CSRF and validates question',as
     assert.equal(invalid.status,400);
   }finally{await t.close();}
 });
+
+test('self-hosted Qwen Ollama works without a paid API key',async()=>{
+  let received;
+  const response=await answerGuide('How do I make an invoice PDF?','overview',{
+    provider:'ollama',model:'qwen3.5:4b',apiKey:'',
+    fetcher:async(url,opts)=>{
+      received={url,opts};
+      return {ok:true,json:async()=>({done:true,message:{role:'assistant',content:'Open Invoices and preview the document to save a PDF.'}})};
+    }
+  });
+  assert.equal(response.source,'ai');
+  assert.equal(response.section,'invoices');
+  assert.equal(received.url,'http://127.0.0.1:11434/api/chat');
+  const sent=JSON.parse(received.opts.body);
+  assert.equal(sent.model,'qwen3.5:4b');
+  assert.equal(sent.think,false);
+  assert.equal(sent.stream,false);
+  assert.equal(sent.messages[1].content,'How do I make an invoice PDF?');
+  assert.equal(received.opts.headers.Authorization,undefined);
+});
+test('Ollama rejects arbitrary hosts, HTTPS, credentials and query paths',async()=>{
+  const {validateOllamaBaseURL}=await import('../server/guide-assistant.js');
+  for(const host of ['https://127.0.0.1:11434','http://example.com:11434','http://192.168.0.5:11434','http://127.0.0.1:11434/evil','http://127.0.0.1:11434/?q=1','http://user:pass@127.0.0.1:11434']){
+    assert.equal(validateOllamaBaseURL(host),null);
+  }
+  assert.equal(validateOllamaBaseURL('http://localhost:11434'),'http://localhost:11434');
+  let called=false;
+  const response=await answerGuide('Where are invoices?', 'overview',{
+    provider:'ollama',ollamaBaseURL:'https://evil.example',fetcher:async()=>{called=true;return {ok:true};}
+  });
+  assert.equal(response.source,'guide');
+  assert.equal(called,false);
+});
+test('local model errors gracefully use the guide without trying paid API',async()=>{
+  let called=0;
+  const response=await answerGuide('Where are invoices?','overview',{
+    provider:'ollama',fetcher:async()=>{called++;throw Error('Connection refused');}
+  });
+  assert.equal(called,1);
+  assert.equal(response.source,'guide');
+  assert.equal(response.section,'invoices');
+});
