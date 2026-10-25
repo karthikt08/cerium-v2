@@ -65,7 +65,9 @@ database-backup process before deployment.
 
 - `GET /api/business/profile` returns only the current user's profile and status.
 - `POST /api/business/profile` requires session, same origin, CSRF, verified
-  phone, all applicable fields and `confirmBusinessDetails=true`.
+  phone, all applicable fields and `confirmBusinessDetails=true`. A first
+  completion also requires wizard progress to reach review; this older endpoint
+  cannot skip the procedure.
 - `GET /api/business/setup` reads the owner’s saved step and draft.
 - `POST /api/business/setup` saves only the permitted fields of the current or
   an earlier step. Editing an earlier step rewinds progress for revalidation.
@@ -82,8 +84,13 @@ and restart the server. Loopback simulated SMS uses code `000000`.
 
 ## Validation
 
-The PR records final automated and browser check results. Tests cover both the
-connected app and the generated offline preview. Provider tests use fixtures.
+All **479 Node tests** passed, with zero failures or skips. All **90 JavaScript
+files** passed syntax checks; the secret scan and whitespace checks passed.
+**93 Chromium checks** passed across the connected app and generated preview.
+These include direct-link blocking, reload/session/server restart recovery,
+earlier-step corrections, mandatory review confirmation, retained trial dates,
+request failure/retry and browser-storage failures. Provider tests use fixtures.
+Consult the PR for the final Ubuntu/Windows locked-install CI result.
 
 The regression suite covers missing and malformed data, owner isolation,
 country/pricing spoofing, CSRF, phone prerequisites, workspace and checkout
