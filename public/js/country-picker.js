@@ -18,6 +18,8 @@ export function mountCountryPicker({select,trigger,panel,search,options,empty,di
   // Scripted validation is already performed by verify-phone.js and uses the
   // real select value, which stays the source of truth.
   select.required=false;
+  select.tabIndex=-1;
+  select.setAttribute('aria-hidden','true');
   trigger.hidden=false;
   let filtered=[],active=0;
   const isOpen=()=>!panel.hidden;
@@ -72,6 +74,12 @@ export function mountCountryPicker({select,trigger,panel,search,options,empty,di
     sync();close({focus:true});
   }
   trigger.addEventListener('click',()=>isOpen()?close({focus:true}):open());
+  trigger.addEventListener('keydown',event=>{
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+      event.preventDefault();open();
+      if(event.key==='ArrowUp'){active=filtered.length-1;focusActive();}
+    }
+  });
   search.addEventListener('input',()=>render(search.value));
   search.addEventListener('keydown',event=>{
     if(event.key==='Escape'){event.preventDefault();close({focus:true});}
