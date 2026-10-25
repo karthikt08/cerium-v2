@@ -11,7 +11,7 @@ import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
 import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
 import {normalizeBillingPhone} from './billing-identity.js';
-import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError} from './business-profile.js';
+import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError,businessSetupSteps,advanceBusinessSetup} from './business-profile.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -349,6 +349,8 @@ export function openDb(file) {
     if(!userColumns.has(column))db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT NOT NULL DEFAULT ''`);
   if(!userColumns.has('business_profile_completed_at'))
     db.exec('ALTER TABLE users ADD COLUMN business_profile_completed_at INTEGER NOT NULL DEFAULT 0');
+  if(!userColumns.has('business_setup_draft'))
+    db.exec("ALTER TABLE users ADD COLUMN business_setup_draft TEXT NOT NULL DEFAULT '{}' ");
   // India edition is opt-in per clean workspace: no existing USD records get
   // converted. Snapshot the currency and GST amounts for each created invoice.
   for (const [col,ddl] of [
@@ -870,6 +872,34 @@ export function openDb(file) {
 
     businessProfileComplete(userId) {return businessProfileComplete(q.getUserById.get(userId));},
 
+    getBusinessSetup(userId) {
+      const user=q.getUserById.get(userId);
+      if(!user)return null;
+      let saved;
+      try{saved=JSON.parse(user.business_setup_draft);}catch{}
+      const valid=saved?.draft?.country===user.country&&businessSetupSteps(user.country).includes(saved.step);
+      return {step:valid?saved.step:'basics',draft:valid?saved.draft:profileFromUser(user),
+        complete:businessProfileComplete(user),country:user.country};
+    },
+
+    saveBusinessSetupStep(userId,step,input) {
+      return db.transaction(()=>{
+        if(!this.billingEligible(userId))throw new BusinessProfileError({phone:'Verify your phone before business setup.'});
+        const setup=this.getBusinessSetup(userId);
+        const next=advanceBusinessSetup(setup,step,input,setup.country);
+        db.prepare('UPDATE users SET business_setup_draft=?,updated_at=? WHERE id=?').run(JSON.stringify(next),Date.now(),userId);
+        return this.getBusinessSetup(userId);
+      })();
+    },
+
+    completeBusinessSetup(userId,confirmed) {
+      return db.transaction(()=>{
+        const setup=this.getBusinessSetup(userId);
+        if(!setup||setup.step!=='review')throw new BusinessProfileError({form:'Finish every business setup step before reviewing.'});
+        return this.saveBusinessProfile(userId,{...setup.draft,confirmBusinessDetails:confirmed});
+      })();
+    },
+
     saveBusinessProfile(userId,payload,at=Date.now()) {
       return db.transaction(()=>{
         const user=q.getUserById.get(userId);
@@ -880,6 +910,7 @@ export function openDb(file) {
         saveBusinessProfileStmt.run(p.name,p.businessName,p.trade,p.businessEmail,p.businessAddress,p.businessCity,p.businessRegion,p.businessPostalCode,
           p.timeZone,p.usState,p.country==='US'?p.businessPostalCode:'',p.indiaState,p.gstin,p.gstRegistration,
           billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,at,userId);
+        db.prepare("UPDATE users SET business_setup_draft='{}' WHERE id=?").run(userId);
         return this.getBusinessProfile(userId);
       })();
     },
