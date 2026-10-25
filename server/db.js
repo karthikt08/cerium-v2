@@ -885,7 +885,7 @@ export function openDb(file) {
       const category=payload?.category;
       if(!isIndustry(category))throw new BusinessProfileError({category:'Choose a supported business category.'});
       let modules;
-      try{modules=normalizeModules(payload?.modules);}catch{throw new BusinessProfileError({modules:'Choose one or more valid modules, without duplicates.'});}
+      try{if(!Array.isArray(payload?.modules))throw new Error('Expected module list.');modules=normalizeModules(payload.modules);}catch{throw new BusinessProfileError({modules:'Choose one or more valid modules, without duplicates.'});}
       db.prepare('UPDATE users SET industry_category=?,workspace_modules=?,updated_at=? WHERE id=?')
         .run(category,JSON.stringify(modules),Date.now(),userId);
       return this.getWorkspacePreferences(userId);
