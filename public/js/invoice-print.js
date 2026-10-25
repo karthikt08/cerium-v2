@@ -74,7 +74,7 @@ export function invoicePrintHTML({invoiceMarkup, paper = 'A4', title = 'Invoice'
   }
   @media screen and (max-width:850px){.print-sheet{max-width:100%;min-height:0;padding:25px 22px}.invoice-top{gap:16px}.invoice-info{gap:14px}}
 </style></head><body>
-<div class="print-toolbar"><p>Review the invoice below. Choose <strong>Save as PDF</strong> in your browser's print dialog.</p><button id="invoice-print-button" type="button">Print / Save PDF</button></div>
+<div class="print-toolbar"><p>Review before issuing. In the print dialog choose <strong>Save as PDF</strong>, keep scale at 100%, and turn off browser headers and footers.</p><button id="invoice-print-button" type="button">Print / Save PDF</button></div>
 <main class="print-sheet">${invoiceMarkup}</main>
 </body></html>`;
 }
