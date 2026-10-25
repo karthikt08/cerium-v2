@@ -946,7 +946,7 @@ export function openDb(file) {
         const user=q.getUserById.get(userId);
         if(!user)throw new BusinessProfileError({form:'Account not found.'});
         if(!this.billingEligible(userId))throw new BusinessProfileError({phone:'Verify your phone before completing business setup.'});
-        const p=validateBusinessProfile({...payload,invoiceCurrency:payload.invoiceCurrency??user.currency},user.country);
+        const p=validateBusinessProfile({...payload,invoiceCurrency:payload.invoiceCurrency===undefined?user.currency:payload.invoiceCurrency},user.country);
         if(p.invoiceCurrency!==user.currency&&businessMoneyHistory(userId))throw new BusinessProfileError({invoiceCurrency:'Existing financial records cannot be relabeled. Keep the saved invoice currency.'});
         // A legacy profile edit without workspace fields must not silently
         // reset the customer's explicitly configured tools.

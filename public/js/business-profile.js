@@ -46,9 +46,9 @@ export function validateBusinessProfile(input,country,onlyFields=null){
       fields[key]=label+' must be text of at most '+max+' characters.';out[key]='';continue;
     }
     out[key]=value.trim();
-    if(required&&!out[key])fields[key]='Enter your '+label.toLowerCase()+'.';
+    if(required&&!/[^\s\p{Default_Ignorable_Code_Point}]/u.test(out[key]))fields[key]='Enter your '+label.toLowerCase()+'.';
   }
-  out.invoiceCurrency=input.invoiceCurrency||(country==='IN'?'INR':'USD');
+  out.invoiceCurrency=input.invoiceCurrency===undefined?(country==='IN'?'INR':'USD'):input.invoiceCurrency;
   if(!validWorkspaceCurrency(country,out.invoiceCurrency))fields.invoiceCurrency='Choose a supported invoice currency.';
   const category=out.industryCategory||suggestIndustry(out.trade).category;
   if(!isIndustry(category))fields.industryCategory='Choose a valid business category.';
