@@ -24,8 +24,8 @@ function demoAdapter() {
   let sequence = 10, invoiceNumber = 1000;
   const clone = value => JSON.parse(JSON.stringify(value));
   const setupKey='cerium_preview_business_setup_v1';
-  let saved={};
-  try{saved=JSON.parse(localStorage.getItem(setupKey)||'{}');}catch{throw new Error('Saved setup could not be read. Check browser storage permissions.');}
+  let saved={},storageIssue='';
+  try{saved=JSON.parse(localStorage.getItem(setupKey)||'{}');}catch{storageIssue='Your browser could not open saved business setup. Allow browser storage, then reload this preview.';}
   let country=validCountry(saved.country)?saved.country:'US',profile=saved.profile||null;
   const complete=()=>{try{return Boolean(profile?.completedAt&&validateBusinessProfile(profile,country));}catch{return false;}};
   let setup=saved.setup?.draft?.country===country&&businessSetupSteps(country).includes(saved.setup.step)?saved.setup:{step:'basics',draft:{country,name:'',businessName:'',businessEmail:'',timeZone:country==='IN'?'Asia/Kolkata':''}};
@@ -56,7 +56,7 @@ function demoAdapter() {
   const unavailable = async message => { throw new Error(message); };
   const api = {
     localBusinessSetup:true,
-    async getBusinessSetup(){return clone({...setup,country,complete:complete(),countryEditable:!complete()});},
+    async getBusinessSetup(){if(storageIssue)throw new Error(storageIssue);return clone({...setup,country,complete:complete(),countryEditable:!complete()});},
     async selectBusinessSetupCountry(value){
       if(complete()||!validCountry(value))throw new Error('Choose a supported country before completing setup.');
       const before={country,setup};country=value;setup={step:'basics',draft:{...setup.draft,country,usState:'',indiaState:'',gstin:'',gstRegistration:'',timeZone:country==='IN'?'Asia/Kolkata':''}};

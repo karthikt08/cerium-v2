@@ -100,6 +100,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     el('business-previous').hidden=index===0;el('business-previous').disabled=busy;
     el('business-submit').disabled=busy;el('business-submit').textContent=screen==='review'?(editing?'Save business details':'Confirm business and continue'):'Save and continue';
     el('preview-country-field').hidden=!setup.countryEditable;el('preview-country').disabled=busy||screen!=='basics';
+    el('preview-country').value=setup.country;
     el('business-back').hidden=!(editing&&setup.complete);
     if(screen==='review')review();
     if(focus)el('business-step-title').focus();
@@ -123,8 +124,8 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     if(busy)return;clearErrors();const steps=businessSetupSteps(setup.country);screen=steps[steps.indexOf(screen)-1];render(true);
   });
   el('preview-country').addEventListener('change',async()=>{
-    if(busy)return;busy=true;render();
-    try{setup=await api.selectBusinessSetupCountry(el('preview-country').value);screen=setup.step;populate();}
+    if(busy)return;const country=el('preview-country').value;busy=true;render();
+    try{setup=await api.selectBusinessSetupCountry(country);screen=setup.step;populate();}
     catch(err){errors(err);}finally{busy=false;render(true);}
   });
   form.addEventListener('submit',async event=>{
