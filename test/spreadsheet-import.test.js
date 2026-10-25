@@ -1,8 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {parseSpreadsheet,mappedLeads,suggestedMapping} from '../server/spreadsheet-import.js';
+import {openLeadImport} from '../public/js/spreadsheet-import-ui.js';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
 
+test('spreadsheet import dialog module parses under Node without accessing the DOM during import',()=>assert.equal(typeof openLeadImport,'function'));
 const csv=source=>({filename:'clients.csv',content:Buffer.from(source).toString('base64')});
 // Minimal uncompressed OpenXML ZIP fixture: small enough for cross-platform Node tests.
 function xlsx(parts){
