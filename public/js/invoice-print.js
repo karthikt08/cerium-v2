@@ -74,7 +74,7 @@ export function invoicePrintHTML({invoiceMarkup, paper = 'A4', title = 'Invoice'
   }
   @media screen and (max-width:850px){.print-sheet{max-width:100%;min-height:0;padding:25px 22px}.invoice-top{gap:16px}.invoice-info{gap:14px}}
 </style></head><body>
-<div class="print-toolbar"><p>Review the invoice below. Choose <strong>Save as PDF</strong> in your browser's print dialog.</p><button type="button" onclick="window.print()">Print / Save PDF</button></div>
+<div class="print-toolbar"><p>Review the invoice below. Choose <strong>Save as PDF</strong> in your browser's print dialog.</p><button id="invoice-print-button" type="button">Print / Save PDF</button></div>
 <main class="print-sheet">${invoiceMarkup}</main>
 </body></html>`;
 }
@@ -85,6 +85,7 @@ export function openInvoicePrint(options) {
   popup.document.open();
   popup.document.write(invoicePrintHTML(options));
   popup.document.close();
+  popup.document.getElementById('invoice-print-button')?.addEventListener('click', () => popup.print());
   popup.opener = null;
   popup.focus();
   return popup;
