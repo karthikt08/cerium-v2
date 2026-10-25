@@ -17,13 +17,13 @@ const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
 // Archives in demos/ intentionally retain old reference implementations.
 // Only public/ is deployed by the Express static-file server. The original
 // historical currency must not be mislabeled or rewritten automatically.
-test('India-only rupee text is limited to edition-specific UI and not shipped globally',()=>{
+test('rupee pricing is limited to India pricing disclosures and edition-specific UI',()=>{
   const files=sourceFiles('public');
   for(const file of files){
     const source=read(file);
     // path.join() uses backslashes on Windows; exceptions use portable repo paths.
     const portablePath=file.split(path.sep).join('/');
-    if(!['public/js/app.js','public/js/billing.js','public/js/region-pricing.js','public/terms.html'].includes(portablePath))
+    if(!['public/js/app.js','public/js/billing.js','public/js/region-pricing.js','public/js/verify-phone.js','public/verify.html','public/pricing.html','public/index.html','public/terms.html'].includes(portablePath))
       assert.equal(source.includes(String.fromCharCode(0x20b9)),false,
         portablePath+' unexpectedly contains a rupee glyph outside the India edition pricing UI');
     if(file.endsWith('.html')){

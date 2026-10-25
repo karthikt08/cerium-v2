@@ -67,7 +67,7 @@ test('profile: US state, ZIP and time zone persist; unsupported countries and mi
     assert.equal(ws.account.usState,'CA');
     assert.equal(ws.account.timeZone,'America/Los_Angeles');
     for(const invalid of [
-      {country:'FR'}, {currency:'INR'}, {usState:'ZZ'},
+      {country:'XX'}, {currency:'INR'}, {usState:'ZZ'},
       {usZip:'bad zip'}, {usZip:'9999'}, {timeZone:'Asia/Tokyo'},
     ]){
       const response=await call('/api/me','PATCH',invalid);

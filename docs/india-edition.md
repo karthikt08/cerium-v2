@@ -2,7 +2,7 @@
 
 ## Purpose and boundaries
 
-India and US editions share one Express/SQLite codebase. A **new, empty**
+India and global USD editions share one Express/SQLite codebase. A **new, empty**
 CERIUM workspace can choose **India — INR** in Settings, separately from the
 existing US — USD edition. Switching is rejected if there is leads, quotes,
 jobs, reminders, invoices, payments, bank transactions or subscription
@@ -29,7 +29,7 @@ INR recurring subscription. This is not a certified GST accounting service.
 - **Subscriptions:** server selects an entirely separate Razorpay plan for
   the India edition, validates the provider's amount, currency (INR) and
   monthly interval, and uses the same signed subscription verification and
-  webhook mechanism as the US edition. INR plan: **50000 paise/month**.
+  webhook mechanism as the global USD edition. INR plan: **50000 paise/month**.
   Checkout returns 503 until Razorpay credentials, webhook verification
   secret, and regional plan are configured.
 

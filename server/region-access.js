@@ -1,11 +1,7 @@
 // Server-side market gate: never trust country or proxy flags sent by a browser.
 // The upstream must see a verified client IP, not a public spoofable forwarding header.
 import {isIP} from 'node:net';
-
-const PLANS=Object.freeze({
-  US:Object.freeze({country:'US',currency:'USD',monthlyPrice:20,minorUnits:2000}),
-  IN:Object.freeze({country:'IN',currency:'INR',monthlyPrice:500,minorUnits:50000}),
-});
+import {billingPlan} from '../public/js/countries.js';
 const CACHE_MS=5*60*1000;
 const MAX_CACHE=3000;
 
@@ -19,8 +15,8 @@ export function decideRegion(raw){
   if(raw.is_vpn||raw.is_proxy||raw.is_tor)
     return {ok:false,status:403,reason:'anonymous_network'};
   const code=raw.location.country_code.toUpperCase();
-  const plan=PLANS[code];
-  return plan?{ok:true,...plan}:{ok:false,status:403,reason:'country_unavailable'};
+  const plan=billingPlan(code);
+  return plan?{ok:true,...plan}:{ok:false,status:503,reason:'unverified'};
 }
 
 export function makeIpApiLookup(key,{fetchImpl=fetch,timeoutMs=2500}={}){
@@ -41,7 +37,6 @@ function deny(req,res,decision){
   res.set('Vary','Accept');
   const messages={
     anonymous_network:'We detected a VPN, proxy or Tor connection. Disconnect it and refresh. If this is a mistake, contact support.',
-    country_unavailable:'CERIUM is currently available only in India and the United States.',
     region_mismatch:'This account uses a different regional billing edition. Your existing records and charges have not changed. Contact support.',
     unverified:'We could not verify your region safely right now. Please try again later.',
   };
@@ -94,7 +89,7 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
     if(req.user&&req.session&&!creatingAccount)return next();
 
     // Marketing, legal, waitlist, static resources and login remain accessible
-    // worldwide. New accounts and billing still require verified launch markets.
+    // worldwide. New accounts still require verified billing information.
     const publicRead=['GET','HEAD'].includes(req.method)&&
       !route.startsWith('/api/')&&route!=='/auth/google/callback';
     if(publicRead)return next();

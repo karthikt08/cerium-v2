@@ -1,23 +1,25 @@
 // Phone possession is one signal for billing eligibility, not proof of residency
 // or business registration. Billing country is expressly self-attested.
-export function normalizeBillingPhone(raw, country) {
-  if (typeof raw !== 'string' || raw.length > 40) return null;
-  const value=raw.replace(/[\s().-]/g,'');
-  if (country==='IN') return /^\+91[6-9][0-9]{9}$/.test(value)?value:null;
-  if (country==='US') return /^\+1[2-9][0-9]{9}$/.test(value)?value:null;
-  return null;
-}
+import {parsePhoneNumberFromString} from 'libphonenumber-js/max';
+import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
 
-// Phone prefix routes the account to an edition, while the customer separately
-// attests their actual business country. +1 alone cannot distinguish Canada.
-export function editionFromPhone(raw) {
-  if(normalizeBillingPhone(raw,'IN'))return 'IN';
-  if(normalizeBillingPhone(raw,'US'))return 'US';
-  return null;
+export function normalizeBillingPhone(raw, country) {
+  if (typeof raw !== 'string' || raw.length > 40 || !validCountry(country)) return null;
+  // A selected country supplies the dial code for national-format numbers.
+  // Never extract a phone from arbitrary text or silently discard an extension.
+  const parsed=parsePhoneNumberFromString(raw,{defaultCountry:country,extract:false});
+  if(!parsed||parsed.ext||!parsed.isValid()||!/^\+[1-9]\d{6,14}$/.test(parsed.number))return null;
+  // Shared plans (+1, +44, +358...) cover several countries/territories and
+  // some mobile ranges have no unique region. Keep the explicit declaration,
+  // require its calling code, and never infer "United States" from +1 alone.
+  if(parsed.countryCallingCode!==COUNTRY_CALLING_CODES[country])return null;
+  return parsed.number;
 }
 
 export function maskBillingPhone(phone) {
-  return phone ? phone.slice(0,phone.startsWith('+91')?3:2)+'••••••'+phone.slice(-3) : '';
+  if(!phone)return '';
+  const parsed=parsePhoneNumberFromString(phone);
+  return (parsed?'+'+parsed.countryCallingCode:'+')+'••••••'+phone.slice(-3);
 }
 
 // Twilio Verify maintains the one-time code; CERIUM never stores OTP plaintext.

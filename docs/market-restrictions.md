@@ -13,7 +13,7 @@ travel policy and the verified-phone onboarding journey.
 - `WORKSPACE_ACCESS_MODE=phone_and_mandate` in production.
 - `PHONE_VERIFY_MODE=twilio` with private Verify credentials for SMS OTP.
 
-The customer's saved India/INR or US/USD edition is set through
+The customer's saved India/INR or global/USD edition is set through
 **phone verification plus a business-country declaration**, not solely
 by their current IP address. Returning customers can travel without
 their existing invoices being repriced, subject to applicable controls.

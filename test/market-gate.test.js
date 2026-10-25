@@ -17,7 +17,8 @@ test('market gate chooses US dollars and Indian rupees from trusted server IP in
  assert.equal((await gate.lookup('8.8.8.8')).monthlyPrice,20);
  assert.equal((await gate.lookup('1.1.1.1')).currency,'INR');
  assert.equal((await gate.lookup('1.1.1.1')).monthlyPrice,500);
- assert.equal((await gate.lookup('9.9.9.9')).reason,'region_unavailable');
+ assert.equal((await gate.lookup('9.9.9.9')).country,'GB');
+ assert.equal((await gate.lookup('9.9.9.9')).monthlyPrice,20);
  assert.equal((await gate.lookup('2.2.2.2')).reason,'proxy_detected');
 });
 test('gate fails closed when provider cannot verify an IP',async()=>{

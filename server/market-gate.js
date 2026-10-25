@@ -1,4 +1,5 @@
 import {isIP} from 'node:net';
+import {billingPlan} from '../public/js/countries.js';
 
 // Resolve visitor markets on the server. Only trust the socket-derived IP
 // (Express req.ip already obeys the explicit trust-proxy configuration).
@@ -8,8 +9,9 @@ export function createMarketGate({enabled=false,apiKey='',fetchImpl=fetch,cacheM
    const country=String(data?.location?.country_code||'').toUpperCase();
    const suspicious=Boolean(data?.is_vpn||data?.is_proxy||data?.is_tor);
    if(suspicious)return {allowed:false,reason:'proxy_detected',country:null};
-   if(!['IN','US'].includes(country))return {allowed:false,reason:'region_unavailable',country:null};
-   return {allowed:true,reason:null,country,currency:country==='IN'?'INR':'USD',monthlyPrice:country==='IN'?500:20};
+   const plan=billingPlan(country);
+   if(!plan)return {allowed:false,reason:'unknown_location',country:null};
+   return {allowed:true,reason:null,country,currency:plan.currency,monthlyPrice:plan.monthlyPrice};
  };
  async function lookup(ip){
    if(!isIP(ip)||ip==='127.0.0.1'||ip==='::1'||ip==='0.0.0.0')return {allowed:false,reason:'unknown_location',country:null};
@@ -39,9 +41,7 @@ export function createMarketGate({enabled=false,apiKey='',fetchImpl=fetch,cacheM
    if(market.allowed)return next();
    const message=market.reason==='proxy_detected'
      ?'CERIUM cannot verify your region while a VPN or proxy is detected. Turn it off and retry, or contact support if this is incorrect.'
-     :market.reason==='region_unavailable'
-       ?'CERIUM currently supports India and the United States only.'
-       :'CERIUM cannot verify your location right now. Please try again or contact support.';
+     :'CERIUM cannot verify your location right now. Please try again or contact support.';
    res.setHeader('Cache-Control','no-store');
    if(req.path.startsWith('/api/')||req.accepts('html')===false)
      return res.status(market.reason==='location_check_unavailable'?503:403).json({error:market.reason,message});

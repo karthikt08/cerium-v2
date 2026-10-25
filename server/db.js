@@ -8,7 +8,9 @@ import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
 import { createQuotesStore } from './quotes.js';
 import { lineItemsTotal } from '../public/js/money.js';
-import { validUsState, validUsZip, validUsTimeZone, businessLocalDate } from '../public/js/us-market.js';
+import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
+import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
+import {normalizeBillingPhone} from './billing-identity.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -791,14 +793,15 @@ export function openDb(file) {
       const user=q.getUserById.get(userId), proof=billingRow.get(userId);
       if(!user||!proof||proof.phone_verified_at<=0||proof.billing_country_attested_at<=0)return false;
       if(proof.billing_country!==user.country)return false;
-      if(user.country==='IN')return /^\+91[6-9][0-9]{9}$/.test(proof.phone_e164);
-      if(user.country==='US')return /^\+1[2-9][0-9]{9}$/.test(proof.phone_e164);
-      return false;
+      // An existing successful OTP receipt remains valid across metadata updates.
+      // New numbers undergo full country-aware parsing before an OTP is sent.
+      return validCountry(user.country)&&/^\+[1-9]\d{6,14}$/.test(proof.phone_e164)&&
+        proof.phone_e164.startsWith('+'+COUNTRY_CALLING_CODES[user.country]);
     },
 
     beginBillingPhone(userId, phone, country, at=Date.now()) {
       const user=q.getUserById.get(userId);
-      if(!user || !['IN','US'].includes(country)) return {ok:false,reason:'country_mismatch'};
+      if(!user || !validCountry(country) || normalizeBillingPhone(phone,country)!==phone) return {ok:false,reason:'country_mismatch'};
       if(user.country!==country && (pricedHistory(userId)||user.subscription_id))
         return {ok:false,reason:'country_mismatch'};
       return db.transaction(()=>{
@@ -840,7 +843,7 @@ export function openDb(file) {
         if(user.country!==country){
           if(pricedHistory(userId)||user.subscription_id)return false;
           updateCountryForVerifiedPhone.run(country,country==='IN'?'INR':'USD',
-            country==='IN'?'Asia/Kolkata':'',at,userId);
+            country==='IN'?'Asia/Kolkata':country==='US'?'':'UTC',at,userId);
         }
         billingFinish.run(at,at,userId);
         return true;
@@ -851,7 +854,7 @@ export function openDb(file) {
     createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
       const cleanEmail = email.trim().toLowerCase();
-      if(!['US','IN'].includes(country))throw new Error('Unsupported signup country.');
+      if(!validCountry(country))throw new Error('Unsupported signup country.');
       q.insertUser.run(
         id,
         cleanEmail,
@@ -869,6 +872,7 @@ export function openDb(file) {
         now, now, termsVersion
       );
       if(country==='IN')db.prepare("UPDATE users SET time_zone='Asia/Kolkata' WHERE id=?").run(id);
+      else if(country!=='US')db.prepare("UPDATE users SET time_zone='UTC' WHERE id=?").run(id);
       return q.getUserById.get(id);
     },
 
@@ -919,7 +923,7 @@ export function openDb(file) {
       const prior=q.getUserById.get(id);
       if(!prior)invalid('Account not found.');
       const nextCountry=country===undefined?prior.country||'US':country;
-      if(!['US','IN'].includes(nextCountry))invalid('Choose United States or India.');
+      if(!validCountry(nextCountry))invalid('Choose a valid business country.');
       const nextCurrency=nextCountry==='IN'?'INR':'USD';
       if(currency!==undefined&&currency!==nextCurrency)invalid('Currency must match the selected edition.');
       const switching=nextCountry!==prior.country;
@@ -931,6 +935,8 @@ export function openDb(file) {
         for(const [label,v,valid] of [['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone]])
           if(v!==undefined&&(typeof v!=='string'||!valid(v.trim())))invalid('Enter a valid '+label+'.');
       }
+      if(nextCountry!=='IN'&&timeZone!==undefined&&
+         (typeof timeZone!=='string'||!validBusinessTimeZone(timeZone.trim())))invalid('Enter a valid business time zone.');
       if(phone!==undefined&&(typeof phone!=='string'||phone.length>40))invalid('Phone number is too long.');
       const inState=nextCountry==='IN'?(indiaState===undefined?(switching?'':prior.india_state):String(indiaState).trim()):'';
       const taxId=nextCountry==='IN'?(gstin===undefined?(switching?'':prior.gstin):String(gstin).trim().toUpperCase()):'';
@@ -948,7 +954,7 @@ export function openDb(file) {
           nextCountry,!switching&&prior.currency!==nextCurrency?prior.currency:nextCurrency,
           nextCountry==='US'?(usState===undefined?(switching?'':null):usState.trim()):'',
           nextCountry==='US'?(usZip===undefined?(switching?'':null):usZip.trim()):'',
-          nextCountry==='IN'?'Asia/Kolkata':(timeZone===undefined?(switching?'':null):timeZone.trim()),
+          nextCountry==='IN'?'Asia/Kolkata':(timeZone===undefined?(switching?(nextCountry==='US'?'':'UTC'):null):timeZone.trim()),
           googlePlaceUrl!==undefined?googlePlaceUrl.trim():null,now,id
         );
         q.updateIndiaProfile.run(inState,taxId,vpa,id);

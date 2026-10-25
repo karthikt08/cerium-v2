@@ -10,7 +10,7 @@ test('billing phone format is pinned to saved edition, not to a user-controlled 
   assert.equal(normalizeBillingPhone('+14155550123','IN'),null);
   assert.equal(normalizeBillingPhone('+919876543210','US'),null);
   assert.equal(normalizeBillingPhone('+44 7700 900123','US'),null);
-  assert.equal(normalizeBillingPhone('919876543210','IN'),null);
+  assert.equal(normalizeBillingPhone('919876543210','IN'),'+919876543210');
   assert.equal(maskBillingPhone('+919876543210').includes('87654'),false);
 });
 

@@ -15,7 +15,7 @@ This uploaded version is a standalone local demonstration with simulated banking
 
 ---
 
-**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. USD pricing, familiar address formats, and business-local scheduling are built in.
+**Cerium** is an operations workspace for independent HVAC, plumbing, electrical, landscaping, cleaning, and general contracting businesses. India is ₹500/month; all other countries are $20 USD/month. Country-aware phone verification and business-local scheduling are built in.
 
 It merges the marketing landing suite, authentication system, operations web application, and premium subscription billing into one unified software product.
 
@@ -43,9 +43,9 @@ It merges the marketing landing suite, authentication system, operations web app
    - Complete data isolation: every database record is owned by and isolated to the authenticated user.
    - Zero-leak account deletion ("Delete my data") with SQLite `secure_delete = ON`.
 
-3. **Premium Subscription Tier ($20/Month)**:
+3. **Premium Subscription Tier (India ₹500 / Global $20 per month)**:
    - 15-day free trial on signup with countdown tracking.
-   - Cerium Pro tier ($20.00 / month) for unlimited leads, invoices, and automated matching.
+   - Cerium Pro tier (₹500/month in India; $20 USD/month elsewhere) for unlimited leads, invoices, and automated matching.
    - Server-side Razorpay order creation (`/api/billing/order`).
    - Signature-verified payment completion (`/api/billing/verify`).
    - Raw JSON webhook signature verification (`/webhooks/razorpay`).
@@ -101,3 +101,7 @@ See [workspace rebuild and verification](docs/workspace-rebuild.md) for the new 
 - **[SETUP.md](SETUP.md)**: Step-by-step guide for local setup, Google OAuth setup, Razorpay configuration, and production deployment.
 - **[ARCHITECTURE.md](ARCHITECTURE.md)**: Deep dive into the database schema, security model, and API endpoints.
 - **[DEPLOYMENT.md](DEPLOYMENT.md)**: Production deployment instructions for Linux VPS, Docker, Fly.io, Render, and DigitalOcean.
+
+## Worldwide phone verification and pricing
+
+Choose a business country and enter a national-format number (for example, `(415) 555-0123` for the US), or the full international number. A successful SMS code and recurring payment authorization are required before production workspace access. India uses the ₹500 INR plan; every other supported country uses the $20 USD plan. See [global phone and pricing](docs/global-phone-pricing.md) for provider setup, coverage and validation.
