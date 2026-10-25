@@ -6,6 +6,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/landing-workspace-cursor.css">
 <link rel="stylesheet" href="css/verify-phone.css">
+<link rel="stylesheet" href="css/country-picker.css">
 <link rel="stylesheet" href="css/business-setup.css">
 <link rel="stylesheet" href="css/brand-motion.css">
 </head>
@@ -21,8 +22,21 @@
     </ol>
     <p class="alert" id="message" role="status" aria-live="polite">Checking your account…</p>
     <form id="start-form" hidden>
-      <label for="country">Business country / phone country code</label>
-      <select id="country" name="country" autocomplete="country" required><option value="">Choose your country</option></select>
+      <label id="country-label" for="country">Business country and calling code</label>
+      <div class="dial-picker" id="dial-picker">
+        <button type="button" id="dial-trigger" class="dial-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="dial-panel" aria-label="Choose business country and calling code" hidden>
+          <span class="dial-trigger-country" id="dial-current-country">Choose your country</span>
+          <span class="dial-trigger-right"><span class="dial-code" id="dial-current-code">+—</span><span class="dial-chevron" aria-hidden="true">⌄</span></span>
+        </button>
+        <div id="dial-panel" class="dial-panel" hidden>
+          <label class="dial-search-label" for="dial-search">Find country or calling code</label>
+          <input id="dial-search" type="search" autocomplete="off" placeholder="Search country or +code" aria-controls="dial-options">
+          <div class="dial-head" aria-hidden="true"><span>Country name</span><span>Country code</span></div>
+          <div id="dial-options" class="dial-options" role="listbox" aria-label="Choose a business country"></div>
+          <p class="dial-empty" id="dial-empty" hidden>No matching countries. Try the name or calling code.</p>
+        </div>
+        <select id="country" name="country" autocomplete="country" required><option value="">Choose your country</option></select>
+      </div>
       <label for="phone">Your mobile number</label>
       <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="National number or +country code" maxlength="40" aria-describedby="phone-format-hint" required>
       <p class="hint" id="phone-format-hint">You can enter your local number without the country code, or paste the full international number.</p>
