@@ -46,7 +46,7 @@ if (code && Object.prototype.hasOwnProperty.call(MESSAGES, code)) {
 // Already signed in? Go to the protected workspace the person asked for.
 getMe()
   .then((me) => {
-    if (me.signedIn) location.replace(returnTo);
+    if (me.signedIn) location.replace('/enter.html?next=' + encodeURIComponent(returnTo));
   })
   .catch(() => {});
 

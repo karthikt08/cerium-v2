@@ -99,7 +99,7 @@
 
         showMessage('Account created! Opening your Cerium Workspace…', 'ok');
         setTimeout(() => {
-          window.location.href = returnTo === '/app.html' ? '/app.html#settings' : returnTo;
+          window.location.href = '/enter.html?next=' + encodeURIComponent(returnTo === '/app.html' ? '/app.html#settings' : returnTo);
         }, 350);
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Create Free Account'; }
@@ -138,7 +138,7 @@
 
         showMessage('Welcome back! Opening your workspace…', 'ok');
         setTimeout(() => {
-          window.location.href = returnTo;
+          window.location.href = '/enter.html?next=' + encodeURIComponent(returnTo);
         }, 300);
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
