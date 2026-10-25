@@ -127,6 +127,8 @@ export function buildConfig(env = process.env) {
     (env.NODE_ENV==='test'?'off':isProd?'phone_and_mandate':'phone');
   if(!['off','phone','phone_and_mandate'].includes(workspaceAccessMode))
     problems.push('WORKSPACE_ACCESS_MODE must be off, phone or phone_and_mandate.');
+  if(workspaceAccessMode==='off'&&env.NODE_ENV!=='test')
+    problems.push('WORKSPACE_ACCESS_MODE=off is reserved for automated tests. Use phone for local onboarding or phone_and_mandate for payment authorization.');
   // Never accidentally deploy an accessible, payment-free 15-day trial.
   // Tests and explicit localhost demos may retain lighter gates.
   if(isProd&&workspaceAccessMode!=='phone_and_mandate')

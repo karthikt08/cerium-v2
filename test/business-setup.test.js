@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
-import {businessDetails,completeBusiness} from './business-fixtures.js';
+import {businessDetails,completeBusiness,prepareBusiness} from './business-fixtures.js';
 import {validateBusinessProfile} from '../server/business-profile.js';
 import {makeTrialSchedule} from '../server/trial-timing.js';
 import {mkdtempSync,rmSync} from 'node:fs';
@@ -55,6 +55,7 @@ test('required fields, malformed values and country/confirmation changes cannot 
   const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
   try{
     const b=t.browser();await signIn(t,b,{profile:ALICE});const csrf=await phone(t,b);
+    await prepareBusiness(t,b,'US');
     for(const patch of [
       ...['name','businessName','trade','businessEmail','businessAddress','businessCity','businessPostalCode','usState','timeZone'].map(key=>({[key]:' '})),
       {businessName:{}},{businessAddress:['12 Road']},{businessEmail:'invalid'},{businessEmail:'a@example.com\r\nBcc:x@example.com'},
@@ -149,7 +150,7 @@ test('existing paid accounts finish missing setup without losing paid dates, exp
 
 test('a legacy database gains required profile fields without changing invoices, billing or trial dates',()=>{
   const directory=mkdtempSync(join(tmpdir(),'cerium-business-migration-')),file=join(directory,'legacy.sqlite');
-  const columns=['business_email','business_address','business_city','business_region','business_postal_code','gst_registration','business_profile_completed_at'];
+  const columns=['business_email','business_address','business_city','business_region','business_postal_code','gst_registration','business_profile_completed_at','business_setup_draft'];
   let db;
   try{
     db=openDb(file);
@@ -211,6 +212,7 @@ test('registered Indian setup feeds invoice tax snapshots and remains editable w
   try{
     const b=t.browser();await signIn(t,b,{profile:ALICE});const csrf=await phone(t,b,'IN'),uid=t.db.getUserByEmail(ALICE.email).id;
     const initial={...businessDetails('IN'),gstRegistration:'registered',gstin:'33ABCDE1234F1Z5'};
+    await prepareBusiness(t,b,'IN',initial);
     assert.equal((await b.req('/api/business/profile',{method:'POST',csrf,json:initial})).status,200);
     const made=await b.req('/api/invoices',{method:'POST',csrf,json:{customerName:'Customer',jobTitle:'Service',amount:100,gstRate:18,placeOfSupply:'33',hsnSac:'9987'}});
     assert.equal(made.status,201,await made.clone().text());

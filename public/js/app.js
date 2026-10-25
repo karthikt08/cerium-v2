@@ -1,4 +1,5 @@
 import API from './api.js';
+import {mountBusinessSetup} from './business-setup-ui.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
 import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency} from './countries.js';
@@ -203,7 +204,7 @@ function settingsPage() {
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <div class="settings-content"><p class="billing-verify-status ${a.businessProfile?.complete?'is-verified':''}">${a.businessProfile?.complete?'✓ Required business setup complete':'Business setup needs completion'}</p>
     ${a.businessProfile?.complete?`<p class="muted">${esc(a.businessProfile.businessEmail)}<br>${esc([a.businessProfile.businessAddress,a.businessProfile.businessCity,a.businessProfile.businessPostalCode].filter(Boolean).join(', '))}</p>`:''}
-    <a class="button secondary" href="/verify.html?edit=business">${a.businessProfile?.complete?'Edit required business details':'Complete business setup'}</a></div>
+    <a class="button secondary" href="${API.localBusinessSetup?'#settings':'/verify.html?edit=business'}" ${API.localBusinessSetup?'data-action="business-setup"':''}>${a.businessProfile?.complete?'Edit required business details':'Complete business setup'}</a></div>
   <form id="profile-form" class="settings-content"><div class="form-grid">
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
@@ -360,6 +361,7 @@ document.addEventListener('click',e=>{
   if(action==='new'||action==='edit'){openRecord(kind,action==='edit'?id:null);return;}
   if(action==='lead-view'){state.view=el.dataset.view;document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));renderResults();return;}
   if(action==='preview-invoice'){previewInvoice(id);return;}
+  if(action==='business-setup'){perform('business-setup',el,async()=>showLocalBusinessSetup(await API.getBusinessSetup(),true));return;}
   if(action==='print-invoice'){window.print();return;}
   if(action==='delete'){
     const r=getRecord(kind,id);if(!r)return;requestConfirmation('Delete '+(kind==='followup'?'follow-up':kind)+'?',`This permanently removes ${r.name||r.contactName||r.customerName||'this record'}. This cannot be undone.`,async()=>{await deleteCalls[kind](id);await refresh();toast('Record deleted.');});return;
@@ -452,10 +454,33 @@ document.addEventListener('submit',e=>{
     perform('support',e.submitter,async()=>{await API.createMessage({...data,replyTo:state.ws.account.email,via:'Email draft'});const subject=`[Cerium · ${data.category}] ${data.subject}`;const body=`${data.body}\n\n${state.ws.account.name}\n${state.ws.account.email}`;await refresh();location.href='mailto:cerium.founders@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);toast('Draft opened in your email app. Send it there when ready.');},'support-error');
   }
 });
+function showLocalBusinessSetup(setup,editing=false){
+  $('workspace').hidden=true;
+  let panel=$('business-setup-preview');
+  if(!panel){panel=document.createElement('main');panel.id='business-setup-preview';panel.className='business-setup-preview';document.body.append(panel);}
+  panel.innerHTML='<h1>'+ (editing?'Update your business.':'First, set up your business.')+'</h1><p>Complete each step before using the workspace. This offline preview does not send SMS or collect payments. Setup details are saved in this browser.</p><div id="preview-business-form"></div>';
+  mountBusinessSetup($('preview-business-form'),{api:API,editing,onComplete:async()=>{panel.remove();await initialize();}}).show(setup);
+}
 async function initialize() {
-  $('load-state').hidden=false;$('page-body').hidden=true;
-  try {const me=await API.getMe();if(!me.signedIn){location.href='/login.html?returnTo='+encodeURIComponent('/app.html'+location.hash);return;}await refresh();}
-  catch(err){setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
+  $('workspace').hidden=true;$('load-state').hidden=false;$('page-body').hidden=true;
+  try {
+    const me=await API.getMe();
+    if(!me.signedIn){location.href='/login.html?returnTo='+encodeURIComponent('/app.html'+location.hash);return;}
+    const setup=await API.getBusinessSetup();
+    if(!setup.complete){
+      if(!API.localBusinessSetup){location.replace('/verify.html');return;}
+      showLocalBusinessSetup(setup);
+      return;
+    }
+    await refresh();$('workspace').hidden=false;
+  }
+  catch(err){
+    $('workspace').hidden=true;
+    let panel=$('workspace-entry-error');
+    if(!panel){panel=document.createElement('main');panel.id='workspace-entry-error';panel.className='business-setup-preview';document.body.append(panel);}
+    panel.innerHTML=`<h1>We couldn’t check your setup</h1><p>${esc(err.message||'Check your connection and try again.')}</p><button type="button" class="button primary" id="retry-workspace-entry">Try again</button>`;
+    $('retry-workspace-entry').addEventListener('click',()=>{panel.remove();initialize();});
+  }
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();

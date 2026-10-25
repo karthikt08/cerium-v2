@@ -1,51 +1,22 @@
 import API from './api.js';
 import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder} from './countries.js';
-import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions} from './us-market.js';
-import {INDIA_STATE_OPTIONS} from './india-market.js';
+import {mountBusinessSetup} from './business-setup-ui.js';
 
 const el=id=>document.getElementById(id);
 const msg=el('message'),start=el('start-form'),check=el('code-form'),
-  payment=el('mandate-panel'),phone=el('phone'),countrySelect=el('country'),business=el('business-form');
+  payment=el('mandate-panel'),phone=el('phone'),countrySelect=el('country'),business=el('business-setup');
 const editingBusiness=new URLSearchParams(location.search).get('edit')==='business';
-let busy=false, mode='phone', details=null, initialized=false, businessInitialized=false;
+let busy=false, mode='phone', details=null, initialized=false;
 for(const country of COUNTRY_OPTIONS){
   const option=document.createElement('option');
   option.value=country.value;option.textContent=country.label+' (+'+country.callingCode+')';
   countrySelect.append(option);
 }
 
-function selectOptions(select,options,value){
-  select.replaceChildren();
-  for(const item of options){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.append(option);}
-  select.value=value||'';
-}
-function updateGst(){
-  const registered=details?.country==='IN'&&el('biz-gst-registration').value==='registered';
-  el('biz-gstin-field').hidden=!registered;el('biz-gstin').required=registered;
-  if(!registered)el('biz-gstin').value='';
-}
-el('biz-gst-registration').addEventListener('change',updateGst);
-function populateBusiness(){
-  const p=details.businessProfile||{},country=details.country,ind=country==='IN',us=country==='US';
-  for(const key of ['name','businessName','trade','businessEmail','businessAddress','businessCity','businessRegion','businessPostalCode','gstRegistration','gstin'])
-    business.elements[key].value=p[key]||'';
-  selectOptions(el('biz-us-state'),[{value:'',label:'Choose state'},...US_STATE_OPTIONS],p.usState);
-  selectOptions(el('biz-india-state'),[{value:'',label:'Choose state / UT'},...INDIA_STATE_OPTIONS],p.indiaState);
-  el('biz-us-state-field').hidden=!us;el('biz-us-state').required=us;el('biz-us-state').disabled=!us;
-  el('biz-india-state-field').hidden=!ind;el('biz-india-state').required=ind;el('biz-india-state').disabled=!ind;
-  el('biz-region-field').hidden=ind||us;el('biz-region').disabled=ind||us;
-  el('biz-postal-label').textContent=ind?'PIN code':us?'ZIP code':'Postal code (optional)';
-  el('biz-postal').required=ind||us;el('biz-postal').maxLength=ind?6:us?10:20;
-  el('biz-postal').inputMode=ind?'numeric':'text';
-  el('biz-postal').pattern=ind?'[1-9][0-9]{5}':us?'[0-9]{5}(-[0-9]{4})?':'.*';
-  selectOptions(el('biz-time-zone'),ind?[{value:'Asia/Kolkata',label:'India Standard Time (Asia/Kolkata)'}]
-    :[{value:'',label:'Choose business time zone'},...(us?US_TIME_ZONE_OPTIONS:businessTimeZoneOptions(p.timeZone))],ind?'Asia/Kolkata':p.timeZone);
-  el('biz-gst-fields').hidden=!ind;el('biz-gst-registration').required=ind;el('biz-gst-registration').disabled=!ind;
-  el('business-country-label').textContent=countryName(country)+' · '+details.currency+' · Verified phone '+details.phoneMasked;
-  el('business-submit').textContent=editingBusiness?'Save business details':'Save and continue';
-  el('business-back').hidden=!details.businessComplete;
-  updateGst();businessInitialized=true;
-}
+const wizard=mountBusinessSetup(business,{api:API,editing:editingBusiness,onComplete:async()=>{
+  if(editingBusiness){location.replace('/app.html#settings');return;}
+  await view();
+}});
 
 function updateSteps(){
   const current=!details.verified?'phone':!details.businessComplete||editingBusiness?'business':'payment';
@@ -73,7 +44,7 @@ function updatePreview(){
 phone.addEventListener('input',updatePreview);
 countrySelect.addEventListener('change',updatePreview);
 function setBusy(on){
-  busy=on;for(const b of document.querySelectorAll('button'))b.disabled=on;
+  busy=on;for(const b of document.querySelectorAll('button:not(#business-setup button)'))b.disabled=on;
   if(!details?.businessComplete||!details?.checkoutConfigured)el('mandate-button').disabled=true;
 }
 async function view(){
@@ -93,7 +64,7 @@ async function view(){
   payment.hidden=!(details.verified&&details.businessComplete&&mode==='phone_and_mandate'&&!editingBusiness);
   el('setup-cancel').hidden=!details.subscriptionStatus||['cancelled','expired'].includes(details.subscriptionStatus);
   if(!business.hidden){
-    if(!businessInitialized)populateBusiness();
+    wizard.show(await API.getBusinessSetup(),details);
     setMessage(editingBusiness?'Update your business details. Your existing trial and billing dates stay the same.':'Phone confirmed. Complete the required business details to continue.');
     return;
   }
@@ -140,29 +111,6 @@ check.addEventListener('submit',async e=>{
     await view();
   }catch(err){setMessage(err.message||'Unable to verify the code.',true)}
   finally{setBusy(false)}
-});
-business.addEventListener('submit',async event=>{
-  event.preventDefault();if(busy)return;
-  const payload=Object.fromEntries(new FormData(business));
-  payload.confirmBusinessDetails=el('biz-confirm').checked;payload.country=details.country;
-  el('business-errors').hidden=true;el('business-errors').replaceChildren();
-  for(const field of business.querySelectorAll('[aria-invalid]'))field.removeAttribute('aria-invalid');
-  setBusy(true);
-  try{
-    await API.saveBusinessProfile(payload);
-    if(editingBusiness){location.replace('/app.html#settings');return;}
-    await view();
-  }catch(err){
-    const errors=err.data?.fields;
-    if(errors){
-      for(const [key,message] of Object.entries(errors)){
-        const item=document.createElement('li');item.textContent=message;el('business-errors').append(item);
-        business.elements[key]?.setAttribute('aria-invalid','true');
-      }
-      el('business-errors').hidden=false;business.querySelector('[aria-invalid=true]')?.focus();
-    }
-    setMessage(err.message||'Check your business details.',true);
-  }finally{setBusy(false);}
 });
 el('setup-export').addEventListener('click',async()=>{
   if(busy)return;setBusy(true);try{await API.exportMyData();}catch(err){setMessage(err.message,true);}finally{setBusy(false);}

@@ -39,6 +39,10 @@ function readEnvFile(file) {
 }
 
 describe('production settings', () => {
+  it('never allows a normal local run to disable mandatory setup',()=>{
+    assert.throws(()=>buildConfig({WORKSPACE_ACCESS_MODE:'off'}),/reserved for automated tests/);
+    assert.equal(buildConfig({NODE_ENV:'test',WORKSPACE_ACCESS_MODE:'off'}).workspaceAccessMode,'off');
+  });
   it('accepts a complete, strong setup', () => {
     const c = buildConfig(PROD);
     assert.equal(c.mode, 'production');
