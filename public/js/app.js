@@ -11,11 +11,12 @@ import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import {openLeadImport} from './spreadsheet-import-ui.js';
+import {openInvoicePrint} from './invoice-print.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
 const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
-const state = { ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, pending:new Set() };
+const state = { ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, printInvoice:null, pending:new Set() };
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
 const singular = {leads:'lead',followups:'followup',invoices:'invoice',reviews:'review'};
 const createCalls = {lead:API.createLead,followup:API.createFollowUp,invoice:API.createInvoice,review:API.createReviewRequest};
@@ -350,9 +351,7 @@ function previewInvoice(id) {
     ${details?.paymentInstructions?`<p class="invoice-preserve-lines"><strong>Payment instructions:</strong> ${esc(details.paymentInstructions)}</p>`:''}
     <p class="muted">${esc(i.notes)}</p>
   </article>`;
-  let printStyle=$('invoice-print-page');
-  if(!printStyle){printStyle=document.createElement('style');printStyle.id='invoice-print-page';document.head.append(printStyle);}
-  printStyle.textContent='@page { size: '+preset.paper+'; margin: 16mm; }';
+  state.printInvoice={id:i.id,paper:preset.paper};
   $('invoice-dialog').showModal();
 }
 
@@ -403,7 +402,14 @@ document.addEventListener('click',e=>{
   if(action==='lead-view'){state.view=el.dataset.view;document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));renderResults();return;}
   if(action==='preview-invoice'){previewInvoice(id);return;}
   if(action==='business-setup'){perform('business-setup',el,async()=>showLocalBusinessSetup(await API.getBusinessSetup(),true));return;}
-  if(action==='print-invoice'){window.print();return;}
+  if(action==='print-invoice'){
+    try{
+      const article=$('invoice-sheet').querySelector('.invoice-document');
+      if(!article||!state.printInvoice)throw new Error('Open an invoice preview first.');
+      openInvoicePrint({invoiceMarkup:article.outerHTML,paper:state.printInvoice.paper,title:'Invoice '+state.printInvoice.id});
+    }catch(error){toast(error.message||'Could not open the print-ready invoice.',true);}
+    return;
+  }
   if(action==='delete'){
     const r=getRecord(kind,id);if(!r)return;requestConfirmation('Delete '+(kind==='followup'?'follow-up':kind)+'?',`This permanently removes ${r.name||r.contactName||r.customerName||'this record'}. This cannot be undone.`,async()=>{await deleteCalls[kind](id);await refresh();toast('Record deleted.');});return;
   }
@@ -439,7 +445,7 @@ document.addEventListener('change',e=>{
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
-$('invoice-dialog').addEventListener('close',()=>$('invoice-print-page')?.remove());
+$('invoice-dialog').addEventListener('close',()=>{state.printInvoice=null;});
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(d.hasAttribute('aria-busy'))e.preventDefault();}));
 $('record-form').addEventListener('submit',e=>{
   e.preventDefault();if(readOnly()){toast('Your trial has ended. Business records are read-only.',true);return;}const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});
