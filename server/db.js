@@ -1338,7 +1338,7 @@ export function openDb(file) {
               summary.imported++;
             }
           }
-          if(summary.samples.length<12)summary.samples.push({row:row.number,name:row.data.name||'',status,reason});
+          if(summary.samples.length<12)summary.samples.push({row:row.number,name:row.data.name||'',contact:row.data.email||row.data.phone||'',stage:row.data.stage||'New',value:row.data.value||'0',status,reason});
           if(reason&&summary.errors.length<20)summary.errors.push({row:row.number,reason});
         }
         return summary;
