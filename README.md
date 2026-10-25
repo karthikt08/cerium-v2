@@ -44,12 +44,13 @@ It merges the marketing landing suite, authentication system, operations web app
    - Zero-leak account deletion ("Delete my data") with SQLite `secure_delete = ON`.
 
 3. **Premium Subscription Tier (India ₹500 / Global $20 per month)**:
-   - 15-day free trial on signup with countdown tracking.
+   - Required phone verification and business setup before payment authorization and workspace access.
+   - One-time 15-day free trial begins after successful provider authorization, with countdown tracking.
    - Cerium Pro tier (₹500/month in India; $20 USD/month elsewhere) for unlimited leads, invoices, and automated matching.
-   - Server-side Razorpay order creation (`/api/billing/order`).
-   - Signature-verified payment completion (`/api/billing/verify`).
+   - Server-side recurring subscription creation (`/api/billing/subscription`).
+   - Signature-verified authorization and provider-state confirmation (`/api/billing/subscription/verify`).
    - Raw JSON webhook signature verification (`/webhooks/razorpay`).
-   - Instant in-app test simulation mode for developer testing without live cards.
+   - Loopback-only simulated SMS for local testing; payment providers are mocked only in automated tests.
    - Server-enforced feature entitlements.
 
 4. **Production Architecture**:
@@ -104,4 +105,4 @@ See [workspace rebuild and verification](docs/workspace-rebuild.md) for the new 
 
 ## Worldwide phone verification and pricing
 
-Choose a business country and enter a national-format number (for example, `(415) 555-0123` for the US), or the full international number. A successful SMS code and recurring payment authorization are required before production workspace access. India uses the ₹500 INR plan; every other supported country uses the $20 USD plan. See [global phone and pricing](docs/global-phone-pricing.md) for provider setup, coverage and validation.
+Choose a business country and enter a national-format number (for example, `(415) 555-0123` for the US), or the full international number. Production access requires **phone verification → business setup → recurring payment authorization**. India uses the ₹500 INR plan; every other supported country uses the $20 USD plan. See [global phone and pricing](docs/global-phone-pricing.md) for provider setup and coverage, and [required business setup](docs/business-setup.md) for required fields, existing-account behavior and validation.

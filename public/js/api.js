@@ -98,6 +98,8 @@ export async function request(endpoint, options = {}) {
   }
 
   if (!res.ok) {
+    if(res.status===403&&data?.error==='onboarding_required'&&typeof window!=='undefined')
+      window.location.assign('/verify.html');
     const err = new Error(data && data.message ? data.message : (data.error || 'Request failed'));
     err.status = res.status;
     err.data = data;
@@ -149,6 +151,8 @@ export async function send(method, url, body) {
 }
 
 export const CeriumAPI = {
+  async getBusinessProfile(){return request('/api/business/profile');},
+  async saveBusinessProfile(payload){return request('/api/business/profile',{method:'POST',body:JSON.stringify(payload)});},
   todayStr,
   addDays,
   daysBetween,

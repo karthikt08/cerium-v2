@@ -201,6 +201,9 @@ function settingsPage() {
     </div>
   </section>`;
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
+  <div class="settings-content"><p class="billing-verify-status ${a.businessProfile?.complete?'is-verified':''}">${a.businessProfile?.complete?'✓ Required business setup complete':'Business setup needs completion'}</p>
+    ${a.businessProfile?.complete?`<p class="muted">${esc(a.businessProfile.businessEmail)}<br>${esc([a.businessProfile.businessAddress,a.businessProfile.businessCity,a.businessProfile.businessPostalCode].filter(Boolean).join(', '))}</p>`:''}
+    <a class="button secondary" href="/verify.html?edit=business">${a.businessProfile?.complete?'Edit required business details':'Complete business setup'}</a></div>
   <form id="profile-form" class="settings-content"><div class="form-grid">
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
@@ -282,7 +285,8 @@ function requestConfirmation(title,description,fn,phrase=false) {
 function previewInvoice(id) {
   const i=getRecord('invoice',id);if(!i)return;const a=state.ws.account;
   const ind=i.currency==='INR'||isIndia();
-  const address=ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
+  const bp=a.businessProfile;
+  const address=bp?.complete?[bp.businessAddress,bp.businessCity,ind?INDIAN_STATES[i.supplierState||a.indiaState]:a.usState||bp.businessRegion,bp.businessPostalCode,countryName(a.country)].filter(Boolean).join(', '):ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
     [a.location,[a.usState,a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   const fmt=n=>money(n,i.currency||currency());
   const gst=ind&&Boolean(i.supplierGstin);
@@ -297,7 +301,7 @@ function previewInvoice(id) {
   const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:i.total);
   $('invoice-sheet').innerHTML=`<article class="invoice-document">
     <div class="invoice-top"><div><h2>${esc(a.businessName||a.name)}</h2>
-      <p>${esc(address)}<br>${esc(a.email)}${a.phone?'<br>'+esc(contactPhone(a.phone)):''}
+      <p>${esc(address)}<br>${esc(bp?.complete?bp.businessEmail:a.email)}${a.phone?'<br>'+esc(contactPhone(a.phone)):''}
       ${gst?'<br>GSTIN: '+esc(i.supplierGstin):''}</p></div>
       <div><p class="eyebrow">${invoiceTitle} #${esc(i.id)}</p>${badge(i.status)}</div></div>
     <div class="invoice-info"><div><small>Billed to</small><strong>${esc(i.customerName)}</strong>

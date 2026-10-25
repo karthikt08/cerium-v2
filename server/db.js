@@ -11,6 +11,7 @@ import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
 import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
 import {normalizeBillingPhone} from './billing-identity.js';
+import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError} from './business-profile.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -343,7 +344,11 @@ export function openDb(file) {
     ['time_zone',"ALTER TABLE users ADD COLUMN time_zone TEXT NOT NULL DEFAULT ''"],
   ])if(!userColumns.has(column))db.exec(ddl);
 
-
+  // Add business setup fields without completing or altering legacy accounts.
+  for(const column of ['business_email','business_address','business_city','business_region','business_postal_code','gst_registration'])
+    if(!userColumns.has(column))db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT NOT NULL DEFAULT ''`);
+  if(!userColumns.has('business_profile_completed_at'))
+    db.exec('ALTER TABLE users ADD COLUMN business_profile_completed_at INTEGER NOT NULL DEFAULT 0');
   // India edition is opt-in per clean workspace: no existing USD records get
   // converted. Snapshot the currency and GST amounts for each created invoice.
   for (const [col,ddl] of [
@@ -351,9 +356,16 @@ export function openDb(file) {
     ['gstin',"ALTER TABLE users ADD COLUMN gstin TEXT NOT NULL DEFAULT ''"],
     ['upi_vpa',"ALTER TABLE users ADD COLUMN upi_vpa TEXT NOT NULL DEFAULT ''"],
   ]) if(!userColumns.has(col))db.exec(ddl);
+  const saveBusinessProfileStmt=db.prepare(`UPDATE users SET name=?,business_name=?,trade=?,
+    business_email=?,business_address=?,business_city=?,business_region=?,business_postal_code=?,
+    time_zone=?,us_state=?,us_zip=?,india_state=?,gstin=?,gst_registration=?,
+    phone=CASE WHEN COALESCE(phone,'')='' THEN ? ELSE phone END,
+    location=?,business_profile_completed_at=CASE WHEN business_profile_completed_at=0 THEN ? ELSE business_profile_completed_at END,
+    updated_at=? WHERE id=?`);
+  const resetBusinessProfileStmt=db.prepare('UPDATE users SET business_profile_completed_at=0 WHERE id=?');
   const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
     us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
-    updated_at=? WHERE id=?`);
+    business_profile_completed_at=0,updated_at=? WHERE id=?`);
   // Trial starts when the customer FIRST unlocks the gated workspace,
   // not while they are waiting for phone/provider verification.
   if(!new Set(db.prepare('PRAGMA table_info(users)').all().map(c=>c.name)).has('onboarding_completed_at'))
@@ -851,6 +863,27 @@ export function openDb(file) {
     },
 
     // ---------------------------------------------------------------- Users
+    getBusinessProfile(userId) {
+      const user=q.getUserById.get(userId);
+      return user?{...profileFromUser(user),complete:businessProfileComplete(user)}:null;
+    },
+
+    businessProfileComplete(userId) {return businessProfileComplete(q.getUserById.get(userId));},
+
+    saveBusinessProfile(userId,payload,at=Date.now()) {
+      return db.transaction(()=>{
+        const user=q.getUserById.get(userId);
+        if(!user)throw new BusinessProfileError({form:'Account not found.'});
+        if(!this.billingEligible(userId))throw new BusinessProfileError({phone:'Verify your phone before completing business setup.'});
+        const p=validateBusinessProfile(payload,user.country);
+        if(payload.confirmBusinessDetails!==true)throw new BusinessProfileError({confirmBusinessDetails:'Confirm that these business details are accurate.'});
+        saveBusinessProfileStmt.run(p.name,p.businessName,p.trade,p.businessEmail,p.businessAddress,p.businessCity,p.businessRegion,p.businessPostalCode,
+          p.timeZone,p.usState,p.country==='US'?p.businessPostalCode:'',p.indiaState,p.gstin,p.gstRegistration,
+          billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,at,userId);
+        return this.getBusinessProfile(userId);
+      })();
+    },
+
     createUser({ email, passwordHash = null, name, businessName = '', termsVersion = '2026-10-19', googleSub = null, emailVerified = 0, verificationToken = null, verificationExpires = null, now = Date.now(), country = 'US' }) {
       const id = randomUUID();
       const cleanEmail = email.trim().toLowerCase();
@@ -945,6 +978,14 @@ export function openDb(file) {
         invalid('Enter a valid Indian state code, GSTIN and UPI ID.');
       if(taxId&&inState&&taxId.slice(0,2)!==inState)invalid('GSTIN state does not match your selected state.');
       if(taxId&&!inState)invalid('Select a registered business state for the GSTIN.');
+      if(prior.business_profile_completed_at&&!switching){
+        const candidate={...profileFromUser(prior)};
+        for(const key of ['name','businessName','trade','timeZone','usState','indiaState','gstin'])
+          if(payload[key]!==undefined)candidate[key]=payload[key];
+        if(usZip!==undefined)candidate.businessPostalCode=usZip;
+        if(gstin!==undefined&&nextCountry==='IN')candidate.gstRegistration=taxId?'registered':'not_registered';
+        try{validateBusinessProfile(candidate,nextCountry);}catch(err){invalid(err.message);}
+      }
       const now=Date.now();
       const save=db.transaction(()=>{
         q.updateUser.run(
@@ -958,7 +999,11 @@ export function openDb(file) {
           googlePlaceUrl!==undefined?googlePlaceUrl.trim():null,now,id
         );
         q.updateIndiaProfile.run(inState,taxId,vpa,id);
-        if(switching)billingReset.run(id); // Old country phone evidence never carries over.
+        if(prior.business_profile_completed_at&&!switching){
+          if(usZip!==undefined&&nextCountry==='US')db.prepare('UPDATE users SET business_postal_code=? WHERE id=?').run(usZip.trim(),id);
+          if(gstin!==undefined&&nextCountry==='IN')db.prepare('UPDATE users SET gst_registration=? WHERE id=?').run(taxId?'registered':'not_registered',id);
+        }
+        if(switching){billingReset.run(id);resetBusinessProfileStmt.run(id);} // Country evidence and completion must be renewed.
       });
       save();
       return q.getUserById.get(id);
@@ -1122,6 +1167,7 @@ export function openDb(file) {
           id: user.id,
           name: user.name,
           businessName: user.business_name || '',
+          businessProfile: this.getBusinessProfile(userId),
           trade: user.trade || '',
           email: user.email,
           phone: user.phone || '',

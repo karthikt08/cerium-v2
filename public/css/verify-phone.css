@@ -10,9 +10,9 @@ h2{font-size:19px;line-height:1.3;margin:0 0 8px}
 .intro{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 22px}
 .alert{background:#eff3ff;border:1px solid #dce4fa;border-radius:9px;color:#4b648b;padding:12px 14px;font-size:12px;margin:0 0 20px}
 .alert.error{background:#fff1f0;border-color:#efd6d2;color:#92433f}
-form{display:grid;gap:13px;padding-bottom:18px}form[hidden],section[hidden]{display:none}
+form{display:grid;gap:13px;padding-bottom:18px}[hidden]{display:none!important}
 label{font-size:12px;font-weight:600;color:#42516a}
-input[type=tel],input[type=text],select{border:1px solid #ccd7e9;background:white;border-radius:9px;width:100%;max-width:100%;padding:13px;font-size:14px;outline-offset:3px;min-width:0}
+input:not([type=checkbox]),select{border:1px solid #ccd7e9;background:white;border-radius:9px;width:100%;max-width:100%;padding:13px;font-size:14px;outline-offset:3px;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #91adff;outline-offset:3px}
 .edition-preview{background:#f0f8f4;border:1px solid #cfe7da;border-radius:8px;padding:10px 12px;font-size:12px;color:#347456}
 .country-check{display:flex;align-items:flex-start;gap:10px;font-weight:500;line-height:1.6}.country-check input{flex:none;margin-top:4px;width:16px;height:16px}
@@ -23,3 +23,6 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid 
 .footnote{border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--muted);margin:16px 0 0}
 .legal{text-align:center;color:#8a95a9;font-size:12px;margin:20px 0 0}.legal a{color:#66799a}
 @media(max-width:520px){.verify-layout{padding-top:20px}.brand{margin-bottom:20px}}
+.setup-steps{display:flex;gap:7px;list-style:none;margin:0 0 20px;padding:0;font-size:12px;font-weight:650}.setup-steps li{flex:1;text-align:center;padding:9px 4px;border-radius:7px;background:#eef1f7;color:#65738a}.setup-steps [aria-current=step]{color:#294dd0;background:#e4eaff;box-shadow:inset 0 0 0 1px #bdcaff}.setup-steps [data-complete=true]{background:#eaf6ef;color:#306b4a}
+.business-fields{display:grid;grid-template-columns:1fr 1fr;gap:15px;min-width:0}.business-fields label{display:grid;align-content:start;gap:6px;min-width:0}.business-wide{grid-column:1/-1}.business-heading{margin-bottom:2px}.verified-business-country{background:#eaf6ef;border-radius:8px;padding:10px 12px;font-size:12px;color:#306b4a;margin:0}.business-errors{margin:0;padding:12px 12px 12px 28px;background:#fff1f0;color:#92433f;border-radius:8px;font-size:12px}input[aria-invalid=true],select[aria-invalid=true]{border-color:#b94b44}.account-tools{border-top:1px solid var(--line);padding-top:15px;font-size:12px}.account-tools summary{cursor:pointer;font-weight:600;margin-bottom:10px}.secondary{border:1px solid #ccd7e9;border-radius:7px;padding:9px 12px;margin:4px 5px 4px 0;background:white;color:var(--ink);font-size:12px}
+@media(max-width:520px){.business-fields{grid-template-columns:1fr}.business-wide{grid-column:auto}}

@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {makeTrialSchedule,safeTrialSchedule,TRIAL_SECONDS,AUTH_WINDOW_SECONDS} from '../server/trial-timing.js';
 import {startServer,signIn,ALICE} from './helpers.js';
+import {completeBusiness} from './business-fixtures.js';
 
 const VALID_ENV={
   WORKSPACE_ACCESS_MODE:'phone_and_mandate',
@@ -18,6 +19,7 @@ async function verifyPhone(t,b){
   assert.equal(req.status,200,await req.clone().text());
   const code=await b.req('/api/billing/identity/verify',{method:'POST',csrf,json:{code:'000000'}});
   assert.equal(code.status,200,await code.clone().text());
+  await completeBusiness(t,b,'US');
   return csrf;
 }
 
