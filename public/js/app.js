@@ -10,6 +10,7 @@ import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVp
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
+import {openLeadImport} from './spreadsheet-import-ui.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
@@ -133,7 +134,7 @@ function toolbar(kind) {
 function listPage(kind) {
   const labels={leads:'New lead',followups:'Add follow-up',invoices:'Create invoice',reviews:'Log request'};
   const notice=kind==='reviews'?`<div class="notice">${icon('reviews')}<div><strong>A personal request goes a long way.</strong>Copy your review request, send it through your email or messaging app, then mark it as requested. ${viewLink('settings','Set your review link')}</div></div>`:'';
-  return pageHeading(...SECTIONS[kind],addButton(singular[kind],labels[kind]))+notice+`<section class="panel">${toolbar(kind)}<div id="results"></div></section>`;
+  return pageHeading(...SECTIONS[kind],addButton(singular[kind],labels[kind])+(kind==='leads'?button('Import CSV / Excel','import-leads','','secondary'):''))+notice+`<section class="panel">${toolbar(kind)}<div id="results"></div></section>`;
 }
 function table(head,rows) {return `<div class="table-scroll" tabindex="0" aria-label="Scrollable records table"><table class="data-table"><thead><tr>${head.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
 function renderResults() {
@@ -243,8 +244,8 @@ function settingsPage() {
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
-    <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON.</p>
-    <div class="settings-actions">${button(icon('download')+'Export data','export','','secondary')}</div></div></section>
+    <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON, or bring existing customers and leads from a CSV or Excel spreadsheet. Imports never overwrite existing records.</p>
+    <div class="settings-actions">${button(icon('download')+'Export data','export','','secondary')}${button('Import customers / leads','import-leads','','secondary')}</div></div></section>
     <section class="panel danger-panel">${panelHeader('settings','Data controls')}
     <div class="settings-content"><p class="muted">These actions permanently remove data. You’ll be asked to confirm.</p>
     <div class="danger-actions"><button class="danger-text" data-action="clear-data">Clear workspace</button><button class="danger-text" data-action="delete-account">Delete account</button></div></div></section>
@@ -387,7 +388,12 @@ document.addEventListener('click',e=>{
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
   if(!state.ws)return;
-  if(readOnly() && ['new','edit','delete','new-quote','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
+  if(readOnly() && ['import-leads','new','edit','delete','new-quote','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
+  if(action==='import-leads'){
+    try{openLeadImport({api:API,readOnly:readOnly(),offline:Boolean(API.localBusinessSetup),onComplete:async(result)=>{await refresh();toast(result.imported+' customers and leads imported.');}});}
+    catch(err){toast(err.message||'Could not open spreadsheet import.',true);}
+    return;
+  }
   if(action==='new-quote'){
     location.hash='#quotes';navigate('quotes');
     document.dispatchEvent(new CustomEvent('cerium:new-quote',{detail:{leadId:id}}));

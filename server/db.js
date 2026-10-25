@@ -1296,6 +1296,55 @@ export function openDb(file) {
     ...reminders,
     ...quotesStore,
 
+    // Imported leads are deliberately created without historical reminders or review requests.
+    // Preview and commit share the same validation and deduplication rules.
+    importLeadRows(userId, rows, commit=false) {
+      if (!Array.isArray(rows) || rows.length>2000)throw Object.assign(new Error('Import up to 2,000 rows.'),{status:400,code:'invalid_spreadsheet'});
+      return db.transaction(()=>{
+        const known=new Set();
+        const keys=lead=>{
+          const email=String(lead.email||'').trim().toLowerCase();
+          const phone=String(lead.phone||'').replace(/\D/g,'');
+          const name=String(lead.name||'').trim().toLowerCase().replace(/\s+/g,' ');
+          const address=String(lead.address||'').trim().toLowerCase().replace(/\s+/g,' ');
+          const ids=[];
+          if(email)ids.push('e:'+email);
+          if(phone.length>=7)ids.push('p:'+phone);
+          if(!ids.length)ids.push('n:'+name+'|'+address);
+          return ids;
+        };
+        for(const lead of q.getLeads.all(userId))for(const key of keys(lead))known.add(key);
+        const summary={total:rows.length,ready:0,duplicates:0,invalid:0,imported:0,samples:[],errors:[]};
+        const today=userBusinessToday(userId);
+        for(const row of rows){
+          let lead,reason='';
+          if(row.errors?.length)reason=row.errors.join(' ');
+          if(!reason){
+            try{lead=workspaceFields('lead',row.data,true);}
+            catch(err){reason=err.message;}
+          }
+          const ids=reason?[]:keys(lead);
+          const duplicate=!reason&&ids.some(key=>known.has(key));
+          const status=reason?'invalid':duplicate?'duplicate':'ready';
+          if(reason)summary.invalid++;
+          else if(duplicate)summary.duplicates++;
+          else{
+            summary.ready++;
+            for(const key of ids)known.add(key);
+            if(commit){
+              const id='LD-'+randomBytes(8).toString('hex');
+              q.insertLead.run(id,userId,lead.name,lead.phone||'',lead.email||'',lead.address||'',lead.source||'Direct',lead.stage||'New',
+                lead.value||0,lead.nextFollowUp||'',lead.notes||'',today,today);
+              summary.imported++;
+            }
+          }
+          if(summary.samples.length<12)summary.samples.push({row:row.number,name:row.data.name||'',contact:row.data.email||row.data.phone||'',stage:row.data.stage||'New',value:row.data.value||'0',status,reason});
+          if(reason&&summary.errors.length<20)summary.errors.push({row:row.number,reason});
+        }
+        return summary;
+      })();
+    },
+
     createLead(userId, payload) {
       payload=workspaceFields('lead',payload,true);
       const today = userBusinessToday(userId);

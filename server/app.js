@@ -18,6 +18,7 @@ import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './trial-timing.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
+import {parseSpreadsheet,suggestedMapping,mappedLeads} from './spreadsheet-import.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -203,6 +204,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Business documents support 20 line items plus notes, including UTF-8 text.
   // Keep the smaller cap on authentication and simple public forms.
   app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me'], express.json({ limit: '64kb' }));
+  app.use('/api/import', express.json({ limit: '3mb' }));
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
@@ -760,7 +762,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -850,6 +852,23 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try { res.json(db.cancelReminder(req.session.userId,req.params.id)); }
     catch(err) { scheduleError(res,err); }
   });
+
+  // Preview does not mutate data; commits always re-parse and revalidate the supplied file.
+  // No user spreadsheet or preview data is stored on the server.
+  const leadImport=(commit)=>(req,res,next)=>{
+    try{
+      const parsed=parseSpreadsheet(req.body);
+      const mapping=req.body?.mapping===undefined?suggestedMapping(parsed.headers):req.body.mapping;
+      const rows=mappedLeads(parsed,mapping);
+      const summary=db.importLeadRows(req.session.userId,rows,commit);
+      res.set('Cache-Control','no-store').json({headers:parsed.headers,mapping,...summary});
+    }catch(err){
+      if(err.status===400)return res.status(400).json({error:err.code||'invalid_spreadsheet',message:err.message});
+      next(err);
+    }
+  };
+  api.post('/import/leads/preview',writeLimiter,sameOrigin,requireSession,requireCsrf,leadImport(false));
+  api.post('/import/leads/commit',writeLimiter,sameOrigin,requireSession,requireCsrf,leadImport(true));
 
   // Leads API
   api.post('/leads', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
