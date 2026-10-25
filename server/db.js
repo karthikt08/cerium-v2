@@ -1,3 +1,4 @@
+import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 // server/db.js
 //
 // SQLite Database Layer with WAL mode, foreign keys, secure delete, and complete
@@ -705,7 +706,7 @@ export function openDb(file) {
       placeOfSupply:gstin?place:'',hsnSac:hsn,...tax,upiVpa:user.upi_vpa||''};
   };
   const persistInvoiceTax=(userId,id,tax)=>{
-    if(!tax)return q.setInvoiceCurrency.run('USD',id,userId);
+    if(!tax)return q.setInvoiceCurrency.run(q.getUserById.get(userId).currency,id,userId);
     q.setIndiaInvoiceTax.run(tax.currency,tax.supplierGstin,tax.supplierState,tax.customerGstin,
       tax.placeOfSupply,tax.hsnSac,tax.gstRate,tax.taxable,tax.cgst,tax.sgst,tax.utgst,tax.igst,tax.upiVpa,id,userId);
   };
@@ -1028,13 +1029,13 @@ export function openDb(file) {
       if(!prior)invalid('Account not found.');
       const nextCountry=country===undefined?prior.country||'US':country;
       if(!validCountry(nextCountry))invalid('Choose a valid business country.');
-      const nextCurrency=nextCountry==='IN'?'INR':'USD';
-      if(currency!==undefined&&currency!==nextCurrency)invalid('Currency must match the selected edition.');
       const switching=nextCountry!==prior.country;
+      const nextCurrency=currency??(switching?(nextCountry==='IN'?'INR':'USD'):prior.currency);
+      if(currency!==undefined&&!validWorkspaceCurrency(nextCountry,nextCurrency))invalid('Currency must match the selected edition.');
       if(switching&&(pricedHistory(id)||prior.subscription_id))
         invalid('To switch editions, start with a new empty workspace. Existing records and payment history cannot be relabeled.');
-      if(!switching&&prior.currency!==nextCurrency&&currency!==undefined)
-        invalid('Legacy currency records require review and cannot be relabeled.');
+      if(!switching&&prior.currency!==nextCurrency&&(pricedHistory(id)||!validWorkspaceCurrency(prior.country,prior.currency)))
+        invalid('Existing currency records require review and cannot be relabeled. Choose currency before creating business records or subscriptions.');
       if(nextCountry==='US'){
         for(const [label,v,valid] of [['US state',usState,validUsState],['ZIP code',usZip,validUsZip],['US time zone',timeZone,validUsTimeZone]])
           if(v!==undefined&&(typeof v!=='string'||!valid(v.trim())))invalid('Enter a valid '+label+'.');
@@ -1063,7 +1064,7 @@ export function openDb(file) {
           name!==undefined?name.trim():null,businessName!==undefined?businessName.trim():null,
           trade!==undefined?trade.trim():null,phone!==undefined?phone.trim():null,
           location!==undefined?location.trim():null,
-          nextCountry,!switching&&prior.currency!==nextCurrency?prior.currency:nextCurrency,
+          nextCountry,nextCurrency,
           nextCountry==='US'?(usState===undefined?(switching?'':null):usState.trim()):'',
           nextCountry==='US'?(usZip===undefined?(switching?'':null):usZip.trim()):'',
           nextCountry==='IN'?'Asia/Kolkata':(timeZone===undefined?(switching?(nextCountry==='US'?'':'UTC'):null):timeZone.trim()),
@@ -1412,7 +1413,7 @@ export function openDb(file) {
         JSON.stringify(inv.items), inv.total, inv.notes, inv.paidAt, today
       );
       persistInvoiceTax(userId,id,tax);
-      return {...inv,currency:tax?'INR':'USD',...(tax||{})};
+      return {...inv,currency:user.currency,...(tax||{})};
       })();
     },
 

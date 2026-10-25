@@ -1,3 +1,4 @@
+import {validWorkspaceCurrency} from './invoice-country.js';
 import {COUNTRY_CALLING_CODES} from './country-codes.js';
 import {incomeGroup,INCOME_PRICES,INCOME_CLASSIFICATION_VERSION} from './country-income.js';
 
@@ -17,6 +18,6 @@ export const billingPlan=country=>validCountry(country)?{
   version:INCOME_CLASSIFICATION_VERSION
 }:null;
 export const priceLabel=country=>{const p=billingPlan(country);return p?(p.currency==='INR'?'₹':'$')+p.monthlyPrice+' '+p.currency:'';};
-export const matchesBillingCurrency=(country,currency)=>validCountry(country)&&currency===currencyForCountry(country);
+export const matchesBillingCurrency=(country,currency)=>validCountry(country)&&validWorkspaceCurrency(country,currency);
 export const editionLabel=country=>country==='IN'?'India edition · INR':country==='US'?'US edition · USD':'Global edition · USD';
 export const phonePlaceholder=country=>country==='IN'?'98765 43210':country==='US'?'(415) 555-0123':'National number or +country code';

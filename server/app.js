@@ -249,7 +249,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try{
       const {quote,businessName,expiresAt}=db.getPublicQuote(req.params.id,req.query.token,config.sessionSecret);
       const money=n=>new Intl.NumberFormat(quote.currency==='INR'?'en-IN':'en-US',
-        {style:'currency',currency:quote.currency==='INR'?'INR':'USD'}).format(n);
+        {style:'currency',currency:quote.currency||'USD'}).format(n);
       const rows=quote.items.map(i=>'<tr><td>'+escapeQuoteHtml(i.description)+
         '</td><td>'+escapeQuoteHtml(i.qty)+'</td><td>'+escapeQuoteHtml(money(i.rate))+
         '</td><td>'+escapeQuoteHtml(money(lineItemsTotal([i])))+'</td></tr>').join('');
@@ -722,7 +722,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     let updated;
     if((config.regionEnforced||config.workspaceAccessMode!=='off') && req.body?.country && req.body.country!==(req.user?.country||'US'))
       return res.status(403).json({error:'region_locked',message:'The edition is chosen from your verified connection. Contact support to review account region changes.'});
-    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country,currency:req.user.currency}:(req.body||{});
+    const body=config.regionEnforced?{...(req.body||{}),country:req.user.country}:(req.body||{});
     try { updated = db.updateUser(req.session.userId, body); }
     catch(err) { if(err.code==='invalid_us_profile')return res.status(400).json({error:err.code,message:err.message}); throw err; }
     res.json({

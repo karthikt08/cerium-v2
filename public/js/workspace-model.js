@@ -28,7 +28,7 @@ export function dateLabel(value) {
 }
 export function money(value, currency = 'USD') {
   // Keep legacy historical amounts legible until they are explicitly migrated.
-  const safeCurrency = ['USD','INR'].includes(currency) ? currency : 'USD';
+  const safeCurrency = Intl.supportedValuesOf('currency').includes(currency) ? currency : 'USD';
   return new Intl.NumberFormat(safeCurrency === 'INR' ? 'en-IN' : 'en-US', {style:'currency',currency:safeCurrency,minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(value) || 0);
 }
 export function metrics(ws, today = businessLocalDate(ws.account?.timeZone)) {

@@ -1,3 +1,4 @@
+import {INVOICE_CURRENCIES,invoiceCurrencyHint,invoiceCountry,invoiceMoney,invoiceDate} from './invoice-country.js';
 import API from './api.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
 import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer,renderOverviewTools,customizeOverview} from './workspace-customizer.js';
@@ -31,7 +32,7 @@ const trialNotice = () => currencyMismatch()
 const cash = (n) => money(n,currency());
 // Zero represents no debt in any currency; keep an empty dashboard dollar-native
 // without changing the denomination of stored legacy transactions.
-const dashboardCash = (n) => money(n,Number(n)===0&&!isIndia()?'USD':currency());
+const dashboardCash = (n) => money(n,currencyMismatch()&&Number(n)===0?'USD':currency());
 const initials = (name) => String(name || 'C').trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 const button = (text,action,extra='',style='primary') => `<button type="button" class="button ${style}" data-action="${action}" ${extra}>${text}</button>`;
 const addButton = (kind,label) => button(icon('plus')+label,'new',`data-kind="${kind}"`);
@@ -74,7 +75,7 @@ function renderChrome() {
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
   const india=a.country==='IN'&&a.currency==='INR';
   $('edition-label').textContent=editionLabel(a.country);
-  $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':'Global · USD';
+  $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':countryName(a.country)+' · '+a.currency;
   document.body.dataset.edition=india?'in':a.country==='US'?'us':'global';
   for(const [name,value] of Object.entries({leads:m.leads,followups:m.due,invoices:state.ws.invoices.filter(x=>x.status==='Overdue').length,reviews:m.reviews})) {
     const el=$('count-'+name);el.textContent=value;el.hidden=!value;
@@ -222,9 +223,11 @@ function settingsPage() {
     ${field('phone','Business phone',contactPhone(a.phone),'tel',{placeholder:phonePlaceholder(a.country)})}
     ${field('trade','Trade / industry',a.trade)}
     ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices})}
-    <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
+    <p class="muted full-width">${a.regionLocked?'Your business country is confirmed. Choose your invoice currency before creating records or authorizing billing.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
     <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':priceLabel(a.country)+'/month for new subscriptions. Same features at every country price.'}</div>
     ${regionFields}
+    ${field('currency','Invoice & workspace currency',a.currency,'text',{choices:(a.country==='IN'?['INR']:a.country==='US'?['USD']:INVOICE_CURRENCIES).map(code=>({value:code,label:code+(code===invoiceCurrencyHint(a.country)?' — local currency':'')}))})}
+    <p class="muted full-width">${invoiceCurrencyHint(a.country)?'Local currency: '+esc(invoiceCurrencyHint(a.country))+'. ':''}Choose before creating business records or authorizing billing. Existing amounts are never converted. Your CERIUM subscription stays in ${esc(plan.currency)}. Rates support up to two decimal places.</p>
     <p class="muted full-width">Currency: ${esc(a.currency)}. ${legacy}</p>
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>

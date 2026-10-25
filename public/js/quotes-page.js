@@ -6,7 +6,7 @@ let handlers=null;
 let working=false;
 const statuses={Draft:'draft',Sent:'sent',Accepted:'accepted',Declined:'declined',Converted:'converted'};
 const fmt=(value,currency='USD')=>new Intl.NumberFormat(currency==='INR'?'en-IN':'en-US',
-  {style:'currency',currency:currency==='INR'?'INR':'USD'}).format(Number(value)||0);
+  {style:'currency',currency:currency||'USD'}).format(Number(value)||0);
 const day=v=>v?new Date(v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
 const e=s=>esc(s??'');
 const quoteRow=(quote,currency,ro)=>{
