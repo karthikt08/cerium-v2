@@ -1,4 +1,5 @@
 import {GUIDE_SECTIONS, GUIDE_TOPICS, pickGuide} from '../public/js/guide-knowledge.js';
+import {navigateWithNavLM} from './navlm.js';
 
 const SYSTEM_GUIDE = 'You are Cerium Guide, a concise in-app navigation assistant for a contractor operations product. '+
   'Answer ONLY how to use or navigate this product. Ground every claim in the provided verified guide information. '+
@@ -49,6 +50,7 @@ export async function answerGuide(question,currentSection='overview',{
   const instructions=SYSTEM_GUIDE+'\nVERIFIED CERIUM GUIDE:\n'+staticGuide+
     '\nCurrent section: '+section+'. Suggested navigation: '+topic.title+'.';
   const activeProvider=provider||(apiKey?'openai':'guide');
+  if(activeProvider==='navlm')return navigateWithNavLM(question);
   if(activeProvider==='guide')return fallback;
   if(activeProvider==='openai') {
     const chosenModel=model||'gpt-4.1-mini';
