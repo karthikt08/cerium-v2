@@ -57,7 +57,7 @@ function zipFiles(buffer){
     if(pos+46+nameSize+extra+comment>buffer.length)throw bad('Invalid workbook entry.');
     const name=buffer.subarray(pos+46,pos+46+nameSize).toString('utf8');
     pos+=46+nameSize+extra+comment;
-    if(!/^(xl\/sharedStrings\.xml|xl\/worksheets\/sheet\d+\.xml)$/.test(name))continue;
+    if(!/^(xl\/sharedStrings\.xml|xl\/workbook\.xml|xl\/_rels\/workbook\.xml\.rels|xl\/worksheets\/sheet\d+\.xml)$/.test(name))continue;
     if(out.has(name)||expanded>MAX_XML||total+expanded>12*1024*1024||off+30>buffer.length||buffer.readUInt32LE(off)!==0x04034b50)
       throw bad('The workbook has invalid or oversized data.');
     const dataStart=off+30+buffer.readUInt16LE(off+26)+buffer.readUInt16LE(off+28);
@@ -72,7 +72,20 @@ function zipFiles(buffer){
 }
 function xlsxRows(buffer){
   const files=zipFiles(buffer);
-  const sheet=[...files.keys()].filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>Number(a.match(/sheet(\d+)/)[1])-Number(b.match(/sheet(\d+)/)[1]))[0];
+  const workbook=files.get('xl/workbook.xml')||'';
+  const relationships=files.get('xl/_rels/workbook.xml.rels')||'';
+  const date1904=/<workbookPr\b[^>]*\bdate1904="(?:1|true)"/.test(workbook);
+  const listed=[...files.keys()].filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>Number(a.match(/sheet(\d+)/)[1])-Number(b.match(/sheet(\d+)/)[1]));
+  let sheet=listed[0];
+  const firstSheet=/<sheet\b[^>]*>/.exec(workbook)?.[0]||'';
+  const sheetRelation=/\br:id="([^"]+)"/.exec(firstSheet)?.[1];
+  if(sheetRelation){
+    const relation=[...relationships.matchAll(/<Relationship\b[^>]*\/?\s*>/g)]
+      .map(m=>m[0]).find(tag=>/\bId="([^"]+)"/.exec(tag)?.[1]===sheetRelation);
+    const target=/\bTarget="([^"]+)"/.exec(relation||'')?.[1]||'';
+    const path='xl/'+target.replace(/^\/?xl\//,'').replace(/^\//,'');
+    if(listed.includes(path))sheet=path;
+  }
   if(!sheet)throw bad('No usable worksheet was found in the .xlsx file.');
   const shared=[];
   const sharedXml=files.get('xl/sharedStrings.xml')||'';
@@ -102,7 +115,7 @@ function xlsxRows(buffer){
     if(row.some(v=>String(v??'').trim()))rows.push(row);
     if(rows.length>MAX_ROWS+2)throw bad('Import at most 2,000 rows at a time.');
   }
-  return table(rows);
+  return {...table(rows),date1904};
 }
 export function parseSpreadsheet(upload){
   const filename=upload?.filename,content=upload?.content;
@@ -136,10 +149,10 @@ export function suggestedMapping(headers){
   }
   return mapping;
 }
-function normalizeDate(value){
+function normalizeDate(value,date1904=false){
   if(!value)return '';
   if(/^\d+(?:\.\d+)?$/.test(value)&&Number(value)>=20000&&Number(value)<=90000){
-    const date=new Date(Date.UTC(1899,11,30)+Math.floor(Number(value))*86400000);
+    const date=new Date((date1904?Date.UTC(1904,0,1):Date.UTC(1899,11,30))+Math.floor(Number(value))*86400000);
     return date.toISOString().slice(0,10);
   }
   const s=value.trim().replace(/\//g,'-');
@@ -169,7 +182,7 @@ export function mappedLeads(parsed,mapping){
       if(!/^\d+(?:\.\d{1,2})?$/.test(num)||Number(num)>1_000_000_000)errors.push('Invalid amount. Use a nonnegative number with up to 2 decimal places.');
       else data.value=num;
     }
-    try{data.nextFollowUp=normalizeDate(data.nextFollowUp);}catch(err){errors.push(err.message);}
+    try{data.nextFollowUp=normalizeDate(data.nextFollowUp,parsed.date1904);}catch(err){errors.push(err.message);}
     if(data.stage){
       const match=['New','Quoted','Booked','Done'].find(x=>x.toLowerCase()===data.stage.toLowerCase());
       if(!match)errors.push('Stage must be New, Quoted, Booked or Done.');
