@@ -31,7 +31,7 @@
   position:absolute;right:clamp(16px,3vw,42px);bottom:clamp(16px,3vw,42px);
   appearance:none;border:1px solid rgba(49,73,107,.18);border-radius:999px;
   background:rgba(255,255,255,.62);color:#25354a;
-  font:600 12px/1.2 inherit;padding:10px 15px;cursor:pointer;
+  font:600 12px/1.2 system-ui,sans-serif;padding:10px 15px;cursor:pointer;
   backdrop-filter:blur(10px);
 }
 .entry-skip:hover{background:white}
