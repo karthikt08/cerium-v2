@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
 import {businessDetails} from './business-fixtures.js';
 import {BUSINESS_SETUP_FIELDS} from '../server/business-profile.js';
+import {openDb} from '../server/db.js';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 async function owner(t,country='US',profile=ALICE){
   const b=t.browser();await signIn(t,b,{profile});const csrf=(await b.me()).csrfToken;
@@ -83,5 +87,35 @@ test('draft saving requires phone, session, CSRF and same origin and never leaks
     await step(b,csrf,'basics',fields('US','basics',{businessName:'Owner Private Draft'}));
     assert.equal((await (await stranger.req('/api/business/setup')).json()).draft.businessName,'');
     const exported=await (await b.req('/api/me/export')).json();assert.equal(exported.businessSetup.draft.businessName,'Owner Private Draft');
+  }finally{await t.close();}
+});
+
+test('saved steps survive database restart and never carry over to another business country',()=>{
+  const directory=mkdtempSync(join(tmpdir(),'cerium-wizard-')),file=join(directory,'workspace.sqlite');let db;
+  try{
+    db=openDb(file);const user=db.createUser({email:'resume@example.com',name:'Resume Owner'});
+    db.beginBillingPhone(user.id,'+14155550123','US');db.completeBillingPhone(user.id,'+14155550123','US');
+    db.saveBusinessSetupStep(user.id,'basics',fields('US','basics'));db.close();db=openDb(file);
+    assert.equal(db.getBusinessSetup(user.id).step,'address');assert.equal(db.getBusinessSetup(user.id).draft.businessName,'Example Services');
+    assert.equal(db.businessProfileComplete(user.id),false);
+    assert.equal(db.beginBillingPhone(user.id,'+919876543210','IN').ok,false,'verified country cannot change without review');
+    db.updateUser(user.id,{country:'IN'}); // Simulate an approved empty-workspace edition change.
+    assert.equal(db.beginBillingPhone(user.id,'+919876543210','IN').ok,true);
+    assert.equal(db.completeBillingPhone(user.id,'+919876543210','IN'),true);
+    assert.equal(db.getBusinessSetup(user.id).country,'IN');assert.equal(db.getBusinessSetup(user.id).step,'basics');
+  }finally{db?.close();rmSync(directory,{recursive:true,force:true});}
+});
+
+test('editing through the wizard preserves the original completion and trial deadline',async()=>{
+  const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
+  try{
+    const {b,csrf,uid}=await owner(t);
+    for(const name of ['basics','address'])await step(b,csrf,name,fields('US',name));
+    await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true}});
+    const before=t.db.getUserById(uid);
+    for(const name of ['basics','address'])assert.equal((await step(b,csrf,name,fields('US',name,{businessName:'Edited Through Wizard'}))).status,200);
+    assert.equal((await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true}})).status,200);
+    const after=t.db.getUserById(uid);assert.equal(after.business_name,'Edited Through Wizard');
+    assert.equal(after.business_profile_completed_at,before.business_profile_completed_at);assert.equal(after.trial_ends_at,before.trial_ends_at);
   }finally{await t.close();}
 });
