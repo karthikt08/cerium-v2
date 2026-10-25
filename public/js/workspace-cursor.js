@@ -7,11 +7,15 @@
   function hide(){active=false;c.classList.remove('visible');root.classList.remove('has-workspace-cursor');if(frame)cancelAnimationFrame(frame);frame=0;}
   function targetAtPointer(fromEl){
     const el=fromEl||document.elementFromPoint(x,y);if(!el)return;
+    const isOption=el.closest?el.closest('option,optgroup'):null;
+    let isOpenSelect=false;
+    try{isOpenSelect=!!(el.closest&&(el.matches(':open')||el.closest('select:open')));}catch{}
+    const inDropdown=!!(isOption||isOpenSelect);
     const moduleCard=el.closest?el.closest('.ws-pick-module'):null;
-    target=moduleCard||(el.closest?el.closest(controls):null);
+    target=!inDropdown?(moduleCard||(el.closest?el.closest(controls):null)):null;
     const text=el.closest?el.closest('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]):not([type="color"]),textarea,[contenteditable="true"]'):null;
-    c.classList.toggle('text-input',!!text);
-    if(text)target=null;
+    c.classList.toggle('text-input',!!(text||inDropdown));
+    if(text||inDropdown)target=null;
     if(target!==prevTarget){
       prevTarget=target;
       targetRadius=target?Math.min(parseFloat(getComputedStyle(target).borderRadius)||7,24)+3:10;

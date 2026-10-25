@@ -189,8 +189,9 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 
 /* spatial cursor: interactive magnetic morphing capsule, fluid spring physics, zero click drift */
 @media(hover:hover) and (pointer:fine){
-  html.sp-on,html.sp-on *:not(input):not(textarea):not(select){cursor:none!important}
-  input,textarea,select{cursor:text!important}
+  html.sp-on,html.sp-on *:not(input):not(textarea):not(select):not(option):not(optgroup){cursor:none!important}
+  input,textarea{cursor:text!important}
+  select,select *,option,optgroup{cursor:default!important}
 }
 .sp-cur{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;opacity:0;width:14px;height:14px;border-radius:7px;background:transparent!important;border:2px solid var(--ac,#2f5bff)!important;box-shadow:0 0 10px rgba(47,91,255,.45)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform-origin:center center;transition:opacity .2s,border-color .2s,box-shadow .2s,scale .14s,background .2s}
 .sp-cur.v{opacity:1}
@@ -305,7 +306,7 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 }
 html.sp-on, html.sp-on *:not(input):not(textarea):not(select) { cursor: auto !important; }
 html.sp-on a, html.sp-on button, html.sp-on [role=button], html.sp-on summary { cursor: pointer !important; }
-html.sp-on input[type=checkbox], html.sp-on select { cursor: pointer !important; }
+html.sp-on input[type=checkbox], html.sp-on select, html.sp-on option, html.sp-on optgroup { cursor: pointer !important; }
 @media (hover:none), (pointer:coarse), (prefers-reduced-motion:reduce) {
   .pg .gl, .sp-cur { display: none !important; }
   .pg .pointer-lit, .pg .cd:hover, .pg .kpi-card:hover, .pg .launch-card:hover, .pg .launch-stat:hover { transform: none !important; }

@@ -6,7 +6,7 @@ const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const root=document.documentElement,c=document.createElement('div');
 c.className='sp-cur';c.setAttribute('aria-hidden','true');
 const S='a,button,[role=button],summary,label[for],select,input[type=submit],input[type=checkbox],input[type=radio]';
-const T='input:not([type=submit]):not([type=checkbox]):not([type=radio]),textarea';
+const T='input:not([type=submit]):not([type=checkbox]):not([type=radio]),textarea,option,optgroup';
 const P='a.cd,a.acard,a.panel,[role=button].cd,[role=button].acard,[role=button].panel,.brief-preview-card[role=button]';
 let m={x:-99,y:-99},cur={x:-99,y:-99,w:14,h:14,r:7},tg={x:-99,y:-99,w:14,h:14,r:7},hot=null,tilt=null,seen=false,isDown=false;
 const clear=p=>{p.style.removeProperty('--rx');p.style.removeProperty('--ry');p.style.setProperty('--hl',0)};
