@@ -1064,7 +1064,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
-    const billingCycle=req.body?.billingCycle??'monthly';
+    const billingCycle=req.body&&Object.prototype.hasOwnProperty.call(req.body,'billingCycle')?req.body.billingCycle:'monthly';
     if(!validBillingCycle(billingCycle))return res.status(400).json({error:'invalid_billing_cycle',message:'Select monthly or annual billing.'});
     const user = db.getUserById(req.session.userId);
     if(config.workspaceAccessMode!=='off'&&!db.businessProfileComplete(user.id))
