@@ -52,10 +52,13 @@ phone.addEventListener('input',updatePreview);
 countrySelect.addEventListener('change',updatePreview);
 function setBusy(on){
   busy=on;for(const b of document.querySelectorAll('button:not(#business-setup button)'))b.disabled=on;
+  for(const field of document.querySelectorAll('#start-form input, #start-form select, #code-form input'))field.disabled=on;
   if(!details?.businessComplete||!details?.checkoutConfigured)el('mandate-button').disabled=true;
 }
 async function view(){
-  const me=await API.getMe();
+  el('setup-retry').hidden=true;
+  try{
+  const me=await API.getMe({strict:true});
   if(!me.signedIn){location.replace('/login.html?returnTo='+encodeURIComponent('/app.html'));return;}
   details=await API.getBillingIdentity();
   if(!initialized){
@@ -94,7 +97,13 @@ async function view(){
   }
   if(details.verified){setMessage('Phone confirmed. Preparing your workspace…');location.replace('/app.html');return;}
   setMessage(details.mode==='development'?'Local test: SMS is simulated. Use code 000000 after requesting it.':'Phone verification is required before opening your workspace.');
+  }catch(err){el('setup-retry').hidden=false;throw err;}
 }
+el('setup-retry').addEventListener('click',async()=>{
+  if(busy)return;setBusy(true);
+  try{await view();}catch(err){setMessage(err.message||'Could not load setup. Please try again.',true);}
+  finally{setBusy(false);}
+});
 start.addEventListener('submit',async e=>{
   e.preventDefault();if(busy)return;
   const country=countrySelect.value;

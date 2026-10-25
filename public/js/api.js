@@ -110,14 +110,17 @@ export async function request(endpoint, options = {}) {
 }
 
 // Asks the server: who am I, and am I on the waitlist?
-export async function getMe() {
+export async function getMe({strict=false}={}) {
   try {
     const res = await fetch('/api/me', {
       credentials: 'same-origin',
       cache: 'no-store',
       headers: { Accept: 'application/json' },
     });
-    if (!res.ok) return { signedIn: false };
+    if (!res.ok) {
+      if(strict&&res.status!==401)throw new Error('Could not check your account. Check your connection and try again.');
+      return { signedIn: false };
+    }
     const me = await res.json();
     if (me.signedIn) {
       cachedCsrfToken = me.csrfToken || '';
@@ -125,6 +128,7 @@ export async function getMe() {
     }
     return me;
   } catch (err) {
+    if(strict)throw err;
     return { signedIn: false };
   }
 }
