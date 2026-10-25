@@ -45,10 +45,20 @@ test('both sign-in methods and workspace entry use the same fast branded loader'
   assert.match(entrance,/data-cerium-entry="redirect"/);
   for(const page of [shell,entrance]){
     assert.match(page,/data-entry-skip/);
-    assert.match(page,/data-asset="media\/cerium-entry\.mp4"/);
+    assert.match(page,/class="entry-mark"/);
+    assert.match(page,/<svg viewBox="0 0 200 200"/);
+    assert.match(page,/class="entry-letter"/);
+    assert.match(page,/class="entry-entry-dot"/);
     assert.match(page,/entry-loader\.css/);
     assert.match(page,/entry-loader\.js/);
+    assert.doesNotMatch(page,/<video|\.mp4|data-asset=/);
   }
+  const css=read('css/entry-loader.css');
+  assert.match(css,/@keyframes entry-mark-in/);
+  assert.match(css,/@keyframes entry-letter-in/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.doesNotMatch(css,/\.entry-video|\.entry-fallback/);
+  assert.doesNotMatch(loader,/\.src\s*=|\.play\(\)|\.pause\(\)|\.mp4/);
   assert.match(loader,/prefers-reduced-motion/);
   assert.doesNotMatch(loader,/localStorage|sessionStorage|indexedDB/);
   assert.match(loader,/ceriumIntro/);
