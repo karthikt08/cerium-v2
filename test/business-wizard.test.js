@@ -23,6 +23,8 @@ test('step progression persists across sessions and only review confirmation unl
   try{
     const {b,csrf,uid}=await owner(t);
     assert.equal((await (await b.req('/api/business/setup')).json()).step,'basics');
+    const legacy=await b.req('/api/business/profile',{method:'POST',csrf,json:businessDetails('US')});
+    assert.equal(legacy.status,409);assert.equal((await legacy.json()).error,'business_setup_required');
     assert.equal((await step(b,csrf,'address',fields('US','address'))).status,400);
     assert.equal((await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true}})).status,400);
     const saved=await step(b,csrf,'basics',fields('US','basics',{businessEmail:' Business@EXAMPLE.COM '}));

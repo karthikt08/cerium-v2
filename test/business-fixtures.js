@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {BUSINESS_SETUP_FIELDS,businessSetupSteps} from '../server/business-profile.js';
 
 export const businessDetails=(country='US')=>({
   name:'Test Owner',businessName:'Example Services',trade:'Repairs',businessEmail:'business@example.com',
@@ -10,7 +11,17 @@ export const businessDetails=(country='US')=>({
 });
 export async function completeBusiness(t,b,country){
   const me=await b.me();country||=me.user.country;
-  const response=await b.req('/api/business/profile',{method:'POST',csrf:me.csrfToken,json:businessDetails(country)});
+  await prepareBusiness(t,b,country);
+  const response=await b.req('/api/business/setup/complete',{method:'POST',csrf:me.csrfToken,json:{confirmBusinessDetails:true}});
   assert.equal(response.status,200,await response.clone().text());
   return response.json();
+}
+export async function prepareBusiness(t,b,country,patch={}){
+  const me=await b.me();country||=me.user.country;
+  const data={...businessDetails(country),...patch};
+  for(const step of businessSetupSteps(country).filter(step=>step!=='review')){
+    const fields=Object.fromEntries(BUSINESS_SETUP_FIELDS[step].map(key=>[key,data[key]]));
+    const response=await b.req('/api/business/setup',{method:'POST',csrf:me.csrfToken,json:{step,fields}});
+    assert.equal(response.status,200,await response.clone().text());
+  }
 }

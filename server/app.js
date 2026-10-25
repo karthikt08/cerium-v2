@@ -695,6 +695,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
   api.post('/business/profile',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
     if(!db.billingEligible(req.session.userId))return res.status(409).json({error:'phone_verification_required',message:'Verify your phone before completing business setup.'});
+    if(!db.businessProfileComplete(req.session.userId)&&db.getBusinessSetup(req.session.userId).step!=='review')
+      return res.status(409).json({error:'business_setup_required',message:'Complete each required business setup step before confirming your profile.'});
     try{
       const profile=db.saveBusinessProfile(req.session.userId,req.body);
       if(config.workspaceAccessMode==='phone')db.beginTrialOnEntry(req.session.userId);
