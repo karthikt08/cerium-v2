@@ -6,7 +6,7 @@
   position:fixed;inset:0;z-index:10000;display:grid;place-items:center;
   isolation:isolate;overflow:hidden;color:#283246;
   background:radial-gradient(ellipse at center,#f3f5fc,#fafbfd);
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 .entry-scene[hidden],.entry-scene [hidden]{display:none!important}
 .entry-visual{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:6px}
