@@ -161,16 +161,25 @@ function settingsPage() {
   const a=state.ws.account,ind=isIndia(),us=a.country==='US',countryLabel=countryName(a.country);
   const legacy=currencyMismatch()?'<p class="muted" role="alert">Existing amounts are stored in '+esc(a.currency)+'. We will not relabel them. Export valuable history and ask support about migration. Disposable demos may be cleared with confirmation.</p>':'';
   const tzHelp=a.timeZone?'Appointments use '+(US_TIME_ZONE_OPTIONS.find(x=>x.value===a.timeZone)?.label||a.timeZone)+'.':'Set your business time zone so crews see the correct local appointment times.';
+  const bpState=ind?(INDIAN_STATES[a.businessProfile?.indiaState]||a.businessProfile?.indiaState):(a.businessProfile?.usState||a.businessProfile?.businessRegion||a.usState);
+  const addressLocality=[a.businessProfile?.businessCity,[bpState,a.businessProfile?.businessPostalCode||a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const fullAddressLine=[addressLocality,countryLabel].filter(Boolean).join(' · ');
   const regionFields=ind
-    ?field('indiaState','GST registration state',a.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS],full:true})
-      +field('gstin','Business GSTIN (only if registered)',a.gstin||'','text',{max:15,placeholder:'15-character GSTIN',full:true})
-      +field('upiVpa','UPI ID for customer invoice payments',a.upiVpa||'','text',{max:194,placeholder:'business@bank',full:true})
+    ?'<div class="form-section-title full-width"><h4>Business address & tax details</h4><p>GST state and payment routing displayed on invoices.</p></div>'
+      +field('location','City / service area',a.location,'text',{placeholder:'e.g. Chennai'})
+      +field('indiaState','GST registration state',a.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})
+      +field('gstin','Business GSTIN (only if registered)',a.gstin||'','text',{max:15,placeholder:'15-character GSTIN'})
+      +field('upiVpa','UPI ID for customer invoice payments',a.upiVpa||'','text',{max:194,placeholder:'business@bank'})
       +'<p class="muted full-width">UPI ID is displayed as payment instructions, not a verified collection or bank integration. GST fields are invoice drafts only; IRN/e-invoicing and GST filing are not connected.</p>'
-    :us?field('usState','State',a.usState||'','text',{choices:[{value:'',label:'Choose a state'},...US_STATE_OPTIONS]})
+    :us?'<div class="form-section-title full-width"><h4>Operating address & region</h4><p>Regional settings used on customer invoices, estimates and local appointments.</p></div>'
+      +field('location','City / service area',a.location,'text',{placeholder:'e.g. Austin'})
+      +field('usState','State',a.usState||'','text',{choices:[{value:'',label:'Choose a state'},...US_STATE_OPTIONS]})
       +field('usZip','ZIP code',a.usZip||'','text',{placeholder:'78701 or 78701-1234',max:10})
-      +field('timeZone','Business time zone',a.timeZone||'','text',{choices:[{value:'',label:'Choose time zone'},...US_TIME_ZONE_OPTIONS],full:true})
+      +field('timeZone','Business time zone',a.timeZone||'','text',{choices:[{value:'',label:'Choose time zone'},...US_TIME_ZONE_OPTIONS]})
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>'
-    :field('timeZone','Business time zone',a.timeZone||'UTC','text',{choices:businessTimeZoneOptions(a.timeZone),full:true})
+    :'<div class="form-section-title full-width"><h4>Operating address & region</h4><p>Regional settings used on customer invoices and appointments.</p></div>'
+      +field('location','City / service area',a.location,'text',{placeholder:'City, region / postal code'})
+      +field('timeZone','Business time zone',a.timeZone||'UTC','text',{choices:businessTimeZoneOptions(a.timeZone)})
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=COUNTRY_OPTIONS.map(c=>({value:c.value,label:c.label+' — '+(c.value==='IN'?'INR':'USD')}));
   const moneyPrice=ind?'₹500':'$20';
@@ -179,19 +188,34 @@ function settingsPage() {
   const proof=state.billingIdentity||{};
 
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
-  <div class="settings-content"><p class="billing-verify-status ${a.businessProfile?.complete?'is-verified':''}">${a.businessProfile?.complete?'✓ Required business setup complete':'Business setup needs completion'}</p>
-    ${a.businessProfile?.complete?`<p class="muted">${esc(a.businessProfile.businessEmail)}<br>${esc([a.businessProfile.businessAddress,a.businessProfile.businessCity,a.businessProfile.businessPostalCode].filter(Boolean).join(', '))}</p>`:''}
-    <a class="button secondary" href="${API.localBusinessSetup?'#settings':'/verify.html?edit=business'}" ${API.localBusinessSetup?'data-action="business-setup"':''}>${a.businessProfile?.complete?'Edit required business details':'Complete business setup'}</a></div>
+  <div class="settings-content settings-section-border">
+    <div class="business-profile-summary">
+      <div class="business-summary-header">
+        <span class="billing-verify-status ${a.businessProfile?.complete?'is-verified':''}">${a.businessProfile?.complete?'✓ Business address verified':'Setup needs completion'}</span>
+        <a class="button secondary sm" href="${API.localBusinessSetup?'#settings':'/verify.html?edit=business'}" ${API.localBusinessSetup?'data-action="business-setup"':''}>${a.businessProfile?.complete?'Edit address':'Complete business setup'}</a>
+      </div>
+      ${a.businessProfile?.complete?`
+      <div class="business-address-card">
+        <div class="business-address-icon" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        </div>
+        <div class="business-address-details">
+          <p class="address-street">${esc(a.businessProfile.businessAddress||'No street address configured')}</p>
+          <p class="address-locality">${esc(fullAddressLine)}</p>
+          <p class="address-contact"><span class="address-meta-label">Billing email:</span> ${esc(a.businessProfile.businessEmail||a.email)}</p>
+        </div>
+      </div>`:''}
+    </div>
+  </div>
   <form id="profile-form" class="settings-content"><div class="form-grid">
     ${field('name','Your name',a.name,'text',{required:true})}
     ${field('businessName','Business name',a.businessName)}
     ${field('email','Sign-in email',a.email,'email',{readOnly:true})}
-    ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true,full:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices,full:true})}
-    <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
-    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':'India is ₹500/month; all other countries are $20 USD/month.'}</div>
     ${field('phone','Business phone',contactPhone(a.phone),'tel',{placeholder:phonePlaceholder(a.country)})}
     ${field('trade','Trade / industry',a.trade)}
-    ${field('location','City / service area',a.location,'text',{placeholder:ind?'e.g. Chennai':us?'e.g. Austin':'City, region / postal code'})}
+    ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices})}
+    <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
+    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':'India is ₹500/month; all other countries are $20 USD/month.'}</div>
     ${regionFields}
     <p class="muted full-width">Currency: ${esc(a.currency)}. ${legacy}</p>
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}

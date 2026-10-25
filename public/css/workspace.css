@@ -39,6 +39,20 @@ body[data-edition="in"] .workspace-label small{color:#276c53}
 .billing-verify-content{display:grid;gap:14px}
 .billing-verify-status{background:#fff7e9;border:1px solid #f1dfc5;color:#8a6a32;border-radius:8px;padding:10px 12px;font-size:11px;font-weight:650}
 .billing-verify-status.is-verified{background:#eaf8f0;border-color:#c9e5d7;color:#286c4f}
+.settings-section-border{border-bottom:1px solid var(--line)}
+.business-profile-summary{display:grid;gap:12px}
+.business-summary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.business-address-card{display:flex;align-items:flex-start;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}
+.business-address-icon{flex:none;width:32px;height:32px;border-radius:8px;background:#edf2f7;color:#5a6882;display:grid;place-items:center}
+.business-address-icon .icon{width:16px;height:16px}
+.business-address-details{display:grid;gap:2px;font-size:11px;line-height:1.5;color:#475569}
+.address-street{font-weight:600;color:var(--ink);font-size:12.5px;margin:0}
+.address-locality{color:#64748b;margin:0}
+.address-contact{font-size:10.5px;color:#78889e;margin:2px 0 0}
+.address-meta-label{font-weight:600;color:#50617a}
+.form-section-title{grid-column:1/-1;padding-top:14px;border-top:1px solid var(--line);margin-top:4px}
+.form-section-title h4{font-size:12px;font-weight:650;color:var(--ink);margin:0 0 2px}
+.form-section-title p{margin:0;font-size:11px;color:var(--mut)}
 .billing-verify-form{display:grid;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .billing-verify-form .field{display:grid;gap:8px}
 .billing-verify-form .button{justify-self:start}
