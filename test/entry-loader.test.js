@@ -46,7 +46,7 @@ test('both sign-in methods and workspace entry use the same fast branded loader'
   for(const page of [shell,entrance]){
     assert.match(page,/data-entry-skip/);
     assert.match(page,/class="entry-mark"/);
-    assert.match(page,/<svg viewBox="0 0 200 200"/);
+    assert.match(page,/<img src="img\/cerium-logo-mark-blue\.png"/);
     assert.match(page,/class="entry-letter"/);
     assert.match(page,/class="entry-entry-dot"/);
     assert.match(page,/entry-loader\.css/);
