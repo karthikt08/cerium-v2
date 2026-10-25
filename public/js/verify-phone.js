@@ -2,10 +2,6 @@ import API from './api.js';
 import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder} from './countries.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
 
-// Completing mandatory onboarding is a new workspace-entry event, so let the
-// completed account see the branded loader when it enters the workspace.
-try { sessionStorage.removeItem('cerium-entry-watched'); } catch {}
-
 const el=id=>document.getElementById(id);
 const msg=el('message'),start=el('start-form'),check=el('code-form'),
   payment=el('mandate-panel'),phone=el('phone'),countrySelect=el('country'),business=el('business-setup');
