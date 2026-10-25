@@ -8,7 +8,7 @@
   const mode = scene.dataset.ceriumEntry;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // The one-time URL marker is removed immediately on the workspace page.
-  // No cookies, localStorage or sessionStorage are required for the animation.
+  // The entrance uses a temporary URL flag without persisting user data.
   const validNext = value => {
     if (!value || !value.startsWith('/') || value.startsWith('//')) return '/app.html';
     try {
