@@ -1,34 +1,64 @@
-# CERIUM HTML/CSS entrance
+# CERIUM badge entrance
 
-The sign-in success transition (`public/enter.html`) and protected workspace
-(`public/app.html`) now use the same **HTML + CSS + inline SVG** entrance.
+The sign-in transition (`public/enter.html`) and workspace (`public/app.html`)
+share a compact badge modeled on the supplied reference: a glossy blue C on a
+navy rounded-square tile, the full dark CERIUM wordmark, a blue dot, and a thin
+blue rounded frame. The background is soft lavender white.
 
-There is no MP4 file or image dependency. A metallic blue CERIUM C mark forms,
-the ERIUM wordmark reveals letter by letter, and a blue square appears with a
-soft shadow and subtle shine. The animation is CSS-only; JavaScript handles
-workspace readiness, Skip intro, safe redirect destinations and a timeout
-fallback.
+The outline draws first, the icon settles into place, the letters reveal with
+short staggered transitions, and the dot appears last. It is native HTML, CSS
+and inline SVG, with no media or image dependency. The badge fits at 320px and
+scales through mobile, tablet and desktop widths.
 
-## Behavior
+## Entry and readiness
 
-- Email/password sign-in, account creation, and successful Google OAuth land on
-  `/enter.html` before the protected workspace.
-- Visiting `/app.html` directly shows the same animation while authentication,
-  mandatory onboarding and workspace API state are checked.
-- The `ceriumIntro=done` query marker is removed immediately to prevent a
-  duplicate replay after the sign-in transition; no browser storage is used.
-- If the user prefers reduced motion, the logo appears immediately, without
-  animated transitions.
-- The intro lasts up to roughly 2.9 seconds when startup succeeds quickly. The
-  Skip control dismisses it when the workspace is ready, without bypassing
-  account checks.
-- Internal workspace navigation never replays the entrance.
+Email/password sign-in, account creation and successful Google OAuth lead to
+`/enter.html`, then to the protected workspace. Direct workspace visits run the
+same intro. Internal workspace navigation does not replay it.
 
-## Development
+The CSS intro lasts about 1.6 seconds. Skip intro and reduced-motion mode settle
+the logo immediately, while account and initialization checks still finish.
+A `ceriumIntro=done` query marker skips only the duplicate animation on the
+immediate same-origin handoff. The app consumes it, checks the intro referrer
+and fresh-navigation type, and retains safe query strings and fragments.
+Reloads show the intro again. No browser storage or cookies track animation.
 
-No asset copying, video conversion, autoplay permission, or extra dependencies
-are required. Pull the GitHub branch and run `npm run dev`.
+The loader requires explicit app readiness before uncovering workspace data,
+mandatory business setup or a recovery screen. A retained readiness signal also
+handles initialization finishing before the deferred loader runs. The animation
+never grants authentication, changes onboarding completion or starts a trial.
 
-The animation appearance lives in `public/css/entry-loader.css`. Both HTML
-pages intentionally share the same markup, ensuring parity without any media
-files. The setup and redirect lifecycle live in `public/js/entry-loader.js`.
+## Recovery and accessibility
+
+While the cover is active, workspace controls and the underlying skip link are
+inert. Their original state and appropriate focus are restored on dismissal.
+If initialization fails, the app recovery screen is shown immediately.
+
+After twelve seconds without app readiness, the loader displays a connection
+message and retry button, keeping unfinished content covered. A seven-second
+abort bounds the interstitial's session request. If the loader script itself
+fails, successful app initialization removes the static cover after document
+loading completes. Server-side access checks continue to enforce all gates.
+
+The standalone preview embeds the entry controller as well as the existing
+CSS/SVG, so its loader can finish when the required setup form is ready.
+No media installation or additional dependency is required.
+
+## Debug verification
+
+- All 498 Node tests passed, including 12 lifecycle tests for early/late
+  readiness, slow startup, Skip, CSS timing, reduced motion, safe destinations,
+  session timeout, handoff and initialization errors.
+- All 93 JavaScript files passed syntax checks. The secret scan and whitespace
+  checks passed. Existing public-file and browser-storage checks retain their
+  original restrictions.
+- Twenty-six Chromium workflows passed, including desktop/mobile native animation,
+  reloads, handoff, actual email login/sign-up, onboarding enforcement, failed
+  and slow initialization, delayed/missing loader script, reduced motion and
+  the self-contained preview. Eight additional layout checks cover 320, 390,
+  768 and 1440px at normal and reduced motion. Both mobile recovery captions
+  and the badge remain within the viewport. Background controls stay inert
+  until readiness.
+- Google, SMS and payment providers used fixtures. No live messages, accounts
+  or payments were changed; other engines and real mobile devices were not tested.
+- See the follow-up PR for clean-install Ubuntu and Windows CI results.

@@ -39,8 +39,8 @@ test('both sign-in methods and workspace entry use the same fast branded loader'
 
   assert.match(auth,/\/enter\.html\?next=/);
   assert.match(google,/\/enter\.html\?next=/);
-  assert.match(workspace,/CeriumEntryLoader\?\.complete\(\)/);
-  assert.match(workspace,/CeriumEntryLoader\?\.fail\(\)/);
+  assert.match(workspace,/CeriumEntryLoader\.complete\(\)/);
+  assert.match(workspace,/CeriumEntryLoader\.fail\(\)/);
   assert.match(shell,/data-cerium-entry="workspace"/);
   assert.match(entrance,/data-cerium-entry="redirect"/);
   for(const page of [shell,entrance]){

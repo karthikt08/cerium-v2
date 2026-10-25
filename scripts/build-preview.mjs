@@ -159,7 +159,8 @@ for(const match of [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(css\
 html=html.replace('src="img/cerium-logo-30.png"',`src="data:image/png;base64,${logo}"`);
 html=html.replace('Personal workspace','Demo · resets on reload');
 html=html.replace(/<script[\s\S]*?<\/script>/g,'');
-html=html.replace('</body>',`<script type="module" src="${await embedModule('app.js')}"></script><script type="module" src="${await embedModule('workspace-cursor.js')}"></script></body>`);
+const entryLoader='data:text/javascript;base64,'+Buffer.from(await read('public/js/entry-loader.js')).toString('base64');
+html=html.replace('</body>',`<script src="${entryLoader}"></script><script type="module" src="${await embedModule('app.js')}"></script><script type="module" src="${await embedModule('workspace-cursor.js')}"></script></body>`);
 const output=resolve(process.argv[2]||'output/cerium-preview.html');
 await mkdir(dirname(output),{recursive:true});
 await writeFile(output,html);
