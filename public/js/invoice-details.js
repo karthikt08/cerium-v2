@@ -1,3 +1,4 @@
+import {INDIAN_STATES} from './india-market.js';
 import {invoiceCountry,roundCurrency,currencyDigits} from './invoice-country.js';
 import {lineItemsTotal} from './money.js';
 const bad=message=>Object.assign(new Error(message),{code:'invalid_invoice',status:400});
@@ -23,7 +24,7 @@ export function makeInvoiceDetails(user,items,p={},previous=null,{issued=false,i
     throw bad(currency+' invoices require a whole-unit subtotal. Adjust the line items before saving.');
   const supplier=issued&&previous?.supplier?previous.supplier:{
     name:user.business_name||user.name||'',email:user.business_email||user.email||'',phone:user.phone||'',
-    address:[user.business_address||user.location,user.business_city,user.business_region||user.us_state,user.business_postal_code||user.us_zip].filter(Boolean).join(', '),
+    address:[user.business_address||user.location,user.business_city,user.business_region||user.us_state||INDIAN_STATES[user.india_state],user.business_postal_code||user.us_zip].filter(Boolean).join(', '),
   };
   const pick=(key,max,defaultValue='')=>text(p[key]??previous?.[key]??defaultValue,max,key);
   const supplierTaxId=pick('supplierTaxId',80);

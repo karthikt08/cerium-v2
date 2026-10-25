@@ -114,3 +114,23 @@ test('country print profiles use explicit currency codes and full localized date
   assert.match(invoiceMoney(1234.5,'EUR','DE'),/EUR/);assert.match(invoiceMoney(0.105,'KWD','KW'),/0.105/);
   assert.match(invoiceDate('2026-10-21','GB'),/2026/);assert.equal(invoiceDate('', 'GB'),'—');
 });
+
+test('India supplier snapshots retain the state in non-GST invoice addresses',()=>{
+  const db=openDb(':memory:');try{
+    const id=fixture(db,'IN','INR');db.updateUser(id,{indiaState:'33'});
+    const made=db.createInvoice(id,invoice);assert.match(made.details.supplier.address,/Tamil Nadu/);
+    db.updateInvoiceStatus(id,made.id,'Sent');db.updateUser(id,{indiaState:'29'});db.updateInvoice(id,made.id,{notes:'Still original address'});
+    assert.match(db.getWorkspace(id).invoices[0].details.supplier.address,/Tamil Nadu/);
+  }finally{db.close();}
+});
+
+test('existing agreed-price checkout can resume without a newly configured discount plan',async()=>{
+  const t=await startServer({env:{RAZORPAY_KEY_ID:'rzp_test_resume',RAZORPAY_KEY_SECRET:'resume-test-secret',RAZORPAY_WEBHOOK_SECRET:'resume-test-webhook',RAZORPAY_PLAN_ID:'plan_standard'}});
+  try{
+    const b=t.browser();await signIn(t,b,{profile:ALICE});const user=t.db.getUserByEmail(ALICE.email);
+    t.db.updateUser(user.id,{country:'BR'});t.db.beginBillingPhone(user.id,'+5511961234567','BR');t.db.completeBillingPhone(user.id,'+5511961234567','BR');
+    t.db.createSubscription(user.id,'sub_existing',1800000000,{...billingPlan('BR'),minorUnits:2000,tier:'legacy',version:'pre-country-tiers'});
+    const identity=await (await b.req('/api/billing/identity')).json();assert.equal(identity.checkoutConfigured,true);assert.equal(identity.billingPrice.monthlyPrice,20);
+    const me=await b.me(),r=await b.req('/api/billing/subscription',{method:'POST',csrf:me.csrfToken,json:{}});assert.equal(r.status,200);assert.equal((await r.json()).amount,2000);
+  }finally{await t.close();}
+});

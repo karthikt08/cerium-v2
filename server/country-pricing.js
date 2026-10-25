@@ -22,3 +22,9 @@ export function subscriptionPrice(country,subscription){
   }
   return price;
 }
+
+export function checkoutAvailable(config,country,subscription){
+  if(subscription&&!['cancelled','expired'].includes(subscription.status)&&Number(subscription.price_amount)>0)
+    return Boolean(config.razorpayConfigured&&config.webhookConfigured);
+  return Boolean(checkoutPlan(config,country)?.configured);
+}

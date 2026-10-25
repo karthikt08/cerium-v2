@@ -12,7 +12,7 @@ import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js'
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
 import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
-import {checkoutPlan,subscriptionPrice} from './country-pricing.js';
+import {checkoutPlan,subscriptionPrice,checkoutAvailable} from './country-pricing.js';
 import {validCountry,matchesBillingCurrency} from '../public/js/countries.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
@@ -982,7 +982,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       workspaceUnlocked:access.unlocked,
       businessComplete:access.businessComplete,businessProfile:db.getBusinessProfile(req.session.userId),
       subscriptionStatus:db.getUserSubscription(req.session.userId)?.status||null,
-      checkoutConfigured:Boolean(checkoutPlan(config,user.country)?.configured),
+      checkoutConfigured:checkoutAvailable(config,user.country,db.getUserSubscription(user.id)),
       billingPrice:subscriptionPrice(user.country,db.getUserSubscription(user.id)),
       countryAttested:verified,
       phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
@@ -1183,7 +1183,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
     const international=ws?.account.country!=='IN'&&matchesBillingCurrency(ws?.account.country,ws?.account.currency);
     const price=subscriptionPrice(ws?.account.country,db.getUserSubscription(req.session.userId));
-    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:price?.monthlyPrice,currency:price?.currency,billingPrice:price,subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian||international)&&checkoutPlan(config,ws?.account.country)?.configured)&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId))),billingIdentityVerified:db.billingEligible(req.session.userId) });
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:price?.monthlyPrice,currency:price?.currency,billingPrice:price,subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian||international)&&checkoutAvailable(config,ws?.account.country,db.getUserSubscription(req.session.userId)))&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId))),billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.

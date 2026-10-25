@@ -95,13 +95,13 @@ function demoAdapter() {
     async deleteFollowUp(id) { remove('followUps',id); },
     async createInvoice(payload) {
       const items=[{description:payload.jobTitle,qty:1,rate:Number(payload.amount)||0}];
-      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,business_postal_code:profile.businessPostalCode},items,payload,null,{issueDate:day(0)});
+      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,india_state:profile.indiaState,business_postal_code:profile.businessPostalCode},items,payload,null,{issueDate:day(0)});
       const total=details.total;
       return create('invoices',{id:String(++invoiceNumber),customerEmail:'',customerAddress:'',notes:'Thank you for your business!',issueDate:day(0),terms:'Net 15',...payload,total,details,currency:ws.account.currency,items,dueDate:payload.dueDate||nextDue(payload.terms||'Net 15'),paidAt:payload.status==='Paid'?day(0):null});
     },
     async updateInvoice(id,payload) {
       const original=record('invoices',id),items=payload.amount!==undefined?[{description:payload.jobTitle||original.jobTitle,qty:1,rate:Number(payload.amount)}]:original.items;
-      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,business_postal_code:profile.businessPostalCode},items,payload,original.details,{issued:original.status!=='Draft',issueDate:original.issueDate});
+      const details=makeInvoiceDetails({country,currency:ws.account.currency,name:profile.name,business_name:profile.businessName,business_email:profile.businessEmail,business_address:profile.businessAddress,business_city:profile.businessCity,business_region:profile.businessRegion,india_state:profile.indiaState,business_postal_code:profile.businessPostalCode},items,payload,original.details,{issued:original.status!=='Draft',issueDate:original.issueDate});
       const row=update('invoices',id,{...payload,items,details,total:details.total});
       if(payload.terms)row.dueDate=nextDue(payload.terms);
       row.paidAt=row.status==='Paid'?day(0):null;
