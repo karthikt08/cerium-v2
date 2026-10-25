@@ -29,8 +29,15 @@ function updateSteps(){
   for(const [step,complete] of [['phone',details.verified],['business',details.businessComplete],['payment',details.paymentAuthorized]]){
     const item=el('step-'+step);item.dataset.complete=String(Boolean(complete));
     if(step===current)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
+    // Keep the workspace-like sidebar in sync with the authoritative onboarding state.
+    const rail=el('rail-step-'+step);
+    if(rail){
+      rail.dataset.complete=String(Boolean(complete));
+      if(step===current)rail.setAttribute('aria-current','step');else rail.removeAttribute('aria-current');
+    }
   }
   el('step-payment').hidden=mode!=='phone_and_mandate';
+  el('rail-step-payment').hidden=mode!=='phone_and_mandate';
 }
 
 function setMessage(text,isError=false){
