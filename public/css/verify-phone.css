@@ -16,7 +16,7 @@ input:not([type=checkbox]),select{border:1px solid #ccd7e9;background:white;bord
 input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #91adff;outline-offset:3px}
 .edition-preview{background:#f0f8f4;border:1px solid #cfe7da;border-radius:8px;padding:10px 12px;font-size:12px;color:#347456}
 .country-check{display:flex;align-items:flex-start;gap:10px;font-weight:500;line-height:1.6}.country-check input{flex:none;margin-top:4px;width:16px;height:16px}
-.primary{border:0;border-radius:9px;background:var(--accent);color:white;padding:13px 16px;font-weight:650}.primary:hover{background:#3652d3}.primary:disabled{opacity:.55;cursor:wait}
+.primary{border:0;border-radius:8px;background:var(--accent);color:white;padding:12px 18px;min-height:44px;font-weight:600;box-shadow:0 2px 4px rgba(47,91,255,.15);transition:background .2s,box-shadow .2s}.primary:hover{background:#3652d3;box-shadow:0 4px 8px rgba(47,91,255,.2)}.primary:disabled{opacity:.55;cursor:wait}
 .hint{font-size:12px;color:var(--muted);margin:0;line-height:1.7}
 #mandate-panel{border-top:1px solid var(--line);padding:22px 0}
 #mandate-panel button{width:100%;margin:0 0 12px}

@@ -26,10 +26,10 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
 .lg{display:flex;align-items:center;gap:10px;font-size:23px}
 .hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
-.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;border-radius:99px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
+.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 22px;border-radius:8px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
 .pg .btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--ac)}
-.pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
-.pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pg .btn.sm{min-height:38px;padding:0 16px;font-size:13.5px;border-radius:7px}
+.pg .btn.gh{background:#fff;color:var(--ink);border:1px solid var(--ln);box-shadow:0 1px 2px rgba(16,24,40,.04)}.pg .btn.gh:hover{background:#f8fafc;border-color:#c8d3e2;color:var(--ink)}
 .hw{position:relative}
 .hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
 .hero{position:relative;padding-top:40px;padding-bottom:56px}
@@ -60,7 +60,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .acard{background:var(--wh);border:1px solid var(--ln);border-radius:26px;padding:clamp(24px,3.5vw,36px);box-shadow:0 40px 80px -40px rgba(12,23,41,.3)}
 .acard h2{font-size:clamp(1.6rem,3vw,2rem);letter-spacing:-.02em}
 .acard .sub{margin:8px 0 24px;color:var(--mut)}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:52px;padding:0 24px;border-radius:99px;background:#fff;border:1px solid #747775;color:#1f1f1f;font:600 16px var(--bf);cursor:pointer;transition:background .2s,box-shadow .2s,transform .2s}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:46px;padding:0 20px;border-radius:8px;background:#fff;border:1px solid #d0d7e2;color:#1f1f1f;font:600 16px var(--bf);cursor:pointer;transition:background .2s,box-shadow .2s,transform .2s}
 .gbtn:hover{background:#f8f9fa;box-shadow:0 8px 20px -10px rgba(12,23,41,.4);transform:translateY(-1px)}
 .gbtn:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
 .gbtn svg{width:20px;height:20px;flex:none}
@@ -119,6 +119,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .steps .tag{display:inline;margin-left:8px;font:600 12px var(--bf);letter-spacing:.06em;text-transform:uppercase;color:var(--ac)}
 .pg .btn.dg{background:#b42318;box-shadow:0 10px 24px -10px #b42318}.pg .btn.dg:hover{box-shadow:0 16px 30px -10px #b42318}.pg .btn.dg:disabled{opacity:.6;pointer-events:none}.mng{margin:28px 0 0;padding-top:22px;border-top:1px solid var(--ln)}.mng h3{margin:0;font:700 1.1rem/1.25 var(--hf);letter-spacing:-.01em}.mng .fine{margin:6px 0 14px}.row{display:flex;gap:12px;flex-wrap:wrap}.acard .row .btn,.row .btn{width:auto;flex:1 1 170px;margin-top:0}#dlg{border:0;border-radius:24px;padding:clamp(22px,4vw,32px);width:min(92vw,460px);box-shadow:0 40px 90px -30px rgba(12,23,41,.55);background:var(--wh);color:var(--ink);font:400 16px/1.5 var(--bf)}#dlg::backdrop{background:rgba(12,23,41,.55)}#dlg h3{margin:0 0 10px;font:700 1.35rem/1.2 var(--hf);letter-spacing:-.01em}#dlg p{margin:0 0 16px;color:var(--mut)}#dlg .msg{margin:0 0 16px}.ld[hidden],#steps[hidden]{display:none}</style>
 <link rel="stylesheet" href="css/spatial.css">
+<link rel="stylesheet" href="css/landing-workspace-cursor.css">
 </head>
 <body>
 <div class="pg" id="pg">
@@ -215,7 +216,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
 </footer>
 </div>
-<script src="js/cursor.js"></script>
+<script src="js/workspace-cursor.js" defer></script>
 <script type="module" src="js/waitlist-page.js"></script>
 <script src="js/nav-auth.js"></script>
 <script src="js/region-pricing.js" defer></script>

@@ -25,10 +25,10 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
 .lg{display:flex;align-items:center;gap:10px;font-size:23px}
 .hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
-.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;border-radius:99px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
+.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 22px;border-radius:8px;background:var(--ac);color:#fff;font:600 16px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
 .pg .btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--ac)}
-.pg .btn.sm{min-height:44px;padding:0 20px;font-size:15px}
-.pg .btn.gh{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ln)}.pg .btn.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pg .btn.sm{min-height:38px;padding:0 16px;font-size:13.5px;border-radius:7px}
+.pg .btn.gh{background:#fff;color:var(--ink);border:1px solid var(--ln);box-shadow:0 1px 2px rgba(16,24,40,.04)}.pg .btn.gh:hover{background:#f8fafc;border-color:#c8d3e2;color:var(--ink)}
 .hw{position:relative}
 .hw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--ln) 1px,transparent 1px),linear-gradient(90deg,var(--ln) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%);opacity:.7}
 .hero{position:relative;padding-top:40px;padding-bottom:56px}
@@ -78,6 +78,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 @media print{.gl,.rg,.hd,.toc,.ft,.alsoread{display:none!important}.pg{background:#fff}.hw::before{display:none}.doc{border:0;padding:0}}
 </style>
 <link rel="stylesheet" href="css/spatial.css">
+<link rel="stylesheet" href="css/landing-workspace-cursor.css">
 </head>
 <body>
 <div class="pg" id="pg">
@@ -210,7 +211,7 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
 </footer>
 </div>
-<script src="js/cursor.js"></script>
+<script src="js/workspace-cursor.js" defer></script>
 <script type="module" src="js/waitlist-buttons.js"></script>
 <script src="js/nav-auth.js"></script>
 </body>

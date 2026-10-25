@@ -177,30 +177,7 @@ function settingsPage() {
   const canAuthorize=!a.subscription||['created','cancelled','expired'].includes(a.subscription.status);
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
-  const billingIdentityPanel=`<section class="panel">${panelHeader('payments','Billing verification',proof.verified?'Verified for paid checkout':'Required before your first paid subscription')}
-    <div class="settings-content billing-verify-content">
-      <p class="billing-verify-status ${proof.verified?'is-verified':''}" role="status">${proof.verified?'✓ Phone confirmed':'Phone confirmation pending'} · ${esc(countryLabel)} (${esc(a.currency)})${proof.verified?' · '+esc(proof.phoneMasked):''}</p>
-      <p class="muted">Your verified number controls workspace access and your saved billing edition. To authorize a subscription, confirm that your business is based in ${esc(countryLabel)} and verify a phone number. A dial code alone does not prove a business location.</p>
-      ${!proof.providerReady?'<p class="form-error">Phone verification is not yet configured on this server. The trial is still available. Contact support before paying.</p>':''}
-      ${proof.mode==='development'?'<p class="billing-dev-tip">Local development only: no text message is sent. Enter the test code <strong>000000</strong> after requesting a code.</p>':''}
-      <form id="billing-phone-start" class="billing-verify-form">
-        <label class="field">Phone number for verification
-          <input name="phone" type="tel" autocomplete="tel" placeholder="${phonePlaceholder(a.country)}" maxlength="40" required ${!proof.providerReady?'disabled':''}>
-        </label>
-        <label class="billing-declaration"><input type="checkbox" name="confirmCountry" required ${!proof.providerReady?'disabled':''}>
-          I confirm that my business billing country is ${esc(countryLabel)} and that I control this phone number.</label>
-        <button type="submit" class="button secondary" ${!proof.providerReady?'disabled':''}>${proof.verified?'Verify a different phone':'Send verification code'}</button>
-      </form>
-      ${proof.pending?`<form id="billing-phone-check" class="billing-verify-form">
-        <p class="muted">Enter the code sent to your phone. Codes expire in 10 minutes. Request another only after 90 seconds.</p>
-        <label class="field">One-time code
-          <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" required placeholder="6-digit code">
-        </label>
-        <button type="submit" class="button primary">Confirm phone</button>
-      </form>`:''}
-      <p class="muted">Enter a local number without the country code, or the full international number. Using a different-country number? Contact <a href="mailto:cerium.founders@gmail.com?subject=Billing%20country%20review">CERIUM support</a> for a manual review. Existing accounts are never repriced just for travelling.</p>
-    </div>
-  </section>`;
+
   return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <div class="settings-content"><p class="billing-verify-status ${a.businessProfile?.complete?'is-verified':''}">${a.businessProfile?.complete?'✓ Required business setup complete':'Business setup needs completion'}</p>
     ${a.businessProfile?.complete?`<p class="muted">${esc(a.businessProfile.businessEmail)}<br>${esc([a.businessProfile.businessAddress,a.businessProfile.businessCity,a.businessProfile.businessPostalCode].filter(Boolean).join(', '))}</p>`:''}
@@ -220,14 +197,14 @@ function settingsPage() {
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
   <div class="settings-actions"><button type="submit" class="button primary">Save changes</button></div></form>
-  </section><div class="settings-stack">${billingIdentityPanel}<section class="panel">
+  </section><div class="settings-stack"><section class="panel">
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
     <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
-    ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration above to unlock the recurring payment authorization button.</p>':''}
-    ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
+    ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
+    ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
     <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON.</p>
