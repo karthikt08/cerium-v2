@@ -4,7 +4,7 @@ The interface should read as a small-business work tool: readable records, clear
 
 - Use warm white backgrounds, white work surfaces, fine neutral borders and a restrained blue for actions and current selection.
 - Keep Figtree, the separate logo + full CERIUM wordmark, the brand blinker and the existing cursor behavior. Respect reduced-motion preferences.
-- Prefer task-specific headings and factual explanations. Avoid unsupported customer quotations, popularity labels, vague motivational UI copy and decorative success claims.
+- Prefer task-specific headings and factual explanations. Avoid unsupported customer quotations, popularity labels, vague motivational UI copy and decorative success claims. Save status belongs to the actual request state, not static page copy.
 - Use a compact summary strip for dashboard totals. On phones, show two readable columns. Hidden workspace modules must not reserve empty slots.
 - Keep empty states short and aligned with the records around them. Do not turn a missing record into a large promotional card.
 - Keep links visibly underlined and form controls clearly bounded. Preserve native dropdown padding, focus rings, validation messages and disabled states.
