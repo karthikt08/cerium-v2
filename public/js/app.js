@@ -1,5 +1,6 @@
 import API from './api.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
+import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer} from './workspace-customizer.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
 import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency} from './countries.js';
@@ -66,6 +67,7 @@ async function refresh() {
 }
 function renderChrome() {
   const a=state.ws.account,m=metrics(state.ws);
+  customizeBusinessNavigation(document,a.workspacePreferences?.modules);
   $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1);
   $('user-avatar').textContent=initials(a.name); $('user-avatar').setAttribute('aria-label',`Account settings for ${a.name || 'your account'}`);
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
@@ -187,7 +189,7 @@ function settingsPage() {
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
 
-  return pageHeading(...SECTIONS.settings)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
+  return pageHeading(...SECTIONS.settings)+renderWorkspaceCustomizer(a.workspacePreferences)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <div class="settings-content settings-section-border">
     <div class="business-profile-summary">
       <div class="business-summary-header">
@@ -486,4 +488,5 @@ async function initialize() {
   }
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
+wireWorkspaceCustomizer({api:API,refresh,toast,getTrade:()=>state.ws?.account?.trade});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
