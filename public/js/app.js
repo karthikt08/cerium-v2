@@ -469,7 +469,13 @@ async function initialize() {
     }
     await refresh();$('workspace').hidden=false;
   }
-  catch(err){$('workspace').hidden=false;setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
+  catch(err){
+    $('workspace').hidden=true;
+    let panel=$('workspace-entry-error');
+    if(!panel){panel=document.createElement('main');panel.id='workspace-entry-error';panel.className='business-setup-preview';document.body.append(panel);}
+    panel.innerHTML=`<h1>We couldn’t check your setup</h1><p>${esc(err.message||'Check your connection and try again.')}</p><button type="button" class="button primary" id="retry-workspace-entry">Try again</button>`;
+    $('retry-workspace-entry').addEventListener('click',()=>{panel.remove();initialize();});
+  }
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();

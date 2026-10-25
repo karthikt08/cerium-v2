@@ -129,7 +129,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     try{
       if(screen==='review'){await api.completeBusinessSetup(el('biz-confirm').checked);await onComplete();return;}
       const fields={};for(const key of BUSINESS_SETUP_FIELDS[screen])if(!form.elements[key].disabled)fields[key]=form.elements[key].value;
-      setup=await api.saveBusinessSetupStep(screen,fields);screen=setup.step;render(true);
+      setup=await api.saveBusinessSetupStep(screen,fields);screen=setup.step;el('biz-confirm').checked=false;render(true);
     }catch(err){errors(err);}finally{busy=false;render();}
   });
   return {show(state,proof={}){setup=state;identity=proof;screen=state.step;if(initializedCountry!==state.country)populate();root.hidden=false;form.hidden=false;render();},hide(){root.hidden=true;}};
