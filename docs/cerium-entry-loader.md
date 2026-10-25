@@ -1,19 +1,34 @@
-# CERIUM entrance media
+# CERIUM HTML/CSS entrance
 
-The workspace entrance uses `/media/cerium-entry.mp4` when it is available.
-If this file is missing, unsupported or blocked, the loading screen gracefully
-falls back to the existing CERIUM wordmark instead of breaking sign-in.
+The sign-in success transition (`public/enter.html`) and protected workspace
+(`public/app.html`) now use the same **HTML + CSS + inline SVG** entrance.
 
-For local development, copy the optimized file supplied with the feature into:
+There is no MP4 file or image dependency. A metallic blue CERIUM C mark forms,
+the ERIUM wordmark reveals letter by letter, and a blue square appears with a
+soft shadow and subtle shine. The animation is CSS-only; JavaScript handles
+workspace readiness, Skip intro, safe redirect destinations and a timeout
+fallback.
 
-    public/media/cerium-entry.mp4
+## Behavior
 
-The source is the user's logo_animation.mp4; the optimized version is muted,
-960×540, 24 fps, with its opening logo reveal preserved. The page plays it
-at 2× speed and permits skipping. It does not delay the workspace beyond the
-minimum visible introduction when startup is otherwise fast.
+- Email/password sign-in, account creation, and successful Google OAuth land on
+  `/enter.html` before the protected workspace.
+- Visiting `/app.html` directly shows the same animation while authentication,
+  mandatory onboarding and workspace API state are checked.
+- The `ceriumIntro=done` query marker is removed immediately to prevent a
+  duplicate replay after the sign-in transition; no browser storage is used.
+- If the user prefers reduced motion, the logo appears immediately, without
+  animated transitions.
+- The intro lasts up to roughly 2.9 seconds when startup succeeds quickly. The
+  Skip control dismisses it when the workspace is ready, without bypassing
+  account checks.
+- Internal workspace navigation never replays the entrance.
 
-After installing the file locally, the media can be committed with
-`git add public/media/cerium-entry.mp4` and a normal Git commit.
+## Development
 
-Do not require the video asset for authentication, billing, or API access.
+No asset copying, video conversion, autoplay permission, or extra dependencies
+are required. Pull the GitHub branch and run `npm run dev`.
+
+The animation appearance lives in `public/css/entry-loader.css`. Both HTML
+pages intentionally share the same markup, ensuring parity without any media
+files. The setup and redirect lifecycle live in `public/js/entry-loader.js`.
