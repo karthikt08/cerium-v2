@@ -91,11 +91,9 @@ export function buildConfig(env = process.env) {
     /^plan_[A-Za-z0-9]+$/.test(razorpayPlanId) &&
     razorpayWebhookSecret.length >= 16 && !PLACEHOLDER.test(razorpayWebhookSecret);
 
-  let priceCents = 2000;
-  if (get('PRICE_CENTS')) {
-    const pc = Number(get('PRICE_CENTS'));
-    if (Number.isInteger(pc) && pc > 0) priceCents = pc;
-  }
+  const priceCents = 2000;
+  if (get('PRICE_CENTS')&&Number(get('PRICE_CENTS'))!==priceCents)
+    problems.push('PRICE_CENTS must be 2000: the global plan costs USD 20/month.');
   // Separate country plans; the original USD default remains unchanged.
   const razorpayIndiaPlanId=get('RAZORPAY_IN_PLAN_ID');
   const indiaSubscriptionsConfigured=razorpayConfigured &&
@@ -103,7 +101,7 @@ export function buildConfig(env = process.env) {
     razorpayWebhookSecret.length>=16&&!PLACEHOLDER.test(razorpayWebhookSecret);
   const priceInPaise=50000; // Rs 500/month founding-customer plan, excluding applicable tax
   const currency = get('CURRENCY') || 'USD';
-  if(currency!=='USD')problems.push('CERIUM US edition requires CURRENCY=USD. Never silently relabel existing amounts.');
+  if(currency!=='USD')problems.push('CERIUM global edition requires CURRENCY=USD. Never silently relabel existing amounts.');
 
   if (!razorpayConfigured) {
     warnings.push('Razorpay credentials are missing. Recurring billing is disabled; no simulation payments are available.');
@@ -120,7 +118,7 @@ export function buildConfig(env = process.env) {
   if(isProd&&!regionEnforced)problems.push('CERIUM production must enforce region access.');
   const geoIpApiKey=get('GEOIP_API_KEY');
   if(regionEnforced&&(geoIpApiKey.length<12||PLACEHOLDER.test(geoIpApiKey)))
-    problems.push('GEOIP_API_KEY is required for server-side US/India region and VPN checks.');
+    problems.push('GEOIP_API_KEY is required for server-side region and VPN checks.');
 
   // Workspace entry policy: tests default off for backwards-compatible fixtures;
   // local development and production require phone verification BEFORE workspace.

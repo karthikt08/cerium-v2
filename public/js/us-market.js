@@ -28,7 +28,19 @@ export const US_TIME_ZONE_OPTIONS=Object.freeze(Object.entries(US_TIME_ZONES).ma
 export const validUsState=value=>value===''||Object.prototype.hasOwnProperty.call(US_STATES,value);
 export const validUsZip=value=>value===''||/^\d{5}(?:-\d{4})?$/.test(value);
 export const validUsTimeZone=value=>value===''||Object.prototype.hasOwnProperty.call(US_TIME_ZONES,value);
-const validBusinessTimeZone=value=>validUsTimeZone(value)||value==='Asia/Kolkata';
+export function validBusinessTimeZone(value){
+  if(typeof value!=='string'||value.length>80)return false;
+  if(value==='')return true;
+  try{new Intl.DateTimeFormat('en-US',{timeZone:value});return true;}catch{return false;}
+}
+export const TIME_ZONE_OPTIONS=Object.freeze(['UTC',...Intl.supportedValuesOf('timeZone')]
+  .map(value=>({value,label:value.replaceAll('_',' ')})));
+export function businessTimeZoneOptions(saved){
+  // ICU versions use different canonical aliases (e.g. Kathmandu/Katmandu).
+  // Keep a valid saved alias selectable so saving a profile never resets it.
+  return saved&&validBusinessTimeZone(saved)&&!TIME_ZONE_OPTIONS.some(x=>x.value===saved)
+    ?[{value:saved,label:saved.replaceAll('_',' ')},...TIME_ZONE_OPTIONS]:TIME_ZONE_OPTIONS;
+}
 // Store schedule times as wall-clock business-local values: never silently
 // reinterpret existing job startAt/endAt as UTC.
 export function businessLocalDate(timeZone,date=new Date()){
@@ -84,7 +96,7 @@ export function businessLocalToInstant(value,timeZone){
     return val('year')+'-'+val('month')+'-'+val('day')+'T'+val('hour')+':'+val('minute');
   };
   const matches=[];
-  for(let minutes=-840;minutes<=840;minutes+=30){
+  for(let minutes=-840;minutes<=840;minutes+=15){
     const instant=base+minutes*60000;
     if(match(new Date(instant))===value)matches.push(instant);
     if(matches.length>1)break;

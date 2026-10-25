@@ -1,37 +1,44 @@
 import API from './api.js';
+import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder} from './countries.js';
 
 const el=id=>document.getElementById(id);
 const msg=el('message'),start=el('start-form'),check=el('code-form'),
-  payment=el('mandate-panel'),phone=el('phone');
-let busy=false, mode='phone', candidate=null, details=null;
+  payment=el('mandate-panel'),phone=el('phone'),countrySelect=el('country');
+let busy=false, mode='phone', details=null, initialized=false;
+for(const country of COUNTRY_OPTIONS){
+  const option=document.createElement('option');
+  option.value=country.value;option.textContent=country.label+' (+'+country.callingCode+')';
+  countrySelect.append(option);
+}
 
 function setMessage(text,isError=false){
   msg.textContent=text;
   msg.classList.toggle('error',isError);
 }
-function detect(raw) {
-  const digits=String(raw||'').replace(/[\s().-]/g,'');
-  if(/^\+91[6-9][0-9]{9}$/.test(digits))return 'IN';
-  if(/^\+1[2-9][0-9]{9}$/.test(digits))return 'US';
-  return null;
-}
 function updatePreview(){
-  candidate=detect(phone.value);
-  const label=candidate==='IN'?'India · INR · 500 INR/month':candidate==='US'?'US · USD · $20/month':'Enter a valid +91 Indian mobile number or +1 US number.';
-  el('edition-preview').textContent=candidate?'Proposed edition: '+label:label;
-  el('country-confirm-text').textContent=candidate==='IN'
-    ?'I confirm my business is based in India and I control this mobile number.'
-    :candidate==='US'
-      ?'I confirm my business is based in the United States and I control this number (not Canada or another +1 territory).'
-      :'I confirm my business is based in the selected country and I control this number.';
+  const country=countrySelect.value;
+  el('edition-preview').textContent=validCountry(country)
+    ?countryName(country)+' · '+(country==='IN'?'₹500 INR/month':'$20 USD/month')+' after your 15-day trial.'
+    :'Select your country to see your monthly price.';
+  phone.placeholder=phonePlaceholder(country);
+  el('country-confirm-text').textContent='I confirm my business is based in '+
+    (validCountry(country)?countryName(country):'the selected country')+' and I control this number.';
   el('country-confirm').checked=false;
 }
 phone.addEventListener('input',updatePreview);
-function setBusy(on){busy=on;for(const b of document.querySelectorAll('button'))b.disabled=on;}
+countrySelect.addEventListener('change',updatePreview);
+function setBusy(on){
+  busy=on;for(const b of document.querySelectorAll('button'))b.disabled=on;
+  if(details?.verified&&!details.checkoutConfigured)el('mandate-button').disabled=true;
+}
 async function view(){
   const me=await API.getMe();
   if(!me.signedIn){location.replace('/login.html?returnTo='+encodeURIComponent('/app.html'));return;}
   details=await API.getBillingIdentity();
+  if(!initialized){
+    const country=details.pendingCountry||details.country;
+    countrySelect.value=validCountry(country)?country:'';updatePreview();initialized=true;
+  }
   mode=details.accessMode||'phone';
   if(details.workspaceUnlocked){location.replace('/app.html');return;}
   start.hidden=Boolean(details.verified);
@@ -43,7 +50,7 @@ async function view(){
       setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
     }else{
       el('mandate-button').disabled=false;
-      el('mandate-info').textContent=(details.country==='IN'?'India edition · INR 500/month':'US edition · $20/month')+
+      el('mandate-info').textContent=countryName(details.country)+' · '+(details.country==='IN'?'₹500 INR/month':'$20 USD/month')+
         '. Authorize the mandate now; the first monthly charge is scheduled after the remaining 15-day trial period.';
       setMessage('Phone confirmed. One final step: authorize your payment method.');
     }
@@ -59,8 +66,8 @@ async function view(){
 }
 start.addEventListener('submit',async e=>{
   e.preventDefault();if(busy)return;
-  const country=detect(phone.value);
-  if(!country){setMessage('Enter a supported Indian or US phone number first.',true);return;}
+  const country=countrySelect.value;
+  if(!validCountry(country)){setMessage('Select your business country first.',true);return;}
   if(!el('country-confirm').checked){setMessage('Confirm your actual business country first.',true);return;}
   setBusy(true);
   try{
@@ -76,7 +83,7 @@ check.addEventListener('submit',async e=>{
   setBusy(true);
   try{
     const out=await API.verifyBillingPhone(el('code').value.trim());
-    setMessage('Verified: '+(out.country==='IN'?'India · INR':'United States · USD')+'.');
+    setMessage('Verified: '+countryName(out.country)+' · '+out.currency+'.');
     await view();
   }catch(err){setMessage(err.message||'Unable to verify the code.',true)}
   finally{setBusy(false)}

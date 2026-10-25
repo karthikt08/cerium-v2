@@ -1,11 +1,11 @@
-# CERIUM regional launch: US and India
+# CERIUM worldwide access and regional pricing
 
 ## Customer-facing policy
 
-- New US workspaces: USD $20/month after an authorized 15-day trial.
+- New workspaces outside India: USD $20/month after an authorized 15-day trial.
 - New Indian workspaces: INR ₹500/month after an authorized 15-day trial.
-- Server-verified IP market chooses the *initial* plan; API callers cannot choose a cheaper plan.
-- New registrations from unsupported countries, detected VPN/proxy/Tor, or unverifiable IPs are restricted. IP intelligence is fallible; offer support for mistaken blocks.
+- Server-verified IP suggests the initial country. In production phone-first onboarding, the declared business country plus successful phone OTP pins the plan. Arbitrary browser currency or amount fields cannot choose the subscription price.
+- No country allowlist restricts signup. Unknown location and detected VPN/proxy/Tor signals remain subject to the existing network checks in IP-gated mode. Phone-first accounts are provisional until verified; IP is advisory in that flow. IP intelligence is fallible; offer support for mistaken blocks.
 - Public marketing pages, pricing, login and legal notices remain available to visitors worldwide, including waitlist access.
 - Existing users can sign in and use their original workspace while travelling or using privacy networks. Their stored country and currency never change based on a new connection.
 - The original subscription must be cancelled and reviewed before any legitimate business-country migration; historical financial values are never relabelled.
@@ -43,7 +43,7 @@
 For localhost, `REGION_ACCESS_MODE=off` is the default: localhost IPs cannot
 be geolocated, and your test account can still choose its edition manually.
 The **automated tests** use an injected stub GeoIP provider to simulate
-India, US, unsupported countries, VPNs, proxy headers and a failed provider.
+India, international countries, unknown country codes, VPNs, proxy headers and a failed provider.
 
 Run:
 
@@ -64,12 +64,14 @@ previewing ordinary localhost without a public IP and API key.
   per IP; provider failures are not cached. The raw IP is not sent to the browser.
 - Do not classify data-center, carrier or mobile IPs as VPNs just because they
   use such networks; only explicit provider VPN/proxy/Tor flags are blocked.
-- Existing accounts remain usable from abroad. New signups from flagged networks must contact support or register from a verified supported-market connection.
+- Existing accounts remain usable from abroad. In IP-gated mode, new signups from flagged networks must contact support or retry from a verifiable connection.
 - Do not promise 100% VPN detection; residential proxy traffic can evade
   IP intelligence and legitimate network privacy tools can be false positives.
-- This is a **launch gate**, not legal confirmation of US/Indian customer
+- This is an access check, not legal confirmation of a customer’s
   residence, payment method eligibility, tax domicile or export compliance.
 - Confirm provider data sharing and regional marketing conditions with legal
   counsel before production.
 
 Source: https://ipapi.is/developers.html
+
+For the country selector, national phone formats and provider coverage, see [global phone and pricing](global-phone-pricing.md).

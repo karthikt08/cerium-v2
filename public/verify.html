@@ -12,11 +12,14 @@
   <section class="verify-card" aria-labelledby="verify-title">
     <p class="eyebrow">PRIVATE WORKSPACE · ONE-TIME ONBOARDING</p>
     <h1 id="verify-title">Verify your phone to enter CERIUM.</h1>
-    <p class="intro">Confirm that you control an eligible Indian or US number. We will set your workspace's edition once the code is approved.</p>
+    <p class="intro">Choose your business country and verify your phone. India is ₹500/month; all other countries are $20 USD/month after your 15-day trial.</p>
     <p class="alert" id="message" role="status" aria-live="polite">Checking your account…</p>
     <form id="start-form" hidden>
-      <label for="phone">Your mobile number, including country code</label>
-      <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210 or +1 415 555 0123" maxlength="40" required>
+      <label for="country">Business country / phone country code</label>
+      <select id="country" name="country" autocomplete="country" required><option value="">Choose your country</option></select>
+      <label for="phone">Your mobile number</label>
+      <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="National number or +country code" maxlength="40" aria-describedby="phone-format-hint" required>
+      <p class="hint" id="phone-format-hint">You can enter your local number without the country code, or paste the full international number.</p>
       <div class="edition-preview" id="edition-preview" aria-live="polite">Type your number to see the available edition.</div>
       <label class="country-check"><input type="checkbox" id="country-confirm" required>
         <span id="country-confirm-text">I confirm this is my business billing country and I control this number.</span></label>
@@ -33,7 +36,7 @@
       <h2>Authorize your payment method to start the trial</h2>
       <p id="mandate-info" class="intro">Your first recurring payment is scheduled after your 15-day trial. Your recurring plan and price are displayed before you authorize; a small payment-method verification transaction may occur depending on the provider.</p>
       <button type="button" class="primary" id="mandate-button">Authorize secure recurring checkout</button>
-      <p class="hint">US: eligible cards. India: eligible cards or UPI AutoPay when Razorpay enables them. Any authorization transaction is handled by Razorpay.</p>
+      <p class="hint">Outside India: eligible international cards. India: eligible cards or UPI AutoPay. Payment methods and SMS delivery depend on provider availability in your country.</p>
     </section>
     <p class="footnote">Having trouble? <a href="mailto:cerium.founders@gmail.com?subject=CERIUM%20identity%20review">Request a manual review</a>. Your phone is used for verification, not advertising.</p>
   </section>

@@ -12,12 +12,12 @@
       const region=await response.json();
       country=region.country;
     }
-    if(!['US','IN'].includes(country))return; // Local anonymous preview uses default copy.
+    if(typeof country!=='string'||!/^[A-Z]{2}$/.test(country))return; // Local anonymous preview uses default copy.
     const monthly=country==='IN'?'₹500':'$20';
     for(const element of document.querySelectorAll('[data-region-price]'))
       element.textContent=monthly;
     for(const element of document.querySelectorAll('[data-region-description]'))
-      element.textContent=country==='IN'?'India edition · INR billing':'US edition · USD billing';
+      element.textContent=country==='IN'?'India edition · INR billing':'Global edition · USD billing';
   }catch {
     // Cosmetic only. No payment amount may come from browser content.
   }

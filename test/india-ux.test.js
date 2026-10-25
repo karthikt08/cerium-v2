@@ -31,7 +31,7 @@ test('Indian business forms do not demand US postal addresses',()=>{
     const source=read(file);
     assert.match(source,/Street, area, city, state, PIN/,file);
   }
-  assert.match(read('public/js/app.js'),/\+91 98765 43210/);
+  assert.match(read('public/js/countries.js'),/98765 43210/);
 });
 
 test('signed-in marketing page pricing uses stored workspace country',()=>{

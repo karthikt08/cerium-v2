@@ -11,7 +11,8 @@ import { ROOT } from './config.js';
 import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js';
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
-import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhone} from './billing-identity.js';
+import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
+import {validCountry,matchesBillingCurrency} from '../public/js/countries.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './trial-timing.js';
@@ -718,12 +719,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         message: 'Your 15-day trial has ended. Your records are still available to view and export. Activate Cerium Pro to add or change business records.',
       });
     }
-    // Legacy non-USD records must remain in their original denomination.
-    // Never allow new amounts to be created under that denomination in the
-    // dollar-only product. Account export and deliberate workspace clearing
-    // remain available outside this middleware.
-    if (!((workspace.account.country==='US'&&workspace.account.currency==='USD')||
-          (workspace.account.country==='IN'&&workspace.account.currency==='INR'))) {
+    // Preserve historical denominations. New business records must match the
+    // saved country's INR or USD edition; export remains available separately.
+    if (!matchesBillingCurrency(workspace.account.country,workspace.account.currency)) {
       return res.status(409).json({
         error: 'currency_review_required',
         message: 'This workspace contains older non-dollar records. Export them and contact support for a reviewed migration, or explicitly clear disposable test data in Settings.',
@@ -928,6 +926,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const saved=db.getBillingIdentity(req.session.userId);
     const user=db.getUserById(req.session.userId);
     const verified=db.billingEligible(req.session.userId);
+    const pending=Boolean(saved?.pending_phone && saved.pending_expires_at>Date.now());
     res.json({
       country:user.country,currency:user.currency,verified,
       accessMode:config.workspaceAccessMode,
@@ -936,7 +935,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       checkoutConfigured:Boolean(user.country==='IN'?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured),
       countryAttested:verified,
       phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
-      pending:Boolean(saved?.pending_phone && saved.pending_expires_at>Date.now()),
+      pending,pendingCountry:pending?saved.pending_country:null,
       providerReady:Boolean(phones.ready),
       mode:phones.mode==='development'?'development':phones.ready?'sms':'unavailable',
       // Dial prefixes identify phone routing only, not residency or incorporation.
@@ -946,11 +945,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   api.post('/billing/identity/start',authLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
     res.setHeader('Cache-Control','no-store');
-    const country=editionFromPhone(req.body?.phone);
-    if(!country)return res.status(400).json({error:'phone_invalid',message:'Enter a valid +91 Indian mobile or +1 US number. Other numbering plans require manual review.'});
-    if(req.body?.confirmCountry!==true || req.body?.declaredCountry!==country)
-      return res.status(400).json({error:'country_confirmation_required',message:'Confirm that your business is based in the country suggested by your phone prefix. Phone ownership alone is not proof.'});
-    const phone=normalizeBillingPhone(req.body.phone,country);
+    const country=req.body?.declaredCountry;
+    if(req.body?.confirmCountry!==true || !validCountry(country))
+      return res.status(400).json({error:'country_confirmation_required',message:'Select and confirm the country where your business is based.'});
+    const phone=normalizeBillingPhone(req.body?.phone,country);
+    if(!phone)return res.status(400).json({error:'phone_invalid',message:'Enter a valid phone number for the selected country. National format or the full international number is accepted. Check the country selection if the number is from elsewhere.'});
     if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone verification is not available yet. Your free trial is unaffected; contact support.'});
     const claimed=db.beginBillingPhone(req.session.userId,phone,country);
     if(!claimed.ok){
@@ -991,8 +990,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
     const user = db.getUserById(req.session.userId);
     const indian=user.country==='IN'&&user.currency==='INR';
-    const american=user.country==='US'&&user.currency==='USD';
-    if(!indian&&!american)
+    const international=user.country!=='IN'&&matchesBillingCurrency(user.country,user.currency);
+    if(!indian&&!international)
       return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
     const billingPlanId=indian?config.razorpayIndiaPlanId:config.razorpayPlanId;
     const billingAmount=indian?config.priceInPaise:config.priceCents;
@@ -1048,7 +1047,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       const created = await rzp.createSubscription({
         planId: billingPlanId, startAt,
         expireBy:firstTrial?schedule.expireBy:undefined,
-        notes: { userId: user.id, edition: indian?'IN':'US' }
+        notes: { userId: user.id, edition: indian?'IN':'GLOBAL',country:user.country }
       });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       if(config.workspaceAccessMode==='phone_and_mandate' &&
@@ -1128,8 +1127,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.get('/billing/status', requireSession, (req, res) => {
     const ws = db.getWorkspace(req.session.userId);
     const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
-    const american=ws?.account.country==='US'&&ws?.account.currency==='USD';
-    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian&&config.indiaSubscriptionsConfigured)||(american&&config.subscriptionsConfigured))&&phones.ready&&db.billingEligible(req.session.userId)),billingIdentityVerified:db.billingEligible(req.session.userId) });
+    const international=ws?.account.country!=='IN'&&matchesBillingCurrency(ws?.account.country,ws?.account.currency);
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:indian?config.priceInPaise/100:config.priceCents/100,currency:indian?'INR':'USD',subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian&&config.indiaSubscriptionsConfigured)||(international&&config.subscriptionsConfigured))&&phones.ready&&db.billingEligible(req.session.userId)),billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.

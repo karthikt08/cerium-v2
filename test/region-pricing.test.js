@@ -15,10 +15,11 @@ const runFor=async(raw,fn)=>{
   try{await fn(t,t.browser());}finally{await t.close();}
 };
 
-test('country selection is US/USD or India/INR, rejecting elsewhere and incomplete network data',()=>{
+test('country selection is global/USD or India/INR, rejecting incomplete network data',()=>{
   assert.deepEqual(decideRegion(fixture('US')),{ok:true,country:'US',currency:'USD',monthlyPrice:20,minorUnits:2000});
   assert.deepEqual(decideRegion(fixture('IN')),{ok:true,country:'IN',currency:'INR',monthlyPrice:500,minorUnits:50000});
-  assert.deepEqual(decideRegion(fixture('FR')),{ok:false,status:403,reason:'country_unavailable'});
+  assert.deepEqual(decideRegion(fixture('FR')),{ok:true,country:'FR',currency:'USD',monthlyPrice:20,minorUnits:2000});
+  assert.deepEqual(decideRegion(fixture('XX')),{ok:false,status:503,reason:'unverified'});
   assert.deepEqual(decideRegion(fixture('US',{is_vpn:true})),{ok:false,status:403,reason:'anonymous_network'});
   assert.deepEqual(decideRegion(fixture('US',{is_proxy:true})),{ok:false,status:403,reason:'anonymous_network'});
   assert.deepEqual(decideRegion(fixture('IN',{is_tor:true})),{ok:false,status:403,reason:'anonymous_network'});
@@ -90,9 +91,9 @@ test('India Google signup immediately creates INR workspace and INR 500 pricing'
   });
 });
 
-test('unsupported or anonymous visitor can see public pages but cannot register',async()=>{
+test('unverified or anonymous visitor can see public pages but cannot register',async()=>{
   for(const [raw,reason] of [
-    [fixture('FR'),'country_unavailable'],
+    [fixture('XX'),'unverified'],
     [fixture('US',{is_vpn:true}),'anonymous_network'],
     [{location:null,is_vpn:false,is_proxy:false,is_tor:false},'unverified'],
   ]){

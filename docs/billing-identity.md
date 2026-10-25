@@ -1,9 +1,9 @@
-# CERIUM verified-phone onboarding and regional checkout (pilot)
+# CERIUM verified-phone onboarding and worldwide checkout
 
 ## Production trial security — payment first
 Before CERIUM starts any new free trial in production:
 1. User signs in and receives an OTP on an eligible mobile phone.
-2. CERIUM saves the verified number and pins its India/US edition (after the
+2. CERIUM saves the verified number and pins its India/INR or global/USD edition (after the
    customer separately declares their actual business billing country).
 3. Razorpay's hosted checkout requests authorization for a recurring
    subscription. CERIUM never collects PAN, CVV, bank OTP or UPI PIN.
@@ -23,9 +23,11 @@ Before CERIUM starts any new free trial in production:
 **Production enforces WORKSPACE_ACCESS_MODE=phone_and_mandate.** Using
 `phone` or `off` in production will fail configuration validation. Your
 localhost sandbox can explicitly choose `phone` for non-payment UI testing.
-Live deployment still requires active Razorpay India/US recurring
-plans, credentials, verified webhooks and the payment methods enabled by the
-merchant provider. Without these, checkout fails CLOSED; never fake approval.
+Live deployment still requires active Razorpay INR/USD recurring
+plans, credentials, verified webhooks, international card subscriptions and the
+payment methods enabled by the merchant provider. Twilio Verify geographic
+permissions and delivery coverage also apply; selecting a country in CERIUM
+does not enable it in the provider account. Without these, checkout fails CLOSED; never fake approval.
 
 **Anti-abuse:** one ACTIVE account per verified phone, persistent SMS rate
 limits, no new trial on a repeat login to the same account, signed checkout
@@ -45,9 +47,12 @@ bypass the server gate. The access screen is `/verify.html`.
 
 1. Sign in with Google or email. A provisional account exists but workspace
    access and write endpoints stay blocked.
-2. Enter an E.164 phone number. The server recognizes eligible `+91` Indian
-   mobile numbers as India/INR (₹500/month) or `+1` numbers as US/USD
-   ($20/month). **The customer also declares their business country.**
+2. Select the business country from the country/calling-code selector. Enter
+   a national-format number (US `4155550123`, India `9876543210`, France
+   `06 12 34 56 78`) or a full international number. The server parses it with
+   `libphonenumber-js/max`, validates it against the selected calling code and
+   stores canonical E.164. India is INR ₹500/month; all other countries are
+   USD $20/month. **The customer also declares their business country.**
 3. Receive SMS OTP (or local test code). The edition becomes permanent when
    verification succeeds; if there is existing priced history or a subscription,
    a conflicting edition requires manual review. Browser changes never relabel
@@ -56,7 +61,7 @@ bypass the server gate. The access screen is `/verify.html`.
    15-day trial and unlocks the app.
 5. Optional `WORKSPACE_ACCESS_MODE=phone_and_mandate` additionally requires
    confirmed Razorpay subscription authorization before workspace entry.
-   India can use available UPI AutoPay or cards; US can use an eligible card.
+   India can use available UPI AutoPay or cards; other countries can use eligible international cards.
    The subscription start date is scheduled 15 days plus the one-hour
    authorization window from creation. New customers receive at least
    15 full days after authorization, with an exact UTC trial end matching the
@@ -66,8 +71,10 @@ bypass the server gate. The access screen is `/verify.html`.
    eligibility. Enable this mode only after live/test payment checkout works.
 
 A phone's country code is **not proof of legal residency or registration**.
-`+1` includes Canada and other NANP territories; roaming and virtual numbers
-exist. This confirms number possession and captures the business declaration,
+`+1` includes Canada and other NANP territories; other shared calling plans
+also exist. CERIUM preserves the selected country instead of assuming that
+`+1` means US. Shared-plan numbers still require the explicit declaration.
+Roaming and virtual numbers exist. This confirms number possession and captures the business declaration,
 not an independently verified jurisdiction. Handle legitimate exceptions through
 support review. Verified returning customers keep their saved edition when
 travelling or using VPNs.
@@ -83,10 +90,10 @@ PHONE_VERIFY_MODE=development
 ```
 Run `npm test`, then `npm start`. Sign in and visit
 `http://localhost:3000/app.html`. You will be redirected to
-`/verify.html`. Enter a fresh Indian or US test-format number, tick the
+`/verify.html`. Choose a country and enter a fresh test-format number, tick the
 corresponding business-country declaration, and send a code. In loopback
 development mode no SMS is sent; enter **000000**. Your verified phone decides
-the account's edition and the trial starts when the workspace is first unlocked.
+the account's edition together with the declaration, and the trial starts when the workspace is first unlocked.
 
 For `phone_and_mandate`, valid Razorpay test-mode keys, an appropriate
 region-specific recurring plan and webhook handling are needed. There is NO
@@ -125,7 +132,7 @@ by CERIUM.
 - `GET /api/me`: session and CSRF token, allowed before verification.
 - `GET /api/billing/identity`: self-owned masked verification state.
 - `POST /api/billing/identity/start`: request SMS; requires phone,
-  declaredCountry matching dial-prefix candidate, and confirmCountry=true.
+  declaredCountry matching the phone calling code, and confirmCountry=true. National numbers are interpreted using declaredCountry.
 - `POST /api/billing/identity/verify`: verify OTP; atomically set edition.
 - `POST /api/billing/subscription`: create eligible Razorpay mandate.
 - `GET /api/workspace` and other business APIs: gated until requirements

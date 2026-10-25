@@ -42,7 +42,7 @@ For normal daytime local-service appointments, select the correct business zone.
 
 - New US workspaces default to US/ **USD**, using familiar dollars and
   month/day date presentation.
-- Editing a profile rejects non-US country or non-USD currency settings.
+- US profiles retain US state, ZIP and time-zone validation. Country selection now supports worldwide accounts; India uses INR and every other country uses USD. Existing financial history still prevents automatic country/currency changes.
 - \`CURRENCY\` environment configuration must be \`USD\`.
 - **No amounts, historical invoices, paid records, or quotes are converted.**
   Existing accounts with priced invoices, quotes, jobs, deposits, payments or

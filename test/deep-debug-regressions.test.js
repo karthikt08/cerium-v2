@@ -107,7 +107,7 @@ test('quote customer email survives conversion and quote deletion before job com
 
 test('case and trailing-slash signup aliases cannot skip enforced region checks',async()=>{
   const t=await startServer({env:{REGION_ACCESS_MODE:'enforce',GEOIP_API_KEY:'test-geo-key-123456'},
-    regionLookup:async()=>({location:{country_code:'FR'},is_vpn:false,is_proxy:false,is_tor:false})});
+    regionLookup:async()=>({location:{country_code:'FR'},is_vpn:true,is_proxy:false,is_tor:false})});
   try{
     for(const path of ['/auth/register/','/auth/REGISTER','/AUTH/register']){
       const r=await t.browser().req(path,{method:'POST',json:{name:'Visitor',email:'visitor@example.com',password:'Password123'}});
