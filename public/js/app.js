@@ -12,6 +12,7 @@ import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import {openLeadImport} from './spreadsheet-import-ui.js';
 import {openInvoicePrint} from './invoice-print.js';
+import {mountGuideAssistant} from './guide-assistant.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
@@ -560,4 +561,5 @@ async function initialize() {
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 wireWorkspaceCustomizer({api:API,refresh,toast,getTrade:()=>state.ws?.account?.trade});
+mountGuideAssistant({api:API,getSection:()=>state.section});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
