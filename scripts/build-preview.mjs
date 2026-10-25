@@ -14,21 +14,38 @@ function demoAdapter() {
   };
   const ws = {
     account: {
-      name: 'Alex Morgan', businessName: 'Northstar Contracting', email: 'alex@example.test',
-      phone: '555-0100', location: 'Austin, TX', trade: 'General contracting', currency: 'USD',
-      country:'US',timeZone:'America/Chicago',regionLocked:true,
+      name: '', businessName: '', email: '',
+      phone: '', location: '', trade: '', currency: 'USD',
+      country:'US',timeZone:'',usState:'',usZip:'',regionLocked:true,
       plan: 'trial', planStatus: 'trial', trialDaysRemaining: 15, googlePlaceUrl: '',
     },
     leads: [], followUps: [], invoices: [], reviews: [], bankTransactions: [], messages: [],jobs:[],crew:[],quotes:[],reminders:[],
   };
   let sequence = 10, invoiceNumber = 1000;
   const clone = value => JSON.parse(JSON.stringify(value));
+  const setupKey='cerium_preview_business_setup_v1';
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem(setupKey)||'{}');}catch{throw new Error('Saved setup could not be read. Check browser storage permissions.');}
+  let country=validCountry(saved.country)?saved.country:'US',profile=saved.profile||null;
+  const complete=()=>{try{return Boolean(profile?.completedAt&&validateBusinessProfile(profile,country));}catch{return false;}};
+  let setup=saved.setup?.draft?.country===country&&businessSetupSteps(country).includes(saved.setup.step)?saved.setup:{step:'basics',draft:{country,name:'',businessName:'',businessEmail:'',timeZone:country==='IN'?'Asia/Kolkata':''}};
+  const persist=()=>{
+    try{localStorage.setItem(setupKey,JSON.stringify({country,profile,setup}));}
+    catch{throw new Error('Business setup could not be saved. Enable browser storage and retry.');}
+  };
+  const applyProfile=()=>{
+    ws.account.country=country;ws.account.currency=country==='IN'?'INR':'USD';
+    if(complete())Object.assign(ws.account,profile,{email:profile.businessEmail,usZip:country==='US'?profile.businessPostalCode:'',location:profile.businessCity,businessProfile:{...profile,complete:true}});
+  };
+  const requireSetup=()=>{if(!complete())throw new Error('Complete required business setup before using the workspace.');};
+  applyProfile();
   const record = (key, id) => {
     const value = ws[key].find(row => String(row.id) === String(id));
     if (!value) throw new Error('This demo record is no longer available.');
     return value;
   };
   const create = (key, payload) => {
+    requireSetup();
     const value = { id: `DEMO-${++sequence}`, createdAt: day(0), ...payload };
     ws[key].unshift(value);
     return clone(value);
@@ -38,8 +55,26 @@ function demoAdapter() {
   const nextDue = terms => day(terms === 'Due on receipt' ? 0 : Number(/\d+/.exec(terms)?.[0] || 15));
   const unavailable = async message => { throw new Error(message); };
   const api = {
+    localBusinessSetup:true,
+    async getBusinessSetup(){return clone({...setup,country,complete:complete(),countryEditable:!complete()});},
+    async selectBusinessSetupCountry(value){
+      if(complete()||!validCountry(value))throw new Error('Choose a supported country before completing setup.');
+      const before={country,setup};country=value;setup={step:'basics',draft:{...setup.draft,country,usState:'',indiaState:'',gstin:'',gstRegistration:'',timeZone:country==='IN'?'Asia/Kolkata':''}};
+      try{persist();}catch(err){country=before.country;setup=before.setup;throw err;}
+      applyProfile();return api.getBusinessSetup();
+    },
+    async saveBusinessSetupStep(step,fields){
+      const before=setup;setup=advanceBusinessSetup(setup,step,fields,country);
+      try{persist();}catch(err){setup=before;throw err;}return api.getBusinessSetup();
+    },
+    async completeBusinessSetup(confirmed){
+      if(setup.step!=='review'||confirmed!==true)throw new Error('Finish each step and confirm your business details.');
+      const validated=validateBusinessProfile(setup.draft,country),before=profile;
+      profile={...validated,completedAt:profile?.completedAt||Date.now()};
+      try{persist();}catch(err){profile=before;throw err;}applyProfile();return {ok:true};
+    },
     async getMe() { return { signedIn:true }; },
-    async getWorkspace() { return clone(ws); },
+    async getWorkspace() { requireSetup();return clone(ws); },
     async getBillingIdentity() { return {verified:false,providerReady:false}; },
     async createLead(payload) {
       const lead = create('leads', { phone:'',email:'',address:'',source:'Direct',stage:'New',value:0,notes:'',nextFollowUp:day(0),...payload });
@@ -89,20 +124,6 @@ function demoAdapter() {
     'createQuote','updateQuote','deleteQuote','sendQuote','quoteLink','convertQuote','createReminder','cancelReminder',
     'getBillingStatus','startBillingPhone','verifyBillingPhone','cancelSubscription','toggleBankConnection'])
     api[name]=()=>unavailable('This action requires the connected CERIUM app.');
-  for (const [name,stage,source,value,notes,due] of [
-    ['Olivia Ellis','New','Website Form',2400,'Kitchen cabinet refinishing',0],
-    ['James Cooper','Quoted','Referral',1250,'Bathroom tile repair',0],
-    ['Sophia Bennett','Booked','Google Search',3600,'Exterior painting',2],
-    ['Ethan Parker','New','Google Maps',850,'Deck maintenance',0],
-    ['Avery Brooks','Done','Repeat Customer',1820,'Drywall finishing',-3],
-  ]) api.createLead({name,stage,source,value,notes,phone:'555-0101',email:name.split(' ')[0].toLowerCase()+'@example.test',nextFollowUp:day(due),createReminder:stage!=='Done'&&stage!=='Booked'});
-  for(const [customerName,amount,jobTitle,status,due] of [
-    ['Olivia Ellis',2400,'Cabinet refinishing','Sent',3],
-    ['James Cooper',1250,'Bathroom finishing','Overdue',-4],
-    ['Sophia Bennett',3600,'Exterior painting','Sent',8],
-    ['Avery Brooks',1820,'Drywall finishing','Paid',-1],
-  ]) api.createInvoice({customerName,amount,jobTitle,status,dueDate:day(due)});
-  api.createReviewRequest({customerName:'Isla Turner',jobTitle:'Garden fence installation',customerEmail:'isla@example.test'});
   window.CeriumBilling={startSubscriptionCheckout:()=>unavailable('Billing is unavailable in the demo. No payments are collected.')};
   return api;
 }
@@ -113,7 +134,7 @@ let html = await read('public/app.html');
 const modules=new Map();
 async function embedModule(file){
   if(modules.has(file))return modules.get(file);
-  let source=file==='api.js'?`const API=(${demoAdapter.toString()})();export default API;`:await read('public/js/'+file);
+  let source=file==='api.js'?`import {businessSetupSteps,advanceBusinessSetup,validateBusinessProfile} from './business-profile.js';import {validCountry} from './countries.js';const API=(${demoAdapter.toString()})();export default API;`:await read('public/js/'+file);
   for(const match of [...source.matchAll(/(?:import|export)\s[^;]*?\sfrom\s*['"]\.\/([^'"]+)['"]/g)]){
     const dependency=await embedModule(match[1]);
     source=source.replace(match[0],match[0].replace('./'+match[1],dependency));
