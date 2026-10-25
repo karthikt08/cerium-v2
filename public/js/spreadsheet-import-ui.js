@@ -65,8 +65,8 @@ export function openLeadImport({api,onComplete,readOnly=false,offline=false}){
     $('lead-import-results').innerHTML='<h3 class="import-subheading">Review import</h3>'+
       '<div class="import-stats"><span><strong>'+s.ready+'</strong> ready to add</span><span><strong>'+s.duplicates+'</strong> duplicates skipped</span><span><strong>'+s.invalid+'</strong> invalid rows skipped</span></div>'+
       '<p class="muted">Preview of the first '+s.samples.length+' rows. Reimporting the same file will skip matching email addresses, phone numbers, or name/address records. Imported leads will not automatically send messages, create reminders, or trigger reviews.</p>'+
-      '<div class="table-scroll" tabindex="0"><table class="data-table"><thead><tr><th scope="col">Row</th><th scope="col">Name</th><th scope="col">Result</th></tr></thead><tbody>'+
-      s.samples.map(item=>'<tr><td>'+item.row+'</td><td>'+esc(item.name||'—')+'</td><td>'+esc(item.reason||({ready:'Ready',duplicate:'Already exists',invalid:'Needs correction'}[item.status]||item.status))+'</td></tr>').join('')+
+      '<div class="table-scroll" tabindex="0"><table class="data-table"><thead><tr><th scope="col">Row</th><th scope="col">Name</th><th scope="col">Contact</th><th scope="col">Stage</th><th scope="col">Value</th><th scope="col">Result</th></tr></thead><tbody>'+
+      s.samples.map(item=>'<tr><td>'+item.row+'</td><td>'+esc(item.name||'—')+'</td><td>'+esc(item.contact||'—')+'</td><td>'+esc(item.stage||'—')+'</td><td>'+esc(item.value||'0')+'</td><td>'+esc(item.reason||({ready:'Ready',duplicate:'Already exists',invalid:'Needs correction'}[item.status]||item.status))+'</td></tr>').join('')+
       '</tbody></table></div>'+
       (s.errors.length?'<details class="import-errors"><summary>Show row errors ('+s.invalid+')</summary><ul>'+s.errors.map(item=>'<li>Row '+item.row+': '+esc(item.reason)+'</li>').join('')+'</ul></details>':'');
     submit.textContent='Import '+s.ready+' '+(s.ready===1?'lead':'leads');
@@ -94,7 +94,7 @@ export function openLeadImport({api,onComplete,readOnly=false,offline=false}){
   }
   $('lead-import-close').addEventListener('click',()=>{if(!busy)dialog.close();});
   $('lead-import-cancel').addEventListener('click',()=>{if(!busy)dialog.close();});
-  dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();},{once:true});
+  dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
   dialog.addEventListener('close',()=>{current=null;mapping=null;latest=null;requestNumber++;},{once:true});
   $('lead-import-file').addEventListener('change',async e=>{
     const file=e.target.files?.[0];
