@@ -1,0 +1,318 @@
+/* CERIUM wishing / greeting page — blends with software UI cards and typography */
+:root {
+  --w-bg: #f6f8fb;
+  --w-card: #ffffff;
+  --w-border: #dce5f2;
+  --w-accent: #4263eb;
+  --w-accent-hover: #3655d8;
+  --w-ink: #1a273e;
+  --w-mut: #5e6f88;
+  --w-subtle: #8997ac;
+}
+
+body.welcome-page {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 50% 0%, #edf3fe 0%, #f6f8fb 65%);
+  font-family: 'Instrument Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--w-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.welcome-container {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: welcome-card-in .28s cubic-bezier(.2,.86,.2,1) both;
+}
+
+.welcome-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.welcome-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--w-ink);
+}
+
+.welcome-brand-mark {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--w-border);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 5px rgba(22,38,70,.05);
+}
+
+.welcome-brand-mark img {
+  display: block;
+  border-radius: 6px;
+}
+
+.brand-period {
+  color: var(--w-accent);
+  margin-left: -1px;
+}
+
+.welcome-date-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--w-mut);
+  background: #ffffff99;
+  border: 1px solid var(--w-border);
+  padding: 5px 11px;
+  border-radius: 99px;
+}
+
+.welcome-card {
+  background: var(--w-card);
+  border: 1px solid var(--w-border);
+  border-radius: 20px;
+  box-shadow: 0 26px 80px rgba(22,38,70,.12), 0 4px 18px rgba(22,38,70,.04);
+  padding: 42px 46px;
+  box-sizing: border-box;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  background: #edf4fe;
+  color: #2b55b8;
+  border: 1px solid #d2e1fc;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 16px;
+}
+
+.welcome-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2cb67d;
+  box-shadow: 0 0 0 2px #2cb67d33;
+}
+
+.welcome-title {
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  color: var(--w-ink);
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+.welcome-subtitle {
+  font-size: 13.5px;
+  color: var(--w-mut);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.welcome-biz {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f4fa;
+  border: 1px solid #dfe6f2;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334764;
+  margin-bottom: 22px;
+}
+
+.welcome-quote-card {
+  background: #f8faff;
+  border: 1px solid #e1e9f6;
+  border-left: 4px solid var(--w-accent);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+
+.welcome-quote-tag {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--w-accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.welcome-quote-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #233550;
+  line-height: 1.65;
+  margin: 0 0 7px;
+  font-style: italic;
+}
+
+.welcome-quote-author {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--w-subtle);
+  font-style: normal;
+}
+
+.welcome-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  margin-bottom: 28px;
+}
+
+.welcome-pillar {
+  background: #fff;
+  border: 1px solid #e4ecf7;
+  border-radius: 11px;
+  padding: 12px 14px;
+}
+
+.welcome-pillar-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #273852;
+  margin-bottom: 4px;
+}
+
+.welcome-pillar-desc {
+  font-size: 11px;
+  color: #69788f;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.welcome-enter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--w-accent);
+  color: #ffffff;
+  border: 0;
+  border-radius: 11px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(66,99,235,.28);
+  cursor: pointer;
+  transition: background .16s, box-shadow .16s, transform .16s;
+}
+
+.welcome-enter-btn:hover {
+  background: var(--w-accent-hover);
+  box-shadow: 0 6px 22px rgba(66,99,235,.38);
+  transform: translateY(-1px);
+}
+
+.welcome-enter-btn .arrow-icon {
+  transition: transform .18s ease;
+}
+
+.welcome-enter-btn:hover .arrow-icon {
+  transform: translateX(3px);
+}
+
+.welcome-shortcuts {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--w-subtle);
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.welcome-shortcuts-label {
+  color: var(--w-subtle);
+}
+
+.welcome-shortcuts a {
+  color: var(--w-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.welcome-shortcuts a:hover {
+  text-decoration: underline;
+}
+
+.welcome-shortcuts .sep {
+  color: #c7d2e3;
+}
+
+.welcome-foot {
+  text-align: center;
+  font-size: 11px;
+  color: var(--w-subtle);
+  margin: 8px 0 0;
+}
+
+.welcome-foot kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font: 600 10px/1.3 system-ui, sans-serif;
+  color: #4b5d77;
+  background: #edf2f9;
+  border: 1px solid #d4deed;
+  border-radius: 4px;
+}
+
+@keyframes welcome-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .welcome-card { padding: 30px 22px; border-radius: 16px; }
+  .welcome-title { font-size: 23px; }
+  .welcome-pillars { grid-template-columns: 1fr; gap: 8px; }
+  .welcome-topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-container { animation: none; }
+  .welcome-enter-btn { transition: none; }
+  .welcome-enter-btn:hover { transform: none; }
+  .welcome-enter-btn .arrow-icon { transition: none; }
+}

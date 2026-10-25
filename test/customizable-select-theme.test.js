@@ -49,7 +49,8 @@ test('every user-facing page includes controls.css so dropdowns are styled consi
     'privacy.html',
     'terms.html',
     'about.html',
-    'waitlist.html'
+    'waitlist.html',
+    'welcome.html'
   ];
   for(const page of pages){
     const html=readPublic(page);

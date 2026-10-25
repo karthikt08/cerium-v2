@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to CERIUM</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/workspace.css">
+<link rel="stylesheet" href="css/brand-motion.css">
+<link rel="stylesheet" href="css/controls.css">
+<link rel="stylesheet" href="css/welcome.css">
+</head>
+<body class="welcome-page">
+<div class="welcome-container">
+  <header class="welcome-topbar">
+    <div class="welcome-brand">
+      <span class="welcome-brand-mark"><img src="img/cerium-logo-mark-blue.png" width="22" height="24" alt="CERIUM"></span>
+      <span>CERIUM<span class="brand-period">.</span></span>
+    </div>
+    <div class="welcome-date-chip" id="welcome-date">Today</div>
+  </header>
+
+  <main class="welcome-card" aria-label="Welcome and daily motivation">
+    <div class="welcome-badge">
+      <span class="welcome-badge-dot"></span>
+      <span id="welcome-badge-text">Daily Greeting</span>
+    </div>
+
+    <h1 class="welcome-title" id="welcome-title">Good day! 👋</h1>
+    <p class="welcome-subtitle" id="welcome-subtitle">Wishing you a productive, high-value, and rewarding day ahead.</p>
+
+    <div class="welcome-biz" id="welcome-biz" hidden>
+      <span aria-hidden="true">💼</span>
+      <span id="welcome-biz-name"></span>
+    </div>
+
+    <section class="welcome-quote-card" aria-label="Motivational thought for today">
+      <div class="welcome-quote-tag">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="7 2 2 9 7 9 7 14 14 6 9 6 11 2 7 2"/></svg>
+        <span>Daily Motivation</span>
+      </div>
+      <p class="welcome-quote-text" id="welcome-quote">“Every job completed with care and excellence is a milestone in building a business that lasts. Focus on your clients, follow through on your commitments, and create momentum today.”</p>
+      <span class="welcome-quote-author" id="welcome-quote-author">— The Cerium Playbook</span>
+    </section>
+
+    <div class="welcome-pillars" aria-label="Daily focus pillars">
+      <div class="welcome-pillar">
+        <div class="welcome-pillar-title"><span aria-hidden="true">📈</span><span>Growth</span></div>
+        <p class="welcome-pillar-desc">Respond to leads promptly and quote with confidence.</p>
+      </div>
+      <div class="welcome-pillar">
+        <div class="welcome-pillar-title"><span aria-hidden="true">🤝</span><span>Trust</span></div>
+        <p class="welcome-pillar-desc">Clear communication keeps customers coming back.</p>
+      </div>
+      <div class="welcome-pillar">
+        <div class="welcome-pillar-title"><span aria-hidden="true">⚡</span><span>Execution</span></div>
+        <p class="welcome-pillar-desc">Complete scheduled jobs cleanly and invoice on time.</p>
+      </div>
+    </div>
+
+    <div class="welcome-actions">
+      <a href="app.html" class="button primary welcome-enter-btn" id="welcome-enter-btn">
+        <span>Enter workspace</span>
+        <svg class="icon arrow-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+      <div class="welcome-shortcuts">
+        <span class="welcome-shortcuts-label">Or jump straight to:</span>
+        <a href="app.html#leads" class="text-button">New leads</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="app.html#jobs" class="text-button">Jobs &amp; dispatch</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="app.html#invoices" class="text-button">Invoices</a>
+      </div>
+    </div>
+
+    <p class="welcome-foot">Press <kbd>Enter ↵</kbd> or click the button above to enter your workspace.</p>
+  </main>
+</div>
+<script src="js/welcome.js" defer></script>
+<script src="js/workspace-cursor.js" defer></script>
+</body>
+</html>

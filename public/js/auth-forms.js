@@ -136,9 +136,10 @@
           return showMessage(data.message || 'Incorrect email or password.', 'err');
         }
 
-        showMessage('Welcome back! Opening your workspace…', 'ok');
+        showMessage('Welcome back! Preparing your greeting…', 'ok');
         setTimeout(() => {
-          window.location.href = '/enter.html?next=' + encodeURIComponent(returnTo);
+          // Hand off to wishing page (entrance route: /enter.html?next=)
+          window.location.href = '/welcome.html?next=' + encodeURIComponent(returnTo);
         }, 300);
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
