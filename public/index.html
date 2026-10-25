@@ -98,6 +98,7 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
 .pl i{font:600 13px var(--bf);font-style:normal;padding:9px 16px;border-radius:99px;box-shadow:inset 0 0 0 1.5px var(--ln);animation:lt 6s calc(var(--i)*1.2s) infinite}
 .tg{font:600 14px var(--bf);padding:10px 16px;border-radius:14px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--ln)}
 .dsh{flex:1;min-width:40px;height:2px;background:repeating-linear-gradient(90deg,var(--ac) 0 8px,transparent 8px 16px);background-size:16px 2px;animation:mv .8s linear infinite}
+.benefits-more{text-align:center;margin-top:30px}.benefits-more a{display:inline-flex;align-items:center;gap:8px;color:var(--ac);font:700 15px var(--bf);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;padding:12px 4px}.benefits-more a:hover{color:#173fc4}.benefits-more a:focus-visible{outline:3px solid #7994ff;outline-offset:4px;border-radius:5px}
 .sr i{width:28px;height:28px;background:var(--ac);clip-path:polygon(50% 0,62% 36%,100% 38%,70% 60%,80% 100%,50% 76%,20% 100%,30% 60%,0 38%,38% 36%);animation:pp 3.2s calc(var(--i)*.14s) infinite}
 .qt{max-width:920px;margin:0 auto;padding:112px 24px 0;text-align:center}.q{font-size:clamp(1.5rem,3.4vw,2.5rem);font-weight:600;letter-spacing:-.025em;line-height:1.2}
 .who{display:inline-flex;align-items:center;gap:14px;margin-top:32px;text-align:left}.who small{display:block;color:var(--mut)}
@@ -197,10 +198,13 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
   <p class="sb">Everything a small crew needs for the business side of the job, and nothing it doesn’t.</p>
   <div class="gr">
     <article class="cd" data-rv style="--i:0"><div class="vs pl"><i style="--i:0">New</i><i style="--i:1">Quoted</i><i style="--i:2">Booked</i><i style="--i:3">Done</i></div><h3>Never lose a lead</h3><p>Save every inquiry with its source, job value, notes, and next follow-up date. Reminders show who to call today.</p></article>
-    <article class="cd" data-rv style="--i:1"><div class="vs"><em class="c b">Sent</em><em class="c g">Paid</em><em class="c o">Overdue</em><em class="c">Draft</em></div><h3>See what you’re owed</h3><p>Send clear invoices with Net 15 or Net 30 terms. Unpaid and overdue amounts show on your dashboard, and every invoice downloads as a PDF.</p></article>
-    <article class="cd" data-rv style="--i:2"><div class="vs"><span class="tg">$2,110.00</span><i class="dsh"></i><span class="tg">Invoice #1043</span></div><h3>Match payments, skip the busywork</h3><p>Connect your bank if you want, for read-only viewing. Cerium suggests which deposit pays which invoice, and you confirm. We never see your bank password.</p></article>
-    <article class="cd" data-rv style="--i:3"><div class="vs sr"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i></div><h3>Ask every customer for a review</h3><p>Track which finished jobs have a review request, send a direct Google link, and get follow-up reminders. Everyone gets asked, not just the happy ones.</p></article>
+    <article class="cd" data-rv style="--i:1"><div class="vs"><em class="c b">Sent</em><em class="c g">Paid</em><em class="c o">Overdue</em><em class="c">Draft</em></div><h3>See what you’re owed</h3><p>Make clear, itemised invoices with payment terms and country-aware tax fields. See what is outstanding and save a print-ready PDF from your browser.</p></article>
+    <article class="cd" data-rv style="--i:2"><div class="vs"><span class="tg">$2,110.00</span><i class="dsh"></i><span class="tg">Invoice #1043</span></div><h3>Stay on top of payments</h3><p>Track paid and overdue invoices, see your outstanding balance and review recorded transaction matches where data exists. Live bank syncing is not available yet.</p></article>
+    <article class="cd" data-rv style="--i:3"><div class="vs sr"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i></div><h3>Remember to ask for reviews</h3><p>Track which customers you have asked, copy your Google review link and schedule the next follow-up. You stay in control of every message.</p></article>
+    <article class="cd" data-rv style="--i:4"><div class="vs"><span class="tg">Estimate #1044</span><i class="dsh"></i><em class="c g">Accepted</em></div><h3>From quote to booked job</h3><p>Create itemised estimates, share a customer approval link and turn accepted quotes into scheduled work. Keep the handoff clear for everyone.</p></article>
+    <article class="cd" data-rv style="--i:5"><div class="vs"><span class="tg">customers.xlsx</span><i class="dsh"></i><em class="c b">Import</em></div><h3>Bring your existing contacts</h3><p>Start with the customer and lead data you already have. Import CSV or Excel files, match the columns and preview rows before saving anything.</p></article>
   </div>
+  <p class="benefits-more"><a href="benefits.html">Explore all Cerium features <span aria-hidden="true">→</span></a></p>
 </section>
 
 <section class="qt">
@@ -218,15 +222,15 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
   <p class="ey">One simple plan</p>
   <div class="am"><b data-region-price>$20</b><span>per month</span><em class="c g" style="margin-left:6px">15-day free trial</em></div>
   <ul>
-    <li>15-day full free trial on signup</li>
+    <li>15-day trial after verification and payment authorisation</li>
     <li>Unlimited leads, follow-ups, and reminders</li>
     <li>Invoices, Net 15/30 terms, and PDF export</li>
     <li>Review-request tracking &amp; reminders</li>
-    <li>Optional read-only bank deposit matching</li>
+    <li>Payment status and recorded deposit matching</li>
     <li>Export or delete your data anytime</li>
   </ul>
   <a class="btn btn-auth-action" href="signup.html">Start 15-Day Free Trial</a>
-  <p class="fn">India: ₹500 INR/month. All other countries: $20 USD/month after the 15-day trial. Cancel anytime with one click.</p>
+  <p class="fn">India: ₹500/month. Other eligible countries: $8–$20 USD/month by income group, after the trial. Payment-method authorisation is required before workspace access.</p>
 </div>
 </div></section>
 
@@ -239,7 +243,7 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
   </div>
   <div>
     <h5>Product</h5>
-    <a href="#benefits">Benefits</a>
+    <a href="benefits.html">All features</a>
     <a href="pricing.html">Pricing</a>
     <a href="signup.html">Free trial</a>
     <a href="login.html">Log in</a>
@@ -255,7 +259,7 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
   </div>
-  <p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payments and bank connections are handled by third-party providers.</p>
+  <p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payment authorisation uses a third-party provider. Live bank data sync is not yet available.</p>
   <p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
 </footer>
 </div>
