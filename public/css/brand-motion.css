@@ -6,7 +6,7 @@
 }
 .brand-beacon{
   width:5px;height:5px;background:currentColor;border-radius:1px;
-  margin-left:-6px;transform:translateY(.28em);
+  margin:0 -9px 0 -6px;transform:translateY(.28em);
 }
 /* Keep the entrance's original size and reveal; only its inner dot breathes. */
 .entry-entry-dot{position:relative;background:transparent}
