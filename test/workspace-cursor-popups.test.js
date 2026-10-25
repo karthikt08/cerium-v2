@@ -65,3 +65,17 @@ test('every modal popup across app templates and modules pairs with cursor contr
   assert.match(verify, /id="dial-panel"/);
   assert.match(verify, /class="dial-panel"/);
 });
+
+test('cursor is preserved inside select options and dropdown popups', () => {
+  const workspaceCss = read('public/css/workspace.css');
+  const controlsCss = read('public/css/controls.css');
+  const cursorJs = read('public/js/workspace-cursor.js');
+
+  // Option and optgroup elements maintain visible cursor
+  assert.match(workspaceCss, /\.has-workspace-cursor select,\.has-workspace-cursor select \*,\.has-workspace-cursor option,\.has-workspace-cursor optgroup\{cursor:default!important\}/);
+  assert.match(controlsCss, /select option\s*\{[^}]*cursor:\s*pointer\s*!important/);
+
+  // workspace-cursor.js recognizes dropdown options and does not pull ring onto parent select trigger
+  assert.match(cursorJs, /el\.closest\('option,optgroup'\)/);
+  assert.match(cursorJs, /inDropdown/);
+});
