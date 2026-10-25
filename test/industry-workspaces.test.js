@@ -8,6 +8,7 @@ import {
 } from '../public/js/industry-workspaces.js';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
 import {prepareBusiness} from './business-fixtures.js';
+import {customizeBusinessNavigation} from '../public/js/workspace-customizer.js';
 
 const source=p=>readFileSync(fileURLToPath(new URL('../'+p,import.meta.url)),'utf8');
 
@@ -98,4 +99,26 @@ test('mandatory onboarding stores the exact custom selection without changing tr
    const user=t.db.getUserByEmail(ALICE.email);
    assert.equal(user.trial_ends_at-user.onboarding_completed_at,15*86400000);
  }finally{await t.close();}
+});
+
+function navigationFixture(){
+ const items=['overview',...WORKSPACE_MODULES.map(m=>m.id)].map(id=>({dataset:{nav:id},hidden:false,style:{display:''}}));
+ const nav={children:[...items],querySelectorAll:()=>items,
+  append(link){this.children=this.children.filter(item=>item!==link);this.children.push(link);},
+  prepend(link){this.children=this.children.filter(item=>item!==link);this.children.unshift(link);}};
+ return {nav,root:{querySelector:()=>nav},links:new Map(items.map(item=>[item.dataset.nav,item]))};
+}
+test('Overview stays visible and first for every preset, custom selection and fallback',()=>{
+ const fixture=navigationFixture();
+ for(const modules of [...INDUSTRY_PROFILES.map(p=>p.modules),['payments','quotes'],undefined,[]]){
+  // Recover an Overview link hidden by an earlier customization pass.
+  const overview=fixture.links.get('overview');overview.hidden=true;overview.style.display='none';
+  customizeBusinessNavigation(fixture.root,modules);
+  const selected=modules??WORKSPACE_MODULES.map(m=>m.id);
+  const visible=fixture.nav.children.filter(link=>!link.hidden&&link.style.display!=='none').map(link=>link.dataset.nav);
+  assert.deepEqual(visible,['overview',...selected]);
+  for(const [id,link] of fixture.links){
+   assert.equal(link.hidden,id!=='overview'&&!selected.includes(id));
+  }
+ }
 });
