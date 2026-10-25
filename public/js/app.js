@@ -102,8 +102,9 @@ function overview() {
   const first=ws.account.name.trim().split(/\s+/)[0]||'there';
   const title=`Good ${hour<12?'morning':hour<18?'afternoon':'evening'}, ${first}.`;
   const preference=ws.account.workspacePreferences||{},primaryModule=preference.modules?.[0];
-  const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label||'your business';
-  const industryNote=`<div class="notice" role="status"><div><strong>Your ${esc(industryName)} workspace</strong><p>We've arranged tools for your kind of work. <a href="#settings" data-nav="settings">Customize your tools →</a></p></div></div>`;
+  const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
+  const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
+  const industryNote=`<div class="notice" role="status"><div><strong>${esc(workspaceTitle)}</strong><p>Your selected tools, arranged for your work. <a href="#settings" data-nav="settings">Customize your tools →</a></p></div></div>`;
   const day=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',...(tz?{timeZone:tz}:{})});
   const tasks=filteredRows('followups',ws,{status:'Due'}),invoices=ws.invoices.filter(x=>['Sent','Overdue'].includes(x.status)).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
   const leads=ws.leads.slice(0,3),reviews=ws.reviews.filter(x=>x.status!=='Reviewed').slice(0,3);
