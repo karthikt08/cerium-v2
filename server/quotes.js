@@ -193,7 +193,7 @@ export function createQuotesStore(db,{jobsStore}){
         if(!p||typeof p!=='object'||Array.isArray(p))
           throw new QuoteError('invalid_schedule','Enter job schedule details.');
         const job=jobsStore.createJob(userId,{
-          title:row.title,customerName:row.customer_name,customerPhone:row.customer_phone,
+          title:row.title,customerName:row.customer_name,customerPhone:row.customer_phone,customerEmail:row.customer_email,
           address:row.address,notes:row.notes,startAt:p.startAt,endAt:p.endAt,
           workerId:p.workerId||null,leadId:row.lead_id||null,status:'Scheduled',
           billableItems:JSON.parse(row.items_json),

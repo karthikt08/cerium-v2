@@ -122,6 +122,7 @@ function formJob(ws,id='',date=today()) {
     <label>End time (business local)<input name="endAt" type="datetime-local" required value="${esc(end)}"></label>
     <label>Status<select name="status">${selectOptions(statuses.map(s=>({value:s,label:s})),j?.status||'Scheduled')}</select></label>
     <label>Customer phone<input name="customerPhone" type="tel" maxlength="40" value="${esc(ws.account?.country==='IN'?(j?.customerPhone||''):formatUSPhone(j?.customerPhone||''))}" placeholder="${ws.account?.country==='IN'?'+91 98765 43210':'(415) 555-0123'}"></label>
+    <label class="jobs-wide">Customer email<input name="customerEmail" type="email" maxlength="254" value="${esc(j?.customerEmail||'')}" placeholder="customer@example.com"></label>
     <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="${ws.account?.country==='IN'?'Street, area, city, state, PIN':'Street, city, state, ZIP'}"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
     <p class="muted jobs-wide">Appointment times use your business time zone: ${esc((ws.account?.timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[ws.account?.timeZone])||'not set — browser clock until configured in Settings')}.</p>
@@ -140,6 +141,7 @@ function formJob(ws,id='',date=today()) {
   lead?.addEventListener('change',()=>{
     const v=ws.leads.find(x=>x.id===lead.value);if(!v)return;
     const f=lead.closest('form');if(!f.elements.customerName.value)f.elements.customerName.value=v.name;
+    if(!f.elements.customerEmail.value)f.elements.customerEmail.value=v.email||'';
     if(!f.elements.customerPhone.value)f.elements.customerPhone.value=v.phone||'';
     if(!f.elements.address.value)f.elements.address.value=v.address||'';
   });

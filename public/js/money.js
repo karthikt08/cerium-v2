@@ -6,3 +6,10 @@ export function lineItemsTotal(items) {
   if(!Number.isSafeInteger(hundredthsOfCents))throw new RangeError('Invoice total is too large.');
   return Math.round(hundredthsOfCents/100)/100;
 }
+
+// Printed rows show whole cents while the document rounds once after summing.
+// Disclose the difference so the displayed rows reconcile with the saved total.
+export function lineItemsRoundingAdjustment(items,total=lineItemsTotal(items)){
+  const rowCents=items.reduce((sum,item)=>sum+Math.round(lineItemsTotal([item])*100),0);
+  return (Math.round(total*100)-rowCents)/100;
+}

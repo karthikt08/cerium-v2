@@ -45,3 +45,24 @@ test('existing job databases migrate without losing records or invoice data',()=
     fs.rmSync(dir,{recursive:true,force:true});
   }
 });
+
+test('job email migration recovers quoted contacts once and preserves later edits',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-job-email-')),file=path.join(dir,'legacy.db');
+  let db;
+  try{
+    db=openDb(file);
+    const owner=db.createUser({email:'email-migration@example.com',name:'Migration'});
+    const quote=db.createQuote(owner.id,{title:'Quoted work',customerName:'Customer',customerEmail:'quoted@example.com',items:[{description:'Work',qty:1,rate:100}]});
+    const secret='migration-signing-key-for-tests-only',shared=db.sendQuote(owner.id,quote.id,'https://example.test',secret);
+    db.respondQuote(quote.id,new URL(shared.url).searchParams.get('token'),secret,'Accepted');
+    const {job}=db.convertQuote(owner.id,quote.id,{startAt:'2026-11-12T09:00',endAt:'2026-11-12T10:00'});
+    db.rawDb.exec('ALTER TABLE jobs DROP COLUMN customer_email');
+    db.close();db=openDb(file);
+    assert.equal(db.listJobs(owner.id)[0].customerEmail,'quoted@example.com');
+    assert.equal(db.rawDb.pragma('integrity_check',{simple:true}),'ok');
+    assert.deepEqual(db.rawDb.pragma('foreign_key_check'),[]);
+    db.updateJob(owner.id,job.id,{customerEmail:''});
+    db.close();db=openDb(file);
+    assert.equal(db.listJobs(owner.id)[0].customerEmail,'');
+  }finally{db?.close();fs.rmSync(dir,{recursive:true,force:true});}
+});

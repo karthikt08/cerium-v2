@@ -164,3 +164,9 @@ scheduling jobs or automated reminders so the selected times are unambiguous.
 6. The `/api/billing/order`, `/api/billing/verify`, and simulated payment routes are disabled for customers. Never use test keys to collect real payments.
 
 **Launch gate:** Configure the provider, test the one-hour authorization cutoff and 15-full-day minimum in Razorpay Test Mode, verify price/currency/start date with actual provider responses, and test cancellation, failed payments and delayed webhooks for each permitted payment method. Until configured, checkout fails closed and **production trial access is locked**. For local UI work only, `WORKSPACE_ACCESS_MODE=phone` skips payment authorization on loopback; never use this in production.
+
+The 15-day authorization schedule applies to the first trial. Returning customers
+keep their original trial deadline; a replacement mandate begins billing after any
+remaining trial or paid period, with at least 30 minutes for provider setup.
+Cancelling renewal preserves access already paid for until its recorded expiry.
+Confirm both reactivation and cancellation in provider Test Mode before launch.

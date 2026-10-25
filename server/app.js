@@ -14,8 +14,8 @@ import { makeRazorpay } from './razorpay.js';
 import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone,editionFromPhone} from './billing-identity.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
-import {makeTrialSchedule,safeTrialSchedule} from './trial-timing.js';
-import {lineItemsTotal} from '../public/js/money.js';
+import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './trial-timing.js';
+import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -252,6 +252,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         '</td><td>'+escapeQuoteHtml(i.qty)+'</td><td>'+escapeQuoteHtml(money(i.rate))+
         '</td><td>'+escapeQuoteHtml(money(lineItemsTotal([i])))+'</td></tr>').join('');
       const token=escapeQuoteHtml(req.query.token);
+      const rounding=lineItemsRoundingAdjustment(quote.items,quote.total);
       const actions=quote.status==='Sent'?
         '<p>Review the details carefully. Only choose Accept if you agree to the work and listed prices.</p>'+
         '<div class="actions"><form action="/quote/'+quote.id+'/respond" method="post">'+
@@ -266,7 +267,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         '<p class="meta">Estimate #'+escapeQuoteHtml(quote.id.slice(0,8).toUpperCase())+
         ' · Decision link expires '+escapeQuoteHtml(new Date(expiresAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}))+'</p>'+
         '<table><thead><tr><th>Work</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead><tbody>'+
-        rows+'</tbody></table><div class="total">Total '+escapeQuoteHtml(money(quote.total))+'</div>'+
+        rows+'</tbody></table>'+
+        (rounding?'<p class="meta">Rounding adjustment '+escapeQuoteHtml(money(rounding))+'</p>':'')+
+        '<div class="total">Total '+escapeQuoteHtml(money(quote.total))+'</div>'+
         (quote.notes?'<h2>Notes</h2><p class="note">'+escapeQuoteHtml(quote.notes)+'</p>':'')+actions+
         '<p class="meta">Approval confirms the estimate only. Scheduling and billing are handled separately.</p>';
       res.type('html').send(quotePage('Review estimate',body));
@@ -283,14 +286,6 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   });
 
   // ------------------------------------------------------------ Protected Workspace Routing
-  // Unauthenticated users attempting to access workspace pages are redirected to login with returnTo preserved
-  app.get(['/app', '/app.html'], (req, res, next) => {
-    if (!req.session) {
-      return res.redirect(303, `/login.html?returnTo=${encodeURIComponent(req.originalUrl)}`);
-    }
-    next();
-  });
-
   // Enforce onboarding BEFORE delivering the private workspace shell.
   // Never rely on hiding buttons: the private API has the same gate below.
   const accessStatus=userId=>{
@@ -303,9 +298,21 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const mode=config.workspaceAccessMode;
     return {verified,mandate,unlocked:mode==='off'||(verified&&(mode==='phone'||mandate))};
   };
-  app.get(['/app','/app.html'],(req,res,next)=>{
-    if(!req.session||accessStatus(req.session.userId).unlocked)return next();
-    return res.redirect(303,'/verify.html');
+  app.use((req,res,next)=>{
+    if(!['GET','HEAD'].includes(req.method))return next();
+    let pathname;
+    try{pathname=path.posix.normalize(decodeURIComponent(req.path).replaceAll('\\','/')).toLowerCase().replace(/\/+$/,'');}
+    catch{return res.status(400).type('text/plain').send('Invalid URL.');}
+    if(!['/app','/app.html'].includes(pathname))return next();
+    // Static serving decodes URLs and Windows file names ignore case. Guard the
+    // resolved shell too, rather than only the literal /app.html route.
+    res.set('Cache-Control','no-store');
+    if(!req.session){
+      const target=workspaceReturnTarget(req.originalUrl)||'/app.html'+new URL(req.originalUrl,config.baseUrl).search;
+      return res.redirect(303,`/login.html?returnTo=${encodeURIComponent(target)}`);
+    }
+    if(!accessStatus(req.session.userId).unlocked)return res.redirect(303,'/verify.html');
+    next();
   });
   // Serve static public assets
   app.use(express.static(path.join(ROOT, 'public'), { dotfiles: 'ignore', index: 'index.html', extensions: ['html'] }));
@@ -993,12 +1000,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!(indian?config.indiaSubscriptionsConfigured:config.subscriptionsConfigured))
       return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for this edition. The free trial cannot start until checkout is ready.'});
     const existing = db.getUserSubscription(user.id);
+    const firstTrial=config.workspaceAccessMode==='phone_and_mandate'&&
+      !user.onboarding_completed_at&&!Number(db.getBillingIdentity(user.id)?.mandate_authorized_at);
     if (existing && !['cancelled','expired'].includes(existing.status)) {
       if(['halted','paused'].includes(existing.status))return res.status(409).json({error:'cancel_subscription_first',message:'Cancel the previous subscription before starting another authorization.'});
       const authorizedBefore=Number(db.getBillingIdentity(user.id)?.mandate_authorized_at)>0;
       // An unapproved one-hour checkout cannot be reused indefinitely:
       // doing so could make its first scheduled debit less than 15 days away.
-      if(config.workspaceAccessMode==='phone_and_mandate' && !authorizedBefore &&
+      if(firstTrial && !authorizedBefore &&
          existing.start_at*1000 < Date.now()+15*DAY) {
         try {
           const remote=await rzp.getSubscription(existing.subscription_id);
@@ -1015,7 +1024,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       } else {
         return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id,
           status: existing.status, startAt:existing.start_at,
-          amount:billingAmount,currency:billingCurrency });
+          amount:billingAmount,currency:billingCurrency,trialEligible:firstTrial });
       }
     }
     if(!phones.ready)return res.status(503).json({error:'sms_not_configured',message:'Phone and payment verification are required before trial entry. This checkout is temporarily unavailable.'});
@@ -1026,9 +1035,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       // to one hour and add the same hour to the scheduled first charge, so
       // approval at any permitted time guarantees AT LEAST 15 full days.
       const schedule=makeTrialSchedule();
-      const startAt=config.workspaceAccessMode==='phone_and_mandate'
+      const existingTrialEnd=Number(user.trial_ends_at)||new Date(user.trial_started_at+'T00:00:00Z').getTime()+15*DAY;
+      const startAt=firstTrial
         ?schedule.startAt
-        :Math.max(Math.floor(Date.now()/1000) + 1800, Math.floor(new Date(user.trial_started_at + 'T00:00:00Z').getTime()/1000) + 15*86400);
+        :Math.max(Math.ceil(Date.now()/1000)+1800,Math.ceil(existingTrialEnd/1000),Math.ceil(Number(user.subscription_expires_at||0)/1000));
       const plan = await rzp.getPlan(billingPlanId);
       if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
           Number(plan.item?.amount) !== billingAmount ||
@@ -1037,19 +1047,20 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       }
       const created = await rzp.createSubscription({
         planId: billingPlanId, startAt,
-        expireBy:config.workspaceAccessMode==='phone_and_mandate'?schedule.expireBy:undefined,
+        expireBy:firstTrial?schedule.expireBy:undefined,
         notes: { userId: user.id, edition: indian?'IN':'US' }
       });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       if(config.workspaceAccessMode==='phone_and_mandate' &&
-         (Number(created.expire_by)!==schedule.expireBy || !safeTrialSchedule(created,startAt))){
+         (firstTrial?(Number(created.expire_by)!==schedule.expireBy || !safeTrialSchedule(created,startAt)):
+           !safeSubscriptionSchedule(created,startAt))){
         const cancelled=await rzp.cancelSubscription(created.id,false);
         if(cancelled?.status!=='cancelled')throw new Error('Unsafe provider schedule; cancellation not confirmed: '+created.id);
         return res.status(503).json({error:'billing_schedule_mismatch',message:'Could not confirm the full trial period. Please try again or contact support.'});
       }
       db.createSubscription(user.id, created.id, startAt);
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status,
-        startAt, expireBy:config.workspaceAccessMode==='phone_and_mandate'?schedule.expireBy:null,
+        startAt, expireBy:firstTrial?schedule.expireBy:null,trialEligible:firstTrial,
         amount: billingAmount, currency: billingCurrency });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
@@ -1059,6 +1070,10 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   api.post('/billing/subscription/verify', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
     const { razorpay_subscription_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    if(typeof razorpay_subscription_id!=='string'||!/^sub_[A-Za-z0-9_-]{1,100}$/.test(razorpay_subscription_id)||
+       typeof razorpay_payment_id!=='string'||!razorpay_payment_id||razorpay_payment_id.length>200||
+       typeof razorpay_signature!=='string'||!razorpay_signature||razorpay_signature.length>256)
+      return res.status(400).json({error:'invalid_checkout',message:'The payment confirmation is incomplete or invalid.'});
     const saved = db.getSubscription(razorpay_subscription_id);
     if (!saved || saved.user_id !== req.session.userId) return res.status(404).json({ error: 'subscription_not_found' });
     if(['cancelled','expired'].includes(saved.status)||db.getUserSubscription(req.session.userId)?.subscription_id!==saved.subscription_id)
@@ -1101,7 +1116,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!saved || ['cancelled','expired'].includes(saved.status)) return res.status(409).json({ error: 'no_active_subscription' });
     try {
       const remote = await rzp.cancelSubscription(saved.subscription_id, false);
-      if (remote.status === 'cancelled') db.updateSubscription(saved.subscription_id, 'cancelled');
+      if(remote.status!=='cancelled')return res.status(409).json({error:'cancellation_unconfirmed',
+        message:'The payment provider has not confirmed cancellation. Please retry or contact support.'});
+      db.updateSubscription(saved.subscription_id, 'cancelled');
       res.json({ status: remote.status });
     } catch (err) {
       res.status(502).json({ error: 'cancellation_failed', message: 'Cancellation could not be confirmed. Please contact support.' });

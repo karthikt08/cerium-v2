@@ -47,7 +47,7 @@ function deny(req,res,decision){
   };
   const message=messages[decision.reason]||messages.unverified;
   if(decision.status===503)res.set('Retry-After','60');
-  if(req.path.startsWith('/api/'))
+  if(req.path.toLowerCase().startsWith('/api/'))
     return res.status(decision.status).json({error:decision.reason,message});
   return res.status(decision.status).type('html').send(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CERIUM · Region unavailable</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:620px;margin:12vh auto;padding:20px;color:#19213a}h1{font-size:27px}a{color:#3154c5}</style></head>
@@ -56,12 +56,12 @@ function deny(req,res,decision){
 
 export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiKey)}){
   const cache=new Map();
-  const exempt=req=>req.path==='/healthz'||req.path==='/webhooks/razorpay'||
-    req.path==='/unsubscribe'||req.path==='/auth/logout'||req.path==='/api/logout'||
-    req.path==='/privacy.html'||req.path==='/terms.html'||
-    req.path==='/api/billing/subscription/cancel'|| // Customers must always be able to cancel.
-    (req.path==='/api/me'&&['GET','DELETE'].includes(req.method))||
-    (req.path==='/api/me/export'&&req.method==='GET'); // Allow basic account/data rights.
+  const exempt=(route,method)=>route==='/healthz'||route==='/webhooks/razorpay'||
+    route==='/unsubscribe'||route==='/auth/logout'||route==='/api/logout'||
+    route==='/privacy.html'||route==='/terms.html'||
+    route==='/api/billing/subscription/cancel'|| // Customers must always be able to cancel.
+    (route==='/api/me'&&['GET','DELETE'].includes(method))||
+    (route==='/api/me/export'&&method==='GET'); // Allow basic account/data rights.
 
   async function classify(ip){
     const existing=cache.get(ip);
@@ -81,21 +81,24 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
   return async function regionGate(req,res,next){
     req.region=null;
     req.regionIssue=null;
-    if(exempt(req)||!config.regionEnforced)return next();
+    // Express matches routes case-insensitively and accepts a trailing slash.
+    // Classify those aliases identically before applying account-creation rules.
+    const route=req.path.toLowerCase().replace(/\/+$/,'')||'/';
+    if(exempt(route,req.method)||!config.regionEnforced)return next();
 
     // Existing authenticated workspaces are tied to their stored billing country,
     // not the network currently used to access them. Travel and corporate VPNs
     // must never interrupt legitimate customer operations or cancellation.
-    const creatingAccount=req.path==='/auth/register'||
-      (req.path==='/auth/google'&&req.body?.intent==='join');
+    const creatingAccount=route==='/auth/register'||
+      (route==='/auth/google'&&req.body?.intent==='join');
     if(req.user&&req.session&&!creatingAccount)return next();
 
     // Marketing, legal, waitlist, static resources and login remain accessible
     // worldwide. New accounts and billing still require verified launch markets.
     const publicRead=['GET','HEAD'].includes(req.method)&&
-      !req.path.startsWith('/api/')&&req.path!=='/auth/google/callback';
+      !route.startsWith('/api/')&&route!=='/auth/google/callback';
     if(publicRead)return next();
-    if(req.path.startsWith('/auth/')&&!['/auth/register','/auth/google','/auth/google/callback'].includes(req.path))
+    if(route.startsWith('/auth/')&&!['/auth/register','/auth/google','/auth/google/callback'].includes(route))
       return next();
 
     const ip=req.ip;
@@ -106,8 +109,8 @@ export function createRegionGate({config,lookup=makeIpApiLookup(config.geoIpApiK
     // Price discovery never grants access and should return useful availability
     // information rather than a 403. Existing Google accounts may sign in from
     // anywhere; the callback separately checks region before creating an account.
-    if(req.path==='/api/region'||req.path==='/auth/google/callback')return next();
-    if(req.path==='/auth/google'&&req.body?.intent!=='join')return next();
+    if(route==='/api/region'||route==='/auth/google/callback')return next();
+    if(route==='/auth/google'&&req.body?.intent!=='join')return next();
     // New phone-first users receive a provisional account without workspace
     // access. Their confirmed phone + business declaration decide the edition,
     // so geolocation is advisory rather than a signup price lock.
