@@ -593,7 +593,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     res.cookie(config.sessionCookie, session.token, { ...cookieBase, maxAge: config.sessionDays * DAY });
 
     const target = workspaceReturnTarget(note.r) || (note.i === 'join' ? '/app.html#settings' : '/app.html');
-    res.redirect(303, target);
+    res.redirect(303, '/enter.html?next=' + encodeURIComponent(target));
   });
 
   // Logout
