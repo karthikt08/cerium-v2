@@ -12,6 +12,7 @@ import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, busin
 import {validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
 import {normalizeBillingPhone} from './billing-identity.js';
 import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError,businessSetupSteps,advanceBusinessSetup} from './business-profile.js';
+import {defaultModules,isIndustry,normalizeModules,suggestIndustry} from '../public/js/industry-workspaces.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -351,6 +352,10 @@ export function openDb(file) {
     db.exec('ALTER TABLE users ADD COLUMN business_profile_completed_at INTEGER NOT NULL DEFAULT 0');
   if(!userColumns.has('business_setup_draft'))
     db.exec("ALTER TABLE users ADD COLUMN business_setup_draft TEXT NOT NULL DEFAULT '{}' ");
+  if(!userColumns.has('industry_category'))
+    db.exec("ALTER TABLE users ADD COLUMN industry_category TEXT NOT NULL DEFAULT ''");
+  if(!userColumns.has('workspace_modules'))
+    db.exec("ALTER TABLE users ADD COLUMN workspace_modules TEXT NOT NULL DEFAULT '[]'");
   // India edition is opt-in per clean workspace: no existing USD records get
   // converted. Snapshot the currency and GST amounts for each created invoice.
   for (const [col,ddl] of [
@@ -363,7 +368,7 @@ export function openDb(file) {
     time_zone=?,us_state=?,us_zip=?,india_state=?,gstin=?,gst_registration=?,
     phone=CASE WHEN COALESCE(phone,'')='' THEN ? ELSE phone END,
     location=?,business_profile_completed_at=CASE WHEN business_profile_completed_at=0 THEN ? ELSE business_profile_completed_at END,
-    updated_at=? WHERE id=?`);
+    industry_category=?,workspace_modules=?,updated_at=? WHERE id=?`);
   const resetBusinessProfileStmt=db.prepare('UPDATE users SET business_profile_completed_at=0 WHERE id=?');
   const updateCountryForVerifiedPhone=db.prepare(`UPDATE users SET country=?,currency=?,
     us_state='',us_zip='',india_state='',gstin='',upi_vpa='',time_zone=?,
@@ -865,6 +870,26 @@ export function openDb(file) {
     },
 
     // ---------------------------------------------------------------- Users
+    getWorkspacePreferences(userId){
+      const user=q.getUserById.get(userId);
+      if(!user)return null;
+      const category=isIndustry(user.industry_category)?user.industry_category:suggestIndustry(user.trade).category;
+      let modules;
+      try{modules=normalizeModules(JSON.parse(user.workspace_modules||'[]'));}
+      catch{modules=defaultModules(category);}
+      return {category,modules};
+    },
+    saveWorkspacePreferences(userId,payload){
+      const user=q.getUserById.get(userId);
+      if(!user)throw new BusinessProfileError({form:'Account not found.'});
+      const category=payload?.category;
+      if(!isIndustry(category))throw new BusinessProfileError({category:'Choose a supported business category.'});
+      let modules;
+      try{modules=normalizeModules(payload?.modules);}catch{throw new BusinessProfileError({modules:'Choose one or more valid modules, without duplicates.'});}
+      db.prepare('UPDATE users SET industry_category=?,workspace_modules=?,updated_at=? WHERE id=?')
+        .run(category,JSON.stringify(modules),Date.now(),userId);
+      return this.getWorkspacePreferences(userId);
+    },
     getBusinessProfile(userId) {
       const user=q.getUserById.get(userId);
       return user?{...profileFromUser(user),complete:businessProfileComplete(user)}:null;
@@ -909,7 +934,8 @@ export function openDb(file) {
         if(payload.confirmBusinessDetails!==true)throw new BusinessProfileError({confirmBusinessDetails:'Confirm that these business details are accurate.'});
         saveBusinessProfileStmt.run(p.name,p.businessName,p.trade,p.businessEmail,p.businessAddress,p.businessCity,p.businessRegion,p.businessPostalCode,
           p.timeZone,p.usState,p.country==='US'?p.businessPostalCode:'',p.indiaState,p.gstin,p.gstRegistration,
-          billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,at,userId);
+          billingRow.get(userId).phone_e164,[p.businessCity,p.businessRegion].filter(Boolean).join(', '),at,
+          p.industryCategory,JSON.stringify(normalizeModules(p.workspaceModules)),at,userId);
         db.prepare("UPDATE users SET business_setup_draft='{}' WHERE id=?").run(userId);
         return this.getBusinessProfile(userId);
       })();
@@ -1199,6 +1225,7 @@ export function openDb(file) {
           name: user.name,
           businessName: user.business_name || '',
           businessProfile: this.getBusinessProfile(userId),
+          workspacePreferences: this.getWorkspacePreferences(userId),
           trade: user.trade || '',
           email: user.email,
           phone: user.phone || '',
