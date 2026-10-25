@@ -4,8 +4,18 @@ import tls from 'node:tls';
 import {randomUUID} from 'node:crypto';
 
 const emailOk=v=>typeof v==='string'&&v.length<=254&&/^[^\s<>"@]+@[^\s<>"@]+\.[^\s<>"@]+$/.test(v);
-const mime=(value)=>'=?UTF-8?B?'+Buffer.from(value,'utf8').toString('base64')+'?=';
-function wireMessage({from,to,subject,body,replyTo}){
+function mime(value){
+  // RFC 2047: each encoded-word <=75 ASCII characters, without splitting UTF-8.
+  // 39 bytes also leaves room for "Subject: " on the first physical line.
+  const words=[];let chunk='';
+  for(const char of String(value??'').replace(/[\r\n]+/g,' ')){
+    if(Buffer.byteLength(chunk+char,'utf8')>39){words.push(chunk);chunk='';}
+    chunk+=char;
+  }
+  if(chunk||!words.length)words.push(chunk);
+  return words.map(word=>'=?UTF-8?B?'+Buffer.from(word,'utf8').toString('base64')+'?=').join('\r\n ');
+}
+export function wireMessage({from,to,subject,body,replyTo}){
   const domain=from.split('@')[1];
   const headers=[
     'From: '+from,
@@ -26,7 +36,7 @@ export async function sendSmtp({host,port=465,user,password,from,to,subject,body
   if(!host||typeof host!=='string'||!user||!password||!emailOk(from)||!emailOk(to))
     throw new Error('SMTP configuration or addresses are invalid.');
   if(Number(port)!==465)throw new Error('Only encrypted implicit-TLS SMTP port 465 is supported.');
-  const socket=tls.connect({host,port:465,serverName:host,rejectUnauthorized:true});
+  const socket=tls.connect({host,port:465,servername:host,rejectUnauthorized:true});
   socket.setTimeout(15000);
   const queue=[];const waiting=[];
   let ended=false,problem=null,fragment='';
@@ -68,8 +78,15 @@ export async function sendSmtp({host,port=465,user,password,from,to,subject,body
   try{
     await new Promise((resolve,reject)=>{
       if(socket.authorized&&socket.encrypted)return resolve();
-      socket.once('secureConnect',resolve);
-      socket.once('error',reject);
+      const cleanup=()=>{socket.off('secureConnect',ready);socket.off('error',failed);socket.off('close',closed);socket.off('timeout',timedOut);};
+      const ready=()=>{cleanup();resolve();};
+      const failed=err=>{cleanup();reject(err);};
+      const closed=()=>failed(new Error('SMTP disconnected during TLS handshake.'));
+      const timedOut=()=>failed(new Error('SMTP TLS handshake timed out.'));
+      socket.once('secureConnect',ready);
+      socket.once('error',failed);
+      socket.once('close',closed);
+      socket.once('timeout',timedOut);
     });
     await response(220);
     await command('EHLO cerium.local',250);

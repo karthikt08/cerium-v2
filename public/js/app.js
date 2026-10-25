@@ -1,4 +1,5 @@
 import API from './api.js';
+import {lineItemsTotal} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
 import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVpa} from './india-market.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
@@ -297,7 +298,7 @@ function previewInvoice(id) {
       <div><small>Issued</small>${dateLabel(i.issueDate)}<p>${esc(i.terms)}</p></div>
       <div><small>Due</small>${dateLabel(i.dueDate)}</div></div>
     ${gst?`<p class="muted">Place of supply: ${esc(INDIAN_STATES[i.placeOfSupply]||i.placeOfSupply)} (${esc(i.placeOfSupply)}) · HSN/SAC: ${esc(i.hsnSac)}</p>`:''}
-    ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(Number(item.qty)*Number(item.rate))}</td></tr>`))}
+    ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
     ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
@@ -391,7 +392,7 @@ $('record-form').addEventListener('submit',e=>{
       const get=key=>row.querySelector('[data-invoice-line-field="'+key+'"]').value.trim();
       return {description:get('description'),qty:Number(get('qty')),rate:Number(get('rate'))};
     });
-    values.amount=String(Math.round(values.items.reduce((sum,item)=>sum+item.qty*item.rate,0)*100)/100);
+    values.amount=String(lineItemsTotal(values.items));
   }
   let error=validateRecord(kind,values);
   if(isJobInvoice&&values.status==='Draft'&&error==='Enter an invoice amount greater than zero.')error='';

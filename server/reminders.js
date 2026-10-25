@@ -49,7 +49,7 @@ export function createReminderStore(db){
     "created_at INTEGER NOT NULL,PRIMARY KEY(user_id,email));");
   const q={
     invoice:db.prepare('SELECT id,customer_name,customer_email,job_title,status,total,due_date FROM invoices WHERE id=? AND user_id=?'),
-    user:db.prepare('SELECT name,business_name,email,plan_status,trial_started_at,trial_days_total,subscription_expires_at FROM users WHERE id=?'),
+    user:db.prepare('SELECT name,business_name,email,plan_status,trial_started_at,trial_days_total,trial_ends_at,subscription_expires_at FROM users WHERE id=?'),
     list:db.prepare('SELECT * FROM email_reminders WHERE user_id=? ORDER BY due_at DESC LIMIT 250'),
     get:db.prepare('SELECT * FROM email_reminders WHERE id=? AND user_id=?'),
     byInvoice:db.prepare('SELECT * FROM email_reminders WHERE user_id=? AND invoice_id=?'),
@@ -145,9 +145,10 @@ export function createReminderStore(db){
         return {eligible:false,reason:'Invoice is no longer marked as sent and unpaid.'};
       if(!(Number(invoice.total)>0))return {eligible:false,reason:'Invoice amount must be positive.'};
       if(q.isOptedOut.get(r.user_id,r.email))return {eligible:false,reason:'Recipient unsubscribed.'};
-      const subscriptionExpired=user.plan_status==='active'&&user.subscription_expires_at&&user.subscription_expires_at<now;
-      const trialExpired=user.plan_status==='trial'&&user.trial_started_at&&
-        (Math.floor((now-Date.parse(user.trial_started_at+'T00:00:00Z'))/86400000)>=Number(user.trial_days_total||15));
+      const subscriptionExpired=user.plan_status==='active'&&user.subscription_expires_at&&user.subscription_expires_at<=now;
+      const trialExpired=user.plan_status==='trial'&&(user.trial_ends_at>0
+        ? now>=user.trial_ends_at
+        : user.trial_started_at&&(Math.floor((now-Date.parse(user.trial_started_at+'T00:00:00Z'))/86400000)>=Number(user.trial_days_total||15)));
       if(user.plan_status==='expired'||subscriptionExpired||trialExpired)
         return {eligible:false,reason:'Workspace subscription/trial expired.'};
       return {eligible:true,recipient:r.email,invoice,

@@ -1,5 +1,6 @@
 // CERIUM Jobs & Dispatch — no calendar, SMS, or location provider required.
 import {escapeHTML as esc} from './workspace-model.js';
+import {lineItemsTotal} from './money.js';
 import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
 
 let weekShift = 0;
@@ -28,10 +29,11 @@ function billingItemRow(item={description:'',qty:1,rate:0},locked=false) {
 }
 function updateJobBillingTotal(form){
   if(!form)return;
-  const amount=[...form.querySelectorAll('[data-job-billing-row]')].reduce((sum,row)=>{
+  const items=[...form.querySelectorAll('[data-job-billing-row]')].map(row=>{
     const number=key=>Number(row.querySelector('[data-billing-field="'+key+'"]')?.value||0);
-    return sum+number('qty')*number('rate');
-  },0);
+    return {qty:number('qty'),rate:number('rate')};
+  });
+  let amount;try{amount=lineItemsTotal(items);}catch{amount=0;}
   const currency=dispatch?.getWorkspace()?.account?.currency||'USD';
   const target=form.querySelector('[data-job-billing-total]');
   if(target)target.textContent=new Intl.NumberFormat(currency==='INR'?'en-IN':'en-US',{style:'currency',currency:currency==='INR'?'INR':'USD'}).format(amount);
@@ -128,7 +130,7 @@ function formJob(ws,id='',date=today()) {
       <button type="button" class="button secondary" data-job-action="add-item" ${j?.invoiceGenerated?'disabled':''}>+ Add line item</button><strong class="jobs-billing-total">Estimated total: <span data-job-billing-total>—</span></strong>
       <p class="muted">${j?.invoiceGenerated?'Billing items have been copied to an invoice. Edit its line items in Invoices instead.':'Set quantities and rates before completing the job. Zero-value drafts require pricing before being marked sent.'}</p>
     </div>
-    ${j?.invoiceId ? `<p class="jobs-linked-invoice jobs-wide">Invoice prepared: <strong>#${esc(j.invoiceId)}</strong> · <button type="button" class="button secondary" data-job-action="invoice" data-invoice-id="${esc(j.invoiceId)}">Review invoice →</button></p>` : j?.invoiceGenerated ? '<p class="jobs-linked-invoice jobs-wide">The original draft invoice was deleted. It will not be generated again automatically.</p>' : ''}
+    ${j?.invoiceId ? `<p class="jobs-linked-invoice jobs-wide">Invoice prepared: <strong>#${esc(j.invoiceId)}</strong> · <button type="button" class="button secondary" data-job-action="invoice" data-invoice-id="${esc(j.invoiceId)}">Review invoice →</button></p>` : j?.invoiceGenerated ? `<p class="jobs-linked-invoice jobs-wide">The original draft invoice was deleted. It will not be generated again automatically.${j.status==='Completed'?` <button type="button" class="button secondary" data-job-action="replace-invoice" data-job-id="${esc(j.id)}">Create replacement draft</button>`:''}</p>` : ''}
     <p class="jobs-form-error" role="alert" hidden></p></div>
     <div class="jobs-modal-actions">${j?'<button type="button" class="button secondary" data-job-action="delete" data-job-id="'+esc(j.id)+'">Delete job</button>':''}
     <button type="button" class="button secondary" data-job-action="close">Cancel</button><button type="submit" class="button primary">${j?'Save changes':'Schedule job'}</button></div>
@@ -180,6 +182,10 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
     if(isReadOnly())return toast('Your trial has ended. Business records are read-only.',true);
     if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today());
     if(busy)return;
+    if(action==='replace-invoice') {
+      busy=true;try{await API.createJobInvoice(el.dataset.jobId);await refresh();formJob(getWorkspace(),el.dataset.jobId);toast('Replacement draft is ready to review.');}
+      catch(err){toast(err.message,true);}finally{busy=false;}return;
+    }
     if(action==='archive') {
       if(!confirm('Archive this crew member? Active jobs must be reassigned first.'))return;
       busy=true;try{await API.archiveCrew(el.dataset.workerId);await refresh();formCrew(getWorkspace());toast('Crew member archived.');}catch(err){toast(err.message,true);}finally{busy=false;}return;

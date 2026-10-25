@@ -1,4 +1,5 @@
 import {createHmac, randomUUID, timingSafeEqual} from 'node:crypto';
+import {lineItemsTotal} from '../public/js/money.js';
 
 // Quotes stay fully private except through a 30-day signed customer approval URL.
 // No email, payment, or job is created by marking a quote "Sent".
@@ -36,8 +37,7 @@ function itemsFrom(value){
   });
 }
 function totalCents(items){
-  const cents=items.reduce((sum,it)=>sum+Math.round(it.qty*100)*Math.round(it.rate*100)/100,0);
-  const rounded=Math.round(cents);
+  const rounded=Math.round(lineItemsTotal(items)*100);
   if(!Number.isSafeInteger(rounded)||rounded<=0||rounded>100_000_000)
     throw new QuoteError('invalid_total','Estimate total must be greater than zero and below one million.');
   return rounded;

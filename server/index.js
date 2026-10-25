@@ -8,6 +8,7 @@ import { openDb } from './db.js';
 import { createGoogle } from './google.js';
 import { makeRazorpay } from './razorpay.js';
 import { createApp } from './app.js';
+import { makeSmtpSender } from './reminder-worker.js';
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.join(ROOT, '.env'), quiet: true });
@@ -28,7 +29,8 @@ for (const w of config.warnings) console.warn('Warning: ' + w);
 const db = openDb(config.databasePath);
 const google = config.googleConfigured ? createGoogle(config) : null;
 const razorpay = config.razorpayConfigured ? makeRazorpay(config) : null;
-const app = createApp({ config, db, google, razorpay });
+const accountEmailSender = makeSmtpSender(process.env);
+const app = createApp({ config, db, google, razorpay, accountEmailSender });
 
 const server = app.listen(config.port, config.host, () => {
   console.log(`\n========================================================`);

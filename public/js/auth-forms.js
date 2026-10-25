@@ -166,6 +166,7 @@
         });
         const data = await res.json();
         if (btn) { btn.disabled = false; btn.textContent = 'Send Reset Instructions'; }
+        if(!res.ok)return showMessage(data.message||'Password reset email is unavailable. Please try again later.','err');
 
         if (data.resetUrl) {
           showMessage('Development link generated: ' + data.resetUrl, 'ok');

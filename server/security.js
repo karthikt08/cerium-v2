@@ -100,7 +100,7 @@ export function requireCsrf(req, res, next) {
 // Admin authorization check
 export function requireAdmin(config) {
   return (req, res, next) => {
-    if (req.session && config.adminEmails.includes(req.session.email.toLowerCase())) return next();
+    if (req.session && req.user?.email_verified && config.adminEmails.includes(req.session.email.toLowerCase())) return next();
     return next('route');
   };
 }

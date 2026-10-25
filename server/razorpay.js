@@ -6,7 +6,8 @@
 import { createHmac } from 'node:crypto';
 import { safeEqual } from './google.js';
 
-export function makeRazorpay({ keyId, keySecret, webhookSecret, fetchImpl = fetch }) {
+export function makeRazorpay({ razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret,
+  keyId = razorpayKeyId, keySecret = razorpayKeySecret, webhookSecret = razorpayWebhookSecret, fetchImpl = fetch }) {
   const auth = 'Basic ' + Buffer.from(`${keyId || ''}:${keySecret || ''}`).toString('base64');
 
   async function createOrder({ amount, currency = 'USD', receipt, notes = {} }) {
@@ -15,6 +16,7 @@ export function makeRazorpay({ keyId, keySecret, webhookSecret, fetchImpl = fetc
       return { id: mockId, amount, currency, status: 'created', receipt };
     }
     const res = await fetchImpl('https://api.razorpay.com/v1/orders', {
+      signal: AbortSignal.timeout(10000),
       method: 'POST',
       headers: { Authorization: auth, 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount, currency, receipt, notes }),
@@ -42,6 +44,7 @@ export function makeRazorpay({ keyId, keySecret, webhookSecret, fetchImpl = fetc
 
   async function call(method, endpoint, payload) {
     const response = await fetchImpl('https://api.razorpay.com/v1/' + endpoint, {
+      signal: AbortSignal.timeout(10000),
       method,
       headers: { Authorization: auth, 'Content-Type': 'application/json' },
       ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),

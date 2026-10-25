@@ -1,5 +1,6 @@
 // Estimates & Quotes — integrated with CERIUM's job scheduling and billing.
 import {escapeHTML as esc} from './workspace-model.js';
+import {lineItemsTotal} from './money.js';
 import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
 let handlers=null;
 let working=false;
@@ -104,8 +105,9 @@ const row=(item={description:'',qty:1,rate:0})=>'<div class="quote-item" data-qu
   '<button class="quote-remove" type="button" data-quote-action="remove-item" aria-label="Remove item">×</button></div>';
 function updateTotal(form){
   if(!form)return;
-  const amount=[...form.querySelectorAll('[data-quote-item]')].reduce((sum,r)=>
-    sum+Number(r.querySelector('[data-quote-field="qty"]').value||0)*Number(r.querySelector('[data-quote-field="rate"]').value||0),0);
+  const items=[...form.querySelectorAll('[data-quote-item]')].map(r=>({
+    qty:Number(r.querySelector('[data-quote-field="qty"]').value||0),rate:Number(r.querySelector('[data-quote-field="rate"]').value||0)}));
+  let amount;try{amount=lineItemsTotal(items);}catch{amount=0;}
   const el=form.querySelector('[data-quote-total]');
   if(el)el.textContent=fmt(amount,handlers?.getWorkspace()?.account?.currency);
 }

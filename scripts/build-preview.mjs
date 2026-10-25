@@ -16,9 +16,10 @@ function demoAdapter() {
     account: {
       name: 'Alex Morgan', businessName: 'Northstar Contracting', email: 'alex@example.test',
       phone: '555-0100', location: 'Austin, TX', trade: 'General contracting', currency: 'USD',
+      country:'US',timeZone:'America/Chicago',regionLocked:true,
       plan: 'trial', planStatus: 'trial', trialDaysRemaining: 15, googlePlaceUrl: '',
     },
-    leads: [], followUps: [], invoices: [], reviews: [], bankTransactions: [], messages: [],
+    leads: [], followUps: [], invoices: [], reviews: [], bankTransactions: [], messages: [],jobs:[],crew:[],quotes:[],reminders:[],
   };
   let sequence = 10, invoiceNumber = 1000;
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -39,6 +40,7 @@ function demoAdapter() {
   const api = {
     async getMe() { return { signedIn:true }; },
     async getWorkspace() { return clone(ws); },
+    async getBillingIdentity() { return {verified:false,providerReady:false}; },
     async createLead(payload) {
       const lead = create('leads', { phone:'',email:'',address:'',source:'Direct',stage:'New',value:0,notes:'',nextFollowUp:day(0),...payload });
       if (payload.createReminder) await api.createFollowUp({ contactName:lead.name,phone:lead.phone,dueDate:lead.nextFollowUp,task:`Follow up: ${lead.notes || lead.name}` });
@@ -83,6 +85,10 @@ function demoAdapter() {
     createMessage:()=>unavailable('Support is available in the connected app. This demo does not open or send messages.'),
     resolveBankMatch:()=>unavailable('Bank connections are unavailable in this demo.'),
   };
+  for(const name of ['createJob','updateJob','deleteJob','createJobInvoice','addCrew','archiveCrew',
+    'createQuote','updateQuote','deleteQuote','sendQuote','quoteLink','convertQuote','createReminder','cancelReminder',
+    'getBillingStatus','startBillingPhone','verifyBillingPhone','cancelSubscription','toggleBankConnection'])
+    api[name]=()=>unavailable('This action requires the connected CERIUM app.');
   for (const [name,stage,source,value,notes,due] of [
     ['Olivia Ellis','New','Website Form',2400,'Kitchen cabinet refinishing',0],
     ['James Cooper','Quoted','Referral',1250,'Bathroom tile repair',0],
@@ -102,18 +108,27 @@ function demoAdapter() {
 }
 
 let html = await read('public/app.html');
-const css = await read('public/css/workspace.css');
-const model = (await read('public/js/workspace-model.js')).replace(/^export /gm,'');
-const controller = (await read('public/js/app.js')).replace(/^import .*;\n/gm,'');
-const cursor = await read('public/js/workspace-cursor.js');
+// Keep real module scopes and recursively embed their dependencies. Concatenating
+// the controllers loses imports and collides on module-local names such as esc.
+const modules=new Map();
+async function embedModule(file){
+  if(modules.has(file))return modules.get(file);
+  let source=file==='api.js'?`const API=(${demoAdapter.toString()})();export default API;`:await read('public/js/'+file);
+  for(const match of [...source.matchAll(/(?:import|export)\s[^;]*?\sfrom\s*['"]\.\/([^'"]+)['"]/g)]){
+    const dependency=await embedModule(match[1]);
+    source=source.replace(match[0],match[0].replace('./'+match[1],dependency));
+  }
+  const url='data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+  modules.set(file,url);return url;
+}
 const logo = (await readFile(new URL('public/img/cerium-logo-30.png',root))).toString('base64');
 html=html.replace(/<link[^>]+(?:favicon\.svg|fonts\.googleapis\.com|fonts\.gstatic\.com)[^>]*>/g,'');
-html=html.replace('<link rel="stylesheet" href="css/workspace.css">',`<style>${css}</style>`);
+for(const match of [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(css\/[^\"]+)"[^>]*>/g)])
+  html=html.replace(match[0],`<style>${await read('public/'+match[1])}</style>`);
 html=html.replace('src="img/cerium-logo-30.png"',`src="data:image/png;base64,${logo}"`);
 html=html.replace('Personal workspace','Demo · resets on reload');
 html=html.replace(/<script[\s\S]*?<\/script>/g,'');
-const code = `const API=(${demoAdapter.toString()})();\n${model}\nconst esc=escapeHTML;\n${controller}\n${cursor}`;
-html=html.replace('</body>',`<script>${code.replace(/<\/script/gi,'<\\/script')}</script></body>`);
+html=html.replace('</body>',`<script type="module" src="${await embedModule('app.js')}"></script><script type="module" src="${await embedModule('workspace-cursor.js')}"></script></body>`);
 const output=resolve(process.argv[2]||'output/cerium-preview.html');
 await mkdir(dirname(output),{recursive:true});
 await writeFile(output,html);
