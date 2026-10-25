@@ -1,0 +1,30 @@
+/* Quiet, consistent cues for text actions and native dropdowns. */
+:is(.notice,.muted,.page-description,.form-error,.footnote,.legal,.swap) a:not(.button):not(.btn),
+.field small a,.support-email,#business-back,.text-button,.pg a.tl,.pg .doc a:not(.btn){
+  color:var(--accent,var(--ac,#4263eb));font-weight:500;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);
+  border-radius:2px;transition:text-decoration-color .15s ease;
+}
+:is(.notice,.muted,.page-description,.form-error,.footnote,.legal,.swap) a:not(.button):not(.btn):is(:hover,:focus-visible),
+.field small a:is(:hover,:focus-visible),.support-email:is(:hover,:focus-visible),
+#business-back:is(:hover,:focus-visible),.text-button:is(:hover,:focus-visible),
+.pg a.tl:is(:hover,:focus-visible),.pg .doc a:not(.btn):is(:hover,:focus-visible){
+  text-decoration-color:currentColor;
+}
+@media(prefers-reduced-motion:reduce){.text-button{transition:none}}
+
+/* Reserve a separate arrow lane without replacing native select behavior. */
+:is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]){
+  -webkit-appearance:none;appearance:none;
+  padding-inline-end:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='m3 5 4 4 4-4' fill='none' stroke='%235f6f87' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:var(--select-arrow-size,14px) var(--select-arrow-size,14px);background-position:right var(--select-arrow-inset,12px) center;
+}
+.app-page select.small-select{--select-arrow-inset:10px;--select-arrow-size:12px}
+:is(.app-page,.verify-layout,.pg):dir(rtl) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]){background-position:left var(--select-arrow-inset,12px) center}
+@media(forced-colors:active){
+  :is(.app-page,.verify-layout,.pg) select:not([multiple]):not(.dial-native-select):is(:not([size]),[size="1"]){
+    -webkit-appearance:auto;appearance:auto;background-image:none;
+  }
+}
