@@ -71,7 +71,7 @@
 }
 .entry-caption {
   position:absolute;left:50%;bottom:clamp(50px,10vh,95px);transform:translateX(-50%);
-  margin:0;max-width:90vw;white-space:nowrap;text-align:center;
+  margin:0;width:max-content;max-width:90vw;white-space:normal;text-align:center;
   font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
   color:#5d6672;opacity:0;animation:entry-caption-in .6s ease-out 1.64s both;
 }
@@ -80,7 +80,7 @@
   background:linear-gradient(90deg,transparent,#3372ce,transparent);
   animation:entry-pulse 1.35s ease-in-out infinite;
 }
-.entry-skip {
+.entry-skip,.entry-retry {
   position:absolute;right:clamp(16px,3vw,42px);bottom:clamp(16px,3vw,42px);
   appearance:none;border:1px solid rgba(49,73,107,.18);border-radius:999px;
   background:rgba(255,255,255,.62);color:#25354a;
@@ -88,7 +88,7 @@
   backdrop-filter:blur(10px);
 }
 .entry-skip:hover{background:#fff;border-color:#9aaac3}
-.entry-skip:focus-visible{outline:3px solid #236fe2;outline-offset:3px}
+.entry-skip:focus-visible,.entry-retry:focus-visible{outline:3px solid #236fe2;outline-offset:3px}
 .entry-scene.is-leaving{opacity:0;pointer-events:none;transition:opacity .24s ease}
 body.entry-page{margin:0;background:#e2e3e6}
 @keyframes entry-mark-in{
@@ -120,3 +120,8 @@ body.entry-page{margin:0;background:#e2e3e6}
   .entry-caption::after{animation:none}
   .entry-scene.is-leaving{transition:none}
 }
+
+.entry-retry{right:auto;left:clamp(16px,3vw,42px)}
+.entry-scene [hidden]{display:none!important}
+.entry-instant .entry-mark,.entry-instant .entry-letter,.entry-instant .entry-entry-dot,.entry-instant .entry-ground,.entry-instant .entry-caption{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
+.entry-instant .entry-shimmer{display:none}.entry-instant .entry-caption::after{animation:none}
