@@ -178,12 +178,24 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     event.preventDefault();if(busy)return;clearErrors();busy=true;render();
     try{
       if(screen==='review'){
-        if(!completed){await api.completeBusinessSetup(el('biz-confirm').checked);completed=true;}
+        if(!completed){await api.completeBusinessSetup(el('biz-confirm').checked,setup.revision);completed=true;}
         await onComplete();return;
       }
       const fields={};for(const key of BUSINESS_SETUP_FIELDS[screen])if(!form.elements[key].disabled)fields[key]=form.elements[key].value;
       setup=await api.saveBusinessSetupStep(screen,fields);screen=setup.step;el('biz-confirm').checked=false;render(true);
-    }catch(err){busy=false;errors(err);}finally{busy=false;render();}
+    }catch(err){
+      busy=false;
+      if(err.data?.error==='business_setup_changed'||err.code==='business_setup_changed'){
+        try{
+          const fresh=await api.getBusinessSetup();
+          setup=fresh;screen=fresh.step;populate();el('biz-confirm').checked=false;
+          // Another tab may already have finished this setup. The next step
+          // still checks phone and mandate status on the server.
+          if(fresh.complete&&fresh.step==='basics'){completed=true;screen='review';}
+        }catch{err=new Error('Could not refresh your business details. Reload this page to resume your saved setup.');}
+      }
+      errors(err);
+    }finally{busy=false;render();}
   });
   return {show(state,proof={}){setup=state;identity=proof;screen=state.step;completed=false;populate();el('biz-confirm').checked=false;clearErrors();root.hidden=false;form.hidden=false;render();},hide(){root.hidden=true;}};
 }

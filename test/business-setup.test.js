@@ -51,7 +51,7 @@ test('business submission requires an authenticated owner, CSRF and a verified p
   }finally{await t.close();}
 });
 
-test('required fields, malformed values and country/confirmation changes cannot complete setup',async()=>{
+test('legacy profile submissions cannot complete initial setup even after reaching review',async()=>{
   const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
   try{
     const b=t.browser();await signIn(t,b,{profile:ALICE});const csrf=await phone(t,b);
@@ -63,11 +63,11 @@ test('required fields, malformed values and country/confirmation changes cannot 
       {country:'IN'},{confirmBusinessDetails:false},{confirmBusinessDetails:'true'}
     ]){
       const result=await b.req('/api/business/profile',{method:'POST',csrf,json:{...businessDetails(),...patch}});
-      assert.equal(result.status,400,JSON.stringify(patch));assert.equal((await result.json()).error,'invalid_business_profile');
+      assert.equal(result.status,409,JSON.stringify(patch));assert.equal((await result.json()).error,'business_setup_required');
       assert.equal(t.db.getUserByEmail(ALICE.email).business_profile_completed_at,0);
       assert.equal(t.db.getUserByEmail(ALICE.email).business_name,null);
     }
-    for(const json of [null,[],true,'text'])assert.equal((await b.req('/api/business/profile',{method:'POST',csrf,json})).status,400);
+    for(const json of [null,[],true,'text'])assert.equal((await b.req('/api/business/profile',{method:'POST',csrf,json})).status,Array.isArray(json)?409:400);
     assert.equal((await b.req('/api/workspace')).status,403);
   }finally{await t.close();}
 });
@@ -213,7 +213,7 @@ test('registered Indian setup feeds invoice tax snapshots and remains editable w
     const b=t.browser();await signIn(t,b,{profile:ALICE});const csrf=await phone(t,b,'IN'),uid=t.db.getUserByEmail(ALICE.email).id;
     const initial={...businessDetails('IN'),gstRegistration:'registered',gstin:'33ABCDE1234F1Z5'};
     await prepareBusiness(t,b,'IN',initial);
-    assert.equal((await b.req('/api/business/profile',{method:'POST',csrf,json:initial})).status,200);
+    assert.equal((await b.req('/api/business/setup/complete',{method:'POST',csrf,json:{confirmBusinessDetails:true,revision:(await (await b.req('/api/business/setup')).json()).revision}})).status,200);
     const made=await b.req('/api/invoices',{method:'POST',csrf,json:{customerName:'Customer',jobTitle:'Service',amount:100,gstRate:18,placeOfSupply:'33',hsnSac:'9987'}});
     assert.equal(made.status,201,await made.clone().text());
     const before=t.db.getWorkspace(uid),deadline=t.db.getUserById(uid).trial_ends_at;

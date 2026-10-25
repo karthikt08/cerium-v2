@@ -102,7 +102,7 @@ test('mandatory business wizard saves independent local currency before payment 
     const b=t.browser();await signIn(t,b,{profile:ALICE});const user=t.db.getUserByEmail(ALICE.email);
     t.db.beginBillingPhone(user.id,'+447400123456','GB');assert.equal(t.db.completeBillingPhone(user.id,'+447400123456','GB'),true);
     await prepareBusiness(t,b,'GB',{invoiceCurrency:'GBP'});const me=await b.me();
-    const r=await b.req('/api/business/setup/complete',{method:'POST',csrf:me.csrfToken,json:{confirmBusinessDetails:true}});assert.equal(r.status,200,await r.clone().text());
+    const r=await b.req('/api/business/setup/complete',{method:'POST',csrf:me.csrfToken,json:{confirmBusinessDetails:true,revision:(await (await b.req('/api/business/setup')).json()).revision}});assert.equal(r.status,200,await r.clone().text());
     assert.equal(t.db.getUserById(user.id).currency,'GBP');assert.equal(t.db.businessProfileComplete(user.id),true);
     const status=await (await b.req('/api/billing/status')).json();assert.equal(status.currency,'USD');assert.equal(status.monthlyPrice,20);assert.equal((await b.req('/api/workspace')).status,403);
   }finally{await t.close();}

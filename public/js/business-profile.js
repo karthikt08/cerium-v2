@@ -11,6 +11,13 @@ export class BusinessProfileError extends Error {
   }
 }
 
+export class BusinessSetupChangedError extends Error {
+  constructor(){
+    super('Your business setup changed. Review the latest details and confirm again.');
+    this.code='business_setup_changed';this.status=409;
+  }
+}
+
 export function profileFromUser(user){
   if(!user)return null;
   return {

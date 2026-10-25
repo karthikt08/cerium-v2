@@ -14,7 +14,7 @@ import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, busin
 import {billingPlan,validCountry,COUNTRY_CALLING_CODES} from '../public/js/countries.js';
 import {subscriptionPrice} from './country-pricing.js';
 import {normalizeBillingPhone} from './billing-identity.js';
-import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError,businessSetupSteps,advanceBusinessSetup} from './business-profile.js';
+import {profileFromUser,validateBusinessProfile,businessProfileComplete,BusinessProfileError,BusinessSetupChangedError,businessSetupSteps,advanceBusinessSetup} from './business-profile.js';
 import {defaultModules,isIndustry,normalizeModules,suggestIndustry} from '../public/js/industry-workspaces.js';
 import { validIndianState,validGSTIN,validUpiVpa,gstBreakdown,safeGSTrate } from '../public/js/india-market.js';
 import fs from 'node:fs';
@@ -920,7 +920,8 @@ export function openDb(file) {
       try{saved=JSON.parse(user.business_setup_draft);}catch{}
       const valid=saved?.draft?.country===user.country&&businessSetupSteps(user.country).includes(saved.step);
       return {step:valid?saved.step:'basics',draft:valid?saved.draft:profileFromUser(user),
-        complete:businessProfileComplete(user),country:user.country};
+        complete:businessProfileComplete(user),country:user.country,
+        revision:createHash('sha256').update(JSON.stringify([userId,user.country,valid?saved:profileFromUser(user)])).digest('hex')};
     },
 
     saveBusinessSetupStep(userId,step,input) {
@@ -933,10 +934,12 @@ export function openDb(file) {
       })();
     },
 
-    completeBusinessSetup(userId,confirmed) {
+    completeBusinessSetup(userId,confirmed,revision) {
       return db.transaction(()=>{
         const setup=this.getBusinessSetup(userId);
+        if(typeof revision==='string'&&revision!==setup?.revision)throw new BusinessSetupChangedError();
         if(!setup||setup.step!=='review')throw new BusinessProfileError({form:'Finish every business setup step before reviewing.'});
+        if(revision!==setup.revision)throw new BusinessSetupChangedError();
         return this.saveBusinessProfile(userId,{...setup.draft,confirmBusinessDetails:confirmed});
       })();
     },

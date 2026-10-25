@@ -56,7 +56,7 @@ function demoAdapter() {
   const unavailable = async message => { throw new Error(message); };
   const api = {
     localBusinessSetup:true,
-    async getBusinessSetup(){if(storageIssue)throw new Error(storageIssue);return clone({...setup,country,complete:complete(),countryEditable:!complete()});},
+    async getBusinessSetup(){if(storageIssue)throw new Error(storageIssue);return clone({...setup,country,complete:complete(),countryEditable:!complete(),revision:JSON.stringify(setup)});},
     async selectBusinessSetupCountry(value){
       if(complete()||!validCountry(value))throw new Error('Choose a supported country before completing setup.');
       const before={country,setup};country=value;setup={step:'basics',draft:{...setup.draft,country,usState:'',indiaState:'',gstin:'',gstRegistration:'',timeZone:country==='IN'?'Asia/Kolkata':''}};
@@ -67,7 +67,8 @@ function demoAdapter() {
       const before=setup;setup=advanceBusinessSetup(setup,step,fields,country);
       try{persist();}catch(err){setup=before;throw err;}return api.getBusinessSetup();
     },
-    async completeBusinessSetup(confirmed){
+    async completeBusinessSetup(confirmed,revision){
+      if(revision!==JSON.stringify(setup))throw Object.assign(new Error('Your business setup changed. Review the latest details and confirm again.'),{code:'business_setup_changed'});
       if(setup.step!=='review'||confirmed!==true)throw new Error('Finish each step and confirm your business details.');
       const validated=validateBusinessProfile(setup.draft,country),before=profile,beforeSetup=setup;
       profile={...validated,completedAt:profile?.completedAt||Date.now()};
