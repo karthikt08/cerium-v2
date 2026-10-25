@@ -156,6 +156,8 @@ const logo = (await readFile(new URL('public/img/cerium-logo-30.png',root))).toS
 html=html.replace(/<link[^>]+(?:favicon\.svg|fonts\.googleapis\.com|fonts\.gstatic\.com)[^>]*>/g,'');
 for(const match of [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(css\/[^\"]+)"[^>]*>/g)])
   html=html.replace(match[0],`<style>${await read('public/'+match[1])}</style>`);
+const entryFont=(await readFile(new URL('public/fonts/cerium-entrance.woff',root))).toString('base64');
+html=html.replace('../fonts/cerium-entrance.woff',`data:font/woff;base64,${entryFont}`);
 html=html.replace('src="img/cerium-logo-30.png"',`src="data:image/png;base64,${logo}"`);
 const entryMark=(await readFile(new URL('public/img/cerium-logo-mark-blue.png',root))).toString('base64');
 html=html.replace('src="img/cerium-logo-mark-blue.png"',`src="data:image/png;base64,${entryMark}"`);
