@@ -1,4 +1,5 @@
 import API from './api.js';
+import {mountBusinessSetup} from './business-setup-ui.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
 import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency} from './countries.js';
@@ -453,9 +454,22 @@ document.addEventListener('submit',e=>{
   }
 });
 async function initialize() {
-  $('load-state').hidden=false;$('page-body').hidden=true;
-  try {const me=await API.getMe();if(!me.signedIn){location.href='/login.html?returnTo='+encodeURIComponent('/app.html'+location.hash);return;}await refresh();}
-  catch(err){setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
+  $('workspace').hidden=true;$('load-state').hidden=false;$('page-body').hidden=true;
+  try {
+    const me=await API.getMe();
+    if(!me.signedIn){location.href='/login.html?returnTo='+encodeURIComponent('/app.html'+location.hash);return;}
+    const setup=await API.getBusinessSetup();
+    if(!setup.complete){
+      if(!API.localBusinessSetup){location.replace('/verify.html');return;}
+      let panel=$('business-setup-preview');
+      if(!panel){panel=document.createElement('main');panel.id='business-setup-preview';panel.className='business-setup-preview';document.body.append(panel);}
+      panel.innerHTML='<h1>First, set up your business.</h1><p>Complete each step before using the workspace. This offline preview does not send SMS or collect payments. Setup details are saved in this browser.</p><div id="preview-business-form"></div>';
+      mountBusinessSetup($('preview-business-form'),{api:API,onComplete:async()=>{panel.remove();await initialize();}}).show(setup);
+      return;
+    }
+    await refresh();$('workspace').hidden=false;
+  }
+  catch(err){$('workspace').hidden=false;setSync('Connection issue');$('load-state').hidden=true;$('page-body').hidden=false;$('page-body').innerHTML=`<div class="error-state"><h2>We couldn’t load your workspace</h2><p>${esc(err.message||'Check your connection and try again.')}</p>${button('Try again','refresh')}</div>`;}
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
