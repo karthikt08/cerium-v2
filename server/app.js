@@ -707,6 +707,15 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     }
   });
 
+  // Module visibility is a user preference, never an entitlement or data deletion.
+  api.patch('/workspace/preferences',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{return res.json({ok:true,preferences:db.saveWorkspacePreferences(req.session.userId,req.body)});}
+    catch(err){
+      if(err.code==='invalid_business_profile')return res.status(400).json({error:err.code,message:err.message,fields:err.fields});
+      throw err;
+    }
+  });
+
   // Update profile
   api.patch('/me', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     let updated;
