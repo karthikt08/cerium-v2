@@ -22,6 +22,12 @@ Overview is always visible and remains the first dashboard navigation item.
 It is not an optional module and cannot be hidden by an industry preset or
 a custom tool selection.
 
+Overview cards reflow to fill each row as tools are enabled or disabled. A lone
+card or the final card of an odd row fills the available width. Empty metric
+and detail sections collapse completely. If no detailed panels apply, Overview
+shows direct links to the selected tools. Missing preferences retain the full
+Overview until account defaults are available.
+
 ## Smart suggestions
 
 The "Suggest my tools" control recognizes common task words in descriptions,

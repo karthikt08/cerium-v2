@@ -8,7 +8,7 @@ import {
 } from '../public/js/industry-workspaces.js';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
 import {prepareBusiness} from './business-fixtures.js';
-import {customizeBusinessNavigation} from '../public/js/workspace-customizer.js';
+import {customizeBusinessNavigation,customizeOverview,renderOverviewTools} from '../public/js/workspace-customizer.js';
 
 const source=p=>readFileSync(fileURLToPath(new URL('../'+p,import.meta.url)),'utf8');
 
@@ -121,4 +121,28 @@ test('Overview stays visible and first for every preset, custom selection and fa
    assert.equal(link.hidden,id!=='overview'&&!selected.includes(id));
   }
  }
+});
+
+
+test('Overview hides empty sections and restores cards for every feature combination',()=>{
+ const ids=WORKSPACE_MODULES.map(module=>module.id);
+ const card=id=>({dataset:{workspaceModule:id},hidden:false,style:{display:''}});
+ const metrics={children:['leads','followups','invoices','invoices'].map(card),hidden:false};
+ const panels={children:['followups','invoices','leads','reviews'].map(card),hidden:false};
+ const links=ids.map(card),tools={hidden:true};
+ const all=[...metrics.children,...panels.children,...links];
+ const root={querySelectorAll:selector=>selector==='[data-workspace-module]'?all:[metrics,panels],
+  querySelector:selector=>selector==='[data-overview-tools]'?tools:panels};
+ for(let mask=1;mask<(1<<ids.length);mask++){
+  const selected=ids.filter((id,index)=>mask&(1<<index));
+  customizeOverview(root,selected);
+  for(const element of all)assert.equal(element.hidden,!selected.includes(element.dataset.workspaceModule));
+  for(const grid of [metrics,panels])assert.equal(grid.hidden,!grid.children.some(element=>selected.includes(element.dataset.workspaceModule)));
+  assert.equal(tools.hidden,!panels.hidden);
+ }
+ customizeOverview(root,undefined);
+ assert.ok(all.every(element=>!element.hidden&&element.style.display===''));
+ assert.equal(metrics.hidden,false);assert.equal(panels.hidden,false);assert.equal(tools.hidden,true);
+ const html=renderOverviewTools();
+ for(const id of ids)assert.ok(html.includes('href="#'+id+'"'));
 });
