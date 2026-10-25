@@ -51,6 +51,24 @@ test('legal pages have updated dates, no starter placeholders and accurate billi
   assert.match(privacy,/account-deletion control/);
 });
 
+test('benefits navigation uses the shared spatial floating title bar structure',()=>{
+  const html=read('benefits.html');
+  const header=html.match(/<header class="w hd">([\s\S]*?)<\/header>/)?.[1];
+  assert.ok(header,'use .w .hd so spatial.css floating glass header is applied');
+  assert.match(header,/<a class="lg" href="index\.html"/,'reuse landing wordmark');
+  assert.match(header,/<nav aria-label="Main navigation">/);
+  assert.match(header,/href="benefits\.html" aria-current="page"/);
+  assert.match(header,/class="hd-actions"/);
+  assert.match(header,/class="btn sm gh" data-auth="guest"/);
+  assert.match(header,/class="btn sm btn-auth-action"/);
+  assert.doesNotMatch(html,/<header class="shell head">/,'do not use unstyled custom header');
+  const spatial=read('css/spatial.css');
+  for(const css of ['.pg .hd{','position:sticky!important','backdrop-filter:blur(12px)'])
+    assert.ok(spatial.includes(css),'shared header must supply '+css);
+  assert.match(html,/@media\(max-width:720px\)\{\.pg\.home\.benefits-page \.hd nav\{display:none\}\}/,'mobile navigation layout');
+  assert.match(html,/@media\(max-width:440px\)/,'small-mobile layout');
+});
+
 test('benefits page inherits the landing purple ambient glow and magnetic cursor without duplicate cursor engines',()=>{
   const html=read('benefits.html');
   assert.match(html,/<div class="pg home benefits-page" id="pg"/);

@@ -20,13 +20,17 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Figtree",system-ui,sans-serif}
 a{color:inherit}
 a:focus-visible,button:focus-visible{outline:3px solid #7b9aff;outline-offset:3px}
-.shell{max-width:1160px;margin:auto;padding:0 24px}
-.head{display:flex;gap:26px;align-items:center;min-height:96px}
-.logo{display:inline-flex;align-items:center;gap:9px;font-size:21px;font-weight:800;letter-spacing:-.03em;text-decoration:none}
-.logo img{border-radius:7px}
-.head nav{display:flex;gap:26px;margin-left:auto}
-.head nav a{font-size:14px;text-decoration:none;color:var(--muted)}
-.head nav a[aria-current],.head nav a:hover{color:var(--blue)}
+.shell,.w{max-width:1160px;margin:auto;padding:0 24px}
+/* Use the same .w .hd .lg / .btn structure as the landing page so spatial.css
+   applies Cerium's sticky floating glass title bar without a second skin. */
+.pg.home.benefits-page .hd{display:flex;align-items:center;gap:32px;min-height:0}
+.pg.home.benefits-page .hd .lg{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:700;text-decoration:none;white-space:nowrap}
+.pg.home.benefits-page .hd nav{display:flex;align-items:center;gap:30px;margin-left:auto;font-weight:500}
+.pg.home.benefits-page .hd nav a{font-size:14px;text-decoration:none}
+.pg.home.benefits-page .hd nav a[aria-current="page"]{font-weight:700;color:var(--blue)!important;background-size:100% 2px}
+.pg.home.benefits-page .hd-actions{display:flex;align-items:center;gap:12px}
+.pg.home.benefits-page .hd .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 16px;border:1px solid transparent;text-decoration:none;font-size:13.5px;white-space:nowrap}
+.pg.home.benefits-page .hd .btn.gh{color:var(--ink);border-color:var(--line)}
 .actions{display:flex;gap:10px}
 .button{display:inline-flex;justify-content:center;align-items:center;min-height:41px;padding:10px 16px;border:1px solid #ced8eb;border-radius:8px;text-decoration:none;font-weight:650;font-size:13px;background:white}
 .button.primary{background:var(--blue);border-color:var(--blue);color:white}
@@ -69,8 +73,10 @@ section.group{padding:76px 0 0;scroll-margin-top:28px}
 .footer{border-top:1px solid var(--line);padding:35px 0 46px;display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .footer a{text-decoration:none}.footer a:hover{text-decoration:underline}
 .footer-links{display:flex;flex-wrap:wrap;gap:18px}
-@media(max-width:850px){.head{gap:16px;flex-wrap:wrap;padding-top:20px;padding-bottom:18px}.head nav{margin-left:auto}.head .actions{width:100%;justify-content:flex-start}.group-title{grid-template-columns:1fr;gap:8px}}
-@media(max-width:620px){.head nav{width:100%;margin:0;order:3;flex-wrap:wrap;gap:15px}.head .actions{margin-left:auto;width:auto}.hero{padding:54px 0 44px}.features{grid-template-columns:1fr}.feature{padding:23px}.group{padding-top:57px!important}.bottom-cta{padding:60px 0}.footer{display:block}.footer-links{margin-top:15px}}
+@media(max-width:850px){.pg.home.benefits-page .hd{gap:16px}.pg.home.benefits-page .hd nav{gap:17px}.pg.home.benefits-page .hd-actions{gap:8px}.group-title{grid-template-columns:1fr;gap:8px}}
+@media(max-width:720px){.pg.home.benefits-page .hd nav{display:none}}
+@media(max-width:620px){.hero{padding:54px 0 44px}.features{grid-template-columns:1fr}.feature{padding:23px}.group{padding-top:57px!important}.bottom-cta{padding:60px 0}.footer{display:block}.footer-links{margin-top:15px}}
+@media(max-width:440px){.pg.home.benefits-page .hd{flex-wrap:wrap;justify-content:space-between;border-radius:22px!important}.pg.home.benefits-page .hd-actions{flex:1 1 100%;justify-content:space-between}.pg.home.benefits-page .hd .btn{padding:0 12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <link rel="stylesheet" href="css/brand-motion.css">
@@ -79,10 +85,10 @@ section.group{padding:76px 0 0;scroll-margin-top:28px}
 <body>
 <div class="pg home benefits-page" id="pg" style="--ac:#2f5bff">
 <div class="sp-grid" aria-hidden="true"></div>
-<header class="shell head">
-<a class="logo" href="index.html" aria-label="Cerium homepage"><img src="img/cerium-logo-30.png" width="30" height="30" alt="">CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
+<header class="w hd">
+<a class="lg" href="index.html" aria-label="Cerium homepage"><img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
 <nav aria-label="Main navigation"><a href="benefits.html" aria-current="page">Benefits</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
-<div class="actions"><a href="login.html" class="button" data-auth="guest">Log in</a><a href="signup.html" class="button primary">Start free trial</a></div>
+<div class="hd-actions"><a href="login.html" class="btn sm gh" data-auth="guest">Log In</a><a href="signup.html" class="btn sm btn-auth-action">Start Free Trial</a></div>
 </header>
 <main id="main" class="shell">
 <section class="hero">
