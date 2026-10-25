@@ -9,24 +9,24 @@ const env={
   WORKSPACE_ACCESS_MODE:'phone_and_mandate',
   RAZORPAY_KEY_ID:'rzp_test_annual',RAZORPAY_KEY_SECRET:'annual-test-secret',
   RAZORPAY_WEBHOOK_SECRET:'annual-test-webhook-secret',
-  RAZORPAY_PLAN_ID:'plan_month_us',
-  RAZORPAY_ANNUAL_PLAN_ID:'plan_year_us',
-  RAZORPAY_ANNUAL_UPPER_MIDDLE_PLAN_ID:'plan_year_upper',
-  RAZORPAY_ANNUAL_LOWER_MIDDLE_PLAN_ID:'plan_year_lower',
-  RAZORPAY_ANNUAL_LOW_PLAN_ID:'plan_year_low',
-  RAZORPAY_ANNUAL_IN_PLAN_ID:'plan_year_india'
+  RAZORPAY_PLAN_ID:'plan_monthus',
+  RAZORPAY_ANNUAL_PLAN_ID:'plan_yearus',
+  RAZORPAY_ANNUAL_UPPER_MIDDLE_PLAN_ID:'plan_yearupper',
+  RAZORPAY_ANNUAL_LOWER_MIDDLE_PLAN_ID:'plan_yearlower',
+  RAZORPAY_ANNUAL_LOW_PLAN_ID:'plan_yearlow',
+  RAZORPAY_ANNUAL_IN_PLAN_ID:'plan_yearindia'
 };
 
 test('annual tier prices are exactly ten monthly fees and missing tiers never use another plan',()=>{
   const config={
     ...Object.fromEntries([
-      ['razorpayPlanId','plan_month_us'],['razorpayAnnualPlanId','plan_year_us'],
-      ['razorpayAnnualUpperMiddlePlanId','plan_year_upper'],['razorpayAnnualLowerMiddlePlanId','plan_year_lower'],
-      ['razorpayAnnualLowPlanId','plan_year_low'],['razorpayAnnualIndiaPlanId','plan_year_india']
+      ['razorpayPlanId','plan_monthus'],['razorpayAnnualPlanId','plan_yearus'],
+      ['razorpayAnnualUpperMiddlePlanId','plan_yearupper'],['razorpayAnnualLowerMiddlePlanId','plan_yearlower'],
+      ['razorpayAnnualLowPlanId','plan_yearlow'],['razorpayAnnualIndiaPlanId','plan_yearindia']
     ]),razorpayConfigured:true,webhookConfigured:true
   };
-  for(const [country,price,planId] of [['US',200,'plan_year_us'],['BR',160,'plan_year_upper'],
-    ['NG',120,'plan_year_lower'],['UG',80,'plan_year_low'],['IN',5000,'plan_year_india']]){
+  for(const [country,price,planId] of [['US',200,'plan_yearus'],['BR',160,'plan_yearupper'],
+    ['NG',120,'plan_yearlower'],['UG',80,'plan_yearlow'],['IN',5000,'plan_yearindia']]){
     const m=billingPlan(country),annual=checkoutPlan(config,country,'annual');
     assert.equal(annual.minorUnits,m.minorUnits*10,country);
     assert.equal(annual.annualPrice,price,country);
@@ -44,7 +44,7 @@ test('annual tier prices are exactly ten monthly fees and missing tiers never us
 test('yearly checkout confirms amount, period and 15-day trial before opening access',async()=>{
   let scheduled,authorized=false,providerChecks=0;
   const t=await startServer({env,razorpay:{
-    getPlan:async id=>{providerChecks++;assert.equal(id,'plan_year_us');
+    getPlan:async id=>{providerChecks++;assert.equal(id,'plan_yearus');
       return {period:'yearly',interval:1,item:{amount:20000,currency:'USD'}};},
     createSubscription:async params=>{scheduled=params;
       return {id:'sub_annual_us',status:'created',start_at:params.startAt,expire_by:params.expireBy};},
@@ -67,7 +67,7 @@ test('yearly checkout confirms amount, period and 15-day trial before opening ac
     assert.equal(confirmation.billingCycle,'annual');
     assert.equal(confirmation.amount,20000);assert.equal(confirmation.currency,'USD');
     assert.equal(confirmation.trialEligible,true);
-    assert.equal(scheduled.planId,'plan_year_us');
+    assert.equal(scheduled.planId,'plan_yearus');
     assert.equal(scheduled.totalCount,10);
     assert.equal(scheduled.notes.billingCycle,'annual');
     assert.ok(scheduled.startAt*1000>=Date.now()+15*86400000);
