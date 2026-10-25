@@ -81,7 +81,8 @@
     // before it can call fail(). This is a UI fallback, not an auth bypass.
     setTimeout(() => { if (!ready) { ready = true; schedule(true); } }, 9000);
   } else {
-    fetch('/api/me', { credentials:'same-origin', cache:'no-store' })
+    fetch('/api/me', { credentials:'same-origin', cache:'no-store',
+      signal:AbortSignal.timeout(7000) })
       .then(res => { if (!res.ok) throw new Error('Session unavailable'); return res.json(); })
       .then(me => {
         if (!me.signedIn) {
