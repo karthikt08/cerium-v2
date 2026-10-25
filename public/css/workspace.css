@@ -67,6 +67,6 @@ body[data-edition="in"] .workspace-label small{color:#276c53}
 .invoice-local-fields [hidden]{display:none!important}.invoice-preserve-lines{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;margin-top:16px}
 .invoice-document{overflow-wrap:anywhere}.invoice-document td{white-space:normal}.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}
 @media(max-width:480px){.invoice-document{padding:12px 0}.invoice-top{flex-direction:column}.invoice-document .invoice-info{grid-template-columns:1fr;gap:12px}.invoice-document th,.invoice-document td{padding:8px 5px;font-size:10px}}
-@page invoice-a4{size:A4;margin:16mm}
-@page invoice-letter{size:Letter;margin:.65in}
-@media print{.invoice-paper-a4{page:invoice-a4}.invoice-paper-letter{page:invoice-letter}.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}.invoice-top{flex-direction:row}.invoice-document thead{display:table-header-group}.invoice-document tr,.invoice-tax-summary,.invoice-total{break-inside:avoid}}
+@media print{.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}.invoice-top{flex-direction:row}.invoice-document thead{display:table-header-group}.invoice-document tr,.invoice-tax-summary,.invoice-total{break-inside:avoid}}
+
+.invoice-document table{width:100%;min-width:0;table-layout:fixed}.invoice-document th:first-child{width:40%}.invoice-document th:nth-child(2){width:12%}.invoice-document th:nth-child(3),.invoice-document th:nth-child(4){width:24%}

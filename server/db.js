@@ -716,7 +716,7 @@ export function openDb(file) {
   };
   const protectRecordedPayment=(userId,invoice,total,status)=>{
     if(q.getInvoicePayment.get(userId,invoice.id)&&
-       (status!=='Paid'||Math.round(total*1000)!==Math.round(invoice.total*1000)))
+       (status!=='Paid'||Math.round(total*10000)!==Math.round(invoice.total*10000)))
       throw Object.assign(new Error('This invoice is linked to a recorded payment. Its paid status and total must stay consistent with that payment.'),{code:'payment_linked_invoice',status:409});
   };
 
@@ -1400,6 +1400,7 @@ export function openDb(file) {
       const tax=editionTax(user,items,payload);
       const details=makeInvoiceDetails(user,items,payload,null,{issueDate:payload.issueDate||today});
       const total=tax?tax.total:details.total;
+      details.total=total;
       const id = String(q.nextInvoiceNumber.run().lastInsertRowid);
       const inv = {
         id,
@@ -1482,6 +1483,7 @@ export function openDb(file) {
         utgst:inv.utgst,igst:inv.igst,total:inv.total});
       const total=preserveAmounts?inv.total:tax?tax.total:details.total;
       if(preserveAmounts&&previousDetails)Object.assign(details,{subtotal:previousDetails.subtotal,total:previousDetails.total,taxLines:previousDetails.taxLines});
+      details.total=total;
       const terms = p.terms || inv.terms;
       const issueDate=p.issueDate||inv.issue_date;
       const scheduleChanged=(p.terms!==undefined&&p.terms!==inv.terms)||(p.issueDate!==undefined&&p.issueDate!==inv.issue_date);
@@ -1555,7 +1557,7 @@ export function openDb(file) {
       if (action === 'confirm') {
         if(!targetInvoiceId)throw Object.assign(new Error('Select an invoice.'),{code:'invalid_match',status:400});
         const source=q.getInvoice.get(String(targetInvoiceId),userId);
-        if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*1000)!==Math.round(Number(source.total)*1000))
+        if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*10000)!==Math.round(Number(source.total)*10000))
           throw Object.assign(new Error('Match a deposit equal to the invoice total.'),{code:'amount_mismatch',status:409});
         if(tx.matched_invoice_id&&tx.matched_invoice_id!==String(targetInvoiceId))
           throw Object.assign(new Error('This transaction is already matched.'),{code:'already_matched',status:409});

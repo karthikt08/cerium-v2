@@ -315,7 +315,7 @@ function previewInvoice(id) {
   const bp=a.businessProfile,details=i.details,preset=invoiceCountry(details?.country||a.country);
   const supplier=details?.supplier;
   const printedDate=value=>invoiceDate(value,preset.country);
-  const address=supplier?.address|| (bp?.complete?[bp.businessAddress,bp.businessCity,ind?INDIAN_STATES[i.supplierState||a.indiaState]:a.usState||bp.businessRegion,bp.businessPostalCode,countryName(a.country)].filter(Boolean).join(', '):ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
+  const address=supplier?supplier.address:(bp?.complete?[bp.businessAddress,bp.businessCity,ind?INDIAN_STATES[i.supplierState||a.indiaState]:a.usState||bp.businessRegion,bp.businessPostalCode,countryName(a.country)].filter(Boolean).join(', '):ind?[a.location,INDIAN_STATES[i.supplierState||a.indiaState]||''].filter(Boolean).join(', '):
     [a.location,[a.usState,a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', '));
   const fmt=n=>invoiceMoney(n,i.currency||currency(),preset.country);
   const gst=ind&&Boolean(i.supplierGstin);
@@ -329,8 +329,8 @@ function previewInvoice(id) {
   const invoiceTitle=gst?'DRAFT GST TAX INVOICE':'INVOICE';
   const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:details?.subtotal??i.total);
   $('invoice-sheet').innerHTML=`<article class="invoice-document invoice-paper-${preset.paper.toLowerCase()}">
-    <div class="invoice-top"><div><h2>${esc(supplier?.name||a.businessName||a.name)}</h2>
-      <p>${esc(address)}<br>${esc(supplier?.email||(bp?.complete?bp.businessEmail:a.email))}${(supplier?.phone||a.phone)?'<br>'+esc(supplier?.phone||contactPhone(a.phone)):''}<br>${esc(countryName(preset.country))}
+    <div class="invoice-top"><div><h2>${esc(supplier?.name??(a.businessName||a.name))}</h2>
+      <p>${esc(address)}<br>${esc(supplier?.email??(bp?.complete?bp.businessEmail:a.email))}${(supplier?supplier.phone:a.phone)?'<br>'+esc(supplier?supplier.phone:contactPhone(a.phone)):''}<br>${esc(countryName(preset.country))}
       ${gst?'<br>GSTIN: '+esc(i.supplierGstin):details?.supplierTaxId?'<br>'+esc(preset.taxIdLabel)+': '+esc(details.supplierTaxId):''}</p></div>
       <div><p class="eyebrow">${invoiceTitle} #${esc(i.id)}</p>${badge(i.status)}</div></div>
     <div class="invoice-info"><div><small>Billed to</small><strong>${esc(i.customerName)}</strong>
@@ -339,16 +339,20 @@ function previewInvoice(id) {
       <div><small>Due</small>${printedDate(i.dueDate)}</div></div>
     <p class="muted">Invoice currency: ${esc(i.currency||currency())}${details?.supplyDate?' · Supply date: '+printedDate(details.supplyDate):''}</p>
     ${gst?`<p class="muted">Place of supply: ${esc(INDIAN_STATES[i.placeOfSupply]||i.placeOfSupply)} (${esc(i.placeOfSupply)}) · HSN/SAC: ${esc(i.hsnSac)}</p>`:''}
-    ${table(['Description','Quantity','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
+    ${table(['Description','Qty','Rate','Amount'],i.items.map(item=>`<tr><td>${esc(item.description)}</td><td>${esc(item.qty)}</td><td>${fmt(item.rate)}</td><td>${fmt(lineItemsTotal([item]))}</td></tr>`))}
     ${rounding?`<p class="muted">Rounding adjustment ${fmt(rounding)}</p>`:''}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
-    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
+    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(supplier?.name||a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
     ${gst?'<p class="muted">Draft only. Validate invoice numbering, tax classification, signature, reverse charge, IRN/e-invoicing eligibility and other statutory requirements before issuing.</p>':''}
     ${details?.taxNote?`<p class="invoice-preserve-lines"><strong>Tax note:</strong> ${esc(details.taxNote)}</p>`:''}
     ${details?.paymentInstructions?`<p class="invoice-preserve-lines"><strong>Payment instructions:</strong> ${esc(details.paymentInstructions)}</p>`:''}
     <p class="muted">${esc(i.notes)}</p>
-  </article>`; $('invoice-dialog').showModal();
+  </article>`;
+  let printStyle=$('invoice-print-page');
+  if(!printStyle){printStyle=document.createElement('style');printStyle.id='invoice-print-page';document.head.append(printStyle);}
+  printStyle.textContent='@page { size: '+preset.paper+'; margin: 16mm; }';
+  $('invoice-dialog').showModal();
 }
 
 async function copyReview(id) {
@@ -429,6 +433,7 @@ document.addEventListener('change',e=>{
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
+$('invoice-dialog').addEventListener('close',()=>$('invoice-print-page')?.remove());
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',e=>{if(d.hasAttribute('aria-busy'))e.preventDefault();}));
 $('record-form').addEventListener('submit',e=>{
   e.preventDefault();if(readOnly()){toast('Your trial has ended. Business records are read-only.',true);return;}const {kind,id}=state.editor,form=e.currentTarget,values=Object.fromEntries(new FormData(form));Object.keys(values).forEach(k=>{values[k]=String(values[k]).trim();});

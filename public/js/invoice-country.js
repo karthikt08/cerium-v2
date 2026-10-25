@@ -30,7 +30,7 @@ export function invoiceMoney(value,currency='USD',country='US'){
   const safe=validInvoiceCurrency(currency)?currency:'USD';
   // Never hide historical fractions, even in currencies normally shown whole.
   const digits=Math.max(currencyDigits(safe),Number.isInteger(Number(value))?0:2);
-  return new Intl.NumberFormat(invoiceCountry(country).locale,{style:'currency',currency:safe,currencyDisplay:'code',minimumFractionDigits:digits,maximumFractionDigits:Math.max(digits,3)}).format(Number(value)||0);
+  return new Intl.NumberFormat(invoiceCountry(country).locale,{style:'currency',currency:safe,currencyDisplay:'code',minimumFractionDigits:digits,maximumFractionDigits:Math.max(digits,3)}).format(Number(value)||0).replace(/\u00a0/g,' ');
 }
 export function invoiceDate(value,country){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return '—';
