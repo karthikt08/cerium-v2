@@ -48,6 +48,8 @@ test('both sign-in methods and workspace entry use the same fast branded loader'
     assert.match(page,/class="entry-mark"/);
     assert.match(page,/<img src="img\/cerium-logo-mark-blue\.png"/);
     assert.match(page,/class="entry-letter"/);
+    const wordmark=[...page.matchAll(/<span class="entry-letter">([A-Z])<\/span>/g)].map(match=>match[1]).join('');
+    assert.equal(wordmark,'CERIUM','The icon must be followed by all six letters, including C');
     assert.match(page,/class="entry-entry-dot"/);
     assert.match(page,/entry-loader\.css/);
     assert.match(page,/entry-loader\.js/);

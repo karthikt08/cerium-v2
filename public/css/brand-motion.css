@@ -1,0 +1,25 @@
+/* Shared brand motion for every industry workspace and public account screen. */
+.cerium-blinker{
+  display:inline-block;flex:none;pointer-events:none;
+  color:var(--accent,var(--ac,#4364eb));
+  animation:cerium-brand-blink 3.2s ease-in-out infinite;
+}
+.brand-beacon{
+  width:5px;height:5px;background:currentColor;border-radius:1px;
+  margin:0 -9px 0 -6px;transform:translateY(.28em);
+}
+/* Keep the entrance's original size and reveal; only its inner dot breathes. */
+.entry-entry-dot{position:relative;background:transparent}
+.entry-beacon{position:absolute;inset:0;background:#4364eb;color:#4364eb;animation-delay:.95s}
+@keyframes cerium-brand-blink{
+  0%,100%{opacity:.55;filter:drop-shadow(0 0 0 transparent)}
+  45%,55%{opacity:1;filter:drop-shadow(0 0 4px currentColor)}
+}
+a:hover .cerium-blinker,a:focus-visible .cerium-blinker{animation-play-state:paused}
+.entry-instant .cerium-blinker{animation:none}
+@media(prefers-reduced-motion:reduce){
+  .cerium-blinker{animation:none;opacity:1;filter:none}
+}
+@media print{
+  .cerium-blinker{animation:none;opacity:1;filter:none}
+}

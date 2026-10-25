@@ -60,3 +60,17 @@ finish when the required setup form is ready. No installation is required.
   the wordmark width, unclipped badge/caption bounds, and readiness after Skip.
 - The standalone export embeds the original icon and font. The secret scan and
   whitespace checks pass. See the correction PR for clean-install CI results.
+
+## Shared brand blinker
+
+`public/css/brand-motion.css` gives the decorative dot a slow 3.2-second
+brightness and glow pulse. The dot never disappears, and the logo and full
+CERIUM word stay still. The same stylesheet is linked by all 14 branded HTML
+screens, including public pages, account forms, verification, the entrance
+and the shared workspace used by all ten industries and custom configurations.
+
+The workspace and public-page dots inherit their page accent; the entrance
+retains the reference blue. Hovering or keyboard-focusing the brand pauses
+its pulse. Reduced-motion preferences, printing and instant entrance mode
+show a static dot. Decorative dots are hidden from assistive technology.
+The existing preview exporter inlines the shared stylesheet automatically.
