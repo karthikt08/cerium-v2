@@ -40,29 +40,33 @@ a:focus-visible,button:focus-visible{outline:3px solid #7b9aff;outline-offset:3p
 h1,h2,h3{font-family:var(--display);letter-spacing:-.035em;line-height:1.13}
 h1{font-size:clamp(2.6rem,6vw,5rem);max-width:15ch;margin:0}
 .hero .lead{font-size:clamp(1.04rem,2vw,1.25rem);max-width:640px;color:var(--muted);margin:24px 0 30px}
-.hero-nav{display:flex;flex-wrap:wrap;gap:10px}
-.hero-nav a{text-decoration:none;display:inline-flex;padding:9px 15px;border-radius:99px;border:1px solid var(--line);background:white;font-size:13px;font-weight:650;color:#455470}
-.hero-nav a:hover{border-color:#8c9edf;color:var(--blue)}
+/* Category anchors use the same restrained rounded-rectangle language as workspace controls. */
+.pg.home.benefits-page .hero-nav{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.pg.home.benefits-page .hero-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border:1px solid #d5deee;border-radius:9px;background:rgba(255,255,255,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 12px -9px rgba(31,49,87,.22);color:#455470;font-size:13px;font-weight:650;line-height:1.2;text-align:center;text-decoration:none;white-space:normal}
+.pg.home.benefits-page .hero-nav a:hover{border-color:#a6a5ed;background:rgba(255,255,255,.95);color:var(--blue)}
+.pg.home.benefits-page .hero-nav a:focus-visible{outline:3px solid #7b9aff;outline-offset:3px}
+.pg.home.benefits-page .hero-nav a:active{transform:translateY(0) scale(.985)}
 section.group{padding:76px 0 0;scroll-margin-top:28px}
 .group-title{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,400px);gap:25px;align-items:end;margin-bottom:22px}
 .group-title h2{font-size:clamp(2rem,3.8vw,3rem);margin:0}
 .group-title p{color:var(--muted);margin:0}
 .features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.feature{background:white;border:1px solid var(--line);border-radius:14px;padding:26px 27px;min-width:0}
-.feature .num{font-size:11px;color:#667693;font-weight:750;font-variant-numeric:tabular-nums}
-.feature h3{font-size:21px;margin:13px 0 12px}
-.feature p{color:var(--muted);font-size:14px;line-height:1.67;margin:0}
-.feature .note{margin-top:15px;color:#354964;font-size:12px;font-weight:650}
+/* The landing card skin makes h3 inline-block; enforce a clear label / title / copy stack. */
+.pg.home.benefits-page .feature.cd{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:27px 29px 29px}
+.pg.home.benefits-page .feature.cd .num{display:block;width:100%;margin:0 0 9px;color:#667693;font-size:11px;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:.075em;line-height:1.35}
+.pg.home.benefits-page .feature.cd h3{display:block;align-self:flex-start;max-width:100%;margin:0;font-size:21px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.pg.home.benefits-page .feature.cd > p:not(.note){display:block;width:100%;margin:17px 0 0;color:var(--muted);font-size:14px;line-height:1.7;overflow-wrap:break-word}
+.pg.home.benefits-page .feature.cd > p.note{display:block;width:100%;margin:19px 0 0;padding-top:13px;border-top:1px solid rgba(105,124,169,.17);color:#485973;font-size:12px;font-weight:650;line-height:1.55}
 /* Reuse Cerium's spatial glass, purple ambient glow and landing card treatment. */
 .pg.home.benefits-page{position:relative;isolation:isolate;min-height:100vh;overflow-x:clip;background:transparent;--vi:#7c3aed}
 .pg.home.benefits-page .feature.cd{position:relative;min-width:0;overflow:visible;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .pg.home.benefits-page .feature.cd:hover{border-color:rgba(142,99,246,.58)!important;box-shadow:0 24px 52px -25px rgba(102,69,221,.38),0 0 0 1px rgba(179,119,255,.28),inset 0 1px 0 rgba(255,255,255,.9)!important}
 .pg.home.benefits-page .feature.cd:focus-within{outline:2px solid #7c65e9;outline-offset:3px}
 .pg.home.benefits-page .hero h1 .ac{white-space:normal}
-.pg.home.benefits-page .hero-nav a,.pg.home.benefits-page .button{transition:border-color .2s,box-shadow .2s,transform .2s}
+.pg.home.benefits-page .hero-nav a,.pg.home.benefits-page .button{transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s}
 .pg.home.benefits-page .hero-nav a:hover,.pg.home.benefits-page .button:hover{box-shadow:0 8px 22px -12px rgba(124,58,237,.45);transform:translateY(-1px)}
 .pg.home.benefits-page .button.primary:hover{box-shadow:0 11px 28px -13px rgba(124,58,237,.58)}
-@media(prefers-reduced-motion:reduce){.pg.home.benefits-page .hero-nav a:hover,.pg.home.benefits-page .button:hover{transform:none}.pg.home.benefits-page .feature.cd{backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(prefers-reduced-motion:reduce){.pg.home.benefits-page .hero-nav a:hover,.pg.home.benefits-page .hero-nav a:active,.pg.home.benefits-page .button:hover{transform:none}.pg.home.benefits-page .hero-nav a,.pg.home.benefits-page .button{transition:none}.pg.home.benefits-page .feature.cd{backdrop-filter:none;-webkit-backdrop-filter:none}}
 @media print{.pg.home.benefits-page::before,.pg.home.benefits-page .sp-grid{display:none!important}.pg.home.benefits-page .feature.cd{backdrop-filter:none;-webkit-backdrop-filter:none;break-inside:avoid;box-shadow:none!important}}
 .limits{background:#eaf0fb;border:1px solid #d5e0f3;border-radius:16px;margin-top:72px;padding:27px 30px}
 .limits h2{font-size:24px;margin:0 0 12px}
@@ -75,7 +79,7 @@ section.group{padding:76px 0 0;scroll-margin-top:28px}
 .footer-links{display:flex;flex-wrap:wrap;gap:18px}
 @media(max-width:850px){.pg.home.benefits-page .hd{gap:16px}.pg.home.benefits-page .hd nav{gap:17px}.pg.home.benefits-page .hd-actions{gap:8px}.group-title{grid-template-columns:1fr;gap:8px}}
 @media(max-width:720px){.pg.home.benefits-page .hd nav{display:none}}
-@media(max-width:620px){.hero{padding:54px 0 44px}.features{grid-template-columns:1fr}.feature{padding:23px}.group{padding-top:57px!important}.bottom-cta{padding:60px 0}.footer{display:block}.footer-links{margin-top:15px}}
+@media(max-width:620px){.hero{padding:54px 0 44px}.features{grid-template-columns:1fr}.pg.home.benefits-page .feature.cd{padding:23px 24px 25px}.group{padding-top:57px!important}.bottom-cta{padding:60px 0}.footer{display:block}.footer-links{margin-top:15px}}
 @media(max-width:440px){.pg.home.benefits-page .hd{flex-wrap:wrap;justify-content:space-between;border-radius:22px!important}.pg.home.benefits-page .hd-actions{flex:1 1 100%;justify-content:space-between}.pg.home.benefits-page .hd .btn{padding:0 12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
