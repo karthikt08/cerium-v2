@@ -13,16 +13,16 @@ export const WORKSPACE_MODULES=Object.freeze([
 const ids=WORKSPACE_MODULES.map(m=>m.id);
 const preset=(id,label,modules,keywords)=>({id,label,modules:Object.freeze(modules.split(' ')),keywords});
 export const INDUSTRY_PROFILES=Object.freeze([
-  preset('construction','Construction & renovation','jobs quotes invoices payments leads followups reminders reviews',/construct|building|renovat|civil|general contractor|remodel|site work/i),
-  preset('plumbing','Plumbing','jobs quotes invoices payments followups reviews leads reminders',/plumb|pipe|drain|water heater/i),
-  preset('electrical','Electrical services','jobs quotes invoices payments reviews leads followups reminders',/electric|wiring|switchboard|panel install/i),
-  preset('hvac','HVAC & refrigeration','jobs quotes invoices payments followups reminders reviews leads',/hvac|heating|ventilat|air.?condition|refrigerat|ac repair/i),
-  preset('cleaning','Cleaning & maintenance','jobs invoices payments reviews followups leads quotes reminders',/clean|janitor|housekeep|maid|maintenance service/i),
-  preset('landscaping','Landscaping & gardening','jobs quotes invoices payments leads reviews followups reminders',/landscap|garden|lawn|irrigat|yard care/i),
-  preset('roofing','Roofing','jobs quotes invoices payments leads followups reviews reminders',/roof|shingle|gutter/i),
-  preset('painting','Painting & finishing','quotes jobs invoices payments leads reviews followups reminders',/paint|decorat|wall finish|coating/i),
-  preset('handyman','Handyman & home repair','jobs quotes invoices payments reviews leads followups reminders',/handyman|handy.?person|home repair|odd job|carpentr|furniture repair/i),
-  preset('consulting','Consulting & freelance','leads quotes followups invoices payments reminders reviews jobs',/consult|freelanc|design service|agency|coaching|professional service/i),
+  preset('construction','Construction & renovation','jobs quotes invoices payments leads followups',/construct|building|renovat|civil|general contractor|remodel|site work/i),
+  preset('plumbing','Plumbing','jobs quotes invoices payments followups reviews',/plumb|pipe|drain|water heater/i),
+  preset('electrical','Electrical services','jobs quotes invoices payments reviews leads',/electric|wiring|switchboard|panel install/i),
+  preset('hvac','HVAC & refrigeration','jobs quotes invoices payments followups reminders',/hvac|heating|ventilat|air.?condition|refrigerat|ac repair/i),
+  preset('cleaning','Cleaning & maintenance','jobs invoices payments reviews followups',/clean|janitor|housekeep|maid|maintenance service/i),
+  preset('landscaping','Landscaping & gardening','jobs quotes invoices payments leads reviews',/landscap|garden|lawn|irrigat|yard care/i),
+  preset('roofing','Roofing','jobs quotes invoices payments leads followups',/roof|shingle|gutter/i),
+  preset('painting','Painting & finishing','quotes jobs invoices payments leads reviews',/paint|decorat|wall finish|coating/i),
+  preset('handyman','Handyman & home repair','jobs quotes invoices payments reviews leads',/handyman|handy.?person|home repair|odd job|carpentr|furniture repair/i),
+  preset('consulting','Consulting & freelance','leads quotes followups invoices payments reminders',/consult|freelanc|design service|agency|coaching|professional service/i),
 ]);
 export const INDUSTRY_OPTIONS=Object.freeze([...INDUSTRY_PROFILES.map(p=>({value:p.id,label:p.label})),{value:'other',label:'Other — choose my tools'}]);
 const byId=new Map(INDUSTRY_PROFILES.map(p=>[p.id,p]));
