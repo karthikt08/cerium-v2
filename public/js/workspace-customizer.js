@@ -8,27 +8,47 @@ export function renderWorkspaceCustomizer(preferences={}) {
   const options=INDUSTRY_OPTIONS.map(i=>'<option value="'+esc(i.value)+'"'+(i.value===category?' selected':'')+'>'+esc(i.label)+'</option>').join('');
   const choices=WORKSPACE_MODULES.map(m=>'<label class="ws-pick-module"><input type="checkbox" name="modules" value="'+esc(m.id)+'"'+(current.has(m.id)?' checked':'')+'><span>'+esc(m.label)+'</span></label>').join('');
   return `<section class="panel workspace-customizer" aria-labelledby="ws-customizer-title">
-    <div class="panel-header"><div><div class="panel-title"><h2 id="ws-customizer-title">Customize your workspace</h2></div>
-    <p class="panel-subtitle">Your tools, in the order you need them. Hidden modules remain available and keep their records.</p></div></div>
-    <div class="settings-content">
-      <form id="workspace-preferences-form">
-        <label class="ws-custom-field">Business type
-          <select name="category" id="workspace-category">${options}</select>
-        </label>
-        <div class="ws-recommender">
-          <label class="ws-custom-field">What do you want CERIUM to help with? (optional)
-            <textarea id="workspace-work-description" maxlength="350" rows="2" placeholder="e.g. I book appointments, send estimates and collect overdue invoices"></textarea>
-          </label>
-          <div class="settings-actions"><button type="button" class="button secondary sm" id="workspace-recommend">Suggest tools for me</button>
-          <button type="button" class="button secondary sm" id="workspace-reset-modules">Restore industry defaults</button></div>
-          <p class="muted" id="workspace-recommendation-note" role="status">Private, instant rule-based suggestions. No external AI service receives your description.</p>
-        </div>
-        <fieldset class="ws-module-fieldset"><legend>Show these tools</legend><div class="ws-module-grid">${choices}</div></fieldset>
-        <p class="form-error" id="workspace-preferences-error" role="alert" hidden></p>
-        <div class="settings-actions"><button type="submit" class="button primary" id="workspace-save-modules">Save workspace</button></div>
-      </form>
+    <div class="ws-launch">
+      <div class="ws-launch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div class="ws-launch-copy">
+        <p class="ws-eyebrow">PERSONALIZED WORKSPACE</p>
+        <h2 id="ws-customizer-title">A workspace built around your work.</h2>
+        <p>Keep the tools you need close. Everything else stays safe and available.</p>
+      </div>
+      <button type="button" class="button primary" id="workspace-open-customizer" aria-haspopup="dialog" aria-controls="workspace-customizer-dialog">Customize tools <span aria-hidden="true">→</span></button>
     </div>
-  </section>`;
+  </section>
+  <dialog id="workspace-customizer-dialog" class="workspace-config-dialog" aria-labelledby="ws-config-title" aria-describedby="ws-config-description">
+    <div class="ws-config-hero">
+      <div class="ws-config-heading">
+        <p class="ws-eyebrow">CERIUM · YOUR WORKSPACE</p>
+        <h2 id="ws-config-title">Make it yours<span class="ws-config-period">.</span></h2>
+        <p id="ws-config-description">Choose what matters to your business. You can always change it later.</p>
+      </div>
+      <button type="button" class="ws-config-close" id="workspace-close-customizer" aria-label="Close customization dialog">×</button>
+    </div>
+    <form id="workspace-preferences-form" class="ws-config-form">
+      <label class="ws-custom-field">Your business type
+        <select name="category" id="workspace-category">${options}</select>
+      </label>
+      <div class="ws-recommender">
+        <div class="ws-recommend-title"><span aria-hidden="true" class="ws-spark">✦</span><strong>Smart setup assistant</strong><span class="ws-privacy-badge">Private &amp; local</span></div>
+        <label class="ws-custom-field">What does your working day look like? (optional)
+          <textarea id="workspace-work-description" maxlength="350" rows="2" placeholder="e.g. I book appointments, send estimates and collect overdue invoices"></textarea>
+        </label>
+        <div class="ws-actions-inline"><button type="button" class="button secondary sm" id="workspace-recommend">Suggest my tools</button>
+        <button type="button" class="button secondary sm" id="workspace-reset-modules">Restore defaults</button></div>
+        <p class="muted" id="workspace-recommendation-note" role="status">Instant rule-based suggestions. Your description stays in this browser.</p>
+      </div>
+      <fieldset class="ws-module-fieldset"><legend>Modules to display <span>(choose at least one)</span></legend><div class="ws-module-grid">${choices}</div></fieldset>
+      <p class="ws-config-data-note">Hidden modules keep all their existing records and can be enabled again anytime.</p>
+      <p class="form-error" id="workspace-preferences-error" role="alert" hidden></p>
+      <div class="ws-config-footer">
+        <button type="button" class="button secondary" id="workspace-cancel-customizer">Cancel</button>
+        <button type="submit" class="button primary" id="workspace-save-modules">Save my workspace</button>
+      </div>
+    </form>
+  </dialog>`;
 }
 
 export function customizeBusinessNavigation(root,modules) {
@@ -77,6 +97,23 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     const label=f.querySelector('#workspace-recommendation-note');
     if(label)label.textContent=note||'You can adjust these suggestions before saving.';
   }
+  document.addEventListener('click',e=>{
+    const open=e.target.closest('#workspace-open-customizer');
+    if(open){
+      const modal=document.getElementById('workspace-customizer-dialog');
+      if(!modal)return;
+      if(!modal.dataset.focusListener){
+        modal.addEventListener('close',()=>document.getElementById('workspace-open-customizer')?.focus());
+        modal.dataset.focusListener='true';
+      }
+      modal.showModal();
+      modal.querySelector('#workspace-category')?.focus();
+      return;
+    }
+    if(e.target.closest('#workspace-close-customizer, #workspace-cancel-customizer')){
+      document.getElementById('workspace-customizer-dialog')?.close();
+    }
+  });
   document.addEventListener('change',e=>{
     if(e.target.id==='workspace-category'){
       const category=e.target.value;
@@ -108,6 +145,7 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     button.disabled=true;
     try {
       await api.saveWorkspacePreferences({category:f.elements.category.value,modules:selected});
+      document.getElementById('workspace-customizer-dialog')?.close();
       await refresh();
       toast('Workspace preferences saved. Your business data is unchanged.');
     } catch(err) {

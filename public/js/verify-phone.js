@@ -1,6 +1,7 @@
 import API from './api.js';
 import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder} from './countries.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
+import {mountCountryPicker} from './country-picker.js';
 
 const el=id=>document.getElementById(id);
 const msg=el('message'),start=el('start-form'),check=el('code-form'),
@@ -9,9 +10,14 @@ const editingBusiness=new URLSearchParams(location.search).get('edit')==='busine
 let busy=false, mode='phone', details=null, initialized=false;
 for(const country of COUNTRY_OPTIONS){
   const option=document.createElement('option');
-  option.value=country.value;option.textContent=country.label+' (+'+country.callingCode+')';
+  option.value=country.value;option.textContent=country.label+'  |  +'+country.callingCode;
   countrySelect.append(option);
 }
+const countryPicker=mountCountryPicker({
+  select:countrySelect,trigger:el('dial-trigger'),panel:el('dial-panel'),
+  search:el('dial-search'),options:el('dial-options'),empty:el('dial-empty'),
+  displayName:el('dial-current-country'),displayCode:el('dial-current-code')
+});
 
 const wizard=mountBusinessSetup(business,{api:API,editing:editingBusiness,onComplete:async()=>{
   if(editingBusiness){location.replace('/app.html#settings');return;}
@@ -33,6 +39,7 @@ function setMessage(text,isError=false){
 }
 function updatePreview(){
   const country=countrySelect.value;
+  countryPicker?.sync();
   el('edition-preview').textContent=validCountry(country)
     ?countryName(country)+' · '+(country==='IN'?'₹500 INR/month':'$20 USD/month')+' after your 15-day trial.'
     :'Select your country to see your monthly price.';

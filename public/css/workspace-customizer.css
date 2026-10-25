@@ -22,3 +22,75 @@
 .overview-tool-links{display:flex;flex-wrap:wrap;gap:12px;padding:20px}
 .overview-tool-link{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:1 1 200px;min-width:0;padding:16px;border:1px solid var(--line);border-radius:8px;background:#f7f9ff;color:var(--accent);font-size:12px;font-weight:500}
 .overview-tool-link:hover{background:#eef2ff;border-color:#bdc9f0}
+/* Cohesive CERIUM customization modal, not an oversized Settings form. */
+.workspace-customizer{border:1px solid #dde6f2;border-radius:18px;overflow:hidden;background:#fbfcff}
+.ws-launch{display:flex;align-items:center;gap:18px;padding:20px 24px;background:
+  radial-gradient(ellipse 55% 135% at 95% 10%,#e7edff 0%,transparent 75%),linear-gradient(125deg,#fff,#f8faff)}
+.ws-launch-copy{min-width:0;flex:1}
+.ws-eyebrow{margin:0 0 6px!important;font-size:10px!important;font-weight:800!important;color:#456bd4!important;letter-spacing:.14em}
+.ws-launch-copy h2{margin:0 0 5px;font-size:19px;font-weight:750;letter-spacing:-.035em;color:#243552}
+.ws-launch-copy p:last-child{margin:0;color:#6b7a92;font-size:13px;line-height:1.5}
+.ws-launch-icon{width:48px;height:48px;flex:none;border-radius:14px;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:5px;padding:11px;
+  background:linear-gradient(145deg,#3c75e9,#3153a9);box-shadow:0 8px 20px #315fca25}
+.ws-launch-icon span{display:block;border-radius:3px;background:#fff9;box-shadow:inset 0 0 0 1px #ffffff7a}
+.ws-launch-icon span:first-child{background:#fff}
+.ws-launch button{flex:none;white-space:nowrap}
+.workspace-config-dialog{border:1px solid #d9e2f1;border-radius:23px;
+  padding:0;width:min(650px,calc(100vw - 28px));max-height:min(790px,calc(100dvh - 30px));
+  overflow:auto;overscroll-behavior:contain;background:#fff;color:#25354b;
+  box-shadow:0 40px 115px #111d3652,0 8px 28px #1b356025}
+.workspace-config-dialog::backdrop{background:rgba(17,30,55,.57);backdrop-filter:blur(7px)}
+.workspace-config-dialog[open]{animation:ws-dialog-in .22s cubic-bezier(.2,.86,.2,1) both}
+.ws-config-hero{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;
+  padding:26px 29px 24px;background:
+  radial-gradient(ellipse 68% 150% at 100% 0%,#dfeaff 0%,transparent 78%),
+  linear-gradient(115deg,#fafdff,#f1f5ff);border-bottom:1px solid #e5ecf6}
+.ws-config-heading{min-width:0}
+.ws-config-hero h2{font-size:clamp(24px,4vw,31px);line-height:1.14;letter-spacing:-.045em;margin:0 0 8px;font-weight:800;color:#233454}
+.ws-config-period{color:#4578e8}
+.ws-config-heading>p:last-child{color:#62728c;font-size:13px;line-height:1.55;margin:0}
+.ws-config-close{display:grid;place-items:center;flex:none;width:38px;height:38px;
+  border:1px solid #d4deeb;border-radius:10px;background:#ffffffe8;color:#536885;
+  font-size:23px;line-height:1;cursor:pointer}
+.ws-config-close:hover{background:#eef4ff;color:#234dc2}
+.workspace-config-dialog .ws-config-form{display:grid;gap:19px;padding:24px 29px 26px}
+.workspace-config-dialog .ws-custom-field{display:grid;gap:7px;font:700 12px/1.45 system-ui,sans-serif;color:#354863}
+.workspace-config-dialog .ws-custom-field :is(select,textarea){width:100%;max-width:100%;box-sizing:border-box;
+  border:1px solid #ccd7e9;border-radius:10px;background:#fff;color:#243650;
+  padding:12px 14px;font:500 14px/1.55 system-ui,sans-serif}
+.workspace-config-dialog .ws-custom-field textarea{resize:vertical;min-height:84px}
+.workspace-config-dialog .ws-recommender{display:grid;gap:12px;padding:16px;
+  border:1px solid #dbe6fa;border-radius:13px;background:#f6f9ff}
+.ws-recommend-title{display:flex;gap:9px;align-items:center;color:#2f4678;font-size:13px}
+.ws-spark{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;
+  background:#e0eaff;color:#4674df;font-size:15px}
+.ws-privacy-badge{margin-left:auto;border:1px solid #d1e5de;border-radius:999px;
+  background:#eaf8f1;color:#38755e;padding:4px 9px;white-space:nowrap;
+  font-size:10px;font-weight:700}
+.ws-actions-inline{display:flex;flex-wrap:wrap;gap:8px}
+.workspace-config-dialog .ws-module-fieldset{border:0;padding:0;margin:0;min-width:0}
+.workspace-config-dialog .ws-module-fieldset legend{margin-bottom:10px;color:#314363;font-size:13px;font-weight:750}
+.workspace-config-dialog .ws-module-fieldset legend span{font-size:11px;font-weight:500;color:#8090a8}
+.workspace-config-dialog .ws-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.workspace-config-dialog .ws-pick-module{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;
+  padding:12px;border:1px solid #dfe6f2;border-radius:10px;background:#fff;
+  color:#35465f;font-size:13px;font-weight:600}
+.workspace-config-dialog .ws-pick-module:has(input:checked){border-color:#9bb6ee;background:#f0f5ff;color:#244bad}
+.workspace-config-dialog .ws-pick-module input{flex:none;accent-color:#4263eb;width:17px;height:17px}
+.ws-config-data-note{margin:0;padding:9px 11px;background:#f5f8fc;border-radius:9px;
+  font-size:11px;line-height:1.45;color:#667993}
+.ws-config-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;
+  border-top:1px solid #e6ebf4;padding-top:18px}
+.workspace-config-dialog :is(select,textarea,button,input):focus-visible{outline:3px solid #9ab5ff;outline-offset:3px}
+@keyframes ws-dialog-in{from{opacity:0;transform:translateY(11px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:710px){.ws-launch{flex-wrap:wrap}.ws-launch button{margin-left:66px}
+  .workspace-config-dialog .ws-config-form{padding:19px}.ws-config-hero{padding:21px 19px}}
+@media(max-width:490px){.ws-launch{gap:12px;padding:17px}.ws-launch-icon{width:40px;height:40px;padding:9px}
+  .ws-launch button{width:100%;margin:0}
+  .workspace-config-dialog .ws-module-grid{grid-template-columns:1fr}
+  .workspace-config-dialog .ws-recommend-title{flex-wrap:wrap}
+  .ws-privacy-badge{margin-left:0}
+  .ws-config-footer{display:grid;grid-template-columns:1fr 1fr}
+  .ws-config-footer button{width:100%}}
+@media(prefers-reduced-motion:reduce){.workspace-config-dialog[open]{animation:none}}
