@@ -87,7 +87,7 @@
     onReady(); // Initialization may have finished before this deferred script loaded.
   }
   if(introDone)finishIntro(true);
-  else introTimer=setTimeout(()=>finishIntro(),2900);
+  else introTimer=setTimeout(()=>finishIntro(),1600);
   if(mode==='redirect'){
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),7000);
     Promise.resolve().then(()=>fetch('/api/me',{credentials:'same-origin',cache:'no-store',signal:controller.signal}))
