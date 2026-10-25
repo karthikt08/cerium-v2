@@ -20,7 +20,7 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
       '</div>'+
       '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask about Cerium" placeholder="e.g. Where do I import customers?" autocomplete="off" maxlength="420" required>'+
         '<button type="submit" class="guide-send" id="guide-send">Ask</button></form>'+
-      '<p class="guide-privacy">Navigation only. No changes to your records. When AI is enabled, your question and current tab are sent to its provider. Avoid personal or payment details.</p>'+
+      '<p class="guide-privacy">Navigation only. No changes to your records. For AI replies, your question and current tab go to Cerium’s configured model (local or external). Avoid personal or payment details.</p>'+
     '</section>';
   root.append(shell);
   const trigger=shell.querySelector('#guide-trigger');
