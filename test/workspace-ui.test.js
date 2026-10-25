@@ -26,3 +26,9 @@ test('main, navigation and table scroll regions retain native scrolling',()=>{
  assert.match(css,/\.table-scroll\{overflow:auto/);
  assert.match(css,/scrollbar-color/);assert.match(css,/@media\(max-width:760px\)/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
+
+test('lead cards on pipeline board include edit and delete buttons',()=>{
+ const appJs=read('js/app.js');
+ assert.match(appJs,/<article class="lead-card"[^>]*>[\s\S]*?data-action="edit"[^>]*data-kind="lead"/);
+ assert.match(appJs,/<article class="lead-card"[^>]*>[\s\S]*?data-action="delete"[^>]*data-kind="lead"[\s\S]*?icon\('close'\)/);
+});

@@ -28,7 +28,7 @@
 .pg.home .ey::before::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--vi);animation:pulse 2.2s ease-out infinite;pointer-events:none}
 @keyframes pulse{0%{transform:scale(1);opacity:.7}70%,100%{transform:scale(2.4);opacity:0}}
 .pg.home .cd h3{position:relative;display:inline-block}
-.pg.home .cd h3::after{content:"";position:absolute;left:0;bottom:-.2em;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,#4263eb,#a855f7);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.pg.home .cd h3::after{content:"";position:absolute;left:0;bottom:-.22em;height:3.5px;width:0;border-radius:3px;background:linear-gradient(90deg,#3b5bff 0%,#7c3aed 50%,#d946ef 100%);box-shadow:0 2px 10px rgba(124,58,237,.55);transition:width .45s cubic-bezier(.2,.8,.2,1)}
 .pg.home .cd:hover h3::after{width:100%}
 
 /* ---------- live preview: layout that does not move when you click ---------- */
