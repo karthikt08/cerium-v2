@@ -37,10 +37,14 @@ export function customizeBusinessNavigation(root,modules) {
   const selected=Array.isArray(modules)?modules:WORKSPACE_MODULES.map(x=>x.id);
   const links=new Map([...nav.querySelectorAll('[data-nav]')].map(link=>[link.dataset.nav,link]));
   for(const [key,link] of links) {
-    link.hidden=!selected.includes(key);
-    link.style.display=selected.includes(key)?'':'none';
+    const visible=key==='overview'||selected.includes(key);
+    link.hidden=!visible;
+    link.style.display=visible?'':'none';
   }
   for(const key of selected){const link=links.get(key);if(link)nav.append(link);}
+  // Overview is the permanent dashboard entry, not an optional business tool.
+  const overview=links.get('overview');
+  if(overview)nav.prepend(overview);
 }
 
 export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {

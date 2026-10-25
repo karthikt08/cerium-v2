@@ -18,6 +18,10 @@ the existing CERIUM tools. Choosing a profile merely establishes defaults; the
 owner may enable or disable any listed module during business onboarding and
 later in Settings > Customize your workspace.
 
+Overview is always visible and remains the first dashboard navigation item.
+It is not an optional module and cannot be hidden by an industry preset or
+a custom tool selection.
+
 ## Smart suggestions
 
 The "Suggest my tools" control recognizes common task words in descriptions,
