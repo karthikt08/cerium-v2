@@ -94,6 +94,13 @@ export function buildConfig(env = process.env) {
   const razorpayUpperMiddlePlanId=get('RAZORPAY_UPPER_MIDDLE_PLAN_ID');
   const razorpayLowerMiddlePlanId=get('RAZORPAY_LOWER_MIDDLE_PLAN_ID');
   const razorpayLowPlanId=get('RAZORPAY_LOW_PLAN_ID');
+  // Optional annual plans: one provider charge every 12 months for 10 monthly fees.
+  // Annual availability is never inferred from monthly configuration.
+  const razorpayAnnualPlanId=get('RAZORPAY_ANNUAL_PLAN_ID');
+  const razorpayAnnualUpperMiddlePlanId=get('RAZORPAY_ANNUAL_UPPER_MIDDLE_PLAN_ID');
+  const razorpayAnnualLowerMiddlePlanId=get('RAZORPAY_ANNUAL_LOWER_MIDDLE_PLAN_ID');
+  const razorpayAnnualLowPlanId=get('RAZORPAY_ANNUAL_LOW_PLAN_ID');
+  const razorpayAnnualIndiaPlanId=get('RAZORPAY_ANNUAL_IN_PLAN_ID');
   const webhookConfigured=razorpayWebhookSecret.length>=16&&!PLACEHOLDER.test(razorpayWebhookSecret);
   const priceCents = 2000;
   if (get('PRICE_CENTS')&&Number(get('PRICE_CENTS'))!==priceCents)
@@ -235,6 +242,8 @@ export function buildConfig(env = process.env) {
     razorpayPlanId,
     razorpayIndiaPlanId,
     razorpayUpperMiddlePlanId,razorpayLowerMiddlePlanId,razorpayLowPlanId,webhookConfigured,
+    razorpayAnnualPlanId,razorpayAnnualUpperMiddlePlanId,razorpayAnnualLowerMiddlePlanId,
+    razorpayAnnualLowPlanId,razorpayAnnualIndiaPlanId,
     indiaSubscriptionsConfigured,
     priceInPaise,
     razorpayConfigured,

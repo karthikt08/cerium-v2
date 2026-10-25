@@ -1,4 +1,10 @@
 import {billingPlan} from './countries.js';
+const paintAnnual=plan=>{
+  if(!plan)return;
+  const symbol=plan.currency==='INR'?'₹':String.fromCharCode(36);
+  for(const el of document.querySelectorAll('[data-region-annual-price]'))el.textContent=symbol+(plan.monthlyPrice*10);
+  for(const el of document.querySelectorAll('[data-region-annual-savings]'))el.textContent=symbol+(plan.monthlyPrice*2);
+};
 // Public prices are suggested by the backend. For an already signed-in user,
 // show the account's stored billing edition rather than their current IP.
 // Checkout ALWAYS validates currency and price server-side.
@@ -17,6 +23,7 @@ import {billingPlan} from './countries.js';
     const plan=billingPlan(country);
     if(picker?.value)return; // A visitor's explicit preview wins over a late network response.
     const monthly=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
+    paintAnnual(plan);
     for(const element of document.querySelectorAll('[data-region-price]'))
       element.textContent=monthly;
     for(const element of document.querySelectorAll('[data-region-description]'))
@@ -32,6 +39,7 @@ if(picker){
   for(const country of COUNTRY_OPTIONS){const option=document.createElement('option');option.value=country.value;option.textContent=country.label;picker.append(option);}
   picker.addEventListener('change',()=>{
     const plan=billingPlan(picker.value);if(!plan)return;
+    paintAnnual(plan);
     for(const element of document.querySelectorAll('[data-region-price]'))element.textContent=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
     for(const element of document.querySelectorAll('[data-region-description]'))element.textContent='Country price preview · '+plan.currency+' billing';
     document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Same features in every country. Confirmed at business setup.';

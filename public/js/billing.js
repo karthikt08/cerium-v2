@@ -3,9 +3,9 @@
  * Razorpay hosts payment authorization. Server webhooks determine final entitlements.
  */
 (function (global) {
-  async function checkout({ onComplete = () => {}, onError = () => {} } = {}) {
+  async function checkout({ billingCycle = 'monthly', onComplete = () => {}, onError = () => {} } = {}) {
     try {
-      const result = await global.CeriumAPI.createRecurringSubscription();
+      const result = await global.CeriumAPI.createRecurringSubscription(billingCycle);
       if (!result.keyId || !result.subscriptionId) throw new Error('Subscription checkout is unavailable.');
       if (result.status === 'authenticated' || result.status === 'active') {
         onComplete({ status: result.status });
@@ -22,14 +22,16 @@
       const firstCharge=Number.isFinite(scheduled.getTime())
         ?scheduled.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
         :'the disclosed subscription start date';
-      const trialDescription=result.trialEligible===false?'Monthly billing. ':'At least 15 full days free. ';
+      const confirmedCycle=result.billingCycle==='annual'?'annual':'monthly';
+      if(confirmedCycle!==billingCycle)throw new Error('The provider billing cycle did not match your selection. Refresh and retry.');
+      const trialDescription=result.trialEligible===false?'Recurring billing. ':'At least 15 full days free. ';
       if(!Number.isSafeInteger(result.amount)||result.amount<=0||!['USD','INR'].includes(result.currency))throw new Error('Unable to confirm the subscription price. Please retry.');
       const disclosedPrice=(result.currency==='INR'?'₹':'$')+(result.amount/100);
       const rzp = new global.Razorpay({
         key: result.keyId,
         subscription_id: result.subscriptionId,
         name: 'CERIUM',
-        description: trialDescription+'First '+disclosedPrice+'/month '+result.currency+' debit scheduled '+firstCharge+' plus applicable taxes. Cancel anytime.',
+        description: trialDescription+'First '+disclosedPrice+'/'+(confirmedCycle==='annual'?'year':'month')+' '+result.currency+' debit scheduled '+firstCharge+' plus applicable taxes. Cancel future renewals anytime.'+(confirmedCycle==='annual'?' Each successful annual payment covers 12 months.':''),
         theme: { color: '#6954b8' },
         handler: async response => {
           try {

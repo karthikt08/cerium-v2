@@ -1,13 +1,23 @@
 import {billingPlan} from '../public/js/countries.js';
 
-export function checkoutPlan(config,country){
+export const BILLING_CYCLES=Object.freeze(['monthly','annual']);
+export const validBillingCycle=value=>BILLING_CYCLES.includes(value);
+
+// Exactly two months free: annual charge = ten times the same country-tier
+// monthly price. Provider plans must be created separately for each currency/tier.
+export function checkoutPlan(config,country,billingCycle='monthly'){
   const price=billingPlan(country);
-  if(!price)return null;
-  const planId=price.tier==='india'?config.razorpayIndiaPlanId:
-    ({upperMiddle:config.razorpayUpperMiddlePlanId,lowerMiddle:config.razorpayLowerMiddlePlanId,low:config.razorpayLowPlanId}[price.tier]||
-      (['high','unclassified'].includes(price.tier)?config.razorpayPlanId:''));
+  if(!price||!validBillingCycle(billingCycle))return null;
+  const planId=billingCycle==='annual'
+    ?(price.tier==='india'?config.razorpayAnnualIndiaPlanId:
+       ({upperMiddle:config.razorpayAnnualUpperMiddlePlanId,lowerMiddle:config.razorpayAnnualLowerMiddlePlanId,low:config.razorpayAnnualLowPlanId}[price.tier]||
+        (['high','unclassified'].includes(price.tier)?config.razorpayAnnualPlanId:'')))
+    :(price.tier==='india'?config.razorpayIndiaPlanId:
+       ({upperMiddle:config.razorpayUpperMiddlePlanId,lowerMiddle:config.razorpayLowerMiddlePlanId,low:config.razorpayLowPlanId}[price.tier]||
+        (['high','unclassified'].includes(price.tier)?config.razorpayPlanId:'')));
   const configured=Boolean(config.razorpayConfigured&&/^plan_[A-Za-z0-9]+$/.test(planId||'')&&config.webhookConfigured);
-  return {...price,planId,configured};
+  return {...price,billingCycle,minorUnits:price.minorUnits*(billingCycle==='annual'?10:1),
+    annualPrice:price.monthlyPrice*10,planId,configured};
 }
 
 // A signed authorization is a price agreement. Annual country-data updates and
@@ -16,15 +26,23 @@ export function subscriptionPrice(country,subscription){
   const price=billingPlan(country);
   if(!price)return null;
   if(subscription&&!['cancelled','expired'].includes(subscription.status)&&Number(subscription.price_amount)>0){
-    return {...price,minorUnits:Number(subscription.price_amount),monthlyPrice:Number(subscription.price_amount)/100,
-      currency:subscription.price_currency,tier:subscription.price_tier||'legacy',version:subscription.price_version||'legacy',
-      discountPercent:subscription.price_currency==='USD'?100-Number(subscription.price_amount)/20:null};
+    const billingCycle=subscription.billing_cycle==='annual'?'annual':'monthly';
+    const agreed=Number(subscription.price_amount);
+    const currency=subscription.price_currency;
+    const monthlyEquivalent=billingCycle==='annual'?agreed/1200:agreed/100;
+    return {...price,billingCycle,minorUnits:agreed,monthlyPrice:monthlyEquivalent,
+      annualPrice:billingCycle==='annual'?agreed/100:null,
+      currency,tier:subscription.price_tier||'legacy',version:subscription.price_version||'legacy',
+      discountPercent:currency==='USD'?(billingCycle==='annual'
+        ?price.discountPercent:100-agreed/20):null};
   }
-  return price;
+  return {...price,billingCycle:'monthly',annualPrice:price.monthlyPrice*10};
 }
 
-export function checkoutAvailable(config,country,subscription){
+export function checkoutAvailable(config,country,subscription,billingCycle='monthly'){
+  if(!validBillingCycle(billingCycle))return false;
   if(subscription&&!['cancelled','expired'].includes(subscription.status)&&Number(subscription.price_amount)>0)
-    return Boolean(config.razorpayConfigured&&config.webhookConfigured);
-  return Boolean(checkoutPlan(config,country)?.configured);
+    return billingCycle===(subscription.billing_cycle==='annual'?'annual':'monthly')
+      &&Boolean(config.razorpayConfigured&&config.webhookConfigured);
+  return Boolean(checkoutPlan(config,country,billingCycle)?.configured);
 }

@@ -12,7 +12,7 @@ import { randomToken, pkceChallenge, safeEqual, SignInError } from './google.js'
 import { hashPassword, verifyPassword, validatePasswordStrength, generateToken } from './passwords.js';
 import { makeRazorpay } from './razorpay.js';
 import {makePhoneVerifier,normalizeBillingPhone,maskBillingPhone} from './billing-identity.js';
-import {checkoutPlan,subscriptionPrice,checkoutAvailable} from './country-pricing.js';
+import {checkoutPlan,subscriptionPrice,checkoutAvailable,validBillingCycle} from './country-pricing.js';
 import {validCountry,matchesBillingCurrency} from '../public/js/countries.js';
 import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
@@ -1006,6 +1006,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       businessComplete:access.businessComplete,businessProfile:db.getBusinessProfile(req.session.userId),
       subscriptionStatus:db.getUserSubscription(req.session.userId)?.status||null,
       checkoutConfigured:checkoutAvailable(config,user.country,db.getUserSubscription(user.id)),
+      annualCheckoutConfigured:checkoutAvailable(config,user.country,db.getUserSubscription(user.id),'annual'),
+      annualPrice:checkoutPlan(config,user.country,'annual')?.annualPrice??null,
       billingPrice:subscriptionPrice(user.country,db.getUserSubscription(user.id)),
       countryAttested:verified,
       phoneMasked:verified?maskBillingPhone(saved.phone_e164):'',
@@ -1062,6 +1064,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
 
   // Recurring subscription consent: a saved authorization is required before any automatic debit.
   api.post('/billing/subscription', writeLimiter, sameOrigin, requireSession, requireCsrf, withBillingLock(async (req, res) => {
+    const billingCycle=req.body&&Object.prototype.hasOwnProperty.call(req.body,'billingCycle')?req.body.billingCycle:'monthly';
+    if(!validBillingCycle(billingCycle))return res.status(400).json({error:'invalid_billing_cycle',message:'Select monthly or annual billing.'});
     const user = db.getUserById(req.session.userId);
     if(config.workspaceAccessMode!=='off'&&!db.businessProfileComplete(user.id))
       return res.status(409).json({error:'business_profile_required',message:'Complete your business details before authorizing payment.'});
@@ -1069,7 +1073,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const international=user.country!=='IN'&&matchesBillingCurrency(user.country,user.currency);
     if(!indian&&!international)
       return res.status(403).json({error:'country_currency_mismatch',message:'Your workspace currency requires review before subscription checkout.'});
-    const selectedPlan=checkoutPlan(config,user.country);
+    const selectedPlan=checkoutPlan(config,user.country,billingCycle);
     const billingPlanId=selectedPlan.planId;
     const billingAmount=selectedPlan.minorUnits;
     const billingCurrency=selectedPlan.currency;
@@ -1096,9 +1100,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
             message:'Unable to confirm cancellation of the previous authorization. Contact support before retrying.'});
         }
       } else {
+        const existingCycle=existing.billing_cycle==='annual'?'annual':'monthly';
+        if(existingCycle!==billingCycle)return res.status(409).json({error:'billing_cycle_change_requires_cancellation',message:'An existing checkout uses '+existingCycle+' billing. Cancel it before selecting a different billing cycle; an active plan is not automatically replaced.'});
         return res.json({ keyId: config.razorpayKeyId, subscriptionId: existing.subscription_id,
           status: existing.status, startAt:existing.start_at,
-          amount:existing.price_amount,currency:existing.price_currency,trialEligible:firstTrial });
+          amount:existing.price_amount,currency:existing.price_currency,billingCycle:existingCycle,trialEligible:firstTrial });
       }
     }
     if(!selectedPlan.configured)return res.status(503).json({error:'billing_not_configured',message:'Secure recurring payment authorization is not configured for your country price. Contact support; a higher-priced plan will not be substituted.'});
@@ -1115,15 +1121,17 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         ?schedule.startAt
         :Math.max(Math.ceil(Date.now()/1000)+1800,Math.ceil(existingTrialEnd/1000),Math.ceil(Number(user.subscription_expires_at||0)/1000));
       const plan = await rzp.getPlan(billingPlanId);
-      if (plan.period !== 'monthly' || Number(plan.interval) !== 1 ||
+      const expectedPeriod=billingCycle==='annual'?'yearly':'monthly';
+      if (plan.period !== expectedPeriod || Number(plan.interval) !== 1 ||
           Number(plan.item?.amount) !== billingAmount ||
           plan.item?.currency !== billingCurrency) {
-        return res.status(503).json({ error: 'billing_plan_mismatch', message: 'Monthly price configuration does not match checkout. Contact support.' });
+        return res.status(503).json({ error: 'billing_plan_mismatch', message: 'The '+billingCycle+' provider plan does not match the price, currency and renewal interval shown. Contact support.' });
       }
       const created = await rzp.createSubscription({
         planId: billingPlanId, startAt,
         expireBy:firstTrial?schedule.expireBy:undefined,
-        notes: { userId: user.id, edition: indian?'IN':'GLOBAL',country:user.country,tier:selectedPlan.tier,priceVersion:selectedPlan.version }
+        totalCount:billingCycle==='annual'?10:120,
+        notes: { userId: user.id, edition: indian?'IN':'GLOBAL',country:user.country,tier:selectedPlan.tier,priceVersion:selectedPlan.version,billingCycle }
       });
       if (!created.id || !created.id.startsWith('sub_')) throw new Error('Missing subscription identifier');
       if(config.workspaceAccessMode==='phone_and_mandate' &&
@@ -1136,7 +1144,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       db.createSubscription(user.id, created.id, startAt, selectedPlan);
       return res.json({ keyId: config.razorpayKeyId, subscriptionId: created.id, status: created.status,
         startAt, expireBy:firstTrial?schedule.expireBy:null,trialEligible:firstTrial,
-        amount: billingAmount, currency: billingCurrency });
+        amount: billingAmount, currency: billingCurrency,billingCycle });
     } catch (err) {
       console.error('[billing] subscription creation failed:', err.message);
       return res.status(502).json({ error: 'billing_service_unavailable', message: 'Could not start subscription authorization. Please try again.' });
@@ -1206,7 +1214,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const indian=ws?.account.country==='IN'&&ws?.account.currency==='INR';
     const international=ws?.account.country!=='IN'&&matchesBillingCurrency(ws?.account.country,ws?.account.currency);
     const price=subscriptionPrice(ws?.account.country,db.getUserSubscription(req.session.userId));
-    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:price?.monthlyPrice,currency:price?.currency,billingPrice:price,subscription:ws?.account.subscription||null,checkoutAvailable:Boolean(((indian||international)&&checkoutAvailable(config,ws?.account.country,db.getUserSubscription(req.session.userId)))&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId))),billingIdentityVerified:db.billingEligible(req.session.userId) });
+    const current=db.getUserSubscription(req.session.userId);
+    const eligible=Boolean((indian||international)&&phones.ready&&db.billingEligible(req.session.userId)&&(config.workspaceAccessMode==='off'||db.businessProfileComplete(req.session.userId)));
+    res.json({ planStatus:ws?.account.planStatus||'trial',trialDaysRemaining:ws?.account.trialDaysRemaining??15,monthlyPrice:price?.monthlyPrice,currency:price?.currency,billingPrice:price,subscription:ws?.account.subscription||null,checkoutAvailable:eligible&&checkoutAvailable(config,ws?.account.country,current),annualCheckoutAvailable:eligible&&checkoutAvailable(config,ws?.account.country,current,'annual'),annualPrice:checkoutPlan(config,ws?.account.country,'annual')?.annualPrice??null,billingIdentityVerified:db.billingEligible(req.session.userId) });
   });
 
   // Legacy order-based billing is intentionally disabled; it cannot auto-renew.

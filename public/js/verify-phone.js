@@ -60,7 +60,7 @@ countrySelect.addEventListener('change',updatePreview);
 function setBusy(on){
   busy=on;for(const b of document.querySelectorAll('button:not(#business-setup button)'))b.disabled=on;
   for(const field of document.querySelectorAll('#start-form input, #start-form select, #code-form input'))field.disabled=on;
-  if(!details?.businessComplete||!details?.checkoutConfigured)el('mandate-button').disabled=true;
+  if(!details?.businessComplete||!(details?.checkoutConfigured||details?.annualCheckoutConfigured))el('mandate-button').disabled=true;
 }
 async function view(){
   el('setup-retry').hidden=true;
@@ -80,19 +80,33 @@ async function view(){
   business.hidden=!(details.verified&&(!details.businessComplete||editingBusiness));
   payment.hidden=!(details.verified&&details.businessComplete&&mode==='phone_and_mandate'&&!editingBusiness);
   el('setup-cancel').hidden=!details.subscriptionStatus||['cancelled','expired'].includes(details.subscriptionStatus);
+  const monthOption=document.querySelector('input[name="billing-cycle"][value="monthly"]');
+  const yearOption=document.querySelector('input[name="billing-cycle"][value="annual"]');
+  monthOption.disabled=!details.checkoutConfigured;
+  yearOption.disabled=!details.annualCheckoutConfigured;
+  if((monthOption.checked&&monthOption.disabled)||(yearOption.checked&&yearOption.disabled))
+    (details.checkoutConfigured?monthOption:yearOption).checked=true;
+  const currency=details.billingPrice?.currency||'USD';
+  const symbol=currency==='INR'?'₹':String.fromCharCode(36);
+  const agreedAnnual=details.billingPrice?.billingCycle==='annual';
+  const monthly=agreedAnnual?(details.billingPrice?.annualPrice??0)/10:details.billingPrice?.monthlyPrice;
+  const annual=agreedAnnual?details.billingPrice?.annualPrice:details.annualPrice;
+  el('monthly-price-label').textContent=details.checkoutConfigured
+    ?symbol+monthly+' '+currency+'/month':'Not enabled for this account';
+  el('annual-price-label').textContent=details.annualCheckoutConfigured
+    ?symbol+annual+' '+currency+'/year · save 2 months':'Not enabled for this account';
   if(!business.hidden){
     wizard.show(await API.getBusinessSetup(),details);
     setMessage(editingBusiness?'Update your business details. Your existing trial and billing dates stay the same.':'Phone confirmed. Complete the required business details to continue.');
     return;
   }
   if(details.verified&&details.businessComplete&&mode==='phone_and_mandate'){
-    if(!details.checkoutConfigured){
+    if(!details.checkoutConfigured&&!details.annualCheckoutConfigured){
       el('mandate-button').disabled=true;
       setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
     }else{
       el('mandate-button').disabled=false;
-      el('mandate-info').textContent=countryName(details.country)+' · '+(details.billingPrice?((details.billingPrice.currency==='INR'?'₹':'$')+details.billingPrice.monthlyPrice+' '+details.billingPrice.currency):priceLabel(details.country))+'/month'+
-        '. Authorize the mandate now; the first monthly charge is scheduled after the remaining 15-day trial period.';
+      el('mandate-info').textContent=countryName(details.country)+'. Monthly and annual billing (pay 10 months for 12) are shown where configured. Your first charge is scheduled after the 15-day trial; the precise amount and date appear in checkout.';
       setMessage('Business setup complete. One final step: authorize your payment method.');
     }
     return;
@@ -151,6 +165,7 @@ el('mandate-button').addEventListener('click',async()=>{
   setBusy(true);
   try{
     await checkout({
+      billingCycle:document.querySelector('input[name="billing-cycle"]:checked')?.value||'monthly',
       onComplete:async()=>{setBusy(false);try{await view()}catch(err){setMessage(err.message,true)}},
       onError:err=>{setBusy(false);setMessage(err.message||'Mandate authorization was not completed.',true)}
     });

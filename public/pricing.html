@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pricing &amp; Plans — CERIUM</title>
-<meta name="description" content="Country-based monthly pricing for service businesses. The 15-day trial begins after business setup and payment-method authorisation.">
+<meta name="description" content="Cerium monthly pricing and optional annual billing: save two months with a yearly plan where enabled. The 15-day trial begins after verification and payment-method authorisation.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,10 @@ body{margin:0;background:#f4f6fa}
 .pcard-price strong{font-size:clamp(3rem,6vw,4.2rem);font-family:var(--hf);font-weight:700;line-height:1}
 .pcard-price span{color:var(--mut);font-size:16px}
 .pcard-sub{color:var(--mut);font-size:15px;margin:0 0 24px;min-height:2.8em}
+.annual-pricing-note{margin:0 auto 28px;max-width:980px;padding:18px 22px;border:1px solid rgba(143,116,238,.25);border-radius:14px;background:rgba(255,255,255,.72);box-shadow:0 12px 34px -23px rgba(109,65,213,.3);display:grid;gap:5px}
+.annual-pricing-note strong{font-size:16px;color:var(--ink)}
+.annual-pricing-note span{font-size:14px;color:var(--mut)}
+.annual-pricing-note small{font-size:12px;color:var(--mut);line-height:1.6}
 .pcard-features{list-style:none;margin:0 0 32px;padding:0;display:grid;gap:14px;font-size:15px}
 .pcard-features li{display:flex;align-items:center;gap:12px}
 .pcard-features li::before{content:"✓";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#d9f2e4;color:#05603a;font-weight:700;font-size:13px;flex:none}
@@ -97,6 +101,11 @@ body{margin:0;background:#f4f6fa}
       <p id="country-price-result" role="status" aria-live="polite">Prices are monthly, before applicable taxes. Your business country is confirmed during setup.</p>
       <p class="country-pricing-note">Based on World Bank FY2027 income groups. Unclassified economies use the $20 standard price. Existing authorized subscriptions keep their agreed price until changed. <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups">Classification source ↗</a></p>
     </div>
+    <div class="annual-pricing-note" aria-label="Annual billing option">
+      <strong>Pay annually, save two months · <span data-region-annual-price>$200</span>/year</strong>
+      <span>Compared with 12 monthly payments, save <span data-region-annual-savings>$40</span> per year. Billed once every 12 months, excluding applicable taxes.</span>
+      <small>Annual checkout appears only where the corresponding Razorpay yearly plan is enabled for your verified business country. Otherwise, monthly billing remains available. Existing subscriptions are never switched automatically.</small>
+    </div>
     <div class="pricing-grid">
       <!-- Card 1: 15-Day Free Trial -->
       <div class="pcard" data-rv style="--i:0">
@@ -125,7 +134,7 @@ body{margin:0;background:#f4f6fa}
           <strong data-region-price>$20</strong>
           <span>/ month</span>
         </div>
-        <p class="pcard-sub">Complete contractor operations platform. Unlimited jobs, invoices, and matching.</p>
+        <p class="pcard-sub">Complete contractor operations platform. Select monthly or annual billing during payment authorization where available.</p>
         <ul class="pcard-features">
           <li><strong>Unlimited</strong> leads &amp; customer pipeline</li>
           <li><strong>Unlimited</strong> invoices, Net 15/30 terms &amp; PDF exports</li>
@@ -150,7 +159,7 @@ body{margin:0;background:#f4f6fa}
       </div>
       <div class="pcard" style="padding:24px 28px" data-rv style="--i:1">
         <h4 style="margin:0 0 8px;font-size:17px">What happens when the 15-day trial ends?</h4>
-        <p style="margin:0;color:var(--mut);font-size:15px">Your existing records remain available to review and export as JSON, subject to the Privacy Policy. To continue creating or editing business records, maintain your authorised <span data-region-price>$20</span>/month recurring subscription. No charge is made without authorization.</p>
+        <p style="margin:0;color:var(--mut);font-size:15px">Your existing records remain available to review and export as JSON, subject to the Privacy Policy. To continue creating or editing business records, maintain an authorised recurring plan: <span data-region-price>$20</span>/month, or <span data-region-annual-price>$200</span>/year where annual checkout is enabled for your country. Your billing interval and first scheduled charge are confirmed before authorization.</p>
       </div>
       <div class="pcard" style="padding:24px 28px" data-rv style="--i:2">
         <h4 style="margin:0 0 8px;font-size:17px">Can I cancel anytime?</h4>

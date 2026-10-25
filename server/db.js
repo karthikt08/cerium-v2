@@ -434,7 +434,7 @@ export function openDb(file) {
   // Stable ordering even when a cancelled checkout and its replacement were
   // inserted within the same millisecond (common on fast Windows test runs).
   const subscriptionColumns=new Set(db.prepare('PRAGMA table_info(recurring_subscriptions)').all().map(c=>c.name));
-  for(const [name,type] of [['price_amount','INTEGER'],['price_currency','TEXT'],['price_tier','TEXT'],['price_version','TEXT'],['price_plan_id','TEXT']])
+  for(const [name,type] of [['price_amount','INTEGER'],['price_currency','TEXT'],['price_tier','TEXT'],['price_version','TEXT'],['price_plan_id','TEXT'],['billing_cycle',"TEXT NOT NULL DEFAULT 'monthly'"]])
     if(!subscriptionColumns.has(name))db.exec('ALTER TABLE recurring_subscriptions ADD COLUMN '+name+' '+type);
   db.exec(`UPDATE recurring_subscriptions SET
     price_amount=CASE WHEN (SELECT country FROM users WHERE id=user_id)='IN' THEN 50000 ELSE 2000 END,
@@ -1270,7 +1270,7 @@ export function openDb(file) {
           trialDaysTotal: trialDaysTotal,
           trialDaysRemaining: trialDaysRemaining,
           planStatus: effectivePlanStatus,
-          subscription: this.getUserSubscription(userId) ? { status: this.getUserSubscription(userId).status, id: this.getUserSubscription(userId).subscription_id } : null,
+          subscription: this.getUserSubscription(userId) ? { status: this.getUserSubscription(userId).status, id: this.getUserSubscription(userId).subscription_id, billingCycle:this.getUserSubscription(userId).billing_cycle==='annual'?'annual':'monthly' } : null,
           monthlyPrice: subscriptionPrice(user.country,this.getUserSubscription(userId))?.monthlyPrice,
           billingPrice: subscriptionPrice(user.country,this.getUserSubscription(userId)),
           availableBillingPrice: billingPlan(user.country),
@@ -1717,8 +1717,8 @@ export function openDb(file) {
       db.transaction(()=>{
         subscriptionInsert.run(id, userId, 'created', startAt, Date.now());
         const saved=price||billingPlan(q.getUserById.get(userId)?.country);
-        db.prepare('UPDATE recurring_subscriptions SET price_amount=?,price_currency=?,price_tier=?,price_version=?,price_plan_id=? WHERE subscription_id=?')
-          .run(saved.minorUnits,saved.currency,saved.tier,saved.version,saved.planId||null,id);
+        db.prepare('UPDATE recurring_subscriptions SET price_amount=?,price_currency=?,price_tier=?,price_version=?,price_plan_id=?,billing_cycle=? WHERE subscription_id=?')
+          .run(saved.minorUnits,saved.currency,saved.tier,saved.version,saved.planId||null,saved.billingCycle==='annual'?'annual':'monthly',id);
       })();
     },
     updateSubscription(id, status, currentEnd = null, eventAt = 0) {
