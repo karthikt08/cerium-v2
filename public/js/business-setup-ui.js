@@ -2,6 +2,7 @@ import {COUNTRY_OPTIONS,countryName} from './countries.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions} from './us-market.js';
 import {INDIA_STATE_OPTIONS} from './india-market.js';
 import {businessSetupSteps,BUSINESS_SETUP_FIELDS} from './business-profile.js';
+import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,recommendWorkspace,suggestIndustry} from './industry-workspaces.js';
 
 const markup=`<form id="business-form" class="business-wizard" hidden>
 <p class="wizard-required">REQUIRED BUSINESS SETUP</p>
@@ -16,6 +17,16 @@ const markup=`<form id="business-form" class="business-wizard" hidden>
         <label>Business contact email<input id="biz-email" name="businessEmail" type="email" autocomplete="email" maxlength="254" required></label>
         <label>Industry / main service<input id="biz-trade" name="trade" list="business-trades" maxlength="120" placeholder="e.g. Plumbing, consulting, retail" required></label>
         <datalist id="business-trades"><option value="Home repairs"><option value="Plumbing"><option value="Electrical services"><option value="Cleaning"><option value="Landscaping"><option value="Consulting"><option value="Retail"><option value="Professional services"></datalist>
+         <label class="business-wide">Choose your business type<select id="biz-industry" name="industryCategory" required></select></label>
+         <div class="business-wide workspace-picker">
+           <h3>Your CERIUM tools</h3>
+           <p class="hint">Recommended for your work, and fully customizable.</p>
+           <label>What takes most of your time? (optional)<textarea id="biz-work-description" maxlength="350" rows="2" placeholder="Scheduling jobs, making estimates, collecting payments…"></textarea></label>
+           <button type="button" class="secondary" id="biz-suggest-modules">Suggest my tools</button>
+           <p class="hint" id="biz-recommendation" role="status"></p>
+           <div class="workspace-module-grid" id="biz-module-grid"></div>
+           <input type="hidden" name="workspaceModules" id="biz-modules-value">
+         </div>
 </div></fieldset>
 <fieldset data-business-step="address"><legend class="wizard-sr">Business address</legend><div class="business-fields">        <label class="business-wide">Business street address<input id="biz-address" name="businessAddress" autocomplete="address-line1" maxlength="160" required></label>
         <label>City / locality<input id="biz-city" name="businessCity" autocomplete="address-level2" maxlength="80" required></label>
@@ -60,6 +71,10 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   function populate(){
     const p=setup.draft,country=setup.country,ind=country==='IN',us=country==='US';
     for(const key of Object.values(BUSINESS_SETUP_FIELDS).flat())if(form.elements[key])form.elements[key].value=p[key]||'';
+    const category=p.industryCategory||suggestIndustry(p.trade).category;
+    select('biz-industry',INDUSTRY_OPTIONS,category);
+    el('biz-modules-value').value=p.workspaceModules||defaultModules(category).join(',');
+    renderModuleChoices();
     select('biz-us-state',[{value:'',label:'Choose state'},...US_STATE_OPTIONS],p.usState);
     select('biz-india-state',[{value:'',label:'Choose state / UT'},...INDIA_STATE_OPTIONS],p.indiaState);
     el('biz-us-state-field').hidden=!us;el('biz-us-state').required=us;el('biz-us-state').disabled=!us;
@@ -77,6 +92,8 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   }
   function review(){
     const p=setup.draft,items=[['Business name',p.businessName],['Contact name',p.name],['Business email',p.businessEmail],['Industry / service',p.trade],
+      ['Workspace type',INDUSTRY_OPTIONS.find(v=>v.value===p.industryCategory)?.label||'Custom'],
+      ['Enabled tools',(p.workspaceModules||'').split(',').map(id=>WORKSPACE_MODULES.find(m=>m.id===id)?.label).filter(Boolean).join(', ')],
       ['Country',countryName(setup.country)],['Street address',p.businessAddress],['City / locality',p.businessCity],
       ['State / region',setup.country==='IN'?INDIA_STATE_OPTIONS.find(x=>x.value===p.indiaState)?.label:setup.country==='US'?US_STATE_OPTIONS.find(x=>x.value===p.usState)?.label:p.businessRegion],
       ['Postal code',p.businessPostalCode],['Business time zone',p.timeZone]];
@@ -116,6 +133,33 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     el('business-errors').hidden=false;form.querySelector('[aria-invalid=true]')?.focus();
   }
   const clearErrors=()=>{el('business-errors').hidden=true;for(const node of form.querySelectorAll('[aria-invalid]'))node.removeAttribute('aria-invalid');};
+  function renderModuleChoices(){
+    const grid=el('biz-module-grid'),chosen=new Set(el('biz-modules-value').value.split(',').filter(Boolean));
+    grid.replaceChildren();
+    for(const module of WORKSPACE_MODULES){
+      const label=document.createElement('label'),check=document.createElement('input');
+      check.type='checkbox';check.value=module.id;check.checked=chosen.has(module.id);
+      check.addEventListener('change',()=>{
+        const active=[...grid.querySelectorAll('input:checked')].map(c=>c.value);
+        if(!active.length){check.checked=true;el('biz-recommendation').textContent='Keep at least one tool enabled.';return;}
+        el('biz-modules-value').value=active.join(',');
+      });
+      label.append(check,document.createTextNode(module.label));grid.append(label);
+    }
+  }
+  el('biz-industry').addEventListener('change',()=>{
+    const category=el('biz-industry').value;
+    el('biz-modules-value').value=(category==='other'?['jobs','invoices','payments']:defaultModules(category)).join(',');
+    el('biz-recommendation').textContent=category==='other'?'Pick the tools your business needs; you can change them later.':'Recommended for this industry.';
+    renderModuleChoices();
+  });
+  el('biz-suggest-modules').addEventListener('click',()=>{
+    const rec=recommendWorkspace({category:el('biz-industry').value,
+      description:el('biz-work-description').value,trade:el('biz-trade').value});
+    el('biz-modules-value').value=rec.modules.join(',');
+    el('biz-recommendation').textContent=rec.explanation+' Review and adjust before continuing.';
+    renderModuleChoices();
+  });
   el('biz-gst-registration').addEventListener('change',gst);
   el('business-back').addEventListener('click',event=>{
     if(api.localBusinessSetup&&editing&&setup.complete){event.preventDefault();onComplete();}
