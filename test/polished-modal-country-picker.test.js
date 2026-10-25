@@ -45,6 +45,11 @@ test('phone verification remains tied to original selected country and confirmat
   assert.match(picker,/ArrowDown/);
   assert.match(picker,/select\.required=false/);
   assert.match(css,/grid-template-columns:minmax\(0,1fr\) 106px/);
+  assert.match(css,/\.dial-head[^{]*\{[^}]*overflow-y:scroll/);
+  assert.match(css,/\.dial-head[^{]*\{[^}]*scrollbar-gutter:stable/);
+  assert.match(css,/\.dial-options[^{]*\{[^}]*overflow-y:scroll/);
+  assert.match(css,/\.dial-options[^{]*\{[^}]*scrollbar-gutter:stable/);
+  assert.match(css,/\.dial-head span:last-child[^{]*\{[^}]*white-space:nowrap/);
 });
 
 test('workspace settings use a modal matching CERIUM UI, with editable suggested tools',()=>{
