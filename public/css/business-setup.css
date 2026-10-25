@@ -31,3 +31,13 @@
 .business-setup-preview{box-sizing:border-box;max-width:600px;margin:35px auto;padding:30px;background:#fff;border:1px solid #e2e6f2;border-radius:18px;box-shadow:0 20px 55px #25345d12}
 .business-setup-preview h1{font-size:28px;line-height:1.3}.business-setup-preview>p{color:#647186;font-size:14px;margin-bottom:22px}
 @media(max-width:520px){.business-wizard .business-fields{grid-template-columns:1fr}.business-wizard .business-wide{grid-column:auto}.wizard-review{grid-template-columns:1fr;gap:4px}.wizard-review dd{margin-bottom:8px}.business-setup-preview{margin:18px 12px;padding:24px}.wizard-progress{font-size:11px}}
+
+/* Industry-adaptive CERIUM onboarding: fast, accessible module choice. */
+.workspace-picker{display:grid;gap:12px;border:1px solid #e2e7f2;background:#f8faff;border-radius:13px;padding:16px}
+.workspace-picker h3{font-size:16px;margin:0;color:#1e3354}
+.workspace-picker textarea{width:100%;box-sizing:border-box;min-height:76px;resize:vertical;border:1px solid #ccd7e9;border-radius:9px;padding:11px;font:14px/1.5 system-ui,sans-serif}
+.workspace-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.workspace-module-grid label{display:flex;align-items:center;gap:9px;background:#fff;padding:11px;border-radius:9px;border:1px solid #dbe4f1;font-size:13px}
+.workspace-module-grid input{accent-color:#3f64e5;width:17px;height:17px;flex:none}
+.workspace-picker button{justify-self:start}
+@media(max-width:620px){.workspace-module-grid{grid-template-columns:1fr}}
