@@ -4,7 +4,7 @@
 const STOPWORDS=new Set('a an the i me my our we you your is it are do does to for with by of in on at from into how where what can could would should please need want have there here me show find take go use open get new make help about all some that this then now just'.split(' '));
 
 function terms(value){
-  return String(value||'').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'')
+  return String(value||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
     .match(/[a-z0-9]+/g)?.filter(token=>token.length>1&&!STOPWORDS.has(token))||[];
 }
 export function navlmFeatures(question){
@@ -69,9 +69,9 @@ export function classifyNavLM(model,question,{minScore=0.29,minMargin=0.045}={})
   if(top[0]==='unsupported')return {label:null,reason:'unsupported',score,margin};
   // Guard against a false 'Payments' match when the user explicitly asks
   // about unpaid customer bills; reminders are still selected by the model.
-  if(top[0]==='payments'&&/\\b(?:bills?|invoices?)\\b/i.test(question)&&
-    /\\b(?:unpaid|outstanding|not (?:been )?paid|yet to be paid)\\b/i.test(question)&&
-    !/\\b(?:remind|reminder|chase|notify|notification|follow[\\s-]?up|message)\\b/i.test(question)&&
+  if(top[0]==='payments'&&/\b(?:bills?|invoices?)\b/i.test(question)&&
+    /\b(?:unpaid|outstanding|not (?:been )?paid|yet to be paid)\b/i.test(question)&&
+    !/\b(?:remind|reminder|chase|notify|notification|follow[\s-]?up|message)\b/i.test(question)&&
     model.labels.includes('invoices'))return {label:'invoices',reason:'unpaid-invoice-guard',score,margin};
   return {label:top[0],reason:'matched',score,margin};
 }
