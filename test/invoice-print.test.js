@@ -7,6 +7,7 @@ const invoice='<article class="invoice-document"><div class="table-scroll"><tabl
 test('invoice PDF presentation is isolated from workspace responsive CSS',()=>{
   const html=invoicePrintHTML({invoiceMarkup:invoice,paper:'A4',title:'Invoice INV-1'});
   assert.match(html,/@page\{size:A4;margin:16mm/);
+  assert.match(html,/counter\(page\).*counter\(pages\)/);
   assert.match(html,/\.invoice-document \.table-scroll\{overflow:visible!important;height:auto!important;max-height:none!important\}/);
   assert.match(html,/\.invoice-document thead\{display:table-header-group\}/);
   assert.match(html,/\.invoice-document tr\{page-break-inside:avoid/);
