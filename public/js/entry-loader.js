@@ -3,7 +3,6 @@
   'use strict';
   const scene = document.querySelector('[data-cerium-entry]');
   if (!scene) return;
-  const video = scene.querySelector('video');
   const skip = scene.querySelector('[data-entry-skip]');
   const mode = scene.dataset.ceriumEntry;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,17 +25,7 @@
     window.CeriumEntryLoader = { complete() {}, fail() {} };
     return;
   }
-  if (reduced) {
-    scene.classList.add('no-video');
-    video?.pause();
-  } else if (video) {
-    video.src = video.dataset.asset;
-    video.playbackRate = 2;
-    video.addEventListener('error', () => scene.classList.add('no-video'), {once:true});
-    video.play().catch(() => scene.classList.add('no-video'));
-  } else {
-    scene.classList.add('no-video');
-  }
+  if (reduced) scene.classList.add('entry-reduced-motion');
 
   const begun = performance.now();
   const minimumMs = reduced ? 0 : 2900;
@@ -57,7 +46,7 @@
       location.replace(target.pathname + target.search + target.hash);
     } else {
       scene.classList.add('is-leaving');
-      setTimeout(() => { scene.hidden = true; video?.pause(); }, reduced ? 0 : 260);
+      setTimeout(() => { scene.hidden = true; }, reduced ? 0 : 260);
     }
   }
   function schedule(force = false) {
