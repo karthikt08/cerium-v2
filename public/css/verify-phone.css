@@ -26,3 +26,24 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid 
 .setup-steps{display:flex;gap:7px;list-style:none;margin:0 0 20px;padding:0;font-size:12px;font-weight:650}.setup-steps li{flex:1;text-align:center;padding:9px 4px;border-radius:7px;background:#eef1f7;color:#65738a}.setup-steps [aria-current=step]{color:#294dd0;background:#e4eaff;box-shadow:inset 0 0 0 1px #bdcaff}.setup-steps [data-complete=true]{background:#eaf6ef;color:#306b4a}
 .business-fields{display:grid;grid-template-columns:1fr 1fr;gap:15px;min-width:0}.business-fields label{display:grid;align-content:start;gap:6px;min-width:0}.business-wide{grid-column:1/-1}.business-heading{margin-bottom:2px}.verified-business-country{background:#eaf6ef;border-radius:8px;padding:10px 12px;font-size:12px;color:#306b4a;margin:0}.business-errors{margin:0;padding:12px 12px 12px 28px;background:#fff1f0;color:#92433f;border-radius:8px;font-size:12px}input[aria-invalid=true],select[aria-invalid=true]{border-color:#b94b44}.account-tools{border-top:1px solid var(--line);padding-top:15px;font-size:12px}.account-tools summary{cursor:pointer;font-weight:600;margin-bottom:10px}.secondary{border:1px solid #ccd7e9;border-radius:7px;padding:9px 12px;margin:4px 5px 4px 0;background:white;color:var(--ink);font-size:12px}
 @media(max-width:520px){.business-fields{grid-template-columns:1fr}.business-wide{grid-column:auto}}
+
+/* Cohesive CERIUM onboarding card — matches the polished workspace modal. */
+.verify-layout{max-width:690px;padding-top:32px}
+.verify-card{position:relative;isolation:isolate;border:1px solid #dce5f1;border-radius:23px;
+  padding:clamp(24px,5vw,41px);background:linear-gradient(160deg,#fff 10%,#fcfdff 100%);
+  box-shadow:0 28px 80px #21375917,0 3px 12px #324c690a;overflow:visible}
+.verify-card::before{content:"";position:absolute;top:0;left:35px;right:35px;height:3px;
+  border-radius:0 0 6px 6px;background:linear-gradient(90deg,transparent,#4d79e6,#75b7ef,transparent)}
+.verify-card .eyebrow{letter-spacing:.16em}
+.verify-card h1{color:#1d3050;font-weight:800}
+.verify-card form{gap:13px}
+.verify-card .setup-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:24px}
+.verify-card .setup-steps li{position:relative;padding:10px 7px;border-radius:10px;
+  border:1px solid #e3e9f2;background:#f5f7fb;color:#63748d;font-size:12px}
+.verify-card .setup-steps [aria-current=step]{background:#ecf2ff;border-color:#b6caff;color:#2b56b5;box-shadow:0 3px 8px #4263eb0a}
+.verify-card .setup-steps [data-complete=true]{border-color:#c8e6d8;background:#eef8f1;color:#2e7653}
+.verify-card .alert:not(.error){border-radius:11px;background:#f0f5ff;border-color:#dbe6fb}
+.verify-card .edition-preview{border-radius:11px}
+.verify-card .primary{border-radius:11px}
+.verify-card input:not([type=checkbox]){border-radius:10px}
+@media(max-width:520px){.verify-layout{padding-inline:13px}.verify-card::before{left:23px;right:23px}}
