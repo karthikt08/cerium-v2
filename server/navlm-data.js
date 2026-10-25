@@ -1,5 +1,5 @@
 // NavLM v0.1 manually labeled generic queries (no real customer questions or private data).
-// Independent holdout examples are used for regression, not for fitting the model.
+// Held-out examples are not used to fit vocabulary or prototypes; this small validation set has been inspected during development.
 export const NAVLM_EXAMPLES=Object.freeze({
   "invoices": [
     "create a new invoice for a completed job",
