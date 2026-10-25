@@ -17,7 +17,8 @@ export function openLeadImport({api,onComplete,readOnly=false,offline=false}){
   if(readOnly)throw new Error('Imports are unavailable while your workspace is read-only.');
   if(offline)throw new Error('Spreadsheet imports require the connected Cerium workspace.');
   let dialog=document.getElementById('lead-import-dialog');
-  if(!dialog){
+  if(dialog)dialog.remove();
+  {
     dialog=document.createElement('dialog');
     dialog.id='lead-import-dialog';
     dialog.className='dialog lead-import-dialog';
