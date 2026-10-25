@@ -92,7 +92,12 @@
     <noscript>Enable JavaScript to complete the required business setup. Your workspace stays locked until setup is finished.</noscript>
     <section id="mandate-panel" hidden aria-label="Payment method authorization">
       <h2>Authorize your payment method to start the trial</h2>
-      <p id="mandate-info" class="intro">Your first recurring payment is scheduled after your 15-day trial. Your recurring plan and price are displayed before you authorize; a small payment-method verification transaction may occur depending on the provider.</p>
+      <p id="mandate-info" class="intro">Choose the billing interval and review the amount before authorizing. The first recurring payment is scheduled after your 15-day trial; payment-method verification charges may apply.</p>
+      <fieldset class="billing-cycle-choices" id="billing-cycle-choices">
+        <legend>Choose your billing interval</legend>
+        <label class="billing-cycle-choice"><input type="radio" name="billing-cycle" value="monthly" checked><span><strong>Monthly</strong><small id="monthly-price-label">Pay every month</small></span></label>
+        <label class="billing-cycle-choice"><input type="radio" name="billing-cycle" value="annual"><span><strong>Annual <span class="billing-save-pill">2 months free</span></strong><small id="annual-price-label">Pay once every 12 months</small></span></label>
+      </fieldset>
       <button type="button" class="primary" id="mandate-button">Authorize secure recurring checkout</button>
       <p class="hint">Outside India: eligible international cards. India: eligible cards or UPI AutoPay. Payment methods and SMS delivery depend on provider availability in your country.</p>
     </section>
