@@ -191,12 +191,16 @@ test('every incomplete setup stage blocks workspace URL aliases and private API 
   const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
   try{
     const {b,csrf,uid}=await owner(t);
-    const paths=['/app','/app.html','/APP.HTML','/%61pp.html','/app.html/','/app.html.','/app.html%20','/app.html::$DATA','/folder/../app.html'];
+    const paths=['/app','/app.html','/APP.HTML','/%61pp.html','/app.html/','/app.html.','/app.html%20','/app.html::$DATA','/app.html%3a%3a%24DATA','/APP.HTML::$data','/app.html:$DATA','/app.html::$DATA/','/folder/../app.html'];
+    const anonymous=t.browser();
+    for(const path of paths.filter(p=>decodeURIComponent(p).includes(':')))for(const method of ['GET','HEAD'])
+      assert.equal((await anonymous.req(path,{method})).status,404,path);
     for(const stage of ['basics','address','review']){
       assert.equal(t.db.getBusinessSetup(uid).step,stage);
       for(const path of paths)for(const method of ['GET','HEAD']){
         const r=await b.req(path,{method});assert.ok([303,404].includes(r.status),stage+' '+method+' '+path+' returned '+r.status);
         if(r.status===303)assert.equal(r.headers.get('location'),'/verify.html');
+        if(decodeURIComponent(path).includes(':'))assert.equal(r.status,404,path);
       }
       for(const [method,path] of [['GET','/api/workspace'],['GET','/api/workspace/'],['GET','/api/WORKSPACE'],
         ['GET','/api/jobs'],['GET','/api/invoices'],['GET','/api/leads'],['GET','/api/quotes'],

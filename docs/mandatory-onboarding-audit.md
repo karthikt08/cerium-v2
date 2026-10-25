@@ -6,6 +6,7 @@ Scope: phone verification, required business information, saved wizard steps, re
 
 | Reproduction | Corrected behavior |
 | --- | --- |
+| Request `/app.html::$DATA` on Windows before setup is complete. | Reject NTFS alternate-stream/drive syntax before static serving. Windows CI reproduced the original page-shell bypass; private APIs remained gated. |
 | Fill a required name/address with zero-width characters only. | Required text must contain visible content; international names and legitimate joiners remain supported. |
 | Submit an explicit empty, false or null invoice currency. | Reject invalid choices instead of silently choosing USD/INR. Omitted currency retains backward-compatible defaults. |
 | Edit inputs or tool choices while a step is saving. | Disable the active fieldset until the request finishes. |

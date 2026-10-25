@@ -305,6 +305,9 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     let pathname;
     try{pathname=path.posix.normalize(decodeURIComponent(req.path).replaceAll('\\','/')).toLowerCase().replace(/\/+$/,'');}
     catch{return res.status(400).type('text/plain').send('Invalid URL.');}
+    // NTFS alternate data streams can resolve app.html::$DATA to app.html.
+    // Reject stream/drive syntax before static serving on every platform.
+    if(pathname.includes(':'))return res.status(404).type('text/plain').send('Not found.');
     if(!['/app','/app.html'].includes(pathname))return next();
     // Static serving decodes URLs and Windows file names ignore case. Guard the
     // resolved shell too, rather than only the literal /app.html route.
