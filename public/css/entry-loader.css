@@ -113,9 +113,10 @@ body.entry-page{margin:0;background:#e2e3e6}
   .entry-skip{right:18px;bottom:18px}
 }
 @media(prefers-reduced-motion:reduce){
-  .entry-mark,.entry-letter,.entry-entry-dot,.entry-ground,.entry-caption {
+  .entry-mark,.entry-letter,.entry-entry-dot,.entry-ground {
     animation:none!important;opacity:1!important;transform:none!important;filter:none!important;
   }
+  .entry-caption{animation:none!important;opacity:1!important}
   .entry-shimmer{display:none}
   .entry-caption::after{animation:none}
   .entry-scene.is-leaving{transition:none}
@@ -123,5 +124,7 @@ body.entry-page{margin:0;background:#e2e3e6}
 
 .entry-retry{right:auto;left:clamp(16px,3vw,42px)}
 .entry-scene [hidden]{display:none!important}
-.entry-instant .entry-mark,.entry-instant .entry-letter,.entry-instant .entry-entry-dot,.entry-instant .entry-ground,.entry-instant .entry-caption{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
+.entry-instant .entry-mark,.entry-instant .entry-letter,.entry-instant .entry-entry-dot,.entry-instant .entry-ground{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
 .entry-instant .entry-shimmer{display:none}.entry-instant .entry-caption::after{animation:none}
+
+.entry-instant .entry-caption{animation:none!important;opacity:1!important}

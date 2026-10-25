@@ -47,7 +47,7 @@ No media installation or additional dependency is required.
 - All 93 JavaScript files passed syntax checks. The secret scan and whitespace
   checks passed. Existing public-file and browser-storage checks retain their
   original restrictions.
-- Sixteen Chromium workflows passed, including desktop/mobile native animation,
+- Eighteen Chromium workflows passed, including desktop/mobile native animation,
   reloads, handoff, actual email login/sign-up, onboarding enforcement, failed
   and slow initialization, delayed/missing loader script, reduced motion and
   the self-contained preview. Background controls stayed inert until readiness.
