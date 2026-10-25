@@ -1,6 +1,6 @@
 import API from './api.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
-import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer} from './workspace-customizer.js';
+import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer,renderOverviewTools,customizeOverview} from './workspace-customizer.js';
 import {INDUSTRY_OPTIONS} from './industry-workspaces.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
@@ -121,7 +121,7 @@ function overview() {
     `<div class="dashboard-grid"><section class="panel" data-workspace-module="followups">${panelHeader('followups','Today’s follow-ups',tasks.length?`${tasks.length} ${tasks.length===1?'customer needs':'customers need'} a check-in`:'Your next conversations, in one place',viewLink('followups'))}<div class="panel-body">${tasks.length?tasks.slice(0,4).map(taskRow).join(''):empty('You’re all caught up','Add a follow-up when a customer needs a call or message.',button('Add follow-up','new','data-kind="followup"','secondary'))}</div><div class="panel-footer"><span>${tasks.length>4?`Showing 4 of ${tasks.length} due`:'A small follow-up can make a big difference.'}</span>${button(icon('plus')+'Add','new','data-kind="followup"','secondary')}</div></section>`+
     `<section class="panel" data-workspace-module="invoices">${panelHeader('invoices','Awaiting payment','A clear view of what’s coming in',viewLink('invoices'))}<div class="panel-body">${invoices.length?invoices.slice(0,3).map(invoiceRow).join(''):empty('No outstanding invoices','Create your next invoice when a job is ready to bill.',button('Create invoice','new','data-kind="invoice"','secondary'))}</div><div class="panel-footer"><span>${invoices.length} open ${invoices.length===1?'invoice':'invoices'}</span><strong class="amount">${cash(m.outstanding)}</strong></div></section>`+
     `<section class="panel" data-workspace-module="leads">${panelHeader('leads','Your pipeline','From first inquiry to a finished job',viewLink('leads'))}<div class="pipeline-strip">${STAGES.map(s=>`<div class="stage-item"><div class="stage-line"></div><strong>${ws.leads.filter(l=>l.stage===s).length}</strong>${s}</div>`).join('')}</div><div class="panel-body">${leads.length?leads.map(l=>`<div class="task-row"><span class="mini-avatar">${esc(initials(l.name))}</span><div class="row-details"><span class="row-title">${esc(l.name)}</span><span class="row-meta">${esc(l.source)}${l.notes?' · '+esc(l.notes.slice(0,40)):''}</span></div>${badge(l.stage)}<button class="text-button" data-action="new-quote" data-id="${esc(l.id)}" aria-label="Create quote for ${esc(l.name)}">Quote ↗</button><button class="icon-button" data-action="edit" data-kind="lead" data-id="${esc(l.id)}" aria-label="Edit ${esc(l.name)}">${icon('chevron')}</button></div>`).join(''):empty('Make room for your next customer','Every inquiry starts with a new lead.')}</div></section>`+
-    `<section class="panel" data-workspace-module="reviews">${panelHeader('reviews','Close the loop','Keep your good work working for you',viewLink('reviews'))}<div class="panel-body">${reviews.length?reviews.map(r=>`<div class="task-row"><span class="mini-avatar lavender">${icon('reviews')}</span><div class="row-details"><span class="row-title">${esc(r.customerName)}</span><span class="row-meta">${esc(r.jobTitle)}</span></div>${badge(r.status==='Sent'?'Requested':r.status)}</div>`).join(''):empty('Good work deserves a good review','Track review requests after you finish a job.')}</div><div class="panel-footer"><span>${m.reviews} waiting for a request</span>${viewLink('reviews','Manage reviews')}</div></section></div><p class="page-note">${icon('check')}A little less admin. A little more room to work.</p>`;
+    `<section class="panel" data-workspace-module="reviews">${panelHeader('reviews','Close the loop','Keep your good work working for you',viewLink('reviews'))}<div class="panel-body">${reviews.length?reviews.map(r=>`<div class="task-row"><span class="mini-avatar lavender">${icon('reviews')}</span><div class="row-details"><span class="row-title">${esc(r.customerName)}</span><span class="row-meta">${esc(r.jobTitle)}</span></div>${badge(r.status==='Sent'?'Requested':r.status)}</div>`).join(''):empty('Good work deserves a good review','Track review requests after you finish a job.')}</div><div class="panel-footer"><span>${m.reviews} waiting for a request</span>${viewLink('reviews','Manage reviews')}</div></section></div>${renderOverviewTools()}<p class="page-note">${icon('check')}A little less admin. A little more room to work.</p>`;
 }
 function toolbar(kind) {
   const f=state.filters[kind] ||= initialFilters(kind);
@@ -252,13 +252,7 @@ function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
   $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
-  if(s==='overview'){
-    const visible=new Set(state.ws.account.workspacePreferences?.modules||[]);
-    $('page-body').querySelectorAll('[data-workspace-module]').forEach(el=>{
-      const show=visible.has(el.dataset.workspaceModule);
-      el.hidden=!show;el.style.display=show?'':'none';
-    });
-  }
+  if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
   if(singular[s])renderResults();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{

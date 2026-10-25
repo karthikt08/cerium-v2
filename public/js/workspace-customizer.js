@@ -47,6 +47,27 @@ export function customizeBusinessNavigation(root,modules) {
   if(overview)nav.prepend(overview);
 }
 
+export function renderOverviewTools(){
+  return `<section class="panel overview-tools" data-overview-tools hidden aria-labelledby="overview-tools-title">
+    <div class="panel-header"><div><h2 id="overview-tools-title">Your workspace tools</h2>
+    <p class="panel-subtitle">Open a tool to get started.</p></div></div>
+    <div class="overview-tool-links">${WORKSPACE_MODULES.map(module=>`<a class="overview-tool-link" href="#${esc(module.id)}" data-nav="${esc(module.id)}" data-workspace-module="${esc(module.id)}"><span>${esc(module.label)}</span><span aria-hidden="true">→</span></a>`).join('')}</div>
+  </section>`;
+}
+
+export function customizeOverview(root,modules){
+  const selected=new Set(Array.isArray(modules)?modules:WORKSPACE_MODULES.map(module=>module.id));
+  root.querySelectorAll('[data-workspace-module]').forEach(element=>{
+    element.hidden=!selected.has(element.dataset.workspaceModule);
+    element.style.display=element.hidden?'none':'';
+  });
+  for(const grid of root.querySelectorAll('.metrics-grid,.dashboard-grid')){
+    grid.hidden=![...grid.children].some(card=>!card.hidden);
+  }
+  const tools=root.querySelector('[data-overview-tools]');
+  if(tools)tools.hidden=!root.querySelector('.dashboard-grid')?.hidden;
+}
+
 export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
   function form() {return document.getElementById('workspace-preferences-form');}
   function apply(modules,note){

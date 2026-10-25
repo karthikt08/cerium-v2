@@ -17,3 +17,8 @@
 .workspace-customizer .settings-actions{display:flex;flex-wrap:wrap;gap:9px}
 .workspace-customizer :is(input,select,textarea,button):focus-visible{outline:3px solid #7c9fff;outline-offset:3px}
 @media(max-width:600px){.workspace-customizer .ws-module-grid{grid-template-columns:1fr}}
+
+/* Useful entry points when the selected tools have no detailed Overview panels. */
+.overview-tool-links{display:flex;flex-wrap:wrap;gap:12px;padding:20px}
+.overview-tool-link{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:1 1 200px;min-width:0;padding:16px;border:1px solid var(--line);border-radius:8px;background:#f7f9ff;color:var(--accent);font-size:12px;font-weight:500}
+.overview-tool-link:hover{background:#eef2ff;border-color:#bdc9f0}
