@@ -1,3 +1,4 @@
+import {billingPlan,validCountry} from './countries.js';
 // Public prices are suggested by the backend. For an already signed-in user,
 // show the account's stored billing edition rather than their current IP.
 // Checkout ALWAYS validates currency and price server-side.
@@ -13,12 +14,23 @@
       country=region.country;
     }
     if(typeof country!=='string'||!/^[A-Z]{2}$/.test(country))return; // Local anonymous preview uses default copy.
-    const monthly=country==='IN'?'₹500':'$20';
+    const plan=billingPlan(country);
+    const monthly=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
     for(const element of document.querySelectorAll('[data-region-price]'))
       element.textContent=monthly;
     for(const element of document.querySelectorAll('[data-region-description]'))
-      element.textContent=country==='IN'?'India edition · INR billing':'Global edition · USD billing';
+      element.textContent=country==='IN'?'India price · INR billing':plan.discountPercent?plan.discountPercent+'% country discount · USD billing':'Standard price · USD billing';
   }catch {
     // Cosmetic only. No payment amount may come from browser content.
   }
 })();
+
+const picker=document.getElementById('pricing-country');
+if(picker){
+  const {COUNTRY_OPTIONS,priceLabel}=await import('./countries.js');
+  for(const country of COUNTRY_OPTIONS){const option=document.createElement('option');option.value=country.value;option.textContent=country.label;picker.append(option);}
+  picker.addEventListener('change',()=>{
+    const plan=billingPlan(picker.value);if(!plan)return;
+    document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Same features in every country. Confirmed at business setup.';
+  });
+}

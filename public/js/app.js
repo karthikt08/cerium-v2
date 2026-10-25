@@ -4,7 +4,7 @@ import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCusto
 import {INDUSTRY_OPTIONS} from './industry-workspaces.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
-import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency} from './countries.js';
+import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBillingCurrency,billingPlan,priceLabel} from './countries.js';
 import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVpa} from './india-market.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
@@ -189,7 +189,8 @@ function settingsPage() {
       +field('timeZone','Business time zone',a.timeZone||'UTC','text',{choices:businessTimeZoneOptions(a.timeZone)})
       +'<p class="muted full-width">'+esc(tzHelp)+'</p>';
   const countryChoices=COUNTRY_OPTIONS.map(c=>({value:c.value,label:c.label+' — '+(c.value==='IN'?'INR':'USD')}));
-  const moneyPrice=ind?'₹500':'$20';
+  const plan=a.billingPrice||billingPlan(a.country);
+  const moneyPrice=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
   const canAuthorize=!a.subscription||['created','cancelled','expired'].includes(a.subscription.status);
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
@@ -222,7 +223,7 @@ function settingsPage() {
     ${field('trade','Trade / industry',a.trade)}
     ${a.regionLocked?field('country','Edition / country (confirmed by phone)',a.country,'text',{readOnly:true}):field('country','Edition / country',a.country||'US','text',{choices:countryChoices})}
     <p class="muted full-width">${a.regionLocked?'Edition and currency are fixed to your verified business account. Contact support for legitimate changes.':'Selecting an edition does not apply it yet. Click Save changes to activate; the workspace must be empty.'} Existing money is never converted.</p>
-    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':'India is ₹500/month; all other countries are $20 USD/month.'}</div>
+    <div class="edition-save-hint full-width" id="edition-save-hint" role="status" aria-live="polite">Saved edition: ${esc(countryLabel)} · ${esc(a.currency)}. ${ind?'GST draft fields and UPI settings are shown below.':priceLabel(a.country)+'/month for new subscriptions. Same features at every country price.'}</div>
     ${regionFields}
     <p class="muted full-width">Currency: ${esc(a.currency)}. ${legacy}</p>
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
@@ -232,7 +233,8 @@ function settingsPage() {
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / month</small></p>
-    <p class="muted">Leads, estimates, jobs, invoicing and follow-ups. The price excludes any applicable tax.</p>
+    <p class="muted">${plan.currency} billing${plan.discountPercent?` · ${plan.discountPercent}% country discount`:""}. Same features in every country. The price excludes applicable tax.</p>
+    ${a.subscription&&a.availableBillingPrice&&plan.monthlyPrice!==a.availableBillingPrice.monthlyPrice?`<p class="muted">Your current authorization retains its agreed price. New country pricing is ${esc(priceLabel(a.country))}/month. Cancel future renewals before authorizing a new plan; paid access is retained.</p>`:""}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
     ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${button('Authorize monthly billing','upgrade')}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
@@ -401,7 +403,7 @@ document.addEventListener('change',e=>{
     const hint=$('edition-save-hint');
     if(hint)hint.textContent=chosen===saved
       ?'Saved edition: '+countryName(saved)+' · '+(saved==='IN'?'INR':'USD')+'.'
-      :'Pending change to '+countryName(chosen)+' · '+(chosen==='IN'?'INR (₹500/month)':'USD ($20/month)')+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
+      :'Pending change to '+countryName(chosen)+' · '+priceLabel(chosen)+'/month'+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
   }
   const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}

@@ -1,5 +1,5 @@
 import API from './api.js';
-import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder} from './countries.js';
+import {COUNTRY_OPTIONS,validCountry,countryName,phonePlaceholder,priceLabel} from './countries.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
 import {mountCountryPicker} from './country-picker.js';
 
@@ -41,7 +41,7 @@ function updatePreview(){
   const country=countrySelect.value;
   countryPicker?.sync();
   el('edition-preview').textContent=validCountry(country)
-    ?countryName(country)+' · '+(country==='IN'?'₹500 INR/month':'$20 USD/month')+' after your 15-day trial.'
+    ?countryName(country)+' · '+priceLabel(country)+'/month'+' after your 15-day trial.'
     :'Select your country to see your monthly price.';
   phone.placeholder=phonePlaceholder(country);
   el('country-confirm-text').textContent='I confirm my business is based in '+
@@ -81,7 +81,7 @@ async function view(){
       setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
     }else{
       el('mandate-button').disabled=false;
-      el('mandate-info').textContent=countryName(details.country)+' · '+(details.country==='IN'?'₹500 INR/month':'$20 USD/month')+
+      el('mandate-info').textContent=countryName(details.country)+' · '+(details.billingPrice?((details.billingPrice.currency==='INR'?'₹':'$')+details.billingPrice.monthlyPrice+' '+details.billingPrice.currency):priceLabel(details.country))+'/month'+
         '. Authorize the mandate now; the first monthly charge is scheduled after the remaining 15-day trial period.';
       setMessage('Business setup complete. One final step: authorize your payment method.');
     }

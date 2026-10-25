@@ -1,0 +1,10 @@
+.country-pricing-panel{margin:0 0 32px;padding:clamp(20px,4vw,32px);border:1px solid var(--ln,#dfe5ee);border-radius:20px;background:#f5f7ff}
+.country-pricing-panel h2{font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 12px}
+.country-pricing-panel p{color:var(--mut,#58667c);line-height:1.6}
+.country-price-tiers{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0}
+.country-price-tiers>div{flex:1 1 140px;display:grid;gap:7px;padding:18px;background:#fff;border:1px solid var(--ln,#dfe5ee);border-radius:12px}
+.country-price-tiers strong{font-size:1.8rem;color:var(--ac,#4263eb)}
+.country-price-tiers span{font-weight:600}.country-price-tiers small{color:var(--mut,#58667c)}
+.country-pricing-panel label{display:block;font-weight:600;margin-bottom:8px}
+.country-pricing-panel select{width:100%;max-width:420px;min-height:46px;padding:10px 38px 10px 12px;border:1px solid #bbc7e3;border-radius:9px;font:inherit;background-color:#fff;color:inherit}
+.country-pricing-note{font-size:.85rem}
