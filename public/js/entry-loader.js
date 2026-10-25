@@ -7,12 +7,8 @@
   const skip = scene.querySelector('[data-entry-skip]');
   const mode = scene.dataset.ceriumEntry;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const storageKey = 'cerium-entry-watched';
-  const getFlag = () => {
-    try { const seen = sessionStorage.getItem(storageKey); sessionStorage.removeItem(storageKey); return seen === '1'; }
-    catch { return false; }
-  };
-  const setFlag = () => { try { sessionStorage.setItem(storageKey, '1'); } catch {} };
+  // The one-time URL marker is removed immediately on the workspace page.
+  // No cookies, localStorage or sessionStorage are required for the animation.
   const validNext = value => {
     if (!value || !value.startsWith('/') || value.startsWith('//')) return '/app.html';
     try {
@@ -22,7 +18,10 @@
     } catch { return '/app.html'; }
   };
   const next = validNext(new URLSearchParams(location.search).get('next'));
-  if (mode === 'workspace' && getFlag()) {
+  if (mode === 'workspace' && new URLSearchParams(location.search).get('ceriumIntro') === 'done') {
+    const url = new URL(location.href);
+    url.searchParams.delete('ceriumIntro');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
     scene.hidden = true;
     window.CeriumEntryLoader = { complete() {}, fail() {} };
     return;
@@ -50,8 +49,12 @@
     finished = true;
     clearTimeout(pendingTimer);
     if (mode === 'redirect') {
-      setFlag(); // app.html will not play a duplicate entrance after this one.
-      location.replace(next);
+      // Carry an ephemeral marker only to the immediate workspace navigation.
+      // If the server sends the customer to verification, the marker is lost
+      // and the logo can play again after business setup finishes.
+      const target = new URL(next, location.origin);
+      target.searchParams.set('ceriumIntro', 'done');
+      location.replace(target.pathname + target.search + target.hash);
     } else {
       scene.classList.add('is-leaving');
       setTimeout(() => { scene.hidden = true; video?.pause(); }, reduced ? 0 : 260);
