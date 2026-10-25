@@ -1,0 +1,18 @@
+/* CERIUM typography system
+   The reference is the Figtree paragraph below the landing page hero.
+   Keep type consistent across every public page, workspace, form and dialog.
+   Non-text brand artwork is unaffected. */
+:root {
+  --cerium-typeface: "Figtree", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font: var(--cerium-typeface);
+  --bf: var(--cerium-typeface);
+  --hf: var(--cerium-typeface);
+}
+html { font-family: var(--cerium-typeface); }
+body, body *, body *::before, body *::after {
+  font-family: var(--cerium-typeface) !important;
+}
+/* The animated CERIUM wordmark is lettering/artwork, not application copy. */
+body .entry-name, body .entry-name * {
+  font-family: "Cerium Entrance", Arial, sans-serif !important;
+}
