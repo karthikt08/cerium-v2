@@ -450,6 +450,7 @@ async function initialize() {
       return;
     }
     await refresh();$('workspace').hidden=false;
+    window.CeriumEntryLoader?.complete();
   }
   catch(err){
     $('workspace').hidden=true;
@@ -457,6 +458,7 @@ async function initialize() {
     if(!panel){panel=document.createElement('main');panel.id='workspace-entry-error';panel.className='business-setup-preview';document.body.append(panel);}
     panel.innerHTML=`<h1>We couldn’t check your setup</h1><p>${esc(err.message||'Check your connection and try again.')}</p><button type="button" class="button primary" id="retry-workspace-entry">Try again</button>`;
     $('retry-workspace-entry').addEventListener('click',()=>{panel.remove();initialize();});
+    window.CeriumEntryLoader?.fail();
   }
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
