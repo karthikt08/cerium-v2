@@ -16,7 +16,7 @@ export const INDUSTRY_PROFILES=Object.freeze([
   preset('construction','Construction & renovation','jobs quotes invoices payments leads followups',/construct|building|renovat|civil|general contractor|remodel|site work/i),
   preset('plumbing','Plumbing','jobs quotes invoices payments followups reviews',/plumb|pipe|drain|water heater/i),
   preset('electrical','Electrical services','jobs quotes invoices payments reviews leads',/electric|wiring|switchboard|panel install/i),
-  preset('hvac','HVAC & refrigeration','jobs quotes invoices payments followups reminders',/hvac|heating|ventilat|air.?condition|refrigerat|ac repair/i),
+  preset('hvac','HVAC & refrigeration','jobs quotes invoices payments followups reminders',/hvac|heating|ventilat|air.?condition|refrigerat|ac repair|\bac\b/i),
   preset('cleaning','Cleaning & maintenance','jobs invoices payments reviews followups',/clean|janitor|housekeep|maid|maintenance service/i),
   preset('landscaping','Landscaping & gardening','jobs quotes invoices payments leads reviews',/landscap|garden|lawn|irrigat|yard care/i),
   preset('roofing','Roofing','jobs quotes invoices payments leads followups',/roof|shingle|gutter/i),
