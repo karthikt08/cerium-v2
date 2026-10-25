@@ -22,15 +22,16 @@ function xlsx(parts){
   return {filename:'customers.xlsx',content:Buffer.concat([...local,cd,end]).toString('base64')};
 }
 test('CSV detects column aliases, BOM, quoted line breaks and reordered columns',()=>{
-  const upload=csv('\uFEFFEmail,Customer Name,Notes,Estimated Value\npat@example.com,"Pat, LLC","call after\nMonday",1,200\n');
+  const upload=csv('\uFEFFEmail,Customer Name,Notes,Estimated Value\npat@example.com,"Pat, LLC","call after\nMonday","1,200"\n');
   const parsed=parseSpreadsheet(upload);
-  // Unquoted thousand separators must not shift CSV cells; use a quoted amount.
+  // Quoted thousand separators and embedded newlines must not shift columns.
   assert.equal(parsed.headers[1],'Customer Name');
   const mapping=suggestedMapping(parsed.headers);
   assert.equal(mapping.name,1);
   assert.equal(mapping.email,0);
   assert.equal(parsed.rows[0][1],'Pat, LLC');
   assert.equal(parsed.rows[0][2],'call after\nMonday');
+  assert.equal(mappedLeads(parsed,mapping)[0].data.value,'1200');
 });
 test('XLSX imports shared and inline strings, sparse cells, and Excel follow-up dates',()=>{
   const upload=xlsx({
