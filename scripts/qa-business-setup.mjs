@@ -47,6 +47,7 @@ try{
   const user=t.db.getUserByEmail(email);
   if(phone){t.db.beginBillingPhone(user.id,phone,country);assert.equal(t.db.completeBillingPhone(user.id,phone,country),true);}
   const p=await context.newPage();await p.goto(t.url+'/verify.html');
+  await p.locator(phone?'#biz-contact':'#phone').waitFor({state:'visible'});
   return {p,context,user};
  }
  async function fillBusiness(p,country,connected=true){
