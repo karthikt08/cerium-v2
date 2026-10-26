@@ -94,3 +94,11 @@
   .ws-config-footer{display:grid;grid-template-columns:1fr 1fr}
   .ws-config-footer button{width:100%}}
 @media(prefers-reduced-motion:reduce){.workspace-config-dialog[open]{animation:none}}
+
+/* Explain each available module, distinguishing always-visible shared hubs. */
+.workspace-config-dialog .ws-pick-copy{display:grid;gap:3px;min-width:0;line-height:1.3}
+.workspace-config-dialog .ws-pick-copy strong{font-size:12.5px;font-weight:700;color:inherit}
+.workspace-config-dialog .ws-pick-copy small{font-size:11px;line-height:1.45;font-weight:400;color:#66768d}
+.workspace-config-dialog .ws-included-tools{padding:13px 15px;border:1px solid #dce6f3;border-radius:11px;background:#f7f9fd;color:#334766}
+.workspace-config-dialog .ws-included-tools>strong{display:block;font-size:12px;font-weight:750;margin-bottom:4px}
+.workspace-config-dialog .ws-included-tools p{margin:0;font-size:11.5px;line-height:1.65;color:#566a85}
