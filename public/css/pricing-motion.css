@@ -1,0 +1,78 @@
+/* Pricing-specific motion: built on the existing Cerium spatial cards and scroll observer.
+   Animating translate separately keeps the hover transform working after the reveal. */
+.pg.home .pricing-grid .pcard{
+  overflow:visible;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .32s ease!important;
+}
+.pg.home .pricing-grid .pcard::before{
+  content:"";position:absolute;top:-1px;left:30px;right:30px;height:3px;
+  border-radius:0 0 8px 8px;
+  background:linear-gradient(90deg,#4263eb,#8256d9,#d77bea);
+  opacity:0;transform:scaleX(.68);transform-origin:center;
+  pointer-events:none;transition:opacity .28s ease,transform .36s cubic-bezier(.2,.8,.2,1);
+}
+.pg.home .pricing-grid .pcard.featured::before{opacity:.65;transform:scaleX(1)}
+.pg.home .pricing-grid .pcard.featured{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 25px 55px -25px rgba(107,73,211,.34)!important;
+}
+.pg.home .pricing-grid .pcard:focus-within{
+  border-color:#8c75dd!important;
+  box-shadow:0 0 0 3px rgba(128,95,229,.18),0 24px 55px -25px rgba(107,73,211,.36)!important;
+}
+.pg.home .pricing-grid .pcard:focus-within::before{opacity:1;transform:scaleX(1)}
+.pg.home .pricing-grid .pcard-price strong{
+  display:inline-block;
+  transition:translate .25s ease,color .25s ease;
+}
+/* The five regional tier cards share the same quiet interaction language. */
+.pg.home .country-price-tiers > div{
+  position:relative;min-width:0;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s ease,box-shadow .3s ease;
+}
+.pg.home .country-price-tiers > div strong{
+  transition:translate .3s cubic-bezier(.2,.8,.2,1);
+}
+@media(hover:hover) and (pointer:fine){
+  .pg.home .pricing-grid .pcard:hover{
+    transform:translateY(-7px) scale(1.009)!important;
+    border-color:rgba(132,102,229,.55)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 28px 60px -22px rgba(109,68,214,.34),0 0 0 1px rgba(168,118,239,.13)!important;
+  }
+  .pg.home .pricing-grid .pcard:hover::before{opacity:1;transform:scaleX(1)}
+  .pg.home .pricing-grid .pcard:hover .pcard-price strong{translate:0 -3px}
+  .pg.home .country-price-tiers > div:hover{
+    transform:translateY(-5px);
+    border-color:rgba(132,102,229,.43);
+    box-shadow:0 17px 34px -23px rgba(100,66,196,.42),inset 0 1px 0 #fff;
+  }
+  .pg.home .country-price-tiers > div:hover strong{translate:0 -2px}
+}
+/* Existing home.js IntersectionObserver toggles .in. Do not animate the CSS
+   transform property here: animation-fill-mode would cancel hover lift forever. */
+@keyframes cerium-pricing-enter{
+  from{opacity:0;translate:0 25px}
+  to{opacity:1;translate:0 0}
+}
+.rv-on .pricing-grid .pcard[data-rv]:not(.in),
+.rv-on .country-price-tiers > div[data-rv]:not(.in){
+  opacity:0;transform:none;translate:0 25px;
+}
+.rv-on .pricing-grid .pcard[data-rv].in,
+.rv-on .country-price-tiers > div[data-rv].in{
+  animation:cerium-pricing-enter .72s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay:calc(var(--i,0)*.095s);
+}
+@media(prefers-reduced-motion:reduce){
+  .pg.home .pricing-grid .pcard,
+  .pg.home .pricing-grid .pcard-price strong,
+  .pg.home .country-price-tiers > div,
+  .pg.home .country-price-tiers > div strong,
+  .pg.home .pricing-grid .pcard::before{transition:none!important;animation:none!important;translate:none!important}
+  .pg.home .pricing-grid .pcard:hover,.pg.home .country-price-tiers > div:hover{transform:none!important}
+  .rv-on .pricing-grid .pcard[data-rv],
+  .rv-on .country-price-tiers > div[data-rv]{opacity:1!important;transform:none!important;translate:none!important;animation:none!important}
+}
+@media print{
+  .pg.home .pricing-grid .pcard,
+  .pg.home .country-price-tiers > div{opacity:1!important;transform:none!important;translate:none!important;animation:none!important;box-shadow:none!important}
+}
