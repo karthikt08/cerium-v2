@@ -45,7 +45,7 @@
   }
 }
 
-:is(.app-page,.verify-layout,.pg) select option{background-color:#fff;color:#273a59;font:500 13px system-ui,sans-serif;padding:8px 12px;cursor:pointer!important}
+:is(.app-page,.verify-layout,.pg) select option{background-color:#fff;color:#273a59;font:500 13px/1.5 var(--cerium-typeface,"Figtree",system-ui,sans-serif);padding:8px 12px;cursor:pointer!important}
 
 /* CERIUM customizable select theme — blends dropdown popups with software UI cards and tables */
 @supports (appearance: base-select) {
@@ -115,7 +115,7 @@
     padding: 8px 12px;
     border-radius: 7px;
     color: #273750;
-    font: 500 12px/1.35 system-ui, sans-serif;
+    font: 500 12px/1.35 var(--cerium-typeface,"Figtree",system-ui,sans-serif);
     cursor: pointer !important;
     transition: background .12s, color .12s;
   }
