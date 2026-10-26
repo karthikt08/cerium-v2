@@ -18,7 +18,7 @@ Styles in `public/css/marketing.css` are horizontal and overflow-safe; no redesi
 
 ### Design direction
 
-The previous large hero and side rail were replaced with a shorter Marketing heading, slanted browser-like top tabs and one full-width, tall work surface. Cerium retains its violet palette. Existing draft editing, manual check-ins, analytics and AI links are preserved.
+The previous large hero and side rail were replaced with a compact Marketing heading, slanted browser-like top tabs and one full-width, tall work surface. The UI deliberately reuses Cerium's shared color tokens, Figtree typography, white panel surfaces, subtle borders, 9px control corners and primary/secondary buttons. Only the selected tab has a restrained blue-violet gradient accent. The existing draft editor, manual check-ins, analytics and AI links are preserved.
 
 ## Clickable verified page links and Marketing deep links
 

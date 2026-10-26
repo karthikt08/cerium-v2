@@ -107,7 +107,7 @@ test('Viewport keeps a large panel and scrollable feature tabs rather than stack
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\.marketing-tab\{[^}]*flex:0 0 auto/);
   assert.match(css,/\.marketing-switcher\{[^}]*flex-wrap:nowrap/);
-  assert.match(css,/\.marketing-main\{[^}]*border:2px solid/);
+  assert.match(css,/\.marketing-main\{[^}]*border:1px solid/,'Marketing uses the same subtle panel border as Cerium');
   assert.match(css,/\.marketing-layout\{[^}]*width:100%/);
   const globalStyle=fs.readFileSync(new URL('../public/css/workspace-vibrance.css',import.meta.url),'utf8');
   assert.doesNotMatch(globalStyle,/\.app-page \.marketing-tab\.active/);
