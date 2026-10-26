@@ -31,6 +31,27 @@ Try: "I run a mobile dog grooming business with appointments and invoices. Which
 
 This is a first version of workflow recommendations; manually check suitability for unusual businesses before saving. Recommendations do not provide compliance, licensing, payment, tax or regulatory advice.
 
+### Detailed recommendations for all official Cerium industries
+
+The same local advisor now has a **dedicated, actionable playbook for every industry in Cerium's Your business type menu**. It recommends essential modules, optional modules, a typical workflow, three optional business-specific refinement choices and clear limitations. The industry list and tool IDs are checked against the registered categories.
+
+| Business type | What the advisor prioritizes | Typical workflow |
+| --- | --- | --- |
+| Construction & renovation | Quotes, jobs, invoices, payments; optional leads and follow-ups | Enquiry → estimate → schedule site work → invoice → review payment |
+| Plumbing | Jobs, quotes, invoices, payments; optional callbacks and reviews | Customer call → estimate or job → visit → invoice → payment |
+| Electrical services | Jobs, quotes, invoices, payments; optional leads and reviews | Enquiry → estimate → electrician visit → invoice → payment |
+| HVAC & refrigeration | Jobs, quotes, invoices, payments; optional follow-ups and payment reminders | Service enquiry → appointment or estimate → visit → invoice |
+| Cleaning & maintenance | Jobs, invoices, payments, reviews; optional repeat-customer follow-ups and leads | Enquiry → visit → invoice → feedback |
+| Landscaping & gardening | Jobs, quotes, invoices, payments; optional leads and reviews | Garden enquiry → quote → scheduled work → invoice |
+| Roofing | Leads, quotes, jobs, invoices; optional payments and customer follow-ups | Roof enquiry → inspection → quote → booked work → invoice |
+| Painting & finishing | Quotes, jobs, invoices, payments; optional leads and reviews | Enquiry → site estimate → paint job → invoice → feedback |
+| Handyman & home repair | Jobs, invoices, quotes, payments; optional reviews and leads | Request → quote if needed → repair visit → invoice |
+| Consulting & freelance | Leads, quotes, follow-ups, invoices; optional payments and reminders | Prospect → proposal → follow-up → engagement → invoice |
+
+When users describe work not covered by the default business category, the advisor can identify a different explicit trade instead of anchoring on stale profile settings. If a user mentions a specific need (for example unpaid invoices or customer reviews), the appropriate existing module is promoted into the core recommendation. All suggestions remain editable, and clicking **Review these tools in Settings** does not save a selection until the user confirms it.
+
+Implementation: public/js/industry-advisor-playbooks.js. Comprehensive tests: test/business-advisor-industries.test.js. These playbooks are workflow guidance, not guarantees of industry compliance or substitutes for professional trade software such as construction permitting, safety inspection, inventory, accounting or payroll.
+
 ### Textile, fabric and other shops
 
 For a message such as "I run a typical textile shop. Recommend what's useful", the advisor recognizes the business immediately and recommends **Invoices** and **Payments** first; it marks **Leads** and **Quotes** optional where repeat buyers or bulk/custom orders matter. It never assumes shop owners need contractor dispatch tools.
