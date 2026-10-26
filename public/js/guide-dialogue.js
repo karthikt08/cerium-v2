@@ -1,6 +1,6 @@
 // Shared conversation controls for Ask Cerium (server and offline preview).
 // Neither a greeting nor an unsupported question should route to the current tab.
-import {GUIDE_TOPICS, GUIDE_SECTIONS} from './guide-knowledge.js';
+import {GUIDE_TOPICS, GUIDE_SECTIONS, pickGuide} from './guide-knowledge.js';
 
 const TOPICS=new Map(GUIDE_TOPICS.map(topic=>[topic.section,topic]));
 const response=(kind,reply)=>({type:'conversation',kind,reply,section:null,title:null,steps:null,source:'guide'});
@@ -8,6 +8,19 @@ export const GUIDE_UNKNOWN="I don't want to point you to the wrong place. Tell m
 
 export function unknownGuideResponse(){
   return response('unknown',GUIDE_UNKNOWN);
+}
+// Resolve short follow-ups using the previous task, including workflows that
+// span several sections. Only bounded user text is retained, never model output
+// or workspace records. Explicit new questions always take precedence.
+const DETAIL_FOLLOWUP=/^(?:(?:and|please|can you|could you) )*(?:how (?:do|can|should) i (?:do|use|start|set up) (?:that|it|this)|how does (?:that|it|this) work|(?:show me|give me|what are) (?:the )?steps|(?:walk|take) me through(?: (?:that|it|this))?|(?:explain|describe)(?: (?:that|it|this))?(?: more| in (?:more )?detail| step by step)?|(?:tell me )?more(?: detail| details)?|steps|step by step|how exactly|what(?:'s| is) the next step|what (?:now|next)|where (?:is|do i find) (?:that|it|this))(?: please)?$/i;
+export function resolveGuideQuestion(question,{lastQuestion=null}={}){
+  const text=String(question||'').trim();
+  const followup=text.replace(/[.!?]+$/g,'').replace(/\s+/g,' ');
+  if(!DETAIL_FOLLOWUP.test(followup)||typeof lastQuestion!=='string'||lastQuestion.length>420||
+    /[\u0000-\u001f]/.test(lastQuestion))return text;
+  const previous=lastQuestion.trim();
+  if(!previous||conversationReply(previous))return text;
+  return workflowReply(previous)||pickGuide(previous).matched?previous:text;
 }
 export function conversationReply(question,{lastSection=null}={}){
   const text=String(question||'').toLowerCase().trim()
@@ -29,7 +42,8 @@ export function conversationReply(question,{lastSection=null}={}){
     return response('clarify',"That answer missed the point. Tell me the task you want to complete, and I'll find the right tool—or say when Cerium doesn't support it.");
 
   // Intelligent multi-turn conversational follow-ups based on prior verified section
-  if(prior){
+  const explicit=pickGuide(text);
+  if(prior&&(!explicit.matched||explicit.section===prior.section)){
     if(prior.section==='payments'&&/\b(?:partial|different amount|mismatch|(?:not|doesn'?t) match|undo|wrong (?:invoice|match|amount))\b/i.test(text)){
       return {...response('followup',"In Payments, you can match a deposit as a partial payment to update the remaining balance, or select Undo match if a deposit was linked to the wrong invoice."),section:'payments',title:prior.title};
     }
@@ -44,7 +58,7 @@ export function conversationReply(question,{lastSection=null}={}){
     }
   }
 
-  if(/^(?:how (?:do|can|should) i (?:do|use|start|set up) (?:that|it)|how does (?:that|it) work|walk me through (?:that|it)|what(?:'s| is) the next step|what (?:now|next)|where (?:is|do i find) (?:that|it))$/.test(text)){
+  if(DETAIL_FOLLOWUP.test(text)){
     if(!prior)return response('clarify',"Which part of Cerium are you asking about—leads, jobs, invoices, or something else?");
     return {...response('followup',"For "+prior.title+": "+prior.steps),section:prior.section,title:prior.title,steps:null};
   }
@@ -217,6 +231,9 @@ const WORKFLOWS=[
 
 export function workflowReply(question){
   const text=String(question||'').trim().slice(0,420);
+  // A question about issuing an invoice without GST registration must not get
+  // the generic GST workflow telling the user to enter a tax ID.
+  if(/\b(?:without (?:a )?gstin|no gstin|not gst[- ]?registered|unregistered|non[- ]registered)\b/i.test(text))return null;
   const plan=WORKFLOWS.find(item=>item.matches.test(text));
   if(!plan)return null;
   return {
@@ -229,8 +246,18 @@ export function workflowReply(question){
 
 const TASKS=[
   // Invoices
+  {section:'invoices',priority:5,match:/\b(?:without (?:a )?gstin|no gstin|not gst[- ]?registered|not registered|unregistered|non[- ]registered)\b/i,
+    answer:'You can create a regular commercial invoice without a GSTIN. Leave the business GSTIN blank in Settings; Cerium uses the no-GST invoice form and does not charge GST. Add a GSTIN only if your business is registered.',
+    steps:'Open Settings → Check your Business profile → Leave GSTIN blank if unregistered → Open Invoices → Create a commercial invoice → Preview before sharing.'},
+  {section:'invoices',priority:4,match:/\b(?:upi|qr code|payment qr|scan to pay)\b/i,
+    answer:'For an Indian business issuing an INR invoice, Cerium can show a UPI link and QR code using the UPI ID saved on that invoice. A QR code opens a payment request; verify receipt before marking the invoice paid.',
+    steps:'Open Settings → Check your UPI ID → Open Invoices → Preview an unpaid INR invoice → Check the UPI link and QR code.'},
+  {section:'invoices',priority:3,match:/\b(?:whatsapp|sms|text message|email|share|send it)\b/i,
+    answer:'Open the invoice preview and choose WhatsApp, SMS, or email to open a message draft. Check the recipient and message, then send it from your messaging app. Attach the saved PDF yourself if needed; Cerium does not send it automatically.',
+    steps:'Open Invoices → Preview the invoice → Choose WhatsApp, SMS, or email → Review the message draft → Send from your messaging app.'},
   {section:'invoices',match:/\b(?:pdf|download|print|save (?:an? )?invoice)\b/i,
-    answer:'To save an invoice as a PDF, open Invoices, preview the invoice, then choose Print / save PDF.'},
+    answer:'To save an invoice as a PDF, open Invoices, preview the invoice, then choose Print / save PDF.',
+    steps:'Open Invoices → Preview the invoice you want → Choose Print / save PDF → Choose Save as PDF in the print dialog.'},
   {section:'invoices',match:/\b(?:gst|tax rate|tax declaration|tax breakdown|hsn|sac|cgst|sgst|igst)\b/i,
     answer:'In Invoices, set tax rate percentages per line item and check the tax summary in invoice preview.'},
   {section:'invoices',match:/\b(?:payment terms?|net 15|net 30|due on receipt|terms of payment)\b/i,
@@ -240,7 +267,8 @@ const TASKS=[
 
   // Leads
   {section:'leads',match:/\b(?:excel|xlsx|csv|spreadsheet|import|upload)\b/i,
-    answer:'You can bring existing contacts into Leads. Choose Import spreadsheet, map the columns, then review before confirming.'},
+    answer:'You can bring existing contacts into Leads. Choose Import spreadsheet, map the columns, then review before confirming.',
+    steps:'Open Leads → Choose Import spreadsheet → Select your file → Map its columns → Review errors and duplicates → Confirm the import.'},
   {section:'leads',match:/\b(?:column map|deduplicat|duplicate|clean contacts)\b/i,
     answer:'In Leads, choose Import spreadsheet to map columns, inspect highlighted duplicate rows, and review before confirming.'},
   {section:'leads',match:/\b(?:pipeline|lead stages?|move lead|crm stages?)\b/i,
@@ -252,11 +280,12 @@ const TASKS=[
   {section:'jobs',match:/\b(?:conflict|overlap|reassign|technician status|dispatch board)\b/i,
     answer:'In Jobs & dispatch, check assigned team members on the calendar and adjust appointments to avoid crew conflicts.'},
   {section:'jobs',match:/\b(?:reschedul\w*|cancel (?:a )?job|postpone|change date|move appointment)\b/i,
-    answer:'In Jobs & dispatch, select the appointment to change the date, time, or assigned technician. Use Follow-ups to note customer confirmations.'},
+    priority:2,answer:'In Jobs & dispatch, select the appointment to change the date, time, or assigned technician. Use Follow-ups to note customer confirmations.',
+    steps:'Open Jobs & dispatch → Select the existing appointment → Adjust the date, time, or crew → Check for conflicts → Save your changes.'},
 
   // Quotes
   {section:'quotes',match:/\b(?:quote|estimate|quotation|proposal|bid)\b/i,
-    answer:'In Estimates & quotes, create an estimate, review the line items and send it for customer approval.'},
+    priority:-1,answer:'In Estimates & quotes, create an estimate, review the line items and send it for customer approval.'},
   {section:'quotes',match:/\b(?:change order|extra work|extra material|scope change|added scope)\b/i,
     answer:'When scope changes, revise your proposal in Estimates & quotes for customer sign-off, update Jobs & dispatch, then add the extra line items to Invoices.'},
   {section:'quotes',match:/\b(?:job cost\w*|markup|profit margin|labor and material|price a job)\b/i,
@@ -280,7 +309,7 @@ const TASKS=[
 
   // Reviews
   {section:'reviews',match:/\b(?:review|testimonial|feedback|rating)\b/i,
-    answer:'Use Reviews to prepare a customer feedback request after a completed job.'},
+    priority:-1,answer:'Use Reviews to prepare a customer feedback request after a completed job.'},
   {section:'reviews',match:/\b(?:more (?:google )?reviews|5[- ]star|boost reviews|best time to ask for review)\b/i,
     answer:'Request reviews within 24 hours of completing work. In Reviews, choose the finished job and send the feedback link while the experience is fresh.'},
 
@@ -292,12 +321,21 @@ const TASKS=[
   {section:'payments',match:/\b(?:upfront deposit|down payment|retainer|deposit before work)\b/i,
     answer:'Specify deposit terms on your quote, issue an initial invoice in Invoices, and record the incoming deposit in Payments to track the remaining balance.'},
   {section:'payments',match:/\b(?:undo match|wrong invoice matched|unmatch)\b/i,
-    answer:'If a bank transaction was matched to the wrong invoice, open Payments, select the transaction, and choose Undo match to restore the open balance.'}
+    priority:2,answer:'If a bank transaction was matched to the wrong invoice, open Payments, select the transaction, and choose Undo match to restore the open balance.',
+    steps:'Open Payments → Find the incorrectly matched transaction → Choose Undo match → Recheck the invoice balance before matching again.'}
 ];
 
 export function conciseGuideResponse(question,topic,source='guide'){
   if(!topic||!GUIDE_SECTIONS.includes(topic.section))return unknownGuideResponse();
-  const task=TASKS.find(item=>item.section===topic.section&&item.match.test(question));
-  const brief=task?.answer||topic.answer.split(/(?<=[.!?])\s+/)[0];
-  return {reply:brief,steps:topic.steps,section:topic.section,title:topic.title,source,matched:true};
+  const task=TASKS.filter(item=>item.section===topic.section&&item.match.test(question))
+    .sort((a,b)=>(b.priority||0)-(a.priority||0)||
+      (String(question).match(b.match)?.[0].length||0)-(String(question).match(a.match)?.[0].length||0))[0];
+  const brief=task?.answer||topic.answer;
+  return {reply:brief,steps:task?.steps||topic.steps,section:topic.section,title:topic.title,source,matched:true};
+}
+
+export function verifiedGuideTask(question){
+  const topic=pickGuide(question);
+  return topic.matched&&TASKS.some(task=>task.section===topic.section&&task.priority>=3&&task.match.test(question))
+    ?conciseGuideResponse(question,topic):null;
 }

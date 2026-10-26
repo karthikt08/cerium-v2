@@ -765,7 +765,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       businessContext:{trade:businessUser?.trade||'',category:preferences?.category||'other',enabledModules:preferences?.modules||[]},
       recommendTools:req.body?.recommendTools===true,
       businessDescription:typeof req.body?.businessDescription==='string'&&req.body.businessDescription.length<=600?req.body.businessDescription:null,
-      lastSection:typeof req.body?.lastSection==='string'&&GUIDE_SECTIONS.includes(req.body.lastSection)?req.body.lastSection:null
+      lastSection:typeof req.body?.lastSection==='string'&&GUIDE_SECTIONS.includes(req.body.lastSection)?req.body.lastSection:null,
+      lastQuestion:validateGuideQuestion(req.body?.lastQuestion)?req.body.lastQuestion:null
     });
     return res.json(answer);
   });

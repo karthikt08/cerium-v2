@@ -1,9 +1,10 @@
 // In-app navigation assistant for Cerium: safe, read-only guidance.
-import {GUIDE_SECTIONS} from './guide-knowledge.js';
+import {GUIDE_SECTIONS,pickGuide} from './guide-knowledge.js';
 import {guideNavigationLinks,trustedGuideLink} from './guide-links.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
-import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
+import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse,resolveGuideQuestion,verifiedGuideTask} from './guide-dialogue.js';
+import {guideReplyBlocks,typeGuideReply} from './guide-response.js';
 
 const SECTION_NAMES = {
   overview: 'Overview',
@@ -122,7 +123,8 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
           '<button type="button" class="guide-close" aria-label="Close assistant" id="guide-close">×</button>'+
         '</div>'+
       '</div>'+
-      '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
+      '<div class="guide-messages" id="guide-messages" role="log" aria-label="Conversation" aria-live="off"></div>'+
+      '<div class="guide-announcer" id="guide-announcer" role="status" aria-live="polite" aria-atomic="true"></div>'+
       '<div class="guide-suggestions" id="guide-suggestions" aria-label="Suggested topics">'+
         '<div class="guide-suggestions-header">'+
           '<span class="guide-suggestions-icon" aria-hidden="true">💡</span>'+
@@ -138,6 +140,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         '</div>'+
       '</div>'+
       '<div class="guide-footer-zone">'+
+        '<div class="guide-response-controls" id="guide-response-controls" hidden><button type="button" id="guide-reveal">Show full answer</button></div>'+
         '<form class="guide-form" id="guide-form">'+
           '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
           '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button>'+
@@ -160,11 +163,27 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   const chips=shell.querySelector('#guide-suggestions-chips');
   const contextBadge=shell.querySelector('#guide-context-badge');
   const sectionNameLabel=shell.querySelector('#guide-section-name');
+  const announcer=shell.querySelector('#guide-announcer');
+  const responseControls=shell.querySelector('#guide-response-controls');
+  const reveal=shell.querySelector('#guide-reveal');
+  const status=shell.querySelector('.guide-status-text');
   const known=new Map(WORKSPACE_MODULES.map(item=>[item.id,item]));
   let pending=false;
   let awaitingBusinessDescription=false;
   let lastBusinessDescription='';
   let lastSection=null;
+  let lastQuestion=null;
+  let turn=0;
+  let typing=null;
+  let controller=null;
+  let followBottom=true;
+
+  function scrollToLatest(){if(followBottom)messages.scrollTop=messages.scrollHeight;}
+  messages.addEventListener('scroll',()=>{followBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<44;});
+  function setStatus(label){
+    status.textContent=label;
+    status.parentElement.setAttribute('aria-label','Assistant status: '+label);
+  }
 
   function updateSuggestions(section){
     const sec=GUIDE_SECTIONS.includes(section)?section:'overview';
@@ -192,6 +211,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   }
   function closeGuide(){
     panel.hidden=true;
+    typing?.finish();
     trigger.setAttribute('aria-expanded','false');
     trigger.focus();
   }
@@ -212,10 +232,21 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         '<span class="guide-welcome-pill">🔒 Private & read-only</span>'+
       '</div>';
     messages.append(card);
-    messages.scrollTop=messages.scrollHeight;
+    scrollToLatest();
   }
   function resetGuide(){
+    turn++;
+    controller?.abort();
+    typing=null;
+    pending=false;
+    send.disabled=false;
+    responseControls.hidden=true;
+    messages.setAttribute('aria-busy','false');
+    announcer.textContent='New conversation started.';
+    setStatus('Ready');
+    followBottom=true;
     lastSection=null;
+    lastQuestion=null;
     lastBusinessDescription='';
     awaitingBusinessDescription=false;
     createWelcomeCard();
@@ -231,7 +262,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     item.textContent=String(text||'');
     messages.append(item);
     while(messages.children.length>24)messages.firstElementChild.remove();
-    messages.scrollTop=messages.scrollHeight;
+    scrollToLatest();
     return item;
   }
   function routeButton(section,title,stepNumber=null){
@@ -258,7 +289,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     anchor.append(label);
     row.append(anchor);
     messages.append(row);
-    messages.scrollTop=messages.scrollHeight;
+    scrollToLatest();
   }
   function renderGuideLinks(result,question){
     // Never trust model-generated destinations. Resolve every link from the
@@ -269,7 +300,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       // Group related multi-step or choice workflow steps inside an organized card
       const card=document.createElement('div');
       card.className='guide-workflow-card';
-      const isChoice=/\b(?:choose|either|or)\b/i.test(result.reply||'');
+      const isChoice=/^Choose\b/i.test(result.steps||'');
       const header=document.createElement('div');
       header.className='guide-workflow-header';
       header.innerHTML='<span class="guide-plan-tag">'+(isChoice?'🧭 Choose Action':'⚡ Recommended Sequence')+'</span>'+
@@ -311,7 +342,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       });
       card.append(actionList);
       messages.append(card);
-      messages.scrollTop=messages.scrollHeight;
+      scrollToLatest();
       return;
     }
     const row=document.createElement('nav');
@@ -339,7 +370,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       row.append(anchor);
     }
     if(row.querySelector('a'))messages.append(row);
-    messages.scrollTop=messages.scrollHeight;
+    scrollToLatest();
   }
   function renderToolRecommendations(result){
     const items=Array.isArray(result.recommendations)?result.recommendations
@@ -418,11 +449,14 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     });
     container.append(action);
     messages.append(container);
-    messages.scrollTop=messages.scrollHeight;
+    scrollToLatest();
   }
   function localAnswer(question,section,recommendTools=false,businessDescription=question){
+    question=resolveGuideQuestion(question,{lastQuestion});
     const conversational=conversationReply(question,{lastSection});
     if(conversational)return conversational;
+    const precise=verifiedGuideTask(question);
+    if(precise)return precise;
     const workflow=workflowReply(question);
     if(workflow)return workflow;
     if(recommendTools)return recommendBusinessTools({...getBusiness(),description:businessDescription});
@@ -430,7 +464,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     return match.matched?conciseGuideResponse(question,match):unknownGuideResponse();
   }
   async function ask(question){
-    const clean=String(question||'').trim();
+    const clean=String(question||'').trim().slice(0,420);
     if(!clean||pending)return;
     const current=GUIDE_SECTIONS.includes(getSection?.())?getSection():'overview';
     const isRefinement=Boolean(lastBusinessDescription)&&
@@ -438,9 +472,15 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       /\b(?:mostly|mainly|primarily)\s+(?:wholesale|retail|bulk|tailoring|walk[ -]?in|custom)\b/i.test(clean));
     const wantRecommendations=awaitingBusinessDescription||isRefinement||isToolRecommendationRequest(clean);
     const businessDescription=isRefinement?(lastBusinessDescription+'; '+clean).slice(0,600):clean;
+    const resolved=resolveGuideQuestion(clean,{lastQuestion});
+    const thisTurn=++turn;
+    controller=new AbortController();
     pending=true;
-    input.disabled=true;
     send.disabled=true;
+    followBottom=true;
+    messages.setAttribute('aria-busy','true');
+    announcer.textContent='Cerium is thinking.';
+    setStatus('Thinking');
     suggestions.hidden=true;
     const welcome=messages.querySelector('#guide-welcome-card');
     if(welcome)welcome.remove();
@@ -451,49 +491,61 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       let result;
       try{
         result=typeof api?.askGuide==='function'
-          ?await api.askGuide({question:clean,currentSection:current,lastSection,recommendTools:wantRecommendations,businessDescription})
+          ?await api.askGuide({question:clean,currentSection:current,lastSection,lastQuestion,recommendTools:wantRecommendations,businessDescription})
           :localAnswer(clean,current,wantRecommendations,businessDescription);
       }catch{
+        if(thisTurn!==turn)return;
         result=localAnswer(clean,current,wantRecommendations,businessDescription);
       }
-      if(!result||typeof result.reply!=='string')result=localAnswer(clean,current,wantRecommendations,businessDescription);
+      if(thisTurn!==turn)return;
+      const valid=result&&typeof result.reply==='string'&&result.reply.trim()&&(
+        GUIDE_SECTIONS.includes(result.section)||
+        (result.type==='tool_recommendations'&&Array.isArray(result.recommendations))||
+        (result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null)||
+        (result.type==='conversation'&&result.section===null)||
+        (result.source==='navlm'&&result.matched===false&&result.section===null));
+      if(!valid)result=localAnswer(clean,current,wantRecommendations,businessDescription);
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
       const workflow=result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null;
       // A deliberate NavLM abstention, or conversational reply, must never inherit
       // the previously opened section and display a bogus navigation button.
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
       const conversational=result.type==='conversation'&&result.section===null;
-      const safe=recommendation||workflow||conversational||uncertain||GUIDE_SECTIONS.includes(result.section)
-        ?result:localAnswer(clean,current,wantRecommendations,businessDescription);
+      const safe=result;
       progress.classList.remove('guide-thinking');
-      progress.textContent=safe.reply.slice(0,850);
-      if(safe.steps&&(/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)||workflow)&&
-        !safe.reply.includes('→')){
-        const stepsBox=document.createElement('div');
-        stepsBox.className='guide-steps-box';
-        const stepsHeader=document.createElement('div');
-        stepsHeader.className='guide-steps-header';
-        stepsHeader.innerHTML='<span class="guide-steps-icon" aria-hidden="true">📋</span><span>Execution sequence</span>';
-        const steps=document.createElement('span');
-        steps.className='guide-steps';
-        steps.textContent=safe.steps.slice(0,350);
-        stepsBox.append(stepsHeader,steps);
-        progress.append(stepsBox);
-      }
+      setStatus('Typing');
+      responseControls.hidden=panel.hidden;
+      const blocks=guideReplyBlocks(safe,clean);
+      typing=typeGuideReply(progress,blocks,{
+        signal:controller.signal,instant:panel.hidden,onUpdate:scrollToLatest
+      });
+      const completed=await typing.finished;
+      if(!completed||thisTurn!==turn)return;
+      typing=null;
+      responseControls.hidden=true;
+      announcer.textContent='Cerium: '+blocks.map(block=>block.items.join('\n')).join('\n').replace(/\*\*/g,'');
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
       if(recommendation)renderToolRecommendations(safe);
       if(workflow)lastSection=null;
-      renderGuideLinks(safe,clean);
+      renderGuideLinks(safe,resolved);
       if(GUIDE_SECTIONS.includes(safe.section))lastSection=safe.section;
+      if(workflow||GUIDE_SECTIONS.includes(safe.section))lastQuestion=resolved;
+      if(recommendation||uncertain||['unknown','clarify'].includes(safe.kind)){
+        lastSection=null;
+        lastQuestion=null;
+      }
       updateSuggestions(getSection?.());
       suggestions.hidden=!(conversational||uncertain||safe.needsMoreInfo);
     }finally{
-      pending=false;
-      input.disabled=false;
-      send.disabled=false;
-      messages.scrollTop=messages.scrollHeight;
-      if(!panel.hidden)input.focus();
+      if(thisTurn===turn){
+        pending=false;
+        send.disabled=false;
+        messages.setAttribute('aria-busy','false');
+        setStatus('Ready');
+        scrollToLatest();
+        if(!panel.hidden&&(document.activeElement===reveal||document.activeElement===document.body))input.focus();
+      }
     }
   }
 
@@ -501,8 +553,10 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   trigger.addEventListener('click',()=>panel.hidden?openGuide():closeGuide());
   close.addEventListener('click',closeGuide);
   if(resetBtn)resetBtn.addEventListener('click',resetGuide);
+  reveal.addEventListener('click',()=>typing?.finish());
   shell.querySelector('#guide-form').addEventListener('submit',event=>{
     event.preventDefault();
+    if(pending)return;
     const text=input.value;input.value='';ask(text);
   });
   shell.addEventListener('click',event=>{

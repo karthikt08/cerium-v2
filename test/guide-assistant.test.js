@@ -55,7 +55,7 @@ test('guide UI is linked and cannot call record writes',()=>{
   assert.match(html,/css\/guide-assistant.css/);
   assert.match(app,/mountGuideAssistant/);
   assert.match(guide,/location\.hash/);
-  assert.match(guide,/textContent=safe\.reply/);
+  assert.match(guide,/typeGuideReply\(progress,blocks/);
   assert.doesNotMatch(guide,/createInvoice|updateInvoice|deleteInvoice|createLead|deleteLead|matchPayment/);
 });
 test('assistant endpoint requires login, origin, CSRF and validates question',async()=>{
