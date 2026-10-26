@@ -36,7 +36,7 @@
   outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
 }
 .pg :is(a.btn,button.btn,a.gbtn,button.gbtn):disabled{opacity:.55;cursor:not-allowed}
-.pg .benefits-page :is(a.button,button.button){
+.pg.benefits-page :is(a.button,button.button){
   min-height:40px;padding:10px 17px;border-radius:var(--cerium-ui-radius);
 }
 .pg :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select) {
@@ -245,7 +245,7 @@
     flex:1 1 120px;white-space:normal;
   }
   .app-page .heading-actions{gap:8px}
-  .pg .benefits-page :is(a.button,button.button){padding-inline:13px}
+  .pg.benefits-page :is(a.button,button.button){padding-inline:13px}
 }
 @media(hover:none){
   .app-page .guide-trigger:hover{transform:none}
