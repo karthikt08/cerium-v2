@@ -137,6 +137,14 @@
   background:#29345d;border-color:#9c8beb;color:#fff;
 }
 
+/* Older modules nest .panel inside custom wrappers. Give every light
+   operational surface a dark-ink default so white-on-white text cannot result
+   merely from inheriting the navy shell's light foreground. */
+.app-page .main-frame :is(.panel,.board-column,.metric,.quote-card,
+  .jobs-stat,.marketing-main,.marketing-stat,.marketing-customer,
+  .quotes-summary>div,.reminders-stats>div,.jobs-panel){
+  color:#25314b;
+}
 /* The pricing card is white on navy: keep that high-contrast hierarchy.
    Existing scroll reveals and hover lift still operate on these surfaces. */
 .app-page .metrics-grid .metric,
