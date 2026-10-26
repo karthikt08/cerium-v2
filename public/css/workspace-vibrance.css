@@ -1,151 +1,151 @@
-/* Cerium workspace — landing palette, at product-friendly intensity.
+/* Cerium workspace — balanced landing accents, quiet product surfaces.
    Deliberately app-scoped: marketing pages, forms, invoices and print exports
    retain their function, and semantic success/warning/error colors stay intact.
    Exact accent family matches landing: #3b5bff → #7c3aed → #d946ef. */
 .app-page{
-  --accent:#4934db;
-  --accent-soft:#ece8ff;
-  --ac:#4934db;
-  --cerium-ui-primary:#4934db;
-  --cerium-ui-primary-hover:#3e2dc7;
-  --cerium-ui-focus:#7564e7;
+  --accent:#4b4bd1;
+  --accent-soft:#f0effb;
+  --ac:#4b4bd1;
+  --cerium-ui-primary:#4b4bd1;
+  --cerium-ui-primary-hover:#4140bc;
+  --cerium-ui-focus:#7f80db;
   --workspace-blue:#3b5bff;
   --workspace-violet:#7c3aed;
   --workspace-magenta:#d946ef;
-  --workspace-glow:rgba(124,58,237,.26);
-  --cerium-vibrant-gradient:linear-gradient(112deg,#3b5bff 0%,#713ce7 52%,#b52ee4 100%);
-  background:#f3f1ff;
+  --workspace-glow:rgba(113,89,202,.13);
+  --cerium-vibrant-gradient:linear-gradient(112deg,#5068db 0%,#7359c9 55%,#ae78d1 100%);
+  background:#f6f7fc;
 }
 
-/* Background lighting is placed on the actual scroll shell, not the z-index:-1
-   ambient node hidden behind the workspace. Saturated but translucent. */
+/* Lighting stays on the real scroll shell, but is soft enough to keep the
+   workplace neutral. Avoid broad neon washes behind everyday operations. */
 .app-page .main-frame{
   background:
-    radial-gradient(ellipse 46% 45% at 94% 9%,rgba(123,67,250,.23),transparent 79%),
-    radial-gradient(ellipse 35% 42% at 0% 88%,rgba(239,97,227,.13),transparent 79%),
-    linear-gradient(135deg,#f5f4ff 0%,#f8faff 47%,#fcf5ff 100%);
+    radial-gradient(ellipse 46% 45% at 94% 9%,rgba(113,90,215,.095),transparent 79%),
+    radial-gradient(ellipse 35% 42% at 0% 88%,rgba(190,123,209,.045),transparent 79%),
+    linear-gradient(135deg,#f7f8fc 0%,#fafbfe 52%,#faf8fd 100%);
 }
 .app-page .sidebar{
-  background:linear-gradient(168deg,rgba(255,255,255,.98),rgba(245,241,255,.98) 73%,rgba(252,243,255,.97));
-  border-right-color:#d9cff9;
+  background:linear-gradient(168deg,rgba(255,255,255,.99),rgba(249,248,253,.98) 73%,rgba(250,249,254,.98));
+  border-right-color:#e2e0ed;
 }
 .app-page .brand-period{
   color:#7c3aed;
-  text-shadow:0 0 15px rgba(124,58,237,.32);
+  text-shadow:0 0 12px rgba(124,58,237,.16);
 }
 .app-page .workspace-monogram{
-  background:linear-gradient(135deg,#e7e8ff,#efdfff);
-  border-color:#c4b8f7;color:#5842b6;
+  background:linear-gradient(135deg,#f0f0ff,#f4effa);
+  border-color:#ddd8f1;color:#5b529c;
 }
 .app-page .workspace-label strong{color:#28214c}
-.app-page .nav-label{color:#66599a;font-weight:750}
+.app-page .nav-label{color:#786e94;font-weight:700}
 .app-page .sidebar .nav-link{
-  color:#5d597d;
+  color:#62647c;
 }
 .app-page .sidebar .nav-link:hover:not([aria-current="page"]){
-  background:rgba(228,218,255,.73);color:#403092;
+  background:rgba(233,229,249,.56);color:#504694;
 }
 .app-page .sidebar .nav-link[aria-current="page"]{
-  background:linear-gradient(100deg,#dedaff 0%,#f4e7ff 100%);
-  color:#3f299a;
-  font-weight:750;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 5px 16px -12px rgba(93,42,205,.4);
+  background:linear-gradient(100deg,#ecebfd 0%,#f6f3fc 100%);
+  color:#44398e;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 16px -12px rgba(93,42,205,.18);
 }
 .app-page .sidebar .nav-link[aria-current="page"]::before{
   background:linear-gradient(180deg,#3b5bff,#7c3aed,#d946ef);
-  box-shadow:0 0 12px rgba(124,58,237,.5);
-  width:4px;
+  box-shadow:0 0 10px rgba(124,58,237,.24);
+  width:3px;
 }
-.app-page .nav-count{background:#e5ddff;color:#5634b3}
-.app-page .sidebar-bottom{border-top-color:#ddd4f2}
+.app-page .nav-count{background:#eeebf8;color:#605392}
+.app-page .sidebar-bottom{border-top-color:#e6e3ed}
 .app-page .plan-dot{background:#2c9977}
 .app-page .user-avatar{
-  background:linear-gradient(140deg,#e6deff,#facff5);
+  background:linear-gradient(140deg,#eeecfa,#f3e9f5);
   border-color:#fff;
-  box-shadow:0 0 0 1px #c4aeec,0 0 15px rgba(142,81,228,.19);
-  color:#4834a8;
+  box-shadow:0 0 0 1px #ddd3ef,0 0 12px rgba(142,81,228,.08);
+  color:#514782;
 }
 .app-page .main-frame>.topbar{
-  background:rgba(255,255,255,.84);
-  border-bottom-color:#ded5f5;
-  box-shadow:0 5px 22px -18px rgba(114,46,205,.26);
+  background:rgba(255,255,255,.9);
+  border-bottom-color:#e4e1ec;
+  box-shadow:0 5px 22px -18px rgba(100,71,160,.12);
 }
 .app-page .main-frame>.topbar::after{
-  background:linear-gradient(90deg,transparent,rgba(59,91,255,.49),rgba(124,58,237,.58),rgba(217,70,239,.45),transparent);
+  background:linear-gradient(90deg,transparent,rgba(59,91,255,.21),rgba(124,58,237,.25),rgba(217,70,239,.17),transparent);
 }
-.app-page .breadcrumb strong{color:#413575;font-weight:650}
-.app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#6252a0}
-.app-page .page-heading h1{color:#242040}
+.app-page .breadcrumb strong{color:#504b74;font-weight:650}
+.app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#7565a2}
+.app-page .page-heading h1{color:#292b43}
 
-/* Stronger halo and real landing gradient, still on a white readable card. */
+/* A visible but contained brand halo on the Overview, not a full color wash. */
 .app-page .overview-stage{
-  border-color:#c7b4f7;
+  border-color:#d9d4ec;
   background:
-    radial-gradient(ellipse 44% 76% at 100% 0%,rgba(134,79,249,.27),transparent 80%),
-    radial-gradient(ellipse 38% 66% at 63% 95%,rgba(231,100,234,.13),transparent 76%),
-    linear-gradient(117deg,rgba(255,255,255,.99),rgba(244,237,255,.96) 72%,rgba(251,230,255,.9));
-  box-shadow:inset 0 1px 0 #fff,0 19px 48px -31px rgba(106,54,219,.5);
+    radial-gradient(ellipse 44% 76% at 100% 0%,rgba(125,91,219,.13),transparent 80%),
+    radial-gradient(ellipse 38% 66% at 63% 95%,rgba(191,125,205,.055),transparent 76%),
+    linear-gradient(117deg,rgba(255,255,255,.99),rgba(250,248,255,.97) 72%,rgba(251,247,255,.96));
+  box-shadow:inset 0 1px 0 #fff,0 19px 48px -31px rgba(106,54,219,.22);
 }
 .app-page .overview-stage::before{
   background:
-    radial-gradient(ellipse 36% 41% at 69% 39%,rgba(117,83,255,.37),transparent 73%),
-    radial-gradient(ellipse 28% 32% at 95% 67%,rgba(237,124,255,.24),transparent 77%);
+    radial-gradient(ellipse 36% 41% at 69% 39%,rgba(117,83,255,.18),transparent 73%),
+    radial-gradient(ellipse 28% 32% at 95% 67%,rgba(237,124,255,.10),transparent 77%);
 }
-.app-page .overview-stage .eyebrow{color:#6141a5}
+.app-page .overview-stage .eyebrow{color:#66589c}
 .app-page .overview-stage .eyebrow::before{background:var(--cerium-vibrant-gradient)}
 .app-page .overview-stage .overview-title-accent{
   background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);
-  filter:drop-shadow(0 7px 14px rgba(124,58,237,.21));
+  filter:drop-shadow(0 5px 12px rgba(124,58,237,.12));
 }
-.app-page .overview-stage .page-description{color:#5d567a}
+.app-page .overview-stage .page-description{color:#66667d}
 .app-page .overview-shortcut{
   background:rgba(255,255,255,.88);
-  border-color:#c8b5f2;color:#503d9e;
+  border-color:#ded6f0;color:#5b5090;
   box-shadow:0 2px 12px rgba(108,59,214,.05);
 }
 .app-page .overview-shortcut .icon{color:#7046ce}
 .app-page .overview-shortcut:hover{
-  background:#f2eaff;border-color:#8b65e5;
-  color:#42258f;
-  box-shadow:0 9px 20px -13px rgba(111,50,219,.48);
+  background:#f4f0fb;border-color:#b29bdd;
+  color:#51418b;
+  box-shadow:0 9px 20px -13px rgba(111,50,219,.2);
 }
 
 /* Dashboard: brighten actual card bodies and accents, not the data tables. */
 .app-page .metrics-grid .metric{
-  border-color:#d4c7fa;
-  background:linear-gradient(135deg,#fff 28%,#f2edff 100%);
-  box-shadow:inset 0 1px 0 #fff,0 12px 28px -24px rgba(116,52,223,.35);
+  border-color:#e1ddec;
+  background:linear-gradient(135deg,#fff 52%,#fbfaff 100%);
+  box-shadow:inset 0 1px 0 #fff,0 12px 28px -24px rgba(116,52,223,.18);
 }
 .app-page .metrics-grid .metric::before{
   background:var(--cerium-vibrant-gradient);
-  opacity:.8;transform:scaleX(.82);
+  opacity:.48;transform:scaleX(.68);
 }
 .app-page .metrics-grid .metric.warning::before{
   background:linear-gradient(90deg,#e2a04f,#c66cd6);
 }
-.app-page .metric-top{color:#5d517e}
-.app-page .metrics-grid .metric .metric-top .icon{color:#753cda}
-.app-page .metrics-grid .metric .metric-value{color:#2c215b;font-weight:750}
+.app-page .metric-top{color:#6b6d82}
+.app-page .metrics-grid .metric .metric-top .icon{color:#7968b4}
+.app-page .metrics-grid .metric .metric-value{color:#2d304b;font-weight:700}
 .app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
-.app-page .metric-foot{color:#645b7b}
-.app-page .metric-foot .dot{background:#9a67e5}
+.app-page .metric-foot{color:#77798d}
+.app-page .metric-foot .dot{background:#a48bdb}
 .app-page .dashboard-grid>.panel{
-  border-color:#ddd1f5;
-  background:linear-gradient(160deg,#fff 0%,#fdfaff 100%);
-  box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.24);
+  border-color:#e5e1ee;
+  background:linear-gradient(160deg,#fff 0%,#fdfcff 100%);
+  box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.11);
 }
-.app-page .dashboard-grid>.panel .panel-title .icon{color:#753cda}
+.app-page .dashboard-grid>.panel .panel-title .icon{color:#7b69ad}
 .app-page .dashboard-grid>.panel .panel-title h2::after{
   background:var(--cerium-vibrant-gradient);
-  box-shadow:0 3px 12px rgba(124,58,237,.38);
+  box-shadow:0 3px 12px rgba(124,58,237,.18);
 }
 .app-page :is(.panel-count,.badge.blue,.badge.purple){
-  background:#eee6ff;border-color:#ded0fa;color:#5a379d;
+  background:#f1edfa;border-color:#e6e0f1;color:#635390;
 }
-.app-page .stage-item:nth-child(1) .stage-line{background:#6376ff}
-.app-page .stage-item:nth-child(2) .stage-line{background:#a165ef}
-.app-page .stage-item:nth-child(3) .stage-line{background:#ca77e9}
-.app-page .stage-item:nth-child(4) .stage-line{background:#5ab9c2}
+.app-page .stage-item:nth-child(1) .stage-line{background:#8f9bdf}
+.app-page .stage-item:nth-child(2) .stage-line{background:#b29ad9}
+.app-page .stage-item:nth-child(3) .stage-line{background:#d2a7d7}
+.app-page .stage-item:nth-child(4) .stage-line{background:#83c4c7}
 .app-page .text-button{color:#5743b0}
 .app-page .text-button:hover{color:#4128a3}
 
