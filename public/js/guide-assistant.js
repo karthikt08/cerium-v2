@@ -1,7 +1,7 @@
 import {GUIDE_SECTIONS,pickGuide} from './guide-knowledge.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
-import {conversationReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
+import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
 
 // A read-only workspace companion. Replies never execute writes, model-generated URLs,
 // payment actions or arbitrary browser navigation.
@@ -110,6 +110,8 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   function localAnswer(question,section,recommendTools=false){
     const conversational=conversationReply(question,{lastSection});
     if(conversational)return conversational;
+    const workflow=workflowReply(question);
+    if(workflow)return workflow;
     if(recommendTools)return recommendBusinessTools({...getBusiness(),description:question});
     const match=pickGuide(question,section);
     return match.matched?conciseGuideResponse(question,match):unknownGuideResponse();
@@ -136,11 +138,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       }
       if(!result||typeof result.reply!=='string')result=localAnswer(clean,current,wantRecommendations);
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
+      const workflow=result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null;
       // A deliberate NavLM abstention, or conversational reply, must never inherit
       // the previously opened section and display a bogus navigation button.
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
       const conversational=result.type==='conversation'&&result.section===null;
-      const safe=recommendation||conversational||uncertain||GUIDE_SECTIONS.includes(result.section)
+      const safe=recommendation||workflow||conversational||uncertain||GUIDE_SECTIONS.includes(result.section)
         ?result:localAnswer(clean,current,wantRecommendations);
       progress.textContent=safe.reply.slice(0,850);
       if(safe.steps&&/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)&&
@@ -152,6 +155,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       }
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation)renderToolRecommendations(safe);
+      else if(workflow){
+        for(const step of safe.actions.slice(0,5)){
+          if(step&&GUIDE_SECTIONS.includes(step.section))routeButton(step.section,step.title||step.section);
+        }
+        lastSection=null;
+      }
       else if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
       if(GUIDE_SECTIONS.includes(safe.section))lastSection=safe.section;
       suggestions.hidden=!(conversational||uncertain||safe.needsMoreInfo);
