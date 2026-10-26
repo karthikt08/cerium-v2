@@ -13,12 +13,16 @@ const empty=()=>({account:{businessName:'Sample',timeZone:'UTC'},leads:[],review
 test('Marketing is a horizontal tab bar above one large shared feature screen',()=>{
   const html=renderMarketingPage(empty());
   const nav=html.indexOf('class="marketing-switcher"');
-  const pane=html.indexOf('class="marketing-main"');
+  const pane=html.indexOf('class="panel marketing-main"');
   assert.ok(nav>=0&&pane>nav,'The top tab strip comes immediately before the shared content surface');
   assert.ok(!html.includes('marketing-hero'),'Remove the previous oversized banner to free screen space');
   assert.ok(!html.includes('marketing-orbit'),'Avoid needless decorative dashboard art');
   assert.ok(!html.includes('marketing-switcher-title'),'No vertical sidebar-style navigation');
-  assert.match(html,/Marketing <span>workspace/);
+  assert.match(html,/class="page-heading marketing-page-heading"/);
+  assert.match(html,/<h1>Marketing<\/h1>/);
+  assert.match(html,/class="heading-actions marketing-heading-actions"/);
+  assert.match(html,/class="panel-header marketing-feature-header"/);
+  assert.match(html,/class="panel-body marketing-feature-body"/);
   assert.match(html,/data-marketing-page/);
   assert.match(css,/\.marketing-main\{[^}]*min-height:/);
   assert.match(css,/\.marketing-switcher\{[^}]*display:flex/);
@@ -75,8 +79,9 @@ test('Customer-derived content is safely escaped and every metric is grounded',(
   assert.match(html,/Review accuracy, permission and platform rules before sharing/);
   assert.match(html,/No messages are sent automatically/);
   assert.match(html,/Human review required/);
-  assert.match(html,/YOUR ACTIVITY/);
-  assert.match(html,/1 <span>leads<\/span>/);
+  assert.match(html,/class="page-heading marketing-page-heading"/);
+  assert.match(html,/class="panel marketing-main"/);
+  assert.ok(!html.includes('marketing-page-summary'),'Use the same page heading as the rest of Cerium');
 });
 
 test('Tabs support keyboard navigation, scrolling and stable marketing links',()=>{
@@ -107,7 +112,7 @@ test('Viewport keeps a large panel and scrollable feature tabs rather than stack
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\.marketing-tab\{[^}]*flex:0 0 auto/);
   assert.match(css,/\.marketing-switcher\{[^}]*flex-wrap:nowrap/);
-  assert.match(css,/\.marketing-main\{[^}]*border:1px solid/,'Marketing uses the same subtle panel border as Cerium');
+  assert.match(css,/\.marketing-main\{[^}]*border:1px solid/,'Marketing uses a standard Cerium panel border');
   assert.match(css,/\.marketing-layout\{[^}]*width:100%/);
   const globalStyle=fs.readFileSync(new URL('../public/css/workspace-vibrance.css',import.meta.url),'utf8');
   assert.doesNotMatch(globalStyle,/\.app-page \.marketing-tab\.active/);
