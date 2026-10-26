@@ -19,7 +19,7 @@ export function conversationReply(question,{lastSection=null}={}){
     return response('thanks',"You're welcome! What's next?");
   if(/^(?:bye|goodbye|see you|later)$/.test(text))
     return response('thanks',"See you! Ask whenever you need help inside Cerium.");
-  if(/^(?:help|help me|what can you do|what do you do|who are you|how does this work|show me what you can do|what can i ask you|start over|menu)$/.test(text))
+  if(/^(?:help|help me|what can you do|what do you do|who are you|what is cerium|what does cerium do|what can cerium do|tell me about cerium|how can cerium help me|how can cerium help my business|why use cerium|how does this work|show me what you can do|what can i ask you|start over|menu)$/.test(text))
     return response('capabilities',"I can guide you to Cerium features, explain workflows like invoices or spreadsheet imports, and suggest tools for your type of business. What would you like to do?");
   if(/^(?:how are you|how's it going|what's up|sup)$/.test(text))
     return response('greeting',"I'm here and ready to help with Cerium. Need to find something or set up your business tools?");
