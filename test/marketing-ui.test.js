@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {MARKETING_FEATURE_TABS,renderMarketingPage} from '../public/js/marketing-page.js';
+import {marketingFeatureFromHash} from '../public/js/marketing-features.js';
 import {guideNavigationLinks,trustedGuideLink} from '../public/js/guide-links.js';
 
 const css=fs.readFileSync(new URL('../public/css/marketing.css',import.meta.url),'utf8');
@@ -89,7 +90,14 @@ test('Tabs support keyboard navigation, scrolling and stable marketing links',()
   assert.match(ui,/scrollIntoView/);
   assert.match(ui,/choose\(deepLink\(\)\)/);
   assert.match(ui,/marketingFeatureFromHash\(location\.hash\)/);
-  for(const feature of MARKETING_FEATURE_TABS)assert.ok(trustedGuideLink('#marketing/'+feature.key));
+  for(const feature of MARKETING_FEATURE_TABS){
+    assert.ok(trustedGuideLink('#marketing/'+feature.key));
+    assert.equal(marketingFeatureFromHash('#marketing/'+feature.key),feature.key);
+  }
+  for(const unsafe of ['#marketing/admin','#marketing/../../settings','https://example.org','javascript:alert(1)']){
+    assert.equal(marketingFeatureFromHash(unsafe),null);
+    assert.equal(trustedGuideLink(unsafe),null);
+  }
 });
 
 test('Viewport keeps a large panel and scrollable feature tabs rather than stacking tab buttons',()=>{
