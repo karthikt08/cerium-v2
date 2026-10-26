@@ -1,8 +1,24 @@
-import {GUIDE_SECTIONS,pickGuide} from './guide-knowledge.js';
+// In-app navigation assistant for Cerium: safe, read-only guidance.
+import {GUIDE_SECTIONS} from './guide-knowledge.js';
 import {guideNavigationLinks,trustedGuideLink} from './guide-links.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
 import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
+
+const SECTION_NAMES = {
+  overview: 'Overview',
+  invoices: 'Invoices',
+  quotes: 'Estimates & quotes',
+  jobs: 'Jobs & dispatch',
+  leads: 'Leads',
+  marketing: 'Marketing',
+  payments: 'Payments',
+  reminders: 'Payment reminders',
+  followups: 'Follow-ups',
+  reviews: 'Reviews',
+  settings: 'Settings',
+  support: 'Help & feedback'
+};
 
 const CONTEXT_SUGGESTIONS = {
   overview: [
@@ -29,19 +45,24 @@ const CONTEXT_SUGGESTIONS = {
   jobs: [
     { prompt: "How do I dispatch crew and avoid schedule conflicts?", label: "Crew dispatch" },
     { prompt: "How do I reschedule or cancel an appointment?", label: "Reschedule job" },
-    { prompt: "How do I schedule a job and invoice it?", label: "Schedule to invoice" },
-    { prompt: "How do I request customer reviews after completing a job?", label: "Review request" }
+    { prompt: "How do I schedule a job and invoice it?", label: "Schedule & invoice" },
+    { prompt: "How do I request customer reviews after completing a job?", label: "Review loop" }
   ],
   leads: [
-    { prompt: "How do I import an Excel spreadsheet?", label: "Import Excel" },
-    { prompt: "How do I import contacts and deduplicate them in Leads?", label: "Deduplicate contacts" },
-    { prompt: "How do I turn a lead into an invoice?", label: "Lead to invoice" },
-    { prompt: "How do I advance leads through pipeline stages?", label: "Pipeline stages" }
+    { prompt: "How do I upload an Excel or CSV spreadsheet?", label: "Import contacts" },
+    { prompt: "How do I turn a lead into an invoice?", label: "Lead to payment" },
+    { prompt: "How do I bulk import leads and schedule appointments?", label: "Import & dispatch" }
+  ],
+  marketing: [
+    { prompt: "Where can I draft a social media post?", label: "Create a post" },
+    { prompt: "Where can I re-book past customers?", label: "Re-book customers" },
+    { prompt: "Show marketing performance and lead sources", label: "Lead sources" },
+    { prompt: "How do I request customer reviews after completing a job?", label: "Ask for reviews" }
   ],
   payments: [
-    { prompt: "How do I reconcile bank deposits with invoices?", label: "Match deposits" },
-    { prompt: "How do I handle partial payments and reconcile invoices?", label: "Partial payments" },
-    { prompt: "How do I undo a matched bank transaction?", label: "Undo bank match" },
+    { prompt: "How do I reconcile bank deposits with invoices?", label: "Match deposit" },
+    { prompt: "What if the amount does not match?", label: "Partial payments" },
+    { prompt: "What if a deposit was linked to the wrong invoice?", label: "Undo match" },
     { prompt: "How do I collect an upfront deposit before starting work?", label: "Deposit workflow" }
   ],
   reminders: [
@@ -58,12 +79,6 @@ const CONTEXT_SUGGESTIONS = {
     { prompt: "How do I request customer reviews after completing a job?", label: "Request reviews" },
     { prompt: "How do I get more 5-star Google reviews?", label: "Get more 5-stars" },
     { prompt: "When is the best time to ask for a customer review?", label: "Review timing" }
-  ],
-  marketing: [
-    { prompt: "Where can I draft a social media post?", label: "Create a post" },
-    { prompt: "Where can I re-book past customers?", label: "Re-book customers" },
-    { prompt: "Show marketing performance and lead sources", label: "Lead sources" },
-    { prompt: "How do I request customer reviews after completing a job?", label: "Ask for reviews" }
   ],
   settings: [
     { prompt: "How can I customize my tools?", label: "Customize tools" },
@@ -83,29 +98,68 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.innerHTML='<button type="button" class="guide-trigger" id="guide-trigger" aria-expanded="false" aria-controls="guide-panel">'+
     '<span class="guide-mark" aria-hidden="true">✦</span><span>Ask Cerium</span></button>'+
     '<section class="guide-panel" id="guide-panel" aria-label="Cerium assistant" hidden>'+
-      '<div class="guide-header"><div><span class="guide-eyebrow">CERIUM · WORKSPACE AI</span><h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2></div>'+
-        '<button type="button" class="guide-close" aria-label="Close assistant" id="guide-close">×</button></div>'+
-      '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
-      '<div class="guide-suggestions" id="guide-suggestions" aria-label="Try asking">'+
-        '<button type="button" data-guide-prompt="Which Cerium tools should I use for my business?">Recommend tools</button>'+
-        '<button type="button" data-guide-prompt="How do I convert an accepted quote into a scheduled job and invoice?">Quote to invoice</button>'+
-        '<button type="button" data-guide-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits</button>'+
-        '<button type="button" data-guide-prompt="How do I prepare a GST tax invoice with line item rates?">GST tax invoice</button>'+
-        '<button type="button" data-guide-prompt="How do I import an Excel spreadsheet?">Import Excel</button>'+
-        '<button type="button" data-guide-prompt="What should I focus on today?">Daily priorities</button>'+
+      '<div class="guide-header">'+
+        '<div class="guide-header-main">'+
+          '<div class="guide-header-badge-row">'+
+            '<span class="guide-eyebrow">WORKSPACE AI</span>'+
+            '<span class="guide-status-pill" aria-label="AI Status: Ready">'+
+              '<span class="guide-status-dot" aria-hidden="true"></span>'+
+              '<span class="guide-status-text">Ready</span>'+
+            '</span>'+
+            '<span class="guide-context-badge" id="guide-context-badge">Overview</span>'+
+          '</div>'+
+          '<h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
+        '</div>'+
+        '<div class="guide-header-actions">'+
+          '<button type="button" class="guide-header-btn guide-reset" id="guide-reset" aria-label="Start new conversation" title="Clear conversation">'+
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+              '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>'+
+              '<path d="M21 3v5h-5"/>'+
+              '<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>'+
+              '<path d="M3 21v-5h5"/>'+
+            '</svg>'+
+          '</button>'+
+          '<button type="button" class="guide-close" aria-label="Close assistant" id="guide-close">×</button>'+
+        '</div>'+
       '</div>'+
-      '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
-        '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button></form>'+
-      '<p class="guide-privacy">Read-only guidance. Avoid private details; an enabled AI provider may process your question.</p>'+
+      '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
+      '<div class="guide-suggestions" id="guide-suggestions" aria-label="Suggested topics">'+
+        '<div class="guide-suggestions-header">'+
+          '<span class="guide-suggestions-icon" aria-hidden="true">💡</span>'+
+          '<span>Suggested for <strong class="guide-section-name" id="guide-section-name">Overview</strong></span>'+
+        '</div>'+
+        '<div class="guide-suggestions-chips" id="guide-suggestions-chips">'+
+          '<button type="button" data-guide-prompt="Which Cerium tools should I use for my business?">Recommend tools</button>'+
+          '<button type="button" data-guide-prompt="How do I convert an accepted quote into a scheduled job and invoice?">Quote to invoice</button>'+
+          '<button type="button" data-guide-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits</button>'+
+          '<button type="button" data-guide-prompt="How do I prepare a GST tax invoice with line item rates?">GST tax invoice</button>'+
+          '<button type="button" data-guide-prompt="How do I import an Excel spreadsheet?">Import Excel</button>'+
+          '<button type="button" data-guide-prompt="What should I focus on today?">Daily priorities</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="guide-footer-zone">'+
+        '<form class="guide-form" id="guide-form">'+
+          '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
+          '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button>'+
+        '</form>'+
+        '<div class="guide-privacy">'+
+          '<span class="guide-privacy-icon" aria-hidden="true">🔒</span>'+
+          '<span>Read-only guidance. Avoid private details; an enabled AI provider may process your question.</span>'+
+        '</div>'+
+      '</div>'+
     '</section>';
   root.append(shell);
   const trigger=shell.querySelector('#guide-trigger');
   const panel=shell.querySelector('#guide-panel');
   const close=shell.querySelector('#guide-close');
+  const resetBtn=shell.querySelector('#guide-reset');
   const messages=shell.querySelector('#guide-messages');
   const input=shell.querySelector('#guide-question');
   const send=shell.querySelector('#guide-send');
   const suggestions=shell.querySelector('#guide-suggestions');
+  const chips=shell.querySelector('#guide-suggestions-chips');
+  const contextBadge=shell.querySelector('#guide-context-badge');
+  const sectionNameLabel=shell.querySelector('#guide-section-name');
   const known=new Map(WORKSPACE_MODULES.map(item=>[item.id,item]));
   let pending=false;
   let awaitingBusinessDescription=false;
@@ -114,14 +168,19 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
 
   function updateSuggestions(section){
     const sec=GUIDE_SECTIONS.includes(section)?section:'overview';
+    const friendlyName=SECTION_NAMES[sec]||'Overview';
+    if(contextBadge)contextBadge.textContent=friendlyName;
+    if(sectionNameLabel)sectionNameLabel.textContent=friendlyName;
     const list=CONTEXT_SUGGESTIONS[sec]||CONTEXT_SUGGESTIONS.overview;
-    suggestions.innerHTML='';
-    for(const item of list){
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.dataset.guidePrompt=item.prompt;
-      btn.textContent=item.label;
-      suggestions.append(btn);
+    if(chips){
+      chips.innerHTML='';
+      for(const item of list){
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.dataset.guidePrompt=item.prompt;
+        btn.textContent=item.label;
+        chips.append(btn);
+      }
     }
   }
 
@@ -136,12 +195,42 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     trigger.setAttribute('aria-expanded','false');
     trigger.focus();
   }
+  function createWelcomeCard(){
+    messages.innerHTML='';
+    const card=document.createElement('div');
+    card.className='guide-welcome-card';
+    card.id='guide-welcome-card';
+    card.innerHTML=
+      '<div class="guide-welcome-header">'+
+        '<span class="guide-welcome-mark" aria-hidden="true">✦</span>'+
+        '<div><strong>Cerium Workspace Assistant</strong>'+
+        '<p class="guide-welcome-sub">Find features, guide operational workflows, or ask about contractor best practices.</p></div>'+
+      '</div>'+
+      '<div class="guide-welcome-features">'+
+        '<span class="guide-welcome-pill">⚡ Multi-step operations</span>'+
+        '<span class="guide-welcome-pill">💼 Field service advice</span>'+
+        '<span class="guide-welcome-pill">🔒 Private & read-only</span>'+
+      '</div>';
+    messages.append(card);
+    messages.scrollTop=messages.scrollHeight;
+  }
+  function resetGuide(){
+    lastSection=null;
+    lastBusinessDescription='';
+    awaitingBusinessDescription=false;
+    createWelcomeCard();
+    updateSuggestions(getSection?.());
+    suggestions.hidden=false;
+    input.value='';
+    input.focus();
+  }
+
   function bubble(text,kind='assistant'){
     const item=document.createElement('div');
     item.className='guide-bubble'+(kind==='user'?' user':'');
     item.textContent=String(text||'');
     messages.append(item);
-    while(messages.children.length>22)messages.firstElementChild.remove();
+    while(messages.children.length>24)messages.firstElementChild.remove();
     messages.scrollTop=messages.scrollHeight;
     return item;
   }
@@ -177,12 +266,52 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     const links=guideNavigationLinks(result,question);
     if(!links.length)return;
     if(result.type==='workflow'&&Array.isArray(result.actions)){
-      // Preserve the newer advanced-workflow step badges without duplicating
-      // the same navigation links in another row.
+      // Group related multi-step or choice workflow steps inside an organized card
+      const card=document.createElement('div');
+      card.className='guide-workflow-card';
+      const isChoice=/\b(?:choose|either|or)\b/i.test(result.reply||'');
+      const header=document.createElement('div');
+      header.className='guide-workflow-header';
+      header.innerHTML='<span class="guide-plan-tag">'+(isChoice?'🧭 Choose Action':'⚡ Recommended Sequence')+'</span>'+
+        '<span class="guide-plan-count">'+links.length+' '+(isChoice?'options':'steps')+'</span>';
+      card.append(header);
+
+      const actionList=document.createElement('div');
+      actionList.className='guide-actions guide-workflow-actions';
+
       links.forEach((link,i)=>{
         const step=result.actions.find(action=>'#'+action?.section===link.href);
-        routeButton(link.href.slice(1),step?.title||link.label,i+1);
+        const sec=link.href.slice(1);
+        if(!GUIDE_SECTIONS.includes(sec))return;
+        const trusted=trustedGuideLink(link.href);
+        if(!trusted)return;
+
+        const anchor=document.createElement('a');
+        anchor.className='guide-action guide-workflow-link';
+        anchor.href=trusted.href;
+        anchor.dataset.guideDestination=trusted.href;
+
+        const badge=document.createElement('span');
+        badge.className='guide-step-badge'+(isChoice?' guide-choice-badge':'');
+        badge.textContent=isChoice?'Option '+(i+1):'Step '+(i+1);
+        anchor.append(badge);
+
+        const label=document.createElement('span');
+        label.className='guide-action-label';
+        label.textContent='Open '+String(step?.title||link.label||trusted.label).slice(0,75);
+        anchor.append(label);
+
+        const arrow=document.createElement('span');
+        arrow.className='guide-action-arrow';
+        arrow.setAttribute('aria-hidden','true');
+        arrow.textContent='→';
+        anchor.append(arrow);
+
+        actionList.append(anchor);
       });
+      card.append(actionList);
+      messages.append(card);
+      messages.scrollTop=messages.scrollHeight;
       return;
     }
     const row=document.createElement('nav');
@@ -199,7 +328,14 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       anchor.className='guide-action guide-page-link';
       anchor.href=trusted.href;
       anchor.dataset.guideDestination=trusted.href;
-      anchor.textContent='Open '+trusted.label+' →';
+      const label=document.createElement('span');
+      label.className='guide-action-label';
+      label.textContent='Open '+trusted.label;
+      const arrow=document.createElement('span');
+      arrow.className='guide-action-arrow';
+      arrow.setAttribute('aria-hidden','true');
+      arrow.textContent='→';
+      anchor.append(label,arrow);
       row.append(anchor);
     }
     if(row.querySelector('a'))messages.append(row);
@@ -212,6 +348,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     const container=document.createElement('div');
     container.className='guide-recommendations';
     container.setAttribute('aria-label','Recommended Cerium tools');
+
+    const recHeader=document.createElement('div');
+    recHeader.className='guide-recommendations-header';
+    recHeader.innerHTML='<span class="guide-rec-icon" aria-hidden="true">🛠</span><span>Recommended Workspace Tools</span>';
+    container.append(recHeader);
+
     for(const item of items){
       const card=document.createElement('div');
       card.className='guide-recommendation';
@@ -300,6 +442,8 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     input.disabled=true;
     send.disabled=true;
     suggestions.hidden=true;
+    const welcome=messages.querySelector('#guide-welcome-card');
+    if(welcome)welcome.remove();
     bubble(clean,'user');
     const progress=bubble('Thinking…');
     progress.classList.add('guide-thinking');
@@ -325,10 +469,16 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       progress.textContent=safe.reply.slice(0,850);
       if(safe.steps&&(/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)||workflow)&&
         !safe.reply.includes('→')){
+        const stepsBox=document.createElement('div');
+        stepsBox.className='guide-steps-box';
+        const stepsHeader=document.createElement('div');
+        stepsHeader.className='guide-steps-header';
+        stepsHeader.innerHTML='<span class="guide-steps-icon" aria-hidden="true">📋</span><span>Execution sequence</span>';
         const steps=document.createElement('span');
         steps.className='guide-steps';
         steps.textContent=safe.steps.slice(0,350);
-        progress.append(steps);
+        stepsBox.append(stepsHeader,steps);
+        progress.append(stepsBox);
       }
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
@@ -346,9 +496,11 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       if(!panel.hidden)input.focus();
     }
   }
-  bubble('Find a feature, ask about a workflow, or describe your business for tailored tool suggestions.');
+
+  createWelcomeCard();
   trigger.addEventListener('click',()=>panel.hidden?openGuide():closeGuide());
   close.addEventListener('click',closeGuide);
+  if(resetBtn)resetBtn.addEventListener('click',resetGuide);
   shell.querySelector('#guide-form').addEventListener('submit',event=>{
     event.preventDefault();
     const text=input.value;input.value='';ask(text);
