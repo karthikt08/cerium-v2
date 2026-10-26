@@ -6,13 +6,11 @@ import {businessLocalDate} from './us-market.js';
 
 const arrow='<span aria-hidden="true">→</span>';
 const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="marketing-link">'+esc(label)+' '+arrow+'</a>';
-const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
 const tabs=[
   {key:'visibility',label:'Get found and chosen'},
   {key:'reengage',label:'Re-book and re-engage'},
   {key:'performance',label:'Track performance'}
 ];
-const strip=content=>'<div class="marketing-strip">'+content+'</div>';
 export function renderMarketingPage(ws){
   const today=businessLocalDate(ws?.account?.timeZone);
   const data=marketingInsights(ws,today);
@@ -39,7 +37,7 @@ export function renderMarketingPage(ws){
         '<div class="marketing-hero-actions"><button type="button" class="marketing-hero-cta" data-marketing-jump="visibility">Create a message <span aria-hidden="true">↗</span></button>'+
           '<button type="button" class="marketing-hero-secondary" data-marketing-jump="performance">View your activity '+arrow+'</button></div>'+
       '</div>'+
-      '<div class="marketing-hero-visual" aria-label="Your recorded marketing activity">'+
+      '<div class="marketing-hero-visual" aria-hidden="true">'+
         '<div class="marketing-orbit orbit-one" aria-hidden="true"></div><div class="marketing-orbit orbit-two" aria-hidden="true"></div>'+
         '<div class="marketing-orbit-center"><small>YOUR CUSTOMER CIRCLE</small><span class="marketing-orbit-figure">'+esc(data.totalLeads)+'</span><strong>leads recorded</strong></div>'+
         '<div class="marketing-float marketing-float-top"><span class="marketing-float-dot" aria-hidden="true"></span><div><strong>'+esc(data.reviewsReceived)+'</strong><small>reviews marked received</small></div></div>'+
