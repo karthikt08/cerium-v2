@@ -230,7 +230,7 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .am b{font-weight:500;letter-spacing:-.05em}
 .pg .pr li::before,.pg .doc .sum li::before{border-color:var(--ink)}
 .pg .c{background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px var(--ge);font-weight:500}
-.pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:linear-gradient(135deg,rgba(244,241,255,.95) 0%,rgba(232,227,255,.85) 100%);color:#514494;border:1px solid rgba(118,100,218,.28);box-shadow:0 1px 3px rgba(118,100,218,.1),inset 0 1px 0 rgba(255,255,255,.8)}
+.pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:linear-gradient(135deg,rgba(237,242,255,.95) 0%,rgba(216,228,255,.85) 100%);color:#1d3c93;border:1px solid rgba(59,91,255,.28);box-shadow:0 1px 3px rgba(59,91,255,.1),inset 0 1px 0 rgba(255,255,255,.8)}
 
 /* ---- privacy and terms ---- */
 .pg .th,.pg .sh{font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;color:var(--mut)}
