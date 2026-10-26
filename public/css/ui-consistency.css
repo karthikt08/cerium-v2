@@ -1,0 +1,263 @@
+/* CERIUM UI coherence layer — shared with workspace, onboarding and public pages.
+   Visual source of truth: the product workspace (Figtree, 8–10px control corners,
+   white/blue primary surfaces, quiet borders and restrained purple spatial accents).
+   Keep this stylesheet immediately BEFORE typography.css on every HTML page.
+   No global button, input or dialog reset: avoid altering custom widgets, media
+   controls, cursor engine, browser select popups or the entrance animation. */
+:root {
+  --cerium-ui-primary:#4263eb;
+  --cerium-ui-primary-hover:#3453d7;
+  --cerium-ui-ink:#202635;
+  --cerium-ui-muted:#64748b;
+  --cerium-ui-border:#dfe4ed;
+  --cerium-ui-border-hover:#bcc9e3;
+  --cerium-ui-surface:#fff;
+  --cerium-ui-subtle:#f7f9fd;
+  --cerium-ui-radius:9px;
+  --cerium-ui-panel-radius:17px;
+  --cerium-ui-focus:#7a8ff3;
+  --cerium-ui-ease:cubic-bezier(.2,.8,.2,1);
+}
+
+/* One button silhouette across the public site and app, preserving their
+   established blue color, sizes and auth-aware navigation behavior. */
+.pg :is(a.btn,button.btn,a.gbtn,button.gbtn,a.button,button.button) {
+  border-radius:var(--cerium-ui-radius);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+  text-decoration:none;
+  max-width:100%;
+  transition:background-color .18s ease,border-color .18s ease,
+    box-shadow .18s ease,transform .18s var(--cerium-ui-ease);
+}
+.pg :is(a.btn.sm,button.btn.sm){border-radius:8px;min-height:38px}
+.pg :is(a.btn,button.btn,a.gbtn,button.gbtn):focus-visible {
+  outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
+}
+.pg :is(a.btn,button.btn,a.gbtn,button.gbtn):disabled{opacity:.55;cursor:not-allowed}
+.pg .benefits-page :is(a.button,button.button){
+  min-height:40px;padding:10px 17px;border-radius:var(--cerium-ui-radius);
+}
+.pg :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select) {
+  border-radius:var(--cerium-ui-radius);
+}
+.pg :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible {
+  outline:3px solid var(--cerium-ui-focus);outline-offset:2px;
+}
+
+/* Product workspace controls: primary, secondary and destructive actions all
+   use the same corner, weight, height and focus affordance. Compact table/icon
+   controls keep their purpose-built dimensions rather than being enlarged. */
+.app-page .button:not(.icon-button) {
+  min-height:38px;
+  padding:9px 14px;
+  border-radius:var(--cerium-ui-radius);
+  font-size:12px;
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  box-shadow:0 1px 2px rgba(26,42,75,.035);
+  transition:background-color .18s ease,border-color .18s ease,
+    box-shadow .18s ease,transform .18s var(--cerium-ui-ease);
+}
+.app-page .button.primary{
+  border-color:transparent;background:var(--cerium-ui-primary);color:#fff;
+  box-shadow:0 3px 8px rgba(66,99,235,.15);
+}
+.app-page .button.primary:hover:not(:disabled){
+  background:var(--cerium-ui-primary-hover);
+  box-shadow:0 6px 15px rgba(66,99,235,.19);
+}
+.app-page .button.secondary{
+  background:#fff;color:#4f6077;border-color:var(--cerium-ui-border);
+}
+.app-page .button.secondary:hover:not(:disabled){
+  background:var(--cerium-ui-subtle);border-color:var(--cerium-ui-border-hover);
+}
+.app-page .button.danger{background:#b84247;color:#fff;border-color:transparent}
+.app-page .button.danger:hover:not(:disabled){background:#a6353e}
+.app-page .button:disabled{cursor:not-allowed;opacity:.56;box-shadow:none}
+.app-page .button:focus-visible,
+.app-page :is(.icon-button,.text-button,.signout,.view-toggle button):focus-visible{
+  outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
+}
+.app-page :is(.button,.icon-button):active:not(:disabled){transform:translateY(0)}
+.app-page .table-actions .button{
+  min-height:29px;height:29px;padding:0 10px;font-size:11px;border-radius:7px;
+}
+.app-page .table-actions .icon-button{width:29px;height:29px;border-radius:7px}
+.app-page .button.sm{min-height:34px;padding:7px 11px;font-size:11px}
+.app-page .heading-actions{flex-wrap:wrap;min-width:0}
+.app-page .heading-actions .button{white-space:normal}
+.app-page .settings-actions{gap:9px;flex-wrap:wrap}
+.app-page .table-actions .button{white-space:nowrap}
+
+/* Preserve dedicated icon-only and destructive utilities. */
+.app-page :is(.icon-button,.quote-x,.ws-config-close,.jobs-modal-header>button,.quote-more summary){
+  border-radius:var(--cerium-ui-radius);
+}
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close){
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:none;min-width:38px;width:38px;min-height:38px;height:38px;
+  padding:0;border:1px solid var(--cerium-ui-border);
+  border-radius:var(--cerium-ui-radius);
+  background:#f7f9fd;color:#64748b;line-height:1;font-size:19px;
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease;
+}
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close):hover{
+  background:#eef2fb;border-color:#bfc9e1;color:#24354f;
+}
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close):focus-visible{
+  outline:3px solid var(--cerium-ui-focus);outline-offset:2px;
+}
+
+/* Native dialogs: the record editor, confirmation, invoices, jobs, estimates,
+   lead importer and module customizer should look like one product. */
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog) {
+  border:1px solid #dce3ee;
+  border-radius:var(--cerium-ui-panel-radius);
+  background:#fff;color:var(--cerium-ui-ink);
+  box-shadow:0 30px 80px -22px rgba(19,31,59,.33),0 8px 30px rgba(26,41,77,.10);
+}
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog)::backdrop{
+  background:rgba(17,25,49,.52);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.app-page :is(.dialog-header,.jobs-modal-header,.quotes-modal-head,.ws-config-hero) h2 {
+  color:var(--cerium-ui-ink);font-size:20px;font-weight:700;
+  line-height:1.25;letter-spacing:-.45px;overflow-wrap:anywhere;
+}
+.app-page :is(.dialog-description,.jobs-modal-header p,.quotes-modal-head p:not(.eyebrow),.ws-config-heading p:not(.ws-eyebrow)){
+  color:#718098;line-height:1.6;font-size:12px;
+}
+.app-page .dialog:not(.lead-import-dialog) .dialog-header{
+  padding-bottom:15px;border-bottom:1px solid #edf0f5;
+}
+.app-page :is(.dialog-footer,.jobs-modal-actions,.quotes-modal-actions,.ws-config-footer){
+  gap:10px;border-top-color:#e8edf5;
+}
+.app-page :is(.dialog-footer,.jobs-modal-actions,.quotes-modal-actions,.ws-config-footer) > .button{
+  min-height:40px;border-radius:var(--cerium-ui-radius);font-weight:650;
+}
+.app-page .quotes-dialog .quotes-modal-actions,
+.app-page .jobs-dialog .jobs-modal-actions{background:#fafbfe}
+.app-page :is(.quote-more-menu,.dial-panel,.guide-panel){
+  border-color:var(--cerium-ui-border);border-radius:12px;
+  box-shadow:0 18px 46px -20px rgba(28,42,72,.28),0 5px 18px rgba(28,42,72,.09);
+}
+
+/* Form rows and dropdowns: stable 9px corners, common neutral border and
+   readable text; native picker behavior/arrow padding comes from controls.css. */
+.app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer)
+:is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select){
+  border:1px solid var(--cerium-ui-border);
+  border-radius:var(--cerium-ui-radius);
+  background-color:#fff;
+  color:#293c55;
+  min-height:40px;
+  font-size:12.5px;
+  line-height:1.5;
+  box-shadow:0 1px 2px rgba(30,50,90,.025);
+  max-width:100%;
+}
+.app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer)
+:is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select):focus-visible{
+  border-color:#8399e8;outline:3px solid rgba(114,137,239,.32);outline-offset:1px;
+}
+.app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer) textarea{
+  min-height:88px;resize:vertical;
+}
+.app-page :is(.jobs-modal-body label,.quotes-form-grid label,.ws-custom-field,.dialog .field,.settings-content .field){
+  color:#5d6e87;font-size:12px;font-weight:600;
+}
+.app-page .dialog .eyebrow{font-weight:700}
+.app-page .form-error{border-radius:var(--cerium-ui-radius);line-height:1.55}
+.app-page .toast{border-radius:var(--cerium-ui-radius);font-size:12px;line-height:1.5}
+
+/* The assistant is also a product popup. Keep its distinctive purple color
+   but use product corners, input treatment and focus behavior. */
+.app-page .guide-panel{border-radius:var(--cerium-ui-panel-radius)}
+.app-page .guide-trigger{
+  border-radius:10px;min-height:43px;
+  transition:transform .2s var(--cerium-ui-ease),box-shadow .2s ease,background-color .2s ease;
+}
+.app-page .guide-trigger:hover{transform:translateY(-2px)}
+.app-page :is(.guide-action,.guide-suggestions button,.guide-send,.guide-review-tools){
+  border-radius:var(--cerium-ui-radius);
+}
+.app-page .guide-suggestions button{min-height:34px}
+.app-page .guide-action{min-height:36px}
+.app-page .guide-form input{border-radius:var(--cerium-ui-radius);min-height:40px}
+
+/* Mandatory setup and daily welcome share the same control geometry as the
+   workspace. Do not override the onboarding rail or success/warning colors. */
+.onboarding-page :is(.verify-card button.primary,.verify-card button.secondary,
+  .business-wizard button.primary,.business-wizard button.secondary) {
+  border-radius:var(--cerium-ui-radius);
+  min-height:42px;
+  padding:10px 16px;
+  font-size:12.5px;
+  font-weight:650;
+  line-height:1.35;
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.onboarding-page :is(.verify-card button.primary,.business-wizard button.primary){
+  background:var(--cerium-ui-primary);color:#fff;
+  border:1px solid transparent;box-shadow:0 3px 8px rgba(66,99,235,.12);
+}
+.onboarding-page :is(.verify-card button.primary,.business-wizard button.primary):hover:not(:disabled){
+  background:var(--cerium-ui-primary-hover);
+}
+.onboarding-page :is(.verify-card button.secondary,.business-wizard button.secondary){
+  background:#fff;color:#4f6077;border:1px solid var(--cerium-ui-border);
+}
+.onboarding-page :is(.verify-card button.secondary,.business-wizard button.secondary):hover:not(:disabled){
+  background:var(--cerium-ui-subtle);border-color:var(--cerium-ui-border-hover);
+}
+.onboarding-page .business-wizard :is(input:not([type=checkbox]),select,textarea),
+.onboarding-page .verify-card :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  border-radius:var(--cerium-ui-radius);
+  border-color:var(--cerium-ui-border);
+  min-height:42px;font-size:13px;
+}
+.onboarding-page :is(.billing-cycle-choice,.dial-trigger,.dial-panel,.business-setup-preview){
+  border-radius:var(--cerium-ui-radius);
+}
+.onboarding-page :is(.verify-card button,.business-wizard button,.verify-card input,.verify-card select):focus-visible{
+  outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
+}
+.welcome-page .welcome-enter-btn{
+  border-radius:var(--cerium-ui-radius);min-height:42px;
+  font-weight:650;font-size:13px;
+}
+.welcome-page .welcome-enter-btn:focus-visible{
+  outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
+}
+
+/* Keep tap target geometry and readable stacking on narrow windows. */
+@media(max-width:640px){
+  .app-page :is(.dialog-footer,.jobs-modal-actions,.quotes-modal-actions,.ws-config-footer){
+    flex-wrap:wrap;align-items:stretch;
+  }
+  .app-page :is(.dialog-footer,.jobs-modal-actions,.quotes-modal-actions,.ws-config-footer) > .button{
+    flex:1 1 120px;white-space:normal;
+  }
+  .app-page .heading-actions{gap:8px}
+  .pg .benefits-page :is(a.button,button.button){padding-inline:13px}
+}
+@media(hover:none){
+  .app-page .guide-trigger:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .pg :is(a.btn,button.btn,a.gbtn,button.gbtn,a.button,button.button),
+  .app-page :is(.button,.icon-button,.guide-trigger),
+  .onboarding-page :is(button.primary,button.secondary),
+  .welcome-page .welcome-enter-btn{transition:none!important;transform:none!important}
+}
+@media print{
+  .app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){
+    box-shadow:none!important;
+  }
+}
