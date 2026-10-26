@@ -3,7 +3,8 @@ import {COUNTRY_OPTIONS,countryName} from './countries.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions} from './us-market.js';
 import {INDIA_STATE_OPTIONS} from './india-market.js';
 import {businessSetupSteps,BUSINESS_SETUP_FIELDS} from './business-profile.js';
-import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,recommendWorkspace,suggestIndustry} from './industry-workspaces.js';
+import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,suggestIndustry} from './industry-workspaces.js';
+import {recommendBusinessTools} from './business-tool-advisor.js';
 
 const markup=`<form id="business-form" class="business-wizard" hidden>
 <p class="wizard-required">REQUIRED BUSINESS SETUP</p>
@@ -158,10 +159,11 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     renderModuleChoices();
   });
   el('biz-suggest-modules').addEventListener('click',()=>{
-    const rec=recommendWorkspace({category:el('biz-industry').value,
+    const rec=recommendBusinessTools({category:el('biz-industry').value,
       description:el('biz-work-description').value,trade:el('biz-trade').value});
+    if(rec.needsMoreInfo){el('biz-recommendation').textContent=rec.reply;return;}
     el('biz-modules-value').value=rec.modules.join(',');
-    el('biz-recommendation').textContent=rec.explanation+' Review and adjust before continuing.';
+    el('biz-recommendation').textContent=rec.reply+' Review and adjust before continuing.';
     renderModuleChoices();
   });
   el('biz-gst-registration').addEventListener('change',gst);
