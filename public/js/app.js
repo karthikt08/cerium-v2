@@ -12,6 +12,7 @@ import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import {openLeadImport} from './spreadsheet-import-ui.js';
 import {openInvoicePrint} from './invoice-print.js';
+import {invoiceUpiUri,invoiceShareLinks,invoiceUpiQrSvg} from './invoice-sharing.js';
 import {mountGuideAssistant} from './guide-assistant.js';
 import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
@@ -348,6 +349,13 @@ function previewInvoice(id) {
     ${i.igst?`<p>IGST ${fmt(i.igst)}</p>`:''}
     <p>GST rate: ${esc(i.gstRate)}%</p></div>`:details?.taxLines?.length?`<div class="invoice-tax-summary"><p><strong>Subtotal</strong> ${fmt(details.subtotal)}</p>${details.taxLines.map(row=>`<p>${esc(row.label)} (${esc(row.rate)}%) <strong>${fmt(row.amount)}</strong></p>`).join('')}</div>`:'';
   const invoiceTitle=gst?'DRAFT GST TAX INVOICE':'INVOICE';
+  const merchantName=supplier?.name??(a.businessName||a.name);
+  const upiUri=invoiceUpiUri({
+    country:preset.country,currency:i.currency,upiVpa:i.upiVpa,
+    amount:i.total,merchantName,invoiceId:i.id,status:i.status
+  });
+  const upiQr=invoiceUpiQrSvg(upiUri);
+  const shareLinks=invoiceShareLinks({invoice:i,merchantName,upiUri});
   const rounding=lineItemsRoundingAdjustment(i.items,gst?i.taxable:details?.subtotal??i.total);
   $('invoice-sheet').innerHTML=`<article class="invoice-document invoice-paper-${preset.paper.toLowerCase()}">
     <div class="invoice-top"><div><h2>${esc(supplier?.name??(a.businessName||a.name))}</h2>
@@ -364,13 +372,20 @@ function previewInvoice(id) {
     ${rounding?`<p class="muted">Rounding adjustment ${fmt(rounding)}</p>`:''}
     ${taxLines}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
-    ${ind&&i.upiVpa?`<p class="muted">Pay by UPI to: <strong>${esc(i.upiVpa)}</strong>.</p><p class="muted"><a href="${esc('upi://pay?pa='+encodeURIComponent(i.upiVpa)+'&pn='+encodeURIComponent(supplier?.name||a.businessName||a.name||'CERIUM merchant')+'&am='+encodeURIComponent(Number(i.total).toFixed(2))+'&cu=INR'+'&tn='+encodeURIComponent('Invoice '+i.id))}" rel="nofollow">Open UPI app to pay ${fmt(i.total)}</a></p><p class="muted">UPI opens an external app. Payment is not verified by CERIUM: confirm bank receipt before marking Paid.</p>`:''}
+    ${upiUri?`<section class="invoice-upi-payment" aria-label="UPI payment information">
+      ${upiQr?`<div class="invoice-upi-qr-frame">${upiQr}<small>Scan to pay</small></div>`:''}
+      <div class="invoice-upi-payment-details"><strong>Pay by UPI</strong>
+        <p>Payee: ${esc(i.upiVpa)}</p><p>Amount: ${fmt(i.total)}</p>
+        <p><a href="${esc(upiUri)}" rel="nofollow">Open your UPI app to pay</a></p>
+        <small>Check the payee and amount in your app. Payment is not confirmed by Cerium; the business must verify receipt.</small>
+      </div></section>`:''}
     ${gst?'<p class="muted">Draft only. Validate invoice numbering, tax classification, signature, reverse charge, IRN/e-invoicing eligibility and other statutory requirements before issuing.</p>':''}
     ${details?.taxNote?`<p class="invoice-preserve-lines"><strong>Tax note:</strong> ${esc(details.taxNote)}</p>`:''}
     ${details?.paymentInstructions?`<p class="invoice-preserve-lines"><strong>Payment instructions:</strong> ${esc(details.paymentInstructions)}</p>`:''}
     <p class="muted">${esc(i.notes)}</p>
   </article>`;
-  state.printInvoice={id:i.id,paper:preset.paper};
+  state.printInvoice={id:i.id,paper:preset.paper,shareLinks,upiUri};
+  $('invoice-copy-upi').hidden=!upiUri;
   $('invoice-dialog').showModal();
 }
 
@@ -427,6 +442,24 @@ document.addEventListener('click',e=>{
       if(!article||!state.printInvoice)throw new Error('Open an invoice preview first.');
       openInvoicePrint({invoiceMarkup:article.outerHTML,paper:state.printInvoice.paper,title:'Invoice '+state.printInvoice.id});
     }catch(error){toast(error.message||'Could not open the print-ready invoice.',true);}
+    return;
+  }
+  if(action==='share-invoice'){
+    const channel=el.dataset.channel;
+    if(!['whatsapp','sms','email'].includes(channel)||!state.printInvoice)return;
+    const url=state.printInvoice.shareLinks[channel];
+    if(channel==='whatsapp')window.open(url,'_blank','noopener,noreferrer');
+    else window.location.href=url;
+    return;
+  }
+  if(action==='copy-invoice-upi'){
+    const link=state.printInvoice?.upiUri;
+    if(!link)return;
+    perform('copy-invoice-upi',el,async()=>{
+      if(!navigator.clipboard?.writeText)throw new Error('Clipboard access is unavailable; use the UPI link in the invoice preview.');
+      await navigator.clipboard.writeText(link);
+      toast('UPI payment link copied. Payment is not automatically confirmed.');
+    });
     return;
   }
   if(action==='delete'){
