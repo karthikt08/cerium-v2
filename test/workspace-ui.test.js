@@ -59,11 +59,11 @@ test('desktop sidebar collapses to an accessible icon rail without changing mobi
 
 test('collapsed desktop sidebar hides scrollbar chrome but remains scrollable',()=>{
  const css=read('css/workspace.css');
- const collapsedRule=/\\.app-page \\.workspace\\.sidebar-collapsed \\.navigation-scroll\\{([^}]*)\\}/.exec(css);
+ const collapsedRule=/\.app-page \.workspace\.sidebar-collapsed \.navigation-scroll\{([^}]*)\}/.exec(css);
  assert.ok(collapsedRule,'collapsed sidebar must have a scoped scroll rule');
  assert.match(collapsedRule[1],/overflow-y:auto/,'wheel, touch, and keyboard scrolling remain available');
  assert.match(collapsedRule[1],/scrollbar-width:none/,'hide Firefox and modern browser scrollbar');
  assert.match(collapsedRule[1],/-ms-overflow-style:none/,'hide legacy Edge scrollbar');
- assert.match(css,/\\.app-page \\.workspace\\.sidebar-collapsed \\.navigation-scroll::-webkit-scrollbar\\{[^}]*display:none/,'hide Chromium scrollbar and arrow buttons');
- assert.match(css,/\\.navigation-scroll\\{overflow:auto/,'expanded sidebar retains scrolling');
+ assert.match(css,/\.app-page \.workspace\.sidebar-collapsed \.navigation-scroll::-webkit-scrollbar\{[^}]*display:none/,'hide Chromium scrollbar and arrow buttons');
+ assert.match(css,/\.navigation-scroll\{overflow:auto/,'expanded sidebar retains scrolling');
 });
