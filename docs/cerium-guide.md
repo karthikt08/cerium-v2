@@ -28,6 +28,12 @@ Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknow
   - **Crew dispatch & conflict resolution:** Identify overlapping technician slots in Jobs & dispatch and record briefing notes in Follow-ups (`jobs` → `followups`).
   - **Customer review requests:** Mark completed jobs as Done and send feedback requests in Reviews (`jobs` → `reviews`).
   - **Month-end financial closeout & tax export:** Verify balances in Invoices and Payments, then export complete accounting records from Settings (`invoices` → `payments` → `settings`).
+- **Domain intelligence & contractor operational expertise:**
+  - **Contractor best practices & policies:** Guides users on payment terms (Due on receipt vs Net 15/30), upfront customer deposits (20–50% retainers before dispatch), change orders (revised estimates for out-of-scope work), delinquent client escalation protocols, job costing and markup formulas (overhead allocation + 30–50% markup), and intrastate vs. interstate GST tax rules.
+  - **Estimate vs. invoice comparative clarification:** Distinguishes pre-work proposals from post-work payment requests and surfaces dual direct-action buttons (`quotes` and `invoices`).
+  - **Intelligent multi-turn follow-ups:** Subsequent questions leverage the verified prior section context (e.g. handling amount mismatches or undoing bank matches in Payments; setting terms and previewing tax subtotals in Invoices).
+  - **Context-adaptive suggestion chips:** Suggestion chips dynamically update to match the active workspace module on navigation (`overview`, `invoices`, `quotes`, `jobs`, `leads`, `payments`, `reminders`, `followups`, `reviews`, `settings`).
+  - **Smart intent disambiguation:** Broad queries (`pricing`, `billing`, `scheduling`, `taxes`) offer structured disambiguation with dual destination buttons rather than generic fallbacks.
 - Unsupported or vague requests return a clarification with **no guessed destination**, regardless of the currently open section.
 - Messages and chat context are not written to the database. Only a single verified prior section name is sent from the browser to the authenticated guide endpoint; that name is not forwarded to any AI provider.
 

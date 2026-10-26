@@ -8,7 +8,7 @@ import {answerGuide} from '../server/guide-assistant.js';
 import {startServer,signIn,ALICE} from './helpers.js';
 
 test('greetings and social turns never navigate based on the current tab',async()=>{
-  for(const question of ['hi','Hi!','hello','hey there','good morning','how are you','thanks','thank you','help','what can you do','wtf']){
+  for(const question of ['hi','Hi!','hello','hey there','good morning','how are you','thanks','thank you','thx','ty','cheers','what can you do','wtf']){
     for(const provider of ['guide','navlm','openai','ollama']){
       let invoked=false;
       const reply=await answerGuide(question,'settings',{
@@ -171,4 +171,63 @@ test('cross-feature advanced tasks workflows produce verified multi-step guidanc
   assert.equal(advCaps.type,'conversation');
   assert.equal(advCaps.kind,'capabilities');
   assert.match(advCaps.reply,/multi-step operations/i);
+});
+
+test('domain intelligence answers contractor operating questions and disambiguates broad intents',async()=>{
+  // 1. Daily operating briefing / what to do today
+  const daily=await answerGuide('What should I do today?','overview',{provider:'guide'});
+  assert.equal(daily.type,'workflow');
+  assert.deepEqual(daily.actions.map(item=>item.section),['overview','jobs','followups','invoices']);
+  assert.match(daily.reply,/Jobs & dispatch/);
+
+  // 2. Upfront deposit workflow
+  const deposit=await answerGuide('How do I collect a deposit before starting work?','overview',{provider:'guide'});
+  assert.equal(deposit.type,'workflow');
+  assert.deepEqual(deposit.actions.map(item=>item.section),['quotes','invoices','payments','jobs']);
+  assert.match(deposit.reply,/deposit terms/i);
+
+  // 3. Change order workflow
+  const changeOrder=await answerGuide('How do I handle a change order for extra work?','overview',{provider:'guide'});
+  assert.equal(changeOrder.type,'workflow');
+  assert.deepEqual(changeOrder.actions.map(item=>item.section),['quotes','jobs','invoices']);
+  assert.match(changeOrder.reply,/revised estimate/i);
+
+  // 4. Contractor payment terms best practices
+  const terms=await answerGuide('What payment terms should I offer?','invoices',{provider:'guide'});
+  assert.equal(terms.section,'invoices');
+  assert.match(terms.reply,/Due on receipt/i);
+  assert.match(terms.reply,/Net 15/i);
+
+  // 5. Estimate vs invoice clarification
+  const diff=await answerGuide('What is the difference between an estimate and an invoice?','quotes',{provider:'guide'});
+  assert.equal(diff.type,'workflow');
+  assert.deepEqual(diff.actions.map(item=>item.section),['quotes','invoices']);
+  assert.match(diff.reply,/Estimates are proposals/i);
+  assert.match(diff.reply,/Invoices are payment requests/i);
+
+  // 6. Intelligent multi-turn follow-up on payments (amount mismatch)
+  const paymentFollowup=await answerGuide('What if the amount does not match?','overview',{provider:'guide',lastSection:'payments'});
+  assert.equal(paymentFollowup.kind,'followup');
+  assert.equal(paymentFollowup.section,'payments');
+  assert.match(paymentFollowup.reply,/partial payment/i);
+  assert.match(paymentFollowup.reply,/Undo match/i);
+
+  // 7. Intelligent multi-turn follow-up on invoices (payment terms)
+  const invoiceFollowup=await answerGuide('What payment terms can I set?','overview',{provider:'guide',lastSection:'invoices'});
+  assert.equal(invoiceFollowup.kind,'followup');
+  assert.equal(invoiceFollowup.section,'invoices');
+  assert.match(invoiceFollowup.reply,/Due on receipt/i);
+
+  // 8. Smart Disambiguations for broad terms
+  const pricing=await answerGuide('pricing','overview',{provider:'guide'});
+  assert.equal(pricing.type,'workflow');
+  assert.deepEqual(pricing.actions.map(item=>item.section),['quotes','invoices']);
+
+  const billing=await answerGuide('billing','overview',{provider:'guide'});
+  assert.equal(billing.type,'workflow');
+  assert.deepEqual(billing.actions.map(item=>item.section),['invoices','payments']);
+
+  const scheduling=await answerGuide('scheduling','overview',{provider:'guide'});
+  assert.equal(scheduling.type,'workflow');
+  assert.deepEqual(scheduling.actions.map(item=>item.section),['jobs','reminders']);
 });

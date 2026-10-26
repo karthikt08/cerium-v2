@@ -4,6 +4,69 @@ import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
 import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
 
+const CONTEXT_SUGGESTIONS = {
+  overview: [
+    { prompt: "Which Cerium tools should I use for my business?", label: "Recommend tools" },
+    { prompt: "How do I convert an accepted quote into a scheduled job and invoice?", label: "Quote to invoice" },
+    { prompt: "How do I reconcile bank deposits with invoices?", label: "Reconcile deposits" },
+    { prompt: "How do I prepare a GST tax invoice with line item rates?", label: "GST tax invoice" },
+    { prompt: "How do I import an Excel spreadsheet?", label: "Import Excel" },
+    { prompt: "What should I focus on today?", label: "Daily priorities" }
+  ],
+  invoices: [
+    { prompt: "How can I save an invoice PDF?", label: "Save invoice PDF" },
+    { prompt: "How do I prepare a GST tax invoice with line item rates?", label: "GST tax invoice" },
+    { prompt: "What payment terms should I offer for contractor invoices?", label: "Payment terms" },
+    { prompt: "How do I handle partial payments and reconcile invoices?", label: "Reconcile deposits" },
+    { prompt: "How do I handle a customer who won't pay?", label: "Past due escalation" }
+  ],
+  quotes: [
+    { prompt: "How do I convert an accepted quote into a scheduled job and invoice?", label: "Quote to invoice" },
+    { prompt: "What is the difference between an estimate and an invoice?", label: "Estimate vs invoice" },
+    { prompt: "How do I handle a change order for extra work?", label: "Change orders" },
+    { prompt: "How do I price jobs to be profitable?", label: "Job costing & markup" }
+  ],
+  jobs: [
+    { prompt: "How do I dispatch crew and avoid schedule conflicts?", label: "Crew dispatch" },
+    { prompt: "How do I reschedule or cancel an appointment?", label: "Reschedule job" },
+    { prompt: "How do I schedule a job and invoice it?", label: "Schedule to invoice" },
+    { prompt: "How do I request customer reviews after completing a job?", label: "Review request" }
+  ],
+  leads: [
+    { prompt: "How do I import an Excel spreadsheet?", label: "Import Excel" },
+    { prompt: "How do I import contacts and deduplicate them in Leads?", label: "Deduplicate contacts" },
+    { prompt: "How do I turn a lead into an invoice?", label: "Lead to invoice" },
+    { prompt: "How do I advance leads through pipeline stages?", label: "Pipeline stages" }
+  ],
+  payments: [
+    { prompt: "How do I reconcile bank deposits with invoices?", label: "Match deposits" },
+    { prompt: "How do I handle partial payments and reconcile invoices?", label: "Partial payments" },
+    { prompt: "How do I undo a matched bank transaction?", label: "Undo bank match" },
+    { prompt: "How do I collect an upfront deposit before starting work?", label: "Deposit workflow" }
+  ],
+  reminders: [
+    { prompt: "How do I send an automatic payment reminder?", label: "Schedule reminder" },
+    { prompt: "How do I handle a customer who won't pay?", label: "Overdue escalation" },
+    { prompt: "How do I schedule late invoice reminder follow-up?", label: "Late reminder timing" }
+  ],
+  followups: [
+    { prompt: "How do I create a callback task in Follow-ups?", label: "Create callback" },
+    { prompt: "What should I focus on today?", label: "Daily priorities" },
+    { prompt: "How do I record crew instructions in Follow-ups?", label: "Crew briefing" }
+  ],
+  reviews: [
+    { prompt: "How do I request customer reviews after completing a job?", label: "Request reviews" },
+    { prompt: "How do I get more 5-star Google reviews?", label: "Get more 5-stars" },
+    { prompt: "When is the best time to ask for a customer review?", label: "Review timing" }
+  ],
+  settings: [
+    { prompt: "How can I customize my tools?", label: "Customize tools" },
+    { prompt: "How do I close out the month and export financial records for accountant?", label: "Export for accountant" },
+    { prompt: "How do I configure GST rates and business tax settings?", label: "GST tax setup" },
+    { prompt: "Which Cerium tools should I use for my business?", label: "Recommend tools" }
+  ]
+};
+
 // A read-only workspace companion. Replies never execute writes, model-generated URLs,
 // payment actions or arbitrary browser navigation.
 export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=document.getElementById('workspace')}={}){
@@ -19,11 +82,11 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
       '<div class="guide-suggestions" id="guide-suggestions" aria-label="Try asking">'+
         '<button type="button" data-guide-prompt="Which Cerium tools should I use for my business?">Recommend tools</button>'+
-        '<button type="button" data-guide-prompt="How do I convert an accepted quote into a job and invoice?">Quote to invoice</button>'+
+        '<button type="button" data-guide-prompt="How do I convert an accepted quote into a scheduled job and invoice?">Quote to invoice</button>'+
         '<button type="button" data-guide-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits</button>'+
         '<button type="button" data-guide-prompt="How do I prepare a GST tax invoice with line item rates?">GST tax invoice</button>'+
         '<button type="button" data-guide-prompt="How do I import an Excel spreadsheet?">Import Excel</button>'+
-        '<button type="button" data-guide-prompt="How do I dispatch crew and avoid schedule conflicts?">Crew dispatch</button>'+
+        '<button type="button" data-guide-prompt="What should I focus on today?">Daily priorities</button>'+
       '</div>'+
       '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
         '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button></form>'+
@@ -43,9 +106,23 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   let lastBusinessDescription='';
   let lastSection=null;
 
+  function updateSuggestions(section){
+    const sec=GUIDE_SECTIONS.includes(section)?section:'overview';
+    const list=CONTEXT_SUGGESTIONS[sec]||CONTEXT_SUGGESTIONS.overview;
+    suggestions.innerHTML='';
+    for(const item of list){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.dataset.guidePrompt=item.prompt;
+      btn.textContent=item.label;
+      suggestions.append(btn);
+    }
+  }
+
   function openGuide(){
     panel.hidden=false;
     trigger.setAttribute('aria-expanded','true');
+    updateSuggestions(getSection?.());
     input.focus();
   }
   function closeGuide(){
@@ -249,6 +326,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       if(workflow)lastSection=null;
       renderGuideLinks(safe,clean);
       if(GUIDE_SECTIONS.includes(safe.section))lastSection=safe.section;
+      updateSuggestions(getSection?.());
       suggestions.hidden=!(conversational||uncertain||safe.needsMoreInfo);
     }finally{
       pending=false;
@@ -280,4 +358,5 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&!panel.hidden){event.preventDefault();closeGuide();}
   });
+  window.addEventListener('hashchange',()=>updateSuggestions(getSection?.()));
 }
