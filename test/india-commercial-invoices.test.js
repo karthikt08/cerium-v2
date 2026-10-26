@@ -118,5 +118,5 @@ test('India invoice dialog differentiates commercial and GST invoices without re
   assert.match(ui,/prepareIndiaInvoicePayload\(values,indiaInvoiceMode/);
   assert.match(ui,/This is not a GST tax invoice/);
   assert.match(ui,/gst\?'DRAFT GST TAX INVOICE':'INVOICE'/);
-  assert.match(ui,/invoicePrint/);
+  assert.match(ui,/openInvoicePrint/);
 });
