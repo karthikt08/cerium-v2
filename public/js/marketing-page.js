@@ -3,14 +3,12 @@
 import {marketingInsights,draftMarketingCopy,marketingFollowUp} from './marketing-model.js';
 import {escapeHTML as esc} from './workspace-model.js';
 import {businessLocalDate} from './us-market.js';
+import {MARKETING_FEATURE_TABS,marketingFeatureFromHash} from './marketing-features.js';
+export {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
 const arrow='<span aria-hidden="true">→</span>';
 const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="marketing-link">'+esc(label)+' '+arrow+'</a>';
-const tabs=[
-  {key:'visibility',label:'Get found and chosen'},
-  {key:'reengage',label:'Re-book and re-engage'},
-  {key:'performance',label:'Track performance'}
-];
+const tabs=MARKETING_FEATURE_TABS;
 export function renderMarketingPage(ws){
   const today=businessLocalDate(ws?.account?.timeZone);
   const data=marketingInsights(ws,today);
@@ -27,36 +25,23 @@ export function renderMarketingPage(ws){
   ).join(''):'<div class="marketing-empty marketing-empty-action"><span class="marketing-empty-mark" aria-hidden="true">↗</span><strong>No check-ins to suggest just yet</strong><span>This list uses paid invoices older than 30 days and excludes customers who already have an open follow-up.</span></div>';
   const priorities=data.priorities.slice(0,3).map((item,index)=>
     '<div class="marketing-priority"><span class="marketing-priority-index">0'+(index+1)+'</span><div><strong>'+esc(item.title)+'</strong><p>'+esc(item.reason)+'</p></div></div>').join('');
-  const signal=(label,count,detail)=>'<div class="marketing-signal"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(detail)+'</small></div>';
   const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
   return '<section class="marketing-page" data-marketing-page>'+
-    '<header class="marketing-hero">'+
-      '<div class="marketing-hero-copy"><span class="marketing-tag"><span class="marketing-tag-dot" aria-hidden="true"></span> CERIUM / MARKETING</span>'+
-        '<h1>Good work.<br><em>More customers.</em></h1>'+
-        '<p>Get discovered, stay remembered, and give people a reason to come back. Built around your business—not a collection of marketing gimmicks.</p>'+
-        '<div class="marketing-hero-actions"><button type="button" class="marketing-hero-cta" data-marketing-jump="visibility">Create a message <span aria-hidden="true">↗</span></button>'+
-          '<button type="button" class="marketing-hero-secondary" data-marketing-jump="performance">View your activity '+arrow+'</button></div>'+
+    '<header class="marketing-page-heading">'+
+      '<div class="marketing-page-heading-copy"><span class="marketing-page-eyebrow">CERIUM <span aria-hidden="true">/</span> GROW YOUR BUSINESS</span>'+
+      '<h1>Marketing <span>workspace.</span></h1>'+
+      '<p>One place to get discovered, reconnect with customers and understand what is working.</p></div>'+
+      '<div class="marketing-page-summary" aria-label="Recorded marketing activity"><span class="marketing-page-summary-label">YOUR ACTIVITY</span>'+
+        '<strong>'+esc(data.totalLeads)+' <span>leads</span></strong><small>'+esc(data.reviewsReceived)+' reviews marked received · '+esc(data.repeatCustomers)+' returning customers</small>'+
       '</div>'+
-      '<div class="marketing-hero-visual" aria-hidden="true">'+
-        '<div class="marketing-orbit orbit-one" aria-hidden="true"></div><div class="marketing-orbit orbit-two" aria-hidden="true"></div>'+
-        '<div class="marketing-orbit-center"><small>YOUR CUSTOMER CIRCLE</small><span class="marketing-orbit-figure">'+esc(data.totalLeads)+'</span><strong>leads recorded</strong></div>'+
-        '<div class="marketing-float marketing-float-top"><span class="marketing-float-dot" aria-hidden="true"></span><div><strong>'+esc(data.reviewsReceived)+'</strong><small>reviews marked received</small></div></div>'+
-        '<div class="marketing-float marketing-float-bottom"><span class="marketing-float-symbol" aria-hidden="true">↗</span><div><strong>'+esc(data.repeatCustomers)+'</strong><small>repeat paid customers</small></div></div>'+
-      '</div>'+
-      '<div class="marketing-hero-foot"><span class="marketing-hero-label">MEASURE WHAT YOU ACTUALLY KNOW</span><span>Based on your Cerium workspace records</span></div>'+
     '</header>'+
-    '<div class="marketing-pulsebar" aria-label="Recorded marketing activity">'+
-      signal('Leads recorded',data.totalLeads,'Lead records')+
-      signal('Review requests',data.reviewRequests,'Marked sent or received')+
-      signal('Reviews received',data.reviewsReceived,'Recorded statuses')+
-      signal('Returning customers',data.repeatCustomers,'2+ paid invoices')+
-    '</div>'+
-    '<div class="marketing-layout"><nav class="marketing-switcher" role="tablist" aria-label="Marketing areas">'+
-      '<p class="marketing-switcher-title">Your marketing, organized</p>'+
-      tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'" tabindex="'+(index===0?'0':'-1')+'">'+
-        '<span class="marketing-tab-number">0'+(index+1)+'</span><span class="marketing-tab-copy"><strong>'+esc(item.label)+'</strong><small>'+esc(['Reach & reputation','Customer relationships','What the records show'][index])+'</small></span><span class="marketing-tab-arrow" aria-hidden="true">↗</span></button>').join('')+
-      '<p class="marketing-nav-note"><span class="marketing-lock" aria-hidden="true">✓</span> All marketing content stays under your control.</p>'+
-    '</nav><div class="marketing-main">'+
+    '<div class="marketing-layout">'+
+      '<nav class="marketing-switcher" role="tablist" aria-label="Marketing features">'+
+        tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'" tabindex="'+(index===0?'0':'-1')+'" title="'+esc(item.label)+'">'+
+          '<span class="marketing-tab-number">'+String(index+1).padStart(2,'0')+'</span><span class="marketing-tab-copy"><strong>'+esc(item.label)+'</strong></span>'+
+        '</button>').join('')+
+      '</nav>'+
+      '<div class="marketing-main">'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-visibility" aria-labelledby="marketing-tab-visibility" data-marketing-panel="visibility">'+
       '<header class="marketing-section-heading"><div><span class="marketing-kicker">01 / REACH & REPUTATION</span><h2>Give people a reason<br>to choose you.</h2>'+
         '<p class="marketing-description">Your work builds your reputation. Make it easier for people to see it and hear from you.</p></div>'+
@@ -115,7 +100,7 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
     for(const panel of page.querySelectorAll('[data-marketing-panel]'))
       panel.hidden=panel.dataset.marketingPanel!==selected;
   };
-  const deepLink=()=>/^#marketing\/(visibility|reengage|performance)$/.exec(location.hash)?.[1]||'visibility';
+  const deepLink=()=>marketingFeatureFromHash(location.hash)||tabs[0].key;
   choose(deepLink());
   const navigateTo=key=>{
     if(!tabs.some(t=>t.key===key))return;
@@ -123,6 +108,7 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
     // A shareable deep link without remounting the page or erasing an edited draft.
     const hash='#marketing/'+key;
     if(location.hash!==hash)history.replaceState(null,'',hash);
+    page.querySelector('#marketing-tab-'+key)?.scrollIntoView?.({block:'nearest',inline:'nearest'});
   };
   page.addEventListener('keydown',event=>{
     const tab=event.target.closest('[data-marketing-tab]');

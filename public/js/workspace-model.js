@@ -1,5 +1,6 @@
 // Shared, side-effect-free workspace rules.
 import {businessLocalDate} from './us-market.js';
+import {marketingFeatureFromHash} from './marketing-features.js';
 export const SECTIONS = {
   overview: ['Overview', 'Your day at a glance.'],
   reminders: ['Payment reminders', 'Schedule approved customer reminders.'],
@@ -76,7 +77,7 @@ export function safeReviewURL(value) {
 }
 export function routeFromHash(hash) {
   const path = String(hash || '').replace(/^#/, '');
-  const name = /^marketing\/(visibility|reengage|performance)$/.test(path)?'marketing':path;
+  const name = marketingFeatureFromHash(hash)?'marketing':path;
   const alias = {today:'overview',bank:'payments',account:'settings',messages:'support'};
   return SECTIONS[alias[name] || name] ? (alias[name] || name) : 'overview';
 }

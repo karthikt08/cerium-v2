@@ -1,6 +1,7 @@
 // Trusted destinations for Cerium Guide. Model text never controls a URL.
 // Hashes below must map to an actual page (or a Marketing tab) in this app.
 import {GUIDE_SECTIONS} from './guide-knowledge.js';
+import {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
 const PAGES={
   overview:{href:'#overview',label:'Overview'},
@@ -16,11 +17,7 @@ const PAGES={
   support:{href:'#support',label:'Help & feedback'},
   marketing:{href:'#marketing',label:'Marketing'}
 };
-const MARKETING_AREAS={
-  visibility:{href:'#marketing/visibility',label:'Get found and chosen'},
-  reengage:{href:'#marketing/reengage',label:'Re-book and re-engage'},
-  performance:{href:'#marketing/performance',label:'Track performance'}
-};
+const MARKETING_AREAS=Object.fromEntries(MARKETING_FEATURE_TABS.map(tab=>[tab.key,{href:'#marketing/'+tab.key,label:tab.label}]));
 const ALL=[...Object.values(PAGES),...Object.values(MARKETING_AREAS)];
 const HASHES=new Map(ALL.map(item=>[item.href,item]));
 export function trustedGuideLink(href){
@@ -51,7 +48,7 @@ export function guideNavigationLinks(result,question=''){
     return links;
   }
   if(!GUIDE_SECTIONS.includes(result.section))return [];
-  // Marketing has three distinct deep links, useful even from other sections.
+  // Marketing deep links are drawn from the same checked feature registry as the tabs.
   if(result.section==='marketing'){
     if(/\b(?:re.?book|re.?engag|returning|repeat customers?|retention|past customers?|win.?back)\b/.test(query)){
       add('#marketing/reengage');
@@ -63,9 +60,7 @@ export function guideNavigationLinks(result,question=''){
       add('#marketing/visibility');
       add('#reviews');
     }else{
-      add('#marketing/visibility');
-      add('#marketing/reengage');
-      add('#marketing/performance');
+      for(const feature of MARKETING_FEATURE_TABS.slice(0,5))add('#marketing/'+feature.key);
     }
     return links;
   }
