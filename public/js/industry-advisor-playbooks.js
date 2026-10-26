@@ -194,7 +194,7 @@ for(const id of all){
 }
 const aliases=[
   {id:'construction',test:/\b(?:construction|builder|building|renovat\w*|remodel\w*|civil works?|general contract\w*|site work)\b/i},
-  {id:'plumbing',test:/\b(?:plumb\w*|pipe repair|drain cleaning|water heater)\b/i},
+  {id:'plumbing',test:/\b(?:plumb\w*|pipe repair\w*|drain clean\w*|water heater)\b/i},
   {id:'electrical',test:/\b(?:electric\w*|wiring|switchboard|power install|panel install)\b/i},
   {id:'hvac',test:/\b(?:hvac|heating|ventilation|air.condition\w*|refrigerat\w*|ac repair)\b/i},
   {id:'cleaning',test:/\b(?:clean\w*|janitor\w*|housekeep\w*|maid service|property maintenance)\b/i},
