@@ -96,8 +96,8 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
     action.textContent='Review suggested tools in Settings →';
     action.addEventListener('click',()=>{
       const modules=items.map(x=>x.id);
-      document.dispatchEvent(new CustomEvent('cerium:review-tools',{detail:{modules}}));
       closeGuide();
+      document.dispatchEvent(new CustomEvent('cerium:review-tools',{detail:{modules}}));
     });
     container.append(action);
     messages.append(container);
