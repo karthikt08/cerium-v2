@@ -1,165 +1,287 @@
-/* CERIUM MARKETING — expandable top-tab workbench.
-   Tab keys and panels are registered in marketing-page.js.
-   Future features add another tab and panel; tabs automatically scroll. */
-.marketing-page{--m-ink:#20263e;--m-muted:#766f85;--m-violet:#704ac5;--m-border:#cbbde4;--m-paper:#fff;color:var(--m-ink);padding:2px 0 34px;min-width:0}
+/* Marketing uses Cerium's workspace design tokens, not a second design system.
+   Keep the angled feature tabs and one generous, horizontally extensible panel. */
+.marketing-page{
+  --marketing-ink:var(--cerium-ui-ink,#202635);
+  --marketing-muted:var(--cerium-ui-muted,#64748b);
+  --marketing-border:var(--cerium-ui-border,#dfe4ed);
+  --marketing-soft:var(--cerium-ui-subtle,#f7f9fd);
+  --marketing-accent:var(--cerium-ui-primary,#4b4bd1);
+  --marketing-focus:var(--cerium-ui-focus,#7f80db);
+  color:var(--marketing-ink);padding:0 0 30px;min-width:0
+}
 .marketing-page *{box-sizing:border-box}
 .marketing-page [hidden]{display:none!important}
 .marketing-page :is(button,input,select,textarea){font-family:inherit}
 .marketing-page :is(button,a){touch-action:manipulation}
-.marketing-page :is(button,a,input,select,textarea):focus-visible{outline:3px solid #9f80e6;outline-offset:3px}
-
-/* Low-profile heading reserves most of the screen for the active feature. */
-.marketing-page-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:13px 3px 21px;min-width:0}
+.marketing-page :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid var(--marketing-focus);outline-offset:2px
+}
+/* Compact heading borrows the proportions of other Cerium workspace pages. */
+.marketing-page-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:24px;padding:10px 0 23px;min-width:0
+}
 .marketing-page-heading-copy{min-width:0}
-.marketing-page-eyebrow{display:flex;align-items:center;gap:8px;color:#7155aa;font-size:10px;font-weight:850;letter-spacing:.16em;line-height:1.4}
-.marketing-page-eyebrow span{color:#aaa0c0}
-.marketing-page-heading h1{margin:9px 0 7px;color:#1e2540;font-size:clamp(26px,3.5vw,40px);font-weight:850;letter-spacing:-.05em;line-height:1.12}
-.marketing-page-heading h1 span{color:#7554bf}
-.marketing-page-heading p{color:#736d81;margin:0;max-width:690px;font-size:12.5px;line-height:1.6}
-.marketing-page-summary{display:flex;flex-direction:column;gap:4px;align-items:flex-start;flex:0 0 auto;padding:11px 15px;background:#f7f4fc;border:1px solid #e4ddec;border-radius:11px;min-width:155px}
-.marketing-page-summary-label{color:#8b78b0;font-size:9px;font-weight:850;letter-spacing:.12em}
-.marketing-page-summary strong{color:#362b5a;font-size:22px;letter-spacing:-.03em;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums}
-.marketing-page-summary strong span{font-size:12px;letter-spacing:0;color:#685b80}
-.marketing-page-summary small{font-size:9px;color:#8b829b;line-height:1.4}
+.marketing-page-eyebrow{
+  display:flex;align-items:center;gap:8px;color:#7465a2;
+  font-size:10px;font-weight:700;letter-spacing:.12em;line-height:1.4
+}
+.marketing-page-eyebrow span{color:#a39bb2}
+.marketing-page-heading h1{
+  margin:6px 0 6px;color:#292b43;
+  font-size:clamp(25px,3vw,34px);font-weight:750;
+  letter-spacing:-.038em;line-height:1.2
+}
+.marketing-page-heading h1 span{color:#5045a0}
+.marketing-page-heading p{max-width:690px;color:#666b80;margin:0;font-size:12.5px;line-height:1.6}
+.marketing-page-summary{
+  flex:0 0 auto;min-width:160px;display:grid;gap:3px;
+  padding:11px 15px;background:linear-gradient(140deg,#fff,#faf9fe);
+  border:1px solid #e3dfec;border-radius:var(--cerium-ui-radius,9px);
+  box-shadow:0 5px 16px -14px rgba(88,70,153,.16)
+}
+.marketing-page-summary-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:#80779a}
+.marketing-page-summary strong{font-size:21px;font-weight:750;line-height:1.16;color:#33344e;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.marketing-page-summary strong span{font-size:12px;font-weight:650;letter-spacing:0;color:#6b6880}
+.marketing-page-summary small{font-size:10px;line-height:1.4;color:#868197}
 
-/* Angled tab rail, flush against one generous shared work surface. */
+/* Browser-like angled tabs, but rendered as normal Cerium product controls.
+   The top border on the selected tab and shared surface are gentle branded accents. */
 .marketing-layout{display:block;width:100%;min-width:0}
-.marketing-switcher{position:relative;z-index:2;display:flex;flex-wrap:nowrap;align-items:flex-end;gap:0;width:100%;min-height:53px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#c8b7e9 transparent;scroll-padding-inline:4px;padding:0 5px 0 0}
+.marketing-switcher{
+  position:relative;z-index:2;display:flex;flex-wrap:nowrap;align-items:flex-end;gap:0;
+  width:100%;min-height:47px;padding:0 8px 0 0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;scrollbar-color:#d6cee6 transparent;scroll-padding-inline:8px
+}
 .marketing-switcher::-webkit-scrollbar{height:4px}
-.marketing-switcher::-webkit-scrollbar-thumb{background:#c8b7e9;border-radius:999px}
-.marketing-tab{--clip:21px;position:relative;z-index:1;flex:0 0 auto;display:flex;align-items:center;gap:10px;min-width:196px;max-width:264px;height:50px;margin:0 -10px 0 0;padding:7px 33px 7px 18px;border:0;border-radius:0;background:transparent;color:#625873;white-space:nowrap;cursor:pointer;text-align:left;transition:color .15s ease,filter .15s ease}
-.marketing-tab::before,.marketing-tab::after{content:"";position:absolute;pointer-events:none;clip-path:polygon(0 0,calc(100% - var(--clip)) 0,100% 100%,0 100%);transition:background-color .15s ease}
-.marketing-tab::before{z-index:-2;inset:0;background:#d2c9df}
-.marketing-tab::after{z-index:-1;inset:2px 2px 0 2px;background:#f0edf6}
-.marketing-tab:hover:not(.active){color:#503889;z-index:2}
-.marketing-tab:hover:not(.active)::after{background:#e6dff7}
-.marketing-tab.active{z-index:4;color:#3e2875}
-.marketing-tab.active::before{background:#9273cd}
-.marketing-tab.active::after{background:#fff}
-.marketing-tab-number{color:#9d90af;font-size:10px;font-weight:850;line-height:1.2;letter-spacing:.04em}
-.marketing-tab.active .marketing-tab-number{color:#7755b5}
+.marketing-switcher::-webkit-scrollbar-thumb{background:#d6cee6;border-radius:12px}
+.marketing-tab{
+  --clip:17px;position:relative;z-index:1;flex:0 0 auto;
+  display:flex;align-items:center;gap:10px;min-width:175px;max-width:260px;
+  height:44px;margin:0 -8px 0 0;padding:7px 29px 7px 15px;
+  border:0;background:transparent;color:#6a6b80;
+  text-align:left;white-space:nowrap;cursor:pointer;
+  transition:color .18s ease,filter .18s ease
+}
+.marketing-tab::before,.marketing-tab::after{
+  content:"";position:absolute;pointer-events:none;
+  clip-path:polygon(0 0,calc(100% - var(--clip)) 0,100% 100%,0 100%);
+  transition:background .18s ease
+}
+.marketing-tab::before{z-index:-2;inset:0;background:#e1dfeb}
+.marketing-tab::after{z-index:-1;inset:1px 1px 0 1px;background:#f5f4fa}
+.marketing-tab:hover:not(.active){color:#49428a;z-index:2}
+.marketing-tab:hover:not(.active)::after{background:#eeebfb}
+.marketing-tab.active{color:#403c89;z-index:4}
+.marketing-tab.active::before{background:#c9c3e5}
+.marketing-tab.active::after{
+  background:
+    linear-gradient(90deg,#6374dd 0%,#7d65c9 64%,#b283d1 100%) top left / calc(100% - 1px) 3px no-repeat,
+    #fff
+}
+.marketing-tab-number{color:#9b98aa;font-size:10px;font-weight:700;line-height:1.3;letter-spacing:.03em}
+.marketing-tab.active .marketing-tab-number{color:#6860ab}
 .marketing-tab-copy{min-width:0}
-.marketing-tab-copy strong{font-size:12.5px;font-weight:800;line-height:1.35;letter-spacing:-.015em}
-.marketing-main{position:relative;z-index:1;margin-top:-1px;min-height:max(520px,calc(100dvh - 280px));padding:32px 37px 39px;background:#fff;border:2px solid #c9b9e6;border-radius:0 16px 16px 16px;box-shadow:0 17px 40px rgba(51,40,93,.045);min-width:0}
-.marketing-main [role=tabpanel]{outline:none}
-.marketing-main [role=tabpanel]:focus-visible{outline:3px solid #9d7fec;outline-offset:5px;border-radius:5px}
+.marketing-tab-copy strong{font-size:12px;font-weight:700;line-height:1.35;letter-spacing:-.01em}
+.marketing-main{
+  position:relative;z-index:1;min-width:0;
+  margin-top:-1px;min-height:max(520px,calc(100dvh - 265px));
+  padding:28px 32px 35px;background:#fff;
+  border:1px solid #dcd9e9;border-radius:0 12px 12px 12px;
+  box-shadow:inset 0 1px 0 #fff,0 13px 30px -28px rgba(92,68,168,.17)
+}
+.marketing-main::before{
+  content:"";position:absolute;z-index:0;top:0;right:12px;width:min(175px,35%);
+  height:2px;background:var(--cerium-vibrant-gradient,linear-gradient(90deg,#5068db,#7359c9,#ae78d1));
+  opacity:.45;pointer-events:none
+}
+.marketing-main [role=tabpanel]{outline:none;position:relative;z-index:1}
+.marketing-main [role=tabpanel]:focus-visible{outline:3px solid var(--marketing-focus);outline-offset:4px;border-radius:5px}
 
-/* Shared feature content typography */
-.marketing-section-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;margin-bottom:14px}
-.marketing-kicker,.marketing-eyebrow{display:block;color:#7954bb;font-size:10px;font-weight:850;letter-spacing:.13em;line-height:1.3;margin:0 0 12px}
-.marketing-section-heading h2{font-size:clamp(26px,3.1vw,39px);color:#232944;font-weight:850;letter-spacing:-.045em;line-height:1.15;margin:0 0 11px}
-.marketing-description{max-width:630px;color:#746d81;font-size:13px;line-height:1.7;margin:0}
-.marketing-section-symbol{display:grid;place-items:center;flex:0 0 42px;height:42px;border:1px solid #e2d8f2;border-radius:11px;background:#f5f0fd;color:#7a58bd;font-size:24px;transform:rotate(-5deg)}
-.marketing-actions{display:flex;align-items:center;flex-wrap:wrap;gap:13px;margin:13px 0 25px}
-.marketing-link{display:inline-flex;align-items:center;gap:7px;text-decoration:underline;text-decoration-color:#bca8df;text-underline-offset:4px;color:#6845b1;font-size:12px;font-weight:750;line-height:1.4}
-.marketing-link:hover{color:#432878;text-decoration-color:currentColor}
-.marketing-link span{font-size:15px}
+/* Headings and in-product navigation match Settings, Jobs and Leads. */
+.marketing-section-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
+.marketing-kicker,.marketing-eyebrow{
+  display:block;color:#71639d;font-size:10px;font-weight:700;
+  letter-spacing:.11em;line-height:1.35;margin:0 0 10px
+}
+.marketing-section-heading h2{
+  font-size:clamp(22px,2.6vw,29px);line-height:1.22;
+  color:#2d304b;font-weight:750;letter-spacing:-.03em;margin:0 0 9px
+}
+.marketing-description{max-width:635px;color:#696d80;font-size:12.5px;line-height:1.65;margin:0}
+.marketing-section-symbol{
+  display:grid;place-items:center;flex:0 0 38px;height:38px;
+  border:1px solid #e1ddec;border-radius:var(--cerium-ui-radius,9px);
+  background:#f4f1fa;color:#7062aa;font-size:20px;transform:none
+}
+.marketing-actions{display:flex;align-items:center;flex-wrap:wrap;gap:15px;margin:14px 0 23px}
+.marketing-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#5246a6;text-decoration:underline;text-decoration-color:#c8bee8;
+  text-underline-offset:4px;font-size:12px;font-weight:650;line-height:1.4
+}
+.marketing-link:hover{color:#3f348f;text-decoration-color:currentColor}
+.marketing-link span{font-size:14px}
 
-/* Feature one: functional editor with clear, modest prioritization. */
-.marketing-feature-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(205px,.75fr);gap:23px;align-items:start}
-.marketing-composer{min-width:0;border:1px solid #e4ddeb;background:#fbfaff;border-radius:13px;padding:22px}
-.marketing-composer-title{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.marketing-composer-title h3,.marketing-next-moves h3,.marketing-list-heading h3{color:#2c2d45;font-size:17px;line-height:1.25;letter-spacing:-.02em;font-weight:800;margin:0 0 6px}
-.marketing-composer-title p{color:#81798d;font-size:11px;line-height:1.55;margin:0;max-width:460px}
-.marketing-draft-badge{flex-shrink:0;background:#eee7fa;border:1px solid #dcccf3;color:#6748a1;padding:5px 8px;border-radius:6px;font-size:9px;font-weight:850;letter-spacing:.04em}
+/* Editor remains the core of feature one; secondary panel is deliberately quiet. */
+.marketing-feature-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(205px,.78fr);gap:17px;align-items:start}
+.marketing-composer{
+  min-width:0;border:1px solid #e1ddec;border-radius:12px;
+  background:linear-gradient(145deg,#fff 58%,#fcfbff 100%);
+  padding:19px 20px
+}
+.marketing-composer-title{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.marketing-composer-title h3,.marketing-next-moves h3,.marketing-list-heading h3{
+  color:#30334c;font-size:15px;line-height:1.3;letter-spacing:-.01em;font-weight:700;margin:0 0 6px
+}
+.marketing-composer-title p{color:#778093;font-size:11px;line-height:1.55;margin:0;max-width:460px}
+.marketing-draft-badge{
+  flex-shrink:0;background:#f0effb;border:1px solid #e2ddef;
+  color:#65568c;padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.04em
+}
 .marketing-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.marketing-fields label,.marketing-message-label{display:flex;flex-direction:column;gap:8px;color:#605772;font-size:11px;font-weight:700;line-height:1.35}
-.marketing-fields input,.marketing-fields select,.marketing-message-label textarea{width:100%;min-width:0;border:1px solid #d9cde8;border-radius:9px;background:#fff;color:#342d45;padding:11px;font-size:12px;font-weight:500;line-height:1.5}
-.marketing-fields :is(input,select):focus,.marketing-message-label textarea:focus{outline:none;border-color:#916ade;box-shadow:0 0 0 3px #a47be520}
-.marketing-message-label{margin-top:15px}
-.marketing-message-label textarea{min-height:210px;resize:vertical}
-.marketing-composer-actions{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px;margin-top:13px}
-.marketing-light-button,.marketing-primary-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:39px;padding:9px 13px;border-radius:8px;font-size:11.5px;font-weight:750;line-height:1.3;cursor:pointer;transition:transform .15s ease,background-color .15s ease,border-color .15s ease}
-.marketing-light-button{color:#60458c;background:#fff;border:1px solid #d9cdea}
-.marketing-light-button:hover{background:#f0eafa;border-color:#baa5df}
-.marketing-primary-button{background:#7452c7;border:1px solid #7452c7;color:#fff}
-.marketing-primary-button:hover{background:#5936af;transform:translateY(-1px)}
-.marketing-light-button:disabled,.marketing-primary-button:disabled{opacity:.5;cursor:wait}
-.marketing-fineprint{color:#847c92;font-size:10.5px;line-height:1.6;margin:13px 0 0}
-.marketing-next-moves{min-width:0;border:1px solid #e8e2ed;border-radius:12px;padding:21px;background:#fff}
-.marketing-priority-list{display:grid;gap:15px;margin:17px 0}
-.marketing-priority{display:grid;grid-template-columns:23px minmax(0,1fr);gap:10px;padding-top:15px;border-top:1px solid #ede8f1}
-.marketing-priority-index{color:#8a60c6;font-size:10px;font-weight:850;padding-top:2px}
-.marketing-priority strong{display:block;color:#3c354d;font-size:12px;line-height:1.45}
-.marketing-priority p{color:#847b91;font-size:10.5px;line-height:1.6;margin:5px 0 0}
-.marketing-aside-foot{border-top:1px solid #eee9f3;padding-top:15px;color:#8d8499;font-size:10px;line-height:1.5;margin:18px 0 0}
+.marketing-fields label,.marketing-message-label{
+  display:flex;flex-direction:column;gap:8px;
+  color:#5e6880;font-size:11.5px;font-weight:600;line-height:1.35
+}
+.marketing-fields input,.marketing-fields select,.marketing-message-label textarea{
+  display:block;width:100%;min-width:0;
+  border:1px solid var(--marketing-border);border-radius:var(--cerium-ui-radius,9px);
+  background:#fff;color:#293c55;padding:10px 12px;
+  font-size:12.5px;font-weight:500;line-height:1.5;
+  box-shadow:0 1px 2px rgba(30,50,90,.025)
+}
+.marketing-fields :is(input,select):focus,.marketing-message-label textarea:focus{
+  outline:none;border-color:#8399e8;box-shadow:0 0 0 3px rgba(114,137,239,.17)
+}
+.marketing-message-label{margin-top:14px}
+.marketing-message-label textarea{min-height:196px;resize:vertical}
+.marketing-composer-actions{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:9px;margin-top:13px}
+.marketing-page .marketing-light-button,.marketing-page .marketing-primary-button{
+  min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 14px;border-radius:var(--cerium-ui-radius,9px);
+  font-size:12px;font-weight:650;line-height:1.35;
+  cursor:pointer;box-shadow:0 1px 2px rgba(26,42,75,.035);
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease
+}
+.marketing-page .marketing-light-button{
+  background:#fff;border:1px solid var(--marketing-border);color:#536078
+}
+.marketing-page .marketing-light-button:hover:not(:disabled){
+  background:var(--marketing-soft);border-color:var(--cerium-ui-border-hover,#bcc9e3)
+}
+.marketing-page .marketing-primary-button{
+  background:var(--marketing-accent);border:1px solid transparent;color:#fff;
+  box-shadow:0 3px 8px rgba(66,99,235,.12)
+}
+.marketing-page .marketing-primary-button:hover:not(:disabled){
+  background:var(--cerium-ui-primary-hover,#4140bc);
+  box-shadow:0 6px 15px rgba(66,99,235,.15)
+}
+.marketing-page :is(.marketing-light-button,.marketing-primary-button):disabled{opacity:.56;cursor:not-allowed}
+.marketing-fineprint{color:#82899b;font-size:10.5px;line-height:1.6;margin:12px 0 0}
+.marketing-next-moves{min-width:0;border:1px solid #e4e1ed;border-radius:12px;padding:19px;background:#fff}
+.marketing-priority-list{display:grid;gap:13px;margin:15px 0}
+.marketing-priority{display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px;padding-top:13px;border-top:1px solid #eeecf4}
+.marketing-priority-index{color:#7366b7;font-size:10px;font-weight:700;padding-top:2px}
+.marketing-priority strong{display:block;color:#3a405a;font-size:11.5px;font-weight:650;line-height:1.45}
+.marketing-priority p{color:#798095;font-size:10.5px;line-height:1.6;margin:5px 0 0}
+.marketing-aside-foot{border-top:1px solid #eeecf4;padding-top:13px;color:#8b8da0;font-size:10px;line-height:1.5;margin:16px 0 0}
 
-/* Feature two: existing consent-aware follow-up flow. */
-.marketing-relationship-summary{display:flex;justify-content:space-between;align-items:center;gap:20px;background:#f7f3fd;border:1px solid #e3d9ee;border-radius:12px;padding:19px 21px;margin:10px 0 25px}
-.marketing-relationship-summary>div{display:grid;gap:3px;min-width:145px}
-.marketing-relationship-summary strong{color:#673eb3;font-size:42px;line-height:1.05;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.045em}
-.marketing-relationship-summary small{color:#776b8e;font-size:10px;line-height:1.4}
-.marketing-relationship-summary>p{color:#81748e;font-size:11px;line-height:1.6;max-width:380px;margin:0}
+/* Human-reviewed customer check-ins, with restrained workspace treatment. */
+.marketing-relationship-summary{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  background:#f8f7fc;border:1px solid #e4e1ed;border-radius:12px;
+  padding:18px 20px;margin:11px 0 23px
+}
+.marketing-relationship-summary>div{display:grid;gap:4px;min-width:145px}
+.marketing-relationship-summary strong{color:#4d4d9e;font-size:36px;line-height:1.1;font-weight:750;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.marketing-relationship-summary small{color:#737d93;font-size:10.5px;line-height:1.4}
+.marketing-relationship-summary>p{max-width:380px;color:#737c90;font-size:11px;line-height:1.6;margin:0}
 .marketing-list-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:10px 0 13px}
-.marketing-list-heading h3{font-size:15px;margin:0}
-.marketing-list-heading>span{color:#92899f;font-size:10px}
-.marketing-customer-list{border-top:1px solid #eae4ef;display:grid}
-.marketing-customer{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:12px;align-items:center;padding:15px 4px;border-bottom:1px solid #eae4ef}
-.marketing-customer-monogram{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#ede7f8;color:#734db9;font-size:15px;font-weight:850}
+.marketing-list-heading h3{font-size:14px;margin:0}
+.marketing-list-heading>span{color:#8991a1;font-size:10px}
+.marketing-customer-list{border-top:1px solid #eae9ef;display:grid}
+.marketing-customer{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:11px;align-items:center;padding:14px 3px;border-bottom:1px solid #eae9ef}
+.marketing-customer-monogram{
+  display:grid;place-items:center;width:36px;height:36px;
+  border:1px solid #e2ddef;border-radius:9px;background:#f1effb;color:#6256a1;font-size:14px;font-weight:700
+}
 .marketing-customer-details{display:grid;gap:5px;min-width:0}
-.marketing-customer strong{font-size:12px;color:#34314a;overflow-wrap:anywhere}
-.marketing-customer small{font-size:10px;line-height:1.4;color:#8c8298}
+.marketing-customer strong{color:#35394f;font-size:12px;overflow-wrap:anywhere}
+.marketing-customer small{color:#868da0;font-size:10px;line-height:1.45}
 .marketing-relationship-note{margin-top:17px}
-.marketing-empty{border:1px dashed #d9cfe7;background:#faf9fd;border-radius:12px;padding:19px;color:#807788;font-size:12px;line-height:1.6}
-.marketing-empty-action{display:grid;justify-items:center;text-align:center;gap:9px;padding:27px 19px}
-.marketing-empty-action strong{color:#51416f;font-size:12px}
+.marketing-empty{
+  border:1px dashed #dce0ea;background:#fafbfe;border-radius:12px;
+  padding:19px;color:#7e8696;font-size:12px;line-height:1.6
+}
+.marketing-empty-action{display:grid;justify-items:center;text-align:center;gap:8px;padding:26px 18px}
+.marketing-empty-action strong{color:#464b6a;font-size:12px}
 .marketing-empty-action span:last-child{max-width:400px}
-.marketing-empty-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;color:#7145bd;background:#eee6fb;font-size:22px}
+.marketing-empty-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:9px;background:#f0effb;color:#5f56a4;font-size:20px}
 
-/* Feature three: metrics are grounded in workspace records. */
-.marketing-insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 25px}
-.marketing-stat{display:grid;gap:7px;border:1px solid #e7dfea;border-radius:11px;background:#fdfcff;padding:18px 19px}
-.marketing-stat>span{font-size:11px;color:#73677e;font-weight:700;line-height:1.4}
-.marketing-stat>strong{font-size:32px;color:#44316c;font-weight:850;line-height:1.1;font-variant-numeric:tabular-nums}
-.marketing-stat>small{font-size:10px;color:#8b8497;line-height:1.5}
-.marketing-sources{margin-bottom:20px;border-top:1px solid #e9e4f0;padding-top:22px}
+/* Analytics panels match other Cerium operational summaries. */
+.marketing-insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 24px}
+.marketing-stat{
+  display:grid;gap:7px;border:1px solid #e3dfec;border-radius:12px;
+  background:linear-gradient(139deg,#fff 56%,#fcfbff 100%);padding:16px 18px;
+  box-shadow:0 9px 24px -24px rgba(111,55,219,.13)
+}
+.marketing-stat>span{font-size:10.5px;font-weight:650;line-height:1.45;color:#697487}
+.marketing-stat>strong{font-size:28px;line-height:1.15;font-weight:750;color:#32344f;font-variant-numeric:tabular-nums}
+.marketing-stat>small{font-size:10px;line-height:1.5;color:#8990a0}
+.marketing-sources{margin-bottom:19px;border-top:1px solid #e9e8ef;padding-top:21px}
 .marketing-source{margin:12px 0}
-.marketing-source>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:7px;color:#837990}
-.marketing-source strong{color:#493b64;font-weight:700;overflow-wrap:anywhere}
-.marketing-bar{height:8px;border-radius:9px;overflow:hidden;background:#efeaf5}
-.marketing-bar>span{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#6a47ba,#aa80ea)}
-.marketing-callout{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid #e5def0;border-radius:12px;background:#f8f5fc;margin:17px 0}
-.marketing-callout-mark{flex:0 0 23px;height:23px;display:grid;place-items:center;border-radius:50%;color:#6746aa;background:#e9dcfa;font-size:12px;font-weight:800}
-.marketing-callout strong{font-size:12px;color:#49395f}
-.marketing-callout p{font-size:11px;line-height:1.6;margin:5px 0 0;color:#7a6f8c}
+.marketing-source>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#7f8595;font-size:11px;margin-bottom:7px}
+.marketing-source strong{color:#4b5169;font-weight:650;overflow-wrap:anywhere}
+.marketing-bar{height:8px;border-radius:9px;overflow:hidden;background:#eef0f8}
+.marketing-bar>span{display:block;height:100%;border-radius:9px;background:var(--cerium-vibrant-gradient,linear-gradient(90deg,#5068db,#7359c9,#ae78d1))}
+.marketing-callout{display:flex;align-items:flex-start;gap:12px;padding:15px;border:1px solid #e5e1ef;border-radius:11px;background:#f9f8fd;margin:17px 0}
+.marketing-callout-mark{
+  display:grid;place-items:center;flex:0 0 23px;height:23px;border-radius:50%;
+  background:#edeafa;color:#62569a;font-size:12px;font-weight:700
+}
+.marketing-callout strong{color:#454967;font-size:11.5px;font-weight:700}
+.marketing-callout p{color:#7b8193;font-size:11px;line-height:1.6;margin:5px 0 0}
 .marketing-footer-actions{margin:18px 0 3px}
 
 @media(max-width:960px){
- .marketing-page-heading{gap:14px}
- .marketing-main{padding:24px 25px 31px}
- .marketing-feature-grid{grid-template-columns:1fr}
- .marketing-next-moves{display:block}
+  .marketing-page-heading{gap:14px}
+  .marketing-main{padding:23px 24px 30px}
+  .marketing-feature-grid{grid-template-columns:1fr}
 }
 @media(max-width:680px){
- .marketing-page{padding-top:0}
- .marketing-page-heading{align-items:flex-start;flex-direction:column;padding:8px 1px 20px;gap:13px}
- .marketing-page-heading h1{font-size:32px}
- .marketing-page-summary{width:100%;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:7px 13px;padding:9px 12px}
- .marketing-page-summary strong{font-size:18px}
- .marketing-page-summary small{flex-basis:100%}
- .marketing-switcher{min-height:53px}
- .marketing-tab{min-width:174px;max-width:225px;height:49px;padding-left:13px;padding-right:29px;gap:7px}
- .marketing-tab-copy strong{font-size:11.5px}
- .marketing-main{border-radius:0 12px 12px 12px;min-height:520px;padding:21px 17px 30px}
- .marketing-section-heading h2{font-size:clamp(24px,7vw,32px)}
- .marketing-section-symbol{display:none}
- .marketing-description{font-size:12px}
- .marketing-composer{padding:16px}
- .marketing-next-moves{padding:16px}
- .marketing-fields{grid-template-columns:1fr}
- .marketing-composer-actions>button{flex:1 1 auto}
- .marketing-relationship-summary{align-items:flex-start;flex-direction:column;gap:11px}
- .marketing-customer{grid-template-columns:38px minmax(0,1fr)}
- .marketing-customer .marketing-light-button{grid-column:2;justify-self:start}
+  .marketing-page-heading{flex-direction:column;align-items:flex-start;gap:12px;padding:7px 0 20px}
+  .marketing-page-heading h1{font-size:29px}
+  .marketing-page-summary{
+    width:100%;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 12px;padding:10px 12px
+  }
+  .marketing-page-summary strong{font-size:18px}
+  .marketing-page-summary small{flex-basis:100%}
+  .marketing-switcher{min-height:46px}
+  .marketing-tab{min-width:166px;max-width:224px;height:43px;padding-left:13px;padding-right:26px;gap:7px}
+  .marketing-tab-copy strong{font-size:11.5px}
+  .marketing-main{border-radius:0 12px 12px 12px;min-height:520px;padding:21px 17px 29px}
+  .marketing-section-heading h2{font-size:clamp(22px,6.2vw,28px)}
+  .marketing-section-symbol{display:none}
+  .marketing-description{font-size:12px}
+  .marketing-composer,.marketing-next-moves{padding:16px}
+  .marketing-fields{grid-template-columns:1fr}
+  .marketing-composer-actions>button{flex:1 1 auto}
+  .marketing-relationship-summary{align-items:flex-start;flex-direction:column;gap:11px}
+  .marketing-customer{grid-template-columns:36px minmax(0,1fr)}
+  .marketing-customer .marketing-light-button{grid-column:2;justify-self:start}
 }
 @media(max-width:420px){
- .marketing-page-heading h1{font-size:29px}
- .marketing-main{padding:19px 13px 26px}
- .marketing-tab{min-width:160px;max-width:206px}
- .marketing-tab-copy strong{font-size:10.75px}
- .marketing-insight-grid{gap:8px}
- .marketing-stat{padding:13px}
+  .marketing-page-heading h1{font-size:27px}
+  .marketing-main{padding:19px 13px 26px}
+  .marketing-tab{min-width:154px;max-width:203px}
+  .marketing-tab-copy strong{font-size:10.75px}
+  .marketing-insight-grid{gap:8px}
+  .marketing-stat{padding:13px}
 }
 @media(prefers-reduced-motion:reduce){
- .marketing-page *,.marketing-page *::before,.marketing-page *::after{transition:none!important;animation:none!important;transform:none!important;scroll-behavior:auto!important}
+  .marketing-page *,.marketing-page *::before,.marketing-page *::after{
+    transition:none!important;animation:none!important;transform:none!important;scroll-behavior:auto!important
+  }
 }
