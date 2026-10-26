@@ -20,6 +20,7 @@ import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './tr
 import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
 import {parseSpreadsheet,suggestedMapping,mappedLeads} from './spreadsheet-import.js';
 import {answerGuide,validateGuideQuestion} from './guide-assistant.js';
+import {GUIDE_SECTIONS} from '../public/js/guide-knowledge.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -762,7 +763,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const preferences=db.getWorkspacePreferences(req.session.userId);
     const answer=await answerGuide(req.body.question,req.body?.currentSection,{
       businessContext:{trade:businessUser?.trade||'',category:preferences?.category||'other',enabledModules:preferences?.modules||[]},
-      recommendTools:req.body?.recommendTools===true
+      recommendTools:req.body?.recommendTools===true,
+      lastSection:typeof req.body?.lastSection==='string'&&GUIDE_SECTIONS.includes(req.body.lastSection)?req.body.lastSection:null
     });
     return res.json(answer);
   });
