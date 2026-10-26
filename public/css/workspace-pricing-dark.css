@@ -177,16 +177,26 @@
   color:#25314b;
   box-shadow:0 16px 31px -27px rgba(3,11,27,.5);
 }
-.app-page .marketing-tab:not(.active){color:#d2d7ed}
-.app-page .marketing-tab:not(.active):hover{color:#fff}
-.app-page .marketing-switcher-title,.app-page .marketing-nav-note{color:#d4d8f0}
-.app-page .marketing-tab.active{
-  color:#f7f7ff;
-  background:linear-gradient(100deg,#384783,#573d90);
-  border-color:#8779d6;
+/* Marketing's angled tabs use ::after for their visible fill. Color that
+   surface as well, and keep the header's light summary tile legible. */
+.app-page .marketing-page-heading h1 span{color:#c4b5fd}
+.app-page .marketing-page-eyebrow{color:#b9b8e8}
+.app-page .marketing-page-eyebrow span{color:#aeb6d4}
+.app-page .marketing-tab:not(.active){color:#414665}
+.app-page .marketing-tab:not(.active):hover{color:#3c2f89}
+.app-page .marketing-tab:not(.active)::after{background:#f4f5fc}
+.app-page .marketing-tab.active{color:#fff}
+.app-page .marketing-tab.active::before{background:#7771c8}
+.app-page .marketing-tab.active::after{
+  background:
+    linear-gradient(90deg,#6374dd,#b283d1) top left / calc(100% - 1px) 3px no-repeat,
+    linear-gradient(102deg,#263a6c,#47376e);
 }
-.app-page .marketing-page-summary,.app-page .marketing-intro{color:#f4f5ff}
-.app-page .marketing-page-summary strong{color:#fff}
+.app-page .marketing-tab.active .marketing-tab-number{color:#d2c7ff}
+.app-page .marketing-page-summary{color:#39425d}
+.app-page .marketing-page-summary strong{color:#202c47}
+.app-page .marketing-page-summary strong span{color:#5f617b}
+.app-page .marketing-intro{color:#eff1fa}
 
 /* Shared dark CTA treatment echoes the dark pricing section's button.
    Semantic red/warning actions remain distinct; completed/verified is violet. */
