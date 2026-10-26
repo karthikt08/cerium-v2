@@ -1,0 +1,180 @@
+/* Landing-inspired details, scaled down for Cerium's working environment.
+   Apply only to the application: avoid decorative motion inside forms, data
+   tables, invoices, dialogs, or other high-concentration operations. */
+.app-page{
+  --workspace-violet:#7c58da;
+  --workspace-magenta:#c66ad7;
+  --workspace-blue:#4263eb;
+  --workspace-glow:rgba(116,91,218,.17);
+}
+
+/* Quiet halo and spatial grid behind only the dashboard greeting. The existing
+   magnetic cursor already supplies --cursor-x / --cursor-y on fine pointers. */
+.app-page .overview-stage{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:grid;gap:21px;
+  margin:0 0 24px;
+  padding:clamp(23px,3vw,36px) clamp(23px,3.4vw,40px);
+  border:1px solid rgba(168,167,226,.4);
+  border-radius:19px;
+  background:linear-gradient(115deg,rgba(255,255,255,.97),rgba(245,245,255,.91) 68%,rgba(252,246,255,.88));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 14px 38px -29px rgba(58,52,137,.33);
+}
+.app-page .overview-stage::before{
+  content:"";position:absolute;inset:-55%;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 34% 37% at 68% 40%,rgba(124,88,218,.17),transparent 75%),
+             radial-gradient(ellipse 27% 30% at 95% 67%,rgba(198,106,215,.13),transparent 76%);
+  transform:translate3d(calc(var(--cursor-x,0)*-35px),calc(var(--cursor-y,0)*-35px),0);
+  transition:transform .5s ease-out;
+}
+.app-page .overview-stage::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(107,105,178,.12) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(107,105,178,.12) 1px,transparent 1px);
+  background-size:42px 42px;opacity:.28;
+  -webkit-mask-image:radial-gradient(ellipse 53% 95% at 89% 45%,#000,transparent 89%);
+  mask-image:radial-gradient(ellipse 53% 95% at 89% 45%,#000,transparent 89%);
+}
+.app-page .overview-stage .page-heading{margin:0;align-items:center;gap:22px}
+.app-page .overview-stage .page-heading>div:first-child{min-width:0}
+.app-page .overview-stage .eyebrow{display:flex;align-items:center;gap:9px;color:#665e95;font-weight:750;letter-spacing:.105em}
+.app-page .overview-stage .eyebrow::before{
+  content:"";width:17px;height:3px;flex:none;border-radius:4px;
+  background:linear-gradient(90deg,var(--workspace-blue),var(--workspace-violet),var(--workspace-magenta));
+}
+.app-page .overview-stage h1{font-size:clamp(25px,3.1vw,37px);line-height:1.2;letter-spacing:-1.2px}
+.app-page .overview-stage .overview-title-accent{
+  color:#644cc6;
+  background:linear-gradient(100deg,#4263eb 0%,#7653d5 45%,#bd6bce 76%,#4263eb 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:workspace-accent-drift 10s ease-in-out infinite alternate;
+}
+@keyframes workspace-accent-drift{from{background-position:0% center}to{background-position:100% center}}
+.app-page .overview-stage .page-description{font-size:13px;line-height:1.7;margin-top:9px;color:#69748c}
+.app-page .overview-stage .heading-actions .button.primary{
+  min-height:42px;padding:11px 17px;
+  box-shadow:0 12px 26px -17px rgba(72,74,197,.48);
+}
+.app-page .overview-shortcuts{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding-top:17px;border-top:1px solid rgba(122,121,187,.17);
+}
+.app-page .overview-shortcut{
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:36px;padding:8px 12px;border:1px solid rgba(158,158,211,.36);
+  border-radius:9px;background:rgba(255,255,255,.73);
+  color:#52627e;font-size:11.5px;font-weight:650;
+  transition:border-color .22s ease,background-color .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+.app-page .overview-shortcut .icon{width:14px;height:14px;color:#7665bc}
+.app-page .overview-shortcut:hover{
+  transform:translateY(-2px);border-color:rgba(117,90,207,.56);background:#fff;
+  box-shadow:0 9px 21px -15px rgba(99,66,205,.42);
+}
+.app-page .overview-shortcut:focus-visible{outline:3px solid #8091ea;outline-offset:3px}
+
+/* A slim, landing-style color trail identifies the current workspace section,
+   while keeping the sidebar a practical navigation tool. */
+.app-page .sidebar .nav-link{position:relative;isolation:isolate}
+.app-page .sidebar .nav-link[aria-current="page"]{
+  color:#4e4abb;
+  background:linear-gradient(90deg,rgba(236,236,255,.97),rgba(243,247,255,.84));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.82);
+}
+.app-page .sidebar .nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;
+  border-radius:4px;background:linear-gradient(180deg,var(--workspace-blue),var(--workspace-violet),var(--workspace-magenta));
+  box-shadow:0 0 12px rgba(124,88,218,.25);
+}
+.app-page .sidebar .nav-link:hover:not([aria-current="page"]){
+  background:#f3f3fb;color:#404f72;
+}
+
+/* Soft glass depth and animated, accessible accent bar for the dashboard KPIs.
+   Real values and navigation remain ordinary links with no blocking overlays. */
+.app-page .metrics-grid .metric{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-color:rgba(208,212,233,.78);
+  background:linear-gradient(125deg,rgba(255,255,255,.98),rgba(249,249,255,.93));
+  box-shadow:inset 0 1px 0 #fff,0 8px 27px -21px rgba(55,64,123,.26);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s;
+}
+.app-page .metrics-grid .metric::before{
+  content:"";position:absolute;top:0;left:17px;width:calc(100% - 34px);height:3px;
+  border-radius:0 0 5px 5px;
+  background:linear-gradient(90deg,#4263eb,#7c58da,#c66ad7);
+  opacity:.45;transform:scaleX(.5);transform-origin:left center;
+  transition:opacity .28s ease,transform .33s cubic-bezier(.2,.8,.2,1);
+  pointer-events:none;
+}
+.app-page .metrics-grid .metric.warning::before{
+  background:linear-gradient(90deg,#d68d56,#ad74c6);
+}
+.app-page .metrics-grid .metric .metric-top .icon{
+  color:#8473b8;transition:transform .28s ease,color .28s ease;
+}
+.app-page .metrics-grid .metric:focus-visible{
+  outline:3px solid rgba(111,119,226,.67);outline-offset:3px;
+}
+@media(hover:hover) and (pointer:fine){
+  .app-page .metrics-grid .metric:hover{
+    transform:translateY(-5px);
+    border-color:rgba(141,119,211,.53);
+    box-shadow:inset 0 1px 0 #fff,0 24px 39px -24px rgba(92,68,188,.33),0 0 0 1px rgba(139,111,205,.07);
+  }
+  .app-page .metrics-grid .metric:hover::before{
+    opacity:1;transform:scaleX(1);
+  }
+  .app-page .metrics-grid .metric:hover .metric-top .icon{
+    transform:translateY(-2px);color:#7658c8;
+  }
+}
+
+/* Dashboard panels get a small halo, not the full glossy landing-card effect.
+   Keep all their scrollable content, tables and action buttons in place. */
+.app-page .dashboard-grid>.panel{
+  position:relative;isolation:isolate;
+  border-color:#e0e2ee;
+  background:rgba(255,255,255,.94);
+  box-shadow:inset 0 1px 0 #fff,0 10px 28px -26px rgba(56,56,118,.19);
+  transition:border-color .26s ease,box-shadow .26s ease;
+}
+.app-page .dashboard-grid>.panel .panel-title .icon{
+  color:#7b69bd;transition:color .24s ease,transform .24s ease;
+}
+@media(hover:hover) and (pointer:fine){
+  .app-page .dashboard-grid>.panel:hover{
+    border-color:rgba(143,122,210,.48);
+    box-shadow:inset 0 1px 0 #fff,0 17px 34px -26px rgba(110,72,192,.27);
+  }
+  .app-page .dashboard-grid>.panel:hover .panel-title .icon{
+    color:#684dc0;transform:translateY(-1px);
+  }
+}
+/* Native dialogs, printable invoices, and reduced-motion users remain plain. */
+@media(max-width:760px){
+  .app-page .overview-stage{padding:22px 20px;margin-bottom:21px;gap:18px}
+  .app-page .overview-stage .page-heading{align-items:flex-start;flex-wrap:wrap}
+  .app-page .overview-stage .heading-actions{width:100%}
+}
+@media(max-width:440px){
+  .app-page .overview-shortcut{flex:1 1 auto;justify-content:center}
+  .app-page .overview-stage .heading-actions .button{width:100%}
+}
+@media(hover:none){
+  .app-page .overview-shortcut:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page .overview-stage::before{transform:none!important;transition:none!important}
+  .app-page .overview-title-accent{animation:none!important}
+  .app-page :is(.overview-shortcut,.metrics-grid .metric,.metrics-grid .metric::before,.metrics-grid .metric .metric-top .icon,.dashboard-grid>.panel,.dashboard-grid>.panel .panel-title .icon){
+    transition:none!important;animation:none!important;transform:none!important;
+  }
+}
+@media print{
+  .app-page .overview-stage{background:#fff!important;box-shadow:none!important}
+  .app-page .overview-stage::before,.app-page .overview-stage::after{display:none!important}
+  .app-page .metrics-grid .metric::before{display:none!important}
+}
