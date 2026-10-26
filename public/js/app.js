@@ -104,7 +104,7 @@ function overview() {
   const ws=state.ws,m=metrics(ws),tz=ws.account.timeZone,now=new Date();
   const hour=tz?Number(new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'numeric',hourCycle:'h23'}).format(now)):now.getHours();
   const first=ws.account.name.trim().split(/\s+/)[0]||'there';
-  const title=`Good ${hour<12?'morning':hour<18?'afternoon':'evening'}, ${first}.`;
+  const greeting=`Good ${hour<12?'morning':hour<18?'afternoon':'evening'}`;
   const preference=ws.account.workspacePreferences||{};
   const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
   const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
@@ -119,7 +119,19 @@ function overview() {
     <div class="india-guide-actions"><a class="button secondary" href="#settings" data-nav="settings">Set up GST & UPI</a>${button('Create INR invoice','new','data-kind="invoice"')}</div>
   </section>`:'';
   const metric=(label,value,foot,nav,ic,warn=false)=>`<a href="#${nav}" data-nav="${nav}" data-workspace-module="${nav}" class="metric ${warn?'warning':''}"><div class="metric-top"><span>${label}</span>${icon(ic)}</div><strong class="metric-value">${value}</strong><span class="metric-foot"><i class="dot"></i>${foot}</span></a>`;
-  return pageHeading(title,`Here's what needs your attention today.`,addButton('lead','New lead'),day)+industryNote+
+  // Borrow the landing page's spatial grid, gradient wordmark and shortcut
+  // treatment without changing ordinary forms, tables, navigation or data.
+  const overviewHero=`<section class="overview-stage" aria-label="Daily overview">
+    <div class="page-heading"><div><p class="eyebrow">${esc(day)}</p>
+      <h1>${esc(greeting)}, <span class="overview-title-accent">${esc(first)}.</span></h1>
+      <p class="page-description">Here's what needs your attention today.</p>
+    </div><div class="heading-actions">${addButton('lead','New lead')}</div></div>
+    <nav class="overview-shortcuts" aria-label="Quick workspace shortcuts">
+      <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}Jobs & dispatch ${icon('arrow')}</a>
+      <a class="overview-shortcut" href="#invoices" data-nav="invoices">${icon('invoices')}Invoices ${icon('arrow')}</a>
+    </nav>
+  </section>`;
+  return overviewHero+industryNote+
     (!currencyMismatch()?'':'<div class="notice" role="status"><div><strong>Previous currency records</strong><p>Your workspace still contains earlier amounts in '+esc(ws.account.currency)+'. They are preserved as originally recorded; see Settings before creating new dollar invoices.</p></div></div>')+
     indiaWelcome+
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',dashboardCash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',dashboardCash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+
