@@ -71,6 +71,40 @@ It merges the marketing landing suite, authentication system, operations web app
 
 ---
 
+## Optional: automatic Windows local sync
+
+If you develop Cerium on Windows and want merged GitHub changes to appear on
+`localhost:3000` without manually running `git pull`, enable the **opt-in**
+local sync task once from **CMD**, inside your cloned Cerium directory:
+
+```cmd
+git switch main
+git pull --ff-only origin main
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\local-sync.ps1 -Install
+npm run dev
+```
+
+The Windows task checks `origin/main` about once a minute **while you are
+signed in**. It only fast-forwards a clean local `main`; it never force-resets
+files, switches branches, touches ignored secrets/data, or applies unmerged PRs.
+If you have uncommitted work, or `main` has diverged, it safely skips the update.
+Run the app with `npm run dev` for automatic server restarts when imported code
+changes; ordinary static CSS/JS updates appear after a browser refresh. This
+synchronizes files, **not the browser tab or an offline computer**.
+
+To check installation or disable the task later:
+
+```cmd
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\local-sync.ps1 -Status
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\local-sync.ps1 -Remove
+```
+
+The task runs under your Windows account and logs update/error status only to
+`%LOCALAPPDATA%\Cerium\local-sync.log`. You can also inspect it in Windows
+Task Scheduler as **Cerium - Local Main Sync**.
+
+---
+
 ## Quick Start (Local Development)
 
 ```bash
