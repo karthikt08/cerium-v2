@@ -16,7 +16,8 @@
     "export": "node scripts/export-waitlist.js",
     "check:secrets": "node scripts/check-secrets.js",
     "preview:export": "node scripts/build-preview.mjs",
-    "backup": "node scripts/backup.js"
+    "backup": "node scripts/backup.js",
+    "navlm:evaluate": "node scripts/evaluate-navlm.mjs"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

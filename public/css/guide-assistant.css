@@ -1,0 +1,29 @@
+/* Cerium Guide: compact, accessible, and visually part of the workspace. */
+.cerium-guide{position:fixed;right:26px;bottom:24px;z-index:48;font-family:inherit;color:#2c2b40}
+.cerium-guide *{box-sizing:border-box}
+.guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(169,154,255,.42);background:#241d41;color:#faf7ff;padding:12px 17px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 15px 48px #150f3460,0 0 24px #9566f240;cursor:pointer}
+.guide-trigger:focus-visible,.cerium-guide button:focus-visible,.cerium-guide input:focus-visible{outline:2px solid #aa94ff;outline-offset:3px}
+.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:9px;background:#8063cb;color:#fff;font-size:17px}
+.guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(390px,calc(100vw - 30px));height:min(550px,calc(100dvh - 118px));min-height:330px;background:#fff;border:1px solid #dfdcef;border-radius:19px;box-shadow:0 22px 70px #09071dc4;overflow:hidden}
+.guide-panel[hidden]{display:none}
+.guide-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 18px 14px;background:linear-gradient(125deg,#f4f0ff,#fbfaff)}
+.guide-eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;color:#765ab6}
+.guide-header h2{font-size:18px;letter-spacing:-.4px;line-height:1.25;margin:5px 0 0;color:#241a3a}
+.guide-close{border:0;background:transparent;color:#695b86;font-size:23px;cursor:pointer;padding:0 5px}
+.guide-messages{flex:1;overflow:auto;padding:17px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.guide-bubble{align-self:flex-start;max-width:94%;padding:12px 13px;border:1px solid #e9e5f3;border-radius:13px;background:#f7f6fb;color:#424259;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.guide-bubble.user{align-self:flex-end;background:#61509b;border-color:#7865b1;color:#fff}
+.guide-actions{display:flex;flex-wrap:wrap;gap:7px;margin:-3px 0 3px}
+.guide-action{border:1px solid #cec4ea;background:#f2edff;color:#574395;border-radius:9px;padding:8px 11px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}
+.guide-suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 15px 12px}
+.guide-suggestions button{border:1px solid #e2dced;border-radius:999px;background:#fff;color:#54466f;padding:8px 10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;cursor:pointer}
+.guide-form{display:flex;gap:8px;padding:12px 13px 7px;border-top:1px solid #ebe8f3}
+.guide-form input{min-width:0;flex:1;border:1px solid #d8d3e7;background:#fff;border-radius:10px;color:#34304c;padding:11px 12px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.3;outline:none}
+.guide-form input::placeholder{color:#8d88a0}
+.guide-send{border:0;border-radius:10px;padding:0 15px;background:#8f72db;color:white;font-family:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer}
+.guide-send:disabled{opacity:.5;cursor:wait}
+.guide-privacy{padding:0 15px 12px;font-size:10px;line-height:1.5;color:#777188}
+@media(max-width:760px){.cerium-guide{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.guide-panel{bottom:58px;width:min(390px,calc(100vw - 24px));height:min(560px,calc(100dvh - 96px))}.guide-trigger{padding:10px 13px}}
+@media(prefers-reduced-motion:reduce){.cerium-guide *{scroll-behavior:auto!important;transition:none!important}}
+
+.guide-suggestions[hidden]{display:none!important}

@@ -19,6 +19,7 @@ import {createRegionGate} from './region-access.js';
 import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './trial-timing.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
 import {parseSpreadsheet,suggestedMapping,mappedLeads} from './spreadsheet-import.js';
+import {answerGuide,validateGuideQuestion} from './guide-assistant.js';
 import {
   sign, unsign, cleanText, csvCell,
   loadSession, requireSession, requireSameOrigin, requireCsrf, requireAdmin, makeLimiter,
@@ -749,6 +750,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
         planStatus: updated.plan_status,
       },
     });
+  });
+
+  // Cerium Guide is a read-only navigation assistant. It cannot invoke business writes.
+  const guideLimiter=makeLimiter({windowMs:60*1000,limit:12});
+  api.post('/assistant/message',guideLimiter,writeLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
+    if(!validateGuideQuestion(req.body?.question))return res.status(400).json({error:'invalid_question',message:'Enter a question of up to 420 characters.'});
+    const answer=await answerGuide(req.body.question,req.body?.currentSection);
+    return res.json(answer);
   });
 
   // Get full workspace state
