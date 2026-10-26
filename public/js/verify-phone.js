@@ -94,7 +94,7 @@ async function view(){
   el('monthly-price-label').textContent=details.checkoutConfigured
     ?symbol+monthly+' '+currency+'/month':'Not enabled for this account';
   el('annual-price-label').textContent=details.annualCheckoutConfigured
-    ?symbol+annual+' '+currency+'/year · save 2 months':'Not enabled for this account';
+    ?symbol+annual+' '+currency+'/year · save 1 month':'Not enabled for this account';
   if(!business.hidden){
     wizard.show(await API.getBusinessSetup(),details);
     setMessage(editingBusiness?'Update your business details. Your existing trial and billing dates stay the same.':'Phone confirmed. Complete the required business details to continue.');
@@ -106,7 +106,7 @@ async function view(){
       setMessage('Your phone is verified. Paid trial authorization is not yet available for this edition; contact CERIUM support.');
     }else{
       el('mandate-button').disabled=false;
-      el('mandate-info').textContent=countryName(details.country)+'. Monthly and annual billing (pay 10 months for 12) are shown where configured. Your first charge is scheduled after the 15-day trial; the precise amount and date appear in checkout.';
+      el('mandate-info').textContent=countryName(details.country)+'. Monthly and annual billing (pay for 11 months, get 12) are shown where configured. Your first charge is scheduled after the 15-day trial; the precise amount and date appear in checkout.';
       setMessage('Business setup complete. One final step: authorize your payment method.');
     }
     return;
