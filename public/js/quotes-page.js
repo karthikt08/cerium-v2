@@ -68,7 +68,7 @@ const quoteRow=(quote,currency,ro)=>{
 export function renderQuotesPage(ws,ro=false){
   const quotes=ws.quotes||[],currency=ws.account?.currency;
   return '<div class="quotes-view"><div class="page-heading"><div>'+
-    '<p class="eyebrow">SALES PIPELINE</p><h1>Estimates & quotes</h1>'+
+    '<p class="eyebrow">SALES PIPELINE</p><h1>Estimates &amp; <span class="ac">quotes<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>'+
     '<p class="page-description">Price the work, share a secure approval link, then turn an accepted estimate into a scheduled job.</p>'+
     '</div><div class="heading-actions"><button class="button primary" type="button" data-quote-action="new" '+(ro?'disabled':'')+'>+ Create estimate</button></div></div>'+
     '<div class="quotes-progress"><span><b>1</b> Draft the price</span><span><b>2</b> Copy approval link</span>'+
@@ -79,7 +79,7 @@ export function renderQuotesPage(ws,ro=false){
     '<div class="notice"><div><strong>Approval links, not automatic email</strong>'+
     '<p>CERIUM prepares a private 30-day customer approval link. Copy and share it yourself; nothing is emailed or charged automatically.</p></div></div>'+
     (quotes.length?'<div class="quote-cards">'+quotes.map(q=>quoteRow(q,currency,ro)).join('')+'</div>':
-      '<section class="panel quotes-empty"><h2>Your next customer starts here.</h2>'+
+      '<section class="panel quotes-empty"><h2>Your next customer <span class="ac">starts here.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
       '<p>Create a detailed estimate and share it for the customer to accept or decline.</p>'+
       (ro?'':'<button class="button primary" data-quote-action="new" type="button">Create your first estimate</button>')+'</section>')+
     '</div>';

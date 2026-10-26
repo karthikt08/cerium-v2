@@ -57,7 +57,7 @@ export function renderJobsPage(ws,readOnly=false) {
   const assigned=weekJobs.filter(j=>j.workerId).length;
   const open=jobs.filter(j=>active(j)&&!j.workerId).length;
   return `<div class="jobs">
-    <div class="page-heading"><div><p class="eyebrow">FIELD OPERATIONS</p><h1>Jobs & dispatch</h1><p class="page-description">Plan the week, assign your crew, and keep every job on track.</p></div>
+    <div class="page-heading"><div><p class="eyebrow">FIELD OPERATIONS</p><h1>Jobs &amp; <span class="ac">dispatch<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">Plan the week, assign your crew, and keep every job on track.</p></div>
       <div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''}>+ Schedule a job</button></div></div>
     <div class="jobs-stats">
       <div class="jobs-stat"><span>Jobs today</span><strong>${count}</strong><small>Active appointments</small></div>

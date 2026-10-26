@@ -37,6 +37,7 @@
     }
   ];
 
+  function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
   function safeDestination(val) {
     if (!val || typeof val !== 'string' || !val.startsWith('/') || val.startsWith('//')) {
       return '/app.html';
@@ -121,7 +122,7 @@
       const firstName = rawName.trim().split(/\s+/)[0] || 'there';
 
       if (titleEl) {
-        titleEl.textContent = timeOfDay + ', ' + firstName + '! 👋';
+        titleEl.innerHTML = esc(timeOfDay) + ', <span class="ac">' + esc(firstName) + '!<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span> 👋';
       }
 
       const businessName = (me.user && me.user.businessName) || '';
@@ -133,7 +134,7 @@
     .catch(function () {
       // If network fails or session check is delayed, preserve polite default greeting
       if (titleEl) {
-        titleEl.textContent = timeOfDay + '! 👋';
+        titleEl.innerHTML = '<span class="ac">' + esc(timeOfDay) + '!<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span> 👋';
       }
     });
 

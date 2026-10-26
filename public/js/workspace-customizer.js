@@ -13,7 +13,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
       <div class="ws-launch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <div class="ws-launch-copy">
         <p class="ws-eyebrow">PERSONALIZED WORKSPACE</p>
-        <h2 id="ws-customizer-title">A workspace built around your work.</h2>
+        <h2 id="ws-customizer-title">A workspace built <span class="ac">around your work.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
         <p>Keep the tools you need close. Everything else stays safe and available.</p>
       </div>
       <button type="button" class="button primary" id="workspace-open-customizer" aria-haspopup="dialog" aria-controls="workspace-customizer-dialog">Customize tools <span aria-hidden="true">→</span></button>
@@ -23,7 +23,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
     <div class="ws-config-hero">
       <div class="ws-config-heading">
         <p class="ws-eyebrow">CERIUM · YOUR WORKSPACE</p>
-        <h2 id="ws-config-title">Make it yours<span class="ws-config-period">.</span></h2>
+        <h2 id="ws-config-title">Make it <span class="ac">yours.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
         <p id="ws-config-description">Choose what matters to your business. You can always change it later.</p>
       </div>
       <button type="button" class="ws-config-close" id="workspace-close-customizer" aria-label="Close customization dialog">×</button>

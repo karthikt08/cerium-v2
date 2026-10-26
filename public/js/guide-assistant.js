@@ -13,7 +13,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.innerHTML='<button type="button" class="guide-trigger" id="guide-trigger" aria-expanded="false" aria-controls="guide-panel">'+
     '<span class="guide-mark" aria-hidden="true">✦</span><span>Ask Cerium</span></button>'+
     '<section class="guide-panel" id="guide-panel" aria-label="Cerium assistant" hidden>'+
-      '<div class="guide-header"><div><span class="guide-eyebrow">CERIUM · YOUR WORKSPACE</span><h2>Ask Cerium</h2></div>'+
+      '<div class="guide-header"><div><span class="guide-eyebrow">CERIUM · YOUR WORKSPACE</span><h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2></div>'+
         '<button type="button" class="guide-close" aria-label="Close assistant" id="guide-close">×</button></div>'+
       '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
       '<div class="guide-suggestions" id="guide-suggestions" aria-label="Try asking">'+

@@ -240,6 +240,61 @@
   outline:3px solid var(--cerium-ui-focus);outline-offset:3px;
 }
 
+/* Signature animated gradient text glow and hand-drawn SVG underline combo */
+.ac {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  font-weight: inherit;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+  background-image: linear-gradient(100deg, #3b5bff 0%, #7c3aed 35%, #d946ef 65%, #3b5bff 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  filter: drop-shadow(0 4px 14px rgba(124, 58, 237, 0.28));
+  animation: ac-shift 8s ease-in-out infinite alternate;
+}
+@keyframes ac-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.ul {
+  position: absolute;
+  left: 0;
+  bottom: -0.22em;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block !important;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 8px rgba(124, 58, 237, 0.32));
+}
+.ul path {
+  fill: none;
+  stroke: var(--cerium-ui-primary, #4263eb);
+  stroke: url(#ug);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: dr 1.1s 0.3s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+@keyframes dr {
+  to { stroke-dashoffset: 0; }
+}
+
+.en .ac, [data-theme="dark"] .ac {
+  background-image: linear-gradient(100deg, #9db2ff 0%, #c4b5fd 35%, #f0abfc 65%, #9db2ff 100%);
+  filter: drop-shadow(0 6px 18px rgba(167, 139, 250, 0.38));
+}
+.en .ul path, [data-theme="dark"] .ul path {
+  stroke: url(#ug-dark);
+}
+
+
 /* Keep tap target geometry and readable stacking on narrow windows. */
 @media(max-width:640px){
   .app-page :is(.dialog-footer,.jobs-modal-actions,.quotes-modal-actions,.ws-config-footer){
@@ -259,6 +314,8 @@
   .app-page :is(.button,.icon-button,.guide-trigger),
   .onboarding-page :is(button.primary,button.secondary),
   .welcome-page .welcome-enter-btn{transition:none!important;transform:none!important}
+  .ac{animation:none!important}
+  .ul path{stroke-dashoffset:0!important;animation:none!important}
 }
 @media print{
   .app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){

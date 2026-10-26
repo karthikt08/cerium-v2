@@ -26,7 +26,7 @@ export function openLeadImport({api,onComplete,readOnly=false,offline=false}){
     document.body.append(dialog);
   }
   let current=null,mapping=null,latest=null,requestNumber=0,busy=false;
-  dialog.innerHTML='<div class="dialog-header"><div><p class="eyebrow">DATA MIGRATION</p><h2 id="lead-import-heading">Import customers & leads</h2></div><button type="button" class="icon-button" id="lead-import-close" aria-label="Close import">×</button></div>'+
+  dialog.innerHTML='<div class="dialog-header"><div><p class="eyebrow">DATA MIGRATION</p><h2 id="lead-import-heading">Import customers &amp; <span class="ac">leads<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2></div><button type="button" class="icon-button" id="lead-import-close" aria-label="Close import">×</button></div>'+
     '<p class="dialog-description">Bring existing contacts and leads into your pipeline. Choose a CSV or Excel (.xlsx) file, check the column mapping, then review what Cerium will add. Existing records are never replaced.</p>'+
     '<div class="import-content"><label class="field">Choose a spreadsheet<input id="lead-import-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>'+
     '<p class="muted">2 MB maximum · 2,000 rows per file · first row must have column headers · first Excel worksheet used</p>'+
