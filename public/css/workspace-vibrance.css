@@ -149,115 +149,114 @@
 .app-page .text-button{color:#5743b0}
 .app-page .text-button:hover{color:#4128a3}
 
-/* Carry the same saturated surfaces through operational summaries. These
-   are cards, not editable rows or tables, so the data stays easy to scan. */
+/* Operational summaries stay mostly white; lavender is reserved for a small
+   amount of depth and accent, rather than tinting every work surface. */
 .app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
   .jobs-stats>.jobs-stat,.jobs-panel,.jobs-bottom>.panel,
   .board-column>.lead-card,.reminders-stats>div,.reminders-columns>.panel,
   .settings-grid .panel){
-  border-color:#dacbf7;
-  background:linear-gradient(139deg,#fff 46%,#f7f1ff 100%);
-  box-shadow:0 9px 24px -24px rgba(111,55,219,.35);
+  border-color:#e3dfec;
+  background:linear-gradient(139deg,#fff 56%,#fcfbff 100%);
+  box-shadow:0 9px 24px -24px rgba(111,55,219,.13);
 }
 .app-page :is(.quotes-summary strong,.jobs-stats .jobs-stat strong,
   .reminders-stats>div strong){
-  color:#35256f;
+  color:#32344f;
 }
 .app-page .quotes-progress>span{
-  border-color:#d9c9f6;
-  background:linear-gradient(120deg,#fff,#f1eaff);
-  color:#544587;
+  border-color:#e0dbeb;
+  background:linear-gradient(120deg,#fff,#f9f7fd);
+  color:#666083;
 }
 .app-page .quotes-progress b{
-  background:#e4d6ff;color:#5932ac;
+  background:#eee9fa;color:#615497;
 }
 .app-page .quote-sent,.app-page .job-status.purple{
-  background:#e9ddff;color:#5a30a8;
+  background:#f0eafa;color:#62509e;
 }
 .app-page .jobs-upcoming-date{
-  background:linear-gradient(138deg,#e8e9ff,#f0ddff);
-  color:#4b35ae;
+  background:linear-gradient(138deg,#edf0fc,#f4effa);
+  color:#5b5297;
 }
 .app-page .jobs-crew-avatar{
-  background:#e6deff;color:#4f35a8;
+  background:#edeafb;color:#5e5395;
 }
 .app-page .task-check:hover{
-  border-color:#8250d6;background:#f0eaff;
+  border-color:#9c82d5;background:#f5f1fb;
 }
 @media(hover:hover) and (pointer:fine){
   .app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
     .jobs-stats>.jobs-stat,.board-column>.lead-card,.reminders-stats>div):hover{
-    border-color:#aa87eb;
-    box-shadow:0 16px 35px -25px rgba(118,49,219,.39);
+    border-color:#c8b5e5;
+    box-shadow:0 16px 35px -25px rgba(118,49,219,.16);
   }
 }
 
-/* Buttons share the same rounded shape as before, but land with a vivid
-   color. Keep danger/red, success/green, and disabled states untouched. */
+/* Put the branded color emphasis on primary actions, not entire cards.
+   Preserve clear contrast and keep red/green semantic controls untouched. */
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
   color:#fff;
-  background:linear-gradient(112deg,#435cf2,#7139da 72%,#823ad6);
-  border-color:rgba(80,48,174,.45);
-  box-shadow:0 8px 17px -10px rgba(88,51,201,.54);
+  background:linear-gradient(112deg,#4c60d3,#6555c7 72%,#7059bf);
+  border-color:rgba(80,69,156,.33);
+  box-shadow:0 6px 14px -10px rgba(88,61,164,.3);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:hover:not(:disabled){
-  background:linear-gradient(112deg,#334eeb,#6030c9 72%,#7430c5);
-  border-color:#6130cc;
-  box-shadow:0 10px 22px -11px rgba(95,39,206,.6);
+  background:linear-gradient(112deg,#4255c2,#5845b6 72%,#624ab2);
+  border-color:#6250b2;
+  box-shadow:0 8px 19px -11px rgba(95,67,173,.32);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:focus-visible{
-  outline:3px solid #a182f3;outline-offset:3px;
+  outline:3px solid #aaa0e0;outline-offset:3px;
 }
 .app-page .button.secondary:hover:not(:disabled){
-  background:#f2ecff;border-color:#ba9bec;color:#46328e;
+  background:#f5f2fb;border-color:#d1c5e7;color:#51478a;
 }
 .app-page :is(.icon-button,.view-toggle button):hover:not(:disabled){
-  background:#ede6ff;color:#5b36b8;
+  background:#f1eef8;color:#60519c;
 }
 .app-page :is(input,select,textarea):focus-visible{
-  border-color:#916be7;
-  outline-color:#8f71e9;
+  border-color:#9889d6;
+  outline-color:#a69ae0;
 }
 
-/* The newer Marketing hub was still cream/green compared with the rest.
-   Give it Cerium's real brand colors while retaining readable charts/copy. */
+/* Keep Marketing in the same family without a second fully purple theme. */
 .app-page .marketing-tag{
-  background:linear-gradient(112deg,#32307f,#6c35b9);color:#fff;
+  background:linear-gradient(112deg,#454780,#6254a1);color:#fff;
   border-radius:8px;
 }
-.app-page .marketing-intro h1 em{color:#6736ca}
+.app-page .marketing-intro h1 em{color:#6855b7}
 .app-page .marketing-main{
-  border-color:#dacbf7;
-  background:linear-gradient(156deg,#fff,#fcfaff);
-  box-shadow:0 15px 38px -28px rgba(98,43,212,.33);
+  border-color:#e3dfec;
+  background:#fff;
+  box-shadow:0 15px 38px -28px rgba(98,65,167,.14);
 }
 .app-page .marketing-stat{
-  border-color:#d5c6f5;
-  background:linear-gradient(135deg,#fff,#f1eaff);
+  border-color:#e1ddec;
+  background:linear-gradient(135deg,#fff,#fbfaff);
 }
-.app-page .marketing-stat>strong{color:#42308a}
-.app-page .marketing-switcher{border-top-color:#c3b3ec}
-.app-page .marketing-tab{color:#58447f}
-.app-page .marketing-tab:hover:not(.active){background:#f1ebff;color:#4c2b9a}
+.app-page .marketing-stat>strong{color:#403b66}
+.app-page .marketing-switcher{border-top-color:#ded8e9}
+.app-page .marketing-tab{color:#615b7b}
+.app-page .marketing-tab:hover:not(.active){background:#f5f2fa;color:#53458d}
 .app-page .marketing-tab.active{
-  background:linear-gradient(100deg,#e2d5ff,#f4eaff);
-  border-left:4px solid #733bdd;
-  color:#43218e;
+  background:linear-gradient(100deg,#edeaf9,#f7f5fc);
+  border-left:3px solid #7760bd;
+  color:#4e4286;
   box-shadow:inset 0 1px 0 #fff;
 }
-.app-page .marketing-link{color:#6334c2;text-decoration-color:#9b75e0}
-.app-page .marketing-bar{background:#e9dcfa}
-.app-page .marketing-bar>span{background:linear-gradient(90deg,#3b5bff,#7c3aed,#d946ef)}
+.app-page .marketing-link{color:#6251ac;text-decoration-color:#b0a1dc}
+.app-page .marketing-bar{background:#ece9f3}
+.app-page .marketing-bar>span{background:var(--cerium-vibrant-gradient)}
 .app-page .marketing-tip{
-  background:#f5edff;border-left-color:#8549e4;
+  background:#f8f6fc;border-left-color:#9884cc;
 }
-.app-page .marketing-callout{background:#f6f0ff;border-color:#dcccf4}
+.app-page .marketing-callout{background:#faf9fc;border-color:#e4dfed}
 
 /* Product controls must remain readable and accessible on small screens. */
 @media(max-width:760px){
-  .app-page .sidebar{background:linear-gradient(165deg,#fff,#f3ecff)}
+  .app-page .sidebar{background:linear-gradient(165deg,#fff,#f9f8fc)}
   .app-page .main-frame{
-    background:radial-gradient(ellipse 75% 45% at 100% 0%,rgba(135,80,249,.16),transparent 83%),#f8f6ff;
+    background:radial-gradient(ellipse 75% 45% at 100% 0%,rgba(135,100,209,.07),transparent 83%),#f8f9fd;
   }
 }
 @media(prefers-reduced-motion:reduce){
