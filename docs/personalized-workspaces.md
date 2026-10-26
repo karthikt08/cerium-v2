@@ -18,9 +18,12 @@ the existing CERIUM tools. Choosing a profile merely establishes defaults; the
 owner may enable or disable any listed module during business onboarding and
 later in Settings > Customize your workspace.
 
-Overview is always visible and remains the first dashboard navigation item.
-It is not an optional module and cannot be hidden by an industry preset or
-a custom tool selection.
+Overview and Marketing are always available and cannot be hidden through a
+business tool selection. Ask Cerium is also available to guide navigation and
+suggest existing modules; it is not a checkbox. Each of the eight selectable
+modules now shows a short description in both mandatory business setup and
+Settings → Customize tools. The chooser clearly distinguishes the shared hubs
+from business-specific modules.
 
 Overview cards reflow to fill each row as tools are enabled or disabled. A lone
 card or the final card of an odd row fills the available width. Empty metric
@@ -30,13 +33,15 @@ Overview until account defaults are available.
 
 ## Smart suggestions
 
-The "Suggest my tools" control recognizes common task words in descriptions,
-for example scheduling, estimates, overdue invoices, reviews and leads.
-It uses deterministic local rules in `public/js/industry-workspaces.js`, **not
-a language model**. The description is read only in the current browser and is
-not submitted to an AI provider or persisted by the recommender. Suggestions
-are explainable and fully editable. Never label these rules as a trained AI
-model in customer-facing copy.
+The "Suggest my tools" action in mandatory onboarding and Settings now uses
+the same local business advisor (`public/js/business-tool-advisor.js`) as
+Ask Cerium. It identifies established industries and described workflows,
+such as scheduling, estimates, invoice sharing, overdue payments, customer
+reviews and leads. Suggestions explain their fit and show only currently
+implemented modules. The description is processed locally for tool selection;
+it is not sent to a paid model or persisted by the advisor. The owner must
+review and confirm the selection—recommendations never change settings by
+themselves. This is a rule-based advisor, not a generative AI model.
 
 ## Data and security
 

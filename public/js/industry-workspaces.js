@@ -1,14 +1,14 @@
 // Shared, privacy-friendly CERIUM industry presets. These are VIEW preferences,
 // not authorization rules: hiding a module must never hide or destroy its data.
 export const WORKSPACE_MODULES=Object.freeze([
-  {id:'jobs',label:'Jobs & scheduling'},
-  {id:'leads',label:'Leads'},
-  {id:'quotes',label:'Estimates & quotes'},
-  {id:'followups',label:'Customer follow-ups'},
-  {id:'invoices',label:'Invoices'},
-  {id:'payments',label:'Payments'},
-  {id:'reminders',label:'Payment reminders'},
-  {id:'reviews',label:'Customer reviews'}
+  {id:'jobs',label:'Jobs & scheduling',description:'Appointments, crew assignments and dispatch'},
+  {id:'leads',label:'Leads',description:'Enquiries, customer notes and CSV or Excel imports'},
+  {id:'quotes',label:'Estimates & quotes',description:'Itemised estimates and customer approvals'},
+  {id:'followups',label:'Customer follow-ups',description:'Callbacks, next steps and due dates'},
+  {id:'invoices',label:'Invoices',description:'Country-aware billing, PDFs and sharing'},
+  {id:'payments',label:'Payments',description:'Invoice balances and recorded deposit matches'},
+  {id:'reminders',label:'Payment reminders',description:'Schedule and review invoice follow-ups'},
+  {id:'reviews',label:'Customer reviews',description:'Review requests and Google review links'}
 ]);
 const ids=WORKSPACE_MODULES.map(m=>m.id);
 const preset=(id,label,modules,keywords)=>({id,label,modules:Object.freeze(modules.split(' ')),keywords});

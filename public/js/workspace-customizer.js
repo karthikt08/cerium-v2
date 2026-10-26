@@ -7,14 +7,14 @@ export function renderWorkspaceCustomizer(preferences={}) {
   const category=preferences.category||'other';
   const current=new Set(preferences.modules||defaultModules(category));
   const options=INDUSTRY_OPTIONS.map(i=>'<option value="'+esc(i.value)+'"'+(i.value===category?' selected':'')+'>'+esc(i.label)+'</option>').join('');
-  const choices=WORKSPACE_MODULES.map(m=>'<label class="ws-pick-module"><input type="checkbox" name="modules" value="'+esc(m.id)+'"'+(current.has(m.id)?' checked':'')+'><span>'+esc(m.label)+'</span></label>').join('');
+  const choices=WORKSPACE_MODULES.map(m=>'<label class="ws-pick-module"><input type="checkbox" name="modules" value="'+esc(m.id)+'"'+(current.has(m.id)?' checked':'')+'><span class="ws-pick-copy"><strong>'+esc(m.label)+'</strong><small>'+esc(m.description)+'</small></span></label>').join('');
   return `<section class="panel workspace-customizer" aria-labelledby="ws-customizer-title">
     <div class="ws-launch">
       <div class="ws-launch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <div class="ws-launch-copy">
         <p class="ws-eyebrow">PERSONALIZED WORKSPACE</p>
         <h2 id="ws-customizer-title">A workspace built <span class="ac">around your work.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
-        <p>Keep the tools you need close. Everything else stays safe and available.</p>
+        <p>Choose your business tools. Overview, Marketing and Ask Cerium stay ready to help.</p>
       </div>
       <button type="button" class="button primary" id="workspace-open-customizer" aria-haspopup="dialog" aria-controls="workspace-customizer-dialog">Customize tools <span aria-hidden="true">→</span></button>
     </div>
@@ -24,7 +24,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
       <div class="ws-config-heading">
         <p class="ws-eyebrow">CERIUM · YOUR WORKSPACE</p>
         <h2 id="ws-config-title">Make it <span class="ac">yours.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
-        <p id="ws-config-description">Choose what matters to your business. You can always change it later.</p>
+        <p id="ws-config-description">Choose the business modules to show. Your records stay intact if you hide a tool.</p>
       </div>
       <button type="button" class="ws-config-close" id="workspace-close-customizer" aria-label="Close customization dialog">×</button>
     </div>
@@ -41,7 +41,8 @@ export function renderWorkspaceCustomizer(preferences={}) {
         <button type="button" class="button secondary sm" id="workspace-reset-modules">Restore defaults</button></div>
         <p class="muted" id="workspace-recommendation-note" role="status">Instant rule-based suggestions. Your description stays in this browser.</p>
       </div>
-      <fieldset class="ws-module-fieldset"><legend>Modules to display <span>(choose at least one)</span></legend><div class="ws-module-grid">${choices}</div></fieldset>
+      <fieldset class="ws-module-fieldset"><legend>Business modules to display <span>(choose at least one)</span></legend><div class="ws-module-grid">${choices}</div></fieldset>
+      <div class="ws-included-tools" role="note"><strong>Included in every workspace</strong><p><b>Overview</b> for your daily snapshot · <b>Marketing</b> for drafts and customer insights · <b>Ask Cerium</b> for tool suggestions and direct page links.</p></div>
       <p class="ws-config-data-note">Hidden modules keep all their existing records and can be enabled again anytime.</p>
       <p class="form-error" id="workspace-preferences-error" role="alert" hidden></p>
       <div class="ws-config-footer">

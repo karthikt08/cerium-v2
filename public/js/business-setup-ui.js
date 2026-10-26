@@ -3,7 +3,8 @@ import {COUNTRY_OPTIONS,countryName} from './countries.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions} from './us-market.js';
 import {INDIA_STATE_OPTIONS} from './india-market.js';
 import {businessSetupSteps,BUSINESS_SETUP_FIELDS} from './business-profile.js';
-import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,recommendWorkspace,suggestIndustry} from './industry-workspaces.js';
+import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,suggestIndustry} from './industry-workspaces.js';
+import {recommendBusinessTools} from './business-tool-advisor.js';
 
 const markup=`<form id="business-form" class="business-wizard" hidden>
 <p class="wizard-required">REQUIRED BUSINESS SETUP</p>
@@ -21,11 +22,11 @@ const markup=`<form id="business-form" class="business-wizard" hidden>
          <label class="business-wide">Choose your business type<select id="biz-industry" name="industryCategory" required></select></label>
          <div class="business-wide workspace-picker">
            <h3>Your CERIUM tools</h3>
-           <p class="hint">Recommended for your work, and fully customizable.</p>
+           <p class="hint">Choose the tools you use. Overview, Marketing and Ask Cerium are included for everyone.</p>
            <label>What takes most of your time? (optional)<textarea id="biz-work-description" maxlength="350" rows="2" placeholder="Scheduling jobs, making estimates, collecting payments…"></textarea></label>
            <button type="button" class="secondary" id="biz-suggest-modules">Suggest my tools</button>
            <p class="hint" id="biz-recommendation" role="status"></p>
-           <div class="workspace-module-grid" id="biz-module-grid"></div>
+           <div class="workspace-module-grid" id="biz-module-grid" aria-label="Business modules to show"></div>
            <input type="hidden" name="workspaceModules" id="biz-modules-value">
          </div>
 </div></fieldset>
@@ -146,7 +147,9 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
         if(!active.length){check.checked=true;el('biz-recommendation').textContent='Keep at least one tool enabled.';return;}
         el('biz-modules-value').value=active.join(',');
       });
-      label.append(check,document.createTextNode(module.label));grid.append(label);
+      const copy=document.createElement('span'),title=document.createElement('strong'),detail=document.createElement('small');
+      copy.className='tool-choice-copy';title.textContent=module.label;detail.textContent=module.description;
+      copy.append(title,detail);label.append(check,copy);grid.append(label);
     }
   }
   el('biz-industry').addEventListener('change',()=>{
@@ -156,10 +159,11 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     renderModuleChoices();
   });
   el('biz-suggest-modules').addEventListener('click',()=>{
-    const rec=recommendWorkspace({category:el('biz-industry').value,
+    const rec=recommendBusinessTools({category:el('biz-industry').value,
       description:el('biz-work-description').value,trade:el('biz-trade').value});
+    if(rec.needsMoreInfo){el('biz-recommendation').textContent=rec.reply;return;}
     el('biz-modules-value').value=rec.modules.join(',');
-    el('biz-recommendation').textContent=rec.explanation+' Review and adjust before continuing.';
+    el('biz-recommendation').textContent=rec.reply+' Review and adjust before continuing.';
     renderModuleChoices();
   });
   el('biz-gst-registration').addEventListener('change',gst);
