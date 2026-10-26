@@ -1,7 +1,7 @@
 import {GUIDE_SECTIONS, GUIDE_TOPICS, pickGuide} from '../public/js/guide-knowledge.js';
 import {navigateWithNavLM} from './navlm.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from '../public/js/business-tool-advisor.js';
-import {conversationReply,conciseGuideResponse,unknownGuideResponse} from '../public/js/guide-dialogue.js';
+import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from '../public/js/guide-dialogue.js';
 
 const SYSTEM_GUIDE = 'You are Cerium Guide, a concise in-app navigation assistant for a contractor operations product. '+
   'Answer ONLY how to use or navigate this product. Ground every claim in the provided verified guide information. '+
@@ -49,6 +49,8 @@ export async function answerGuide(question,currentSection='overview',{
   // Handle the conversational turn before choosing a provider or a destination.
   const conversational=conversationReply(question,{lastSection});
   if(conversational)return conversational;
+  const workflow=workflowReply(question);
+  if(workflow)return workflow;
   // Business recommendations never go to an AI provider: the private profile context
   // is processed by this local, verified tool advisor on the Cerium server.
   if(recommendTools===true||isToolRecommendationRequest(question))
