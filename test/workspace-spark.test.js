@@ -65,3 +65,33 @@ test('landing-inspired surfaces remain keyboard accessible and quiet during work
   assert.match(css,/\.overview-title-accent\{animation:none!important/,'reduce animation');
   assert.match(css,/\.overview-stage::before\{transform:none!important/,'reduce parallax');
 });
+
+
+test('unified dark Overview has legible copy and clearly distinguishable rules',()=>{
+  const css=read('css/workspace-overview-unified.css');
+  const luminance=hex=>{
+    const rgb=hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16)/255)
+      .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);
+    return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+  };
+  const ratio=(one,two)=>{
+    const [light,dark]=[luminance(one),luminance(two)].sort((a,b)=>b-a);
+    return (light+.05)/(dark+.05);
+  };
+  // Text colors are lightened against midnight surfaces, not darkened into invisibility.
+  for(const [textColor,panelColor] of [
+    ['#d4dcf4','#19243f'],['#e1e5f4','#19243f'],
+    ['#d2dbef','#19243f'],['#d1dbee','#101319'],
+  ])assert.ok(ratio(textColor,panelColor)>=4.5,textColor+' should remain readable on '+panelColor);
+  assert.match(css,/border-top:1px solid rgba\(192,198,237,\.33\)/,'section dividers should be visible');
+  assert.match(css,/border-top:1px solid rgba\(191,196,232,\.34\)/,'shortcut divider should be visible');
+  assert.match(css,/border:1px solid rgba\(168,182,231,\.46\)/,'shortcut outlines should be visible');
+  assert.match(css,/linear-gradient\(rgba\(167,182,235,\.18\)/,'spatial grid has discernible lines');
+  for(const [textColor,surfaceColor] of [
+    ['#52596e','#ffffff'],['#5d6578','#ffffff'],['#626b7e','#ffffff'],
+  ])assert.ok(ratio(textColor,surfaceColor)>=4.5,'light cards should have readable ink');
+  assert.match(css,/\.app-page \.metrics-grid \.metric\{border-color:#c7bfdc\}/);
+  assert.match(css,/\.app-page \.dashboard-grid>\.panel\{border-color:#c9c6d8\}/);
+  assert.doesNotMatch(css,/\.invoice-document|\.data-table/,'invoice printouts and dense tables are unchanged');
+  assert.match(css,/@media print\{/,'print view preserved');
+});
