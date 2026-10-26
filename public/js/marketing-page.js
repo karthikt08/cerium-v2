@@ -6,13 +6,11 @@ import {businessLocalDate} from './us-market.js';
 
 const arrow='<span aria-hidden="true">→</span>';
 const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="marketing-link">'+esc(label)+' '+arrow+'</a>';
-const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
 const tabs=[
   {key:'visibility',label:'Get found and chosen'},
   {key:'reengage',label:'Re-book and re-engage'},
   {key:'performance',label:'Track performance'}
 ];
-const strip=content=>'<div class="marketing-strip">'+content+'</div>';
 export function renderMarketingPage(ws){
   const today=businessLocalDate(ws?.account?.timeZone);
   const data=marketingInsights(ws,today);
@@ -22,61 +20,83 @@ export function renderMarketingPage(ws){
   const sources=data.sources.length?data.sources.map(item=>{
     const pct=Math.round(100*item.count/Math.max(1,data.totalLeads));
     return '<div class="marketing-source"><div><strong>'+esc(item.source)+'</strong><span>'+item.count+' lead'+(item.count===1?'':'s')+' · '+pct+'%</span></div><div class="marketing-bar"><span style="width:'+pct+'%"></span></div></div>';
-  }).join(''):'<p class="marketing-empty">No leads recorded yet. Add leads and their sources to start seeing the mix.</p>';
+  }).join(''):'<p class="marketing-empty">No lead sources yet. When you save lead origins, this section will show the distribution.</p>';
   const candidates=data.candidates.length?data.candidates.map((person,index)=>
-    '<div class="marketing-customer"><div><strong>'+esc(person.name)+'</strong><small>Last paid invoice: '+esc(person.lastDate||'Date unavailable')+' · '+person.paidInvoices+' paid invoice'+(person.paidInvoices===1?'':'s')+'</small></div>'+
+    '<div class="marketing-customer"><div class="marketing-customer-monogram" aria-hidden="true">'+esc((person.name||'?').charAt(0).toUpperCase())+'</div><div class="marketing-customer-details"><strong>'+esc(person.name)+'</strong><small>Last paid invoice · '+esc(person.lastDate||'Date unavailable')+' · '+person.paidInvoices+' paid invoice'+(person.paidInvoices===1?'':'s')+'</small></div>'+
     '<button type="button" class="marketing-light-button" data-marketing-followup="'+index+'">Plan check-in '+arrow+'</button></div>'
-  ).join(''):'<div class="marketing-empty">No eligible past customers to suggest yet. This list uses paid invoices older than 30 days and excludes customers with an open follow-up.</div>';
+  ).join(''):'<div class="marketing-empty marketing-empty-action"><span class="marketing-empty-mark" aria-hidden="true">↗</span><strong>No check-ins to suggest just yet</strong><span>This list uses paid invoices older than 30 days and excludes customers who already have an open follow-up.</span></div>';
+  const priorities=data.priorities.slice(0,3).map((item,index)=>
+    '<div class="marketing-priority"><span class="marketing-priority-index">0'+(index+1)+'</span><div><strong>'+esc(item.title)+'</strong><p>'+esc(item.reason)+'</p></div></div>').join('');
+  const signal=(label,count,detail)=>'<div class="marketing-signal"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(detail)+'</small></div>';
+  const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
   return '<section class="marketing-page" data-marketing-page>'+
-    '<div class="marketing-intro"><span class="marketing-tag">MARKETING</span>'+
-      '<h1>Every customer <em>within reach.</em></h1>'+
-      '<p>Get discovered, earn reviews, and turn good service into lasting customer relationships. Plan with your existing Cerium records—you choose what gets sent or published.</p>'+
-    '</div>'+
-    strip(
-      stat('Leads recorded',data.totalLeads,'From your Leads workspace')+
-      stat('Review requests logged',data.reviewRequests,'Sent or received status recorded')+
-      stat('Reviews marked received',data.reviewsReceived,'Reported by you, not a live Google count')+
-      stat('Repeat paid customers',data.repeatCustomers,'2+ paid invoices per customer name')
-    )+
-    '<div class="marketing-layout"><nav class="marketing-switcher" aria-label="Marketing areas">'+
-      '<p class="marketing-switcher-title">Plan your marketing</p>'+
-      tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'"><span>'+esc(item.label)+'</span>'+arrow+'</button>').join('')+
-      '<p class="marketing-nav-note">Drafts stay under your control. Nothing is automatically sent, posted, or shared.</p>'+
-    '</nav><div class="marketing-main">'+
-    '<section role="tabpanel" id="marketing-panel-visibility" aria-labelledby="marketing-tab-visibility" data-marketing-panel="visibility">'+
-      '<p class="marketing-kicker">01 · DISCOVERY & REPUTATION</p><h2>Help more people choose you.</h2>'+
-      '<p class="marketing-description">Strengthen your online presence with timely review requests and posts you can tailor to your business.</p>'+
-      '<div class="marketing-actions">'+navLink('reviews','Manage review requests')+navLink('leads','Capture an enquiry')+'</div>'+
-      '<div class="marketing-priority-list">'+data.priorities.slice(0,2).map(x=>'<div class="marketing-tip"><strong>'+esc(x.title)+'</strong><span>'+esc(x.reason)+'</span></div>').join('')+'</div>'+
-      '<div class="marketing-composer"><div class="marketing-composer-title"><div><h3>Draft a marketing message</h3><p>Editable starting points, not an auto-publishing AI service.</p></div></div>'+
-        '<div class="marketing-fields"><label>Message type<select data-marketing-draft-kind>'+
-          '<option value="post">Social post</option><option value="update">Business profile update</option><option value="review">Review request</option><option value="rebook">Re-booking check-in</option></select></label>'+
-          '<label>What do you offer?<input data-marketing-service maxlength="100" value="'+esc(service)+'" placeholder="e.g. scheduled maintenance"></label></div>'+
-        '<label class="marketing-message-label">Your draft<textarea data-marketing-draft rows="6" maxlength="1600">'+esc(initial)+'</textarea></label>'+
-        '<div class="marketing-composer-actions"><button type="button" class="marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="button primary" data-marketing-copy>Copy draft</button></div>'+
-        '<p class="marketing-fineprint" data-marketing-copy-status role="status">Review accuracy, permission and any platform rules before sharing.</p>'+
+    '<header class="marketing-hero">'+
+      '<div class="marketing-hero-copy"><span class="marketing-tag"><span class="marketing-tag-dot" aria-hidden="true"></span> CERIUM / MARKETING</span>'+
+        '<h1>Good work.<br><em>More customers.</em></h1>'+
+        '<p>Get discovered, stay remembered, and give people a reason to come back. Built around your business—not a collection of marketing gimmicks.</p>'+
+        '<div class="marketing-hero-actions"><button type="button" class="marketing-hero-cta" data-marketing-jump="visibility">Create a message <span aria-hidden="true">↗</span></button>'+
+          '<button type="button" class="marketing-hero-secondary" data-marketing-jump="performance">View your activity '+arrow+'</button></div>'+
       '</div>'+
+      '<div class="marketing-hero-visual" aria-hidden="true">'+
+        '<div class="marketing-orbit orbit-one" aria-hidden="true"></div><div class="marketing-orbit orbit-two" aria-hidden="true"></div>'+
+        '<div class="marketing-orbit-center"><small>YOUR CUSTOMER CIRCLE</small><span class="marketing-orbit-figure">'+esc(data.totalLeads)+'</span><strong>leads recorded</strong></div>'+
+        '<div class="marketing-float marketing-float-top"><span class="marketing-float-dot" aria-hidden="true"></span><div><strong>'+esc(data.reviewsReceived)+'</strong><small>reviews marked received</small></div></div>'+
+        '<div class="marketing-float marketing-float-bottom"><span class="marketing-float-symbol" aria-hidden="true">↗</span><div><strong>'+esc(data.repeatCustomers)+'</strong><small>repeat paid customers</small></div></div>'+
+      '</div>'+
+      '<div class="marketing-hero-foot"><span class="marketing-hero-label">MEASURE WHAT YOU ACTUALLY KNOW</span><span>Based on your Cerium workspace records</span></div>'+
+    '</header>'+
+    '<div class="marketing-pulsebar" aria-label="Recorded marketing activity">'+
+      signal('Leads recorded',data.totalLeads,'Lead records')+
+      signal('Review requests',data.reviewRequests,'Marked sent or received')+
+      signal('Reviews received',data.reviewsReceived,'Recorded statuses')+
+      signal('Returning customers',data.repeatCustomers,'2+ paid invoices')+
+    '</div>'+
+    '<div class="marketing-layout"><nav class="marketing-switcher" role="tablist" aria-label="Marketing areas">'+
+      '<p class="marketing-switcher-title">Your marketing, organized</p>'+
+      tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'" tabindex="'+(index===0?'0':'-1')+'">'+
+        '<span class="marketing-tab-number">0'+(index+1)+'</span><span class="marketing-tab-copy"><strong>'+esc(item.label)+'</strong><small>'+esc(['Reach & reputation','Customer relationships','What the records show'][index])+'</small></span><span class="marketing-tab-arrow" aria-hidden="true">↗</span></button>').join('')+
+      '<p class="marketing-nav-note"><span class="marketing-lock" aria-hidden="true">✓</span> All marketing content stays under your control.</p>'+
+    '</nav><div class="marketing-main">'+
+    '<section role="tabpanel" tabindex="0" id="marketing-panel-visibility" aria-labelledby="marketing-tab-visibility" data-marketing-panel="visibility">'+
+      '<header class="marketing-section-heading"><div><span class="marketing-kicker">01 / REACH & REPUTATION</span><h2>Give people a reason<br>to choose you.</h2>'+
+        '<p class="marketing-description">Your work builds your reputation. Make it easier for people to see it and hear from you.</p></div>'+
+        '<span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
+      '<div class="marketing-actions">'+navLink('reviews','Review requests')+navLink('leads','Your enquiries')+'</div>'+
+      '<div class="marketing-feature-grid"><div class="marketing-composer">'+
+        '<div class="marketing-composer-title"><div><span class="marketing-eyebrow">CONTENT DESK</span><h3>A message worth sharing.</h3><p>Start with a draft, make it yours, then decide whether to publish or send it.</p></div><span class="marketing-draft-badge">DRAFT ONLY</span></div>'+
+        '<div class="marketing-fields"><label>What are you writing?<select data-marketing-draft-kind>'+
+          '<option value="post">Social post</option><option value="update">Business profile update</option><option value="review">Review request</option><option value="rebook">Re-booking check-in</option></select></label>'+
+          '<label>What do you offer?<input data-marketing-service maxlength="100" value="'+esc(service)+'" placeholder="e.g. garden maintenance"></label></div>'+
+        '<label class="marketing-message-label">YOUR MESSAGE<textarea data-marketing-draft rows="6" maxlength="1600">'+esc(initial)+'</textarea></label>'+
+        '<div class="marketing-composer-actions"><button type="button" class="marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="marketing-primary-button" data-marketing-copy>Copy draft <span aria-hidden="true">↗</span></button></div>'+
+        '<p class="marketing-fineprint" data-marketing-copy-status role="status">Review accuracy, permission and platform rules before sharing. No messages are sent automatically.</p>'+
+      '</div><aside class="marketing-next-moves"><span class="marketing-eyebrow">SUGGESTED NEXT STEPS</span><h3>Start where it matters.</h3>'+
+        '<div class="marketing-priority-list">'+priorities+'</div>'+
+        '<p class="marketing-aside-foot">Suggestions are based only on what you have recorded in Cerium.</p>'+
+      '</aside></div>'+
     '</section>'+
-    '<section role="tabpanel" id="marketing-panel-reengage" aria-labelledby="marketing-tab-reengage" data-marketing-panel="reengage" hidden>'+
-      '<p class="marketing-kicker">02 · CUSTOMER RELATIONSHIPS</p><h2>Make the next visit easier.</h2>'+
-      '<p class="marketing-description">Look after customers who already know your work. Plan a respectful follow-up—Cerium won’t contact them without you.</p>'+
-      '<div class="marketing-actions">'+navLink('followups','Open follow-ups')+navLink('invoices','Review customer invoices')+'</div>'+
-      '<div class="marketing-callout"><strong>Follow-up candidates</strong><p>Customers with a paid invoice at least 30 days old and no open follow-up. This is a suggested check-in list, not proof that a customer wants marketing.</p></div>'+
+    '<section role="tabpanel" tabindex="0" id="marketing-panel-reengage" aria-labelledby="marketing-tab-reengage" data-marketing-panel="reengage" hidden>'+
+      '<header class="marketing-section-heading"><div><span class="marketing-kicker">02 / RELATIONSHIPS</span><h2>Be remembered for<br>the right reasons.</h2>'+
+        '<p class="marketing-description">Past customers already know your work. A thoughtful check-in can be more useful than a mass campaign.</p></div><span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
+      '<div class="marketing-actions">'+navLink('followups','All follow-ups')+navLink('invoices','Customer invoices')+'</div>'+
+      '<div class="marketing-relationship-summary"><div><span class="marketing-eyebrow">RE-ENGAGEMENT OPPORTUNITIES</span><strong>'+data.candidates.length+'</strong><small>suggested customers to review</small></div>'+
+        '<p>Only customers with a paid invoice at least 30 days old and no open follow-up. This is not evidence of consent to marketing.</p></div>'+
+      '<div class="marketing-list-heading"><h3>Consider checking in</h3><span>Human review required</span></div>'+
       '<div class="marketing-customer-list">'+candidates+'</div>'+
-      '<p class="marketing-fineprint">Plan check-in saves a task in Follow-ups. You must verify contact preferences before calling, texting, or emailing. No messages are sent automatically.</p>'+
+      '<p class="marketing-fineprint marketing-relationship-note">Plan check-in saves a task in Follow-ups. Verify the customer’s contact preferences before calling, texting, or emailing. No messages are sent automatically.</p>'+
     '</section>'+
-    '<section role="tabpanel" id="marketing-panel-performance" aria-labelledby="marketing-tab-performance" data-marketing-panel="performance" hidden>'+
-      '<p class="marketing-kicker">03 · ACTIVITY & INSIGHTS</p><h2>See what is happening.</h2>'+
-      '<p class="marketing-description">Real Cerium records show where enquiries come from, how many turn into booked work, and the progress of your review requests.</p>'+
+    '<section role="tabpanel" tabindex="0" id="marketing-panel-performance" aria-labelledby="marketing-tab-performance" data-marketing-panel="performance" hidden>'+
+      '<header class="marketing-section-heading"><div><span class="marketing-kicker">03 / YOUR NUMBERS</span><h2>Know what is<br>actually working.</h2>'+
+        '<p class="marketing-description">Clear signals from leads, reviews and follow-ups—not pretend impressions or made-up marketing results.</p></div><span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
       '<div class="marketing-insight-grid">'+
         stat('Leads marked Booked or Done',data.bookedLeads,'Of '+data.totalLeads+' recorded leads')+
-        stat('Review requests marked received',data.reviewsReceived,'Of '+data.reviewRequests+' marked requested or received')+
-        stat('Follow-ups currently due',data.dueFollowUps,'Outstanding work across customers')+
-        stat('Past customers with paid invoices',data.pastPaidCustomers,'Deduplicated by customer name')+
+        stat('Reviews marked received',data.reviewsReceived,'Of '+data.reviewRequests+' requested or received')+
+        stat('Due follow-ups',data.dueFollowUps,'Outstanding tasks')+
+        stat('Past paying customers',data.pastPaidCustomers,'Deduplicated by name')+
       '</div>'+
-      '<section class="marketing-sources"><h3>Where your leads came from</h3><p>Based only on the source field on your saved leads.</p>'+sources+'</section>'+
-      '<div class="marketing-callout"><strong>What we do not measure yet</strong><p>Cerium does not currently collect website visits, ad impressions, reach, campaign spend, published posts or attributed marketing revenue. We will not display made-up ROI or engagement metrics.</p></div>'+
-      '<div class="marketing-actions">'+navLink('leads','Review lead sources')+navLink('reviews','Review feedback requests')+'</div>'+
+      '<section class="marketing-sources"><div class="marketing-list-heading"><h3>Where enquiries originate</h3><span>Based on lead source labels</span></div>'+sources+'</section>'+
+      '<div class="marketing-callout"><span class="marketing-callout-mark" aria-hidden="true">i</span><div><strong>What we do not measure yet</strong><p>Cerium does not currently collect website visits, ad impressions, reach, campaign spend, published posts or attributed marketing revenue. We will not display made-up ROI or engagement metrics.</p></div></div>'+
+      '<div class="marketing-actions marketing-footer-actions">'+navLink('leads','Review lead sources')+navLink('reviews','Customer feedback')+'</div>'+
     '</section></div></div>'+
   '</section>';
 }
@@ -90,19 +110,39 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
       const on=tab.dataset.marketingTab===selected;
       tab.classList.toggle('active',on);
       tab.setAttribute('aria-selected',String(on));
+      tab.tabIndex=on?0:-1;
     }
     for(const panel of page.querySelectorAll('[data-marketing-panel]'))
       panel.hidden=panel.dataset.marketingPanel!==selected;
   };
   const deepLink=()=>/^#marketing\/(visibility|reengage|performance)$/.exec(location.hash)?.[1]||'visibility';
   choose(deepLink());
+  const navigateTo=key=>{
+    if(!tabs.some(t=>t.key===key))return;
+    choose(key);
+    // A shareable deep link without remounting the page or erasing an edited draft.
+    const hash='#marketing/'+key;
+    if(location.hash!==hash)history.replaceState(null,'',hash);
+  };
+  page.addEventListener('keydown',event=>{
+    const tab=event.target.closest('[data-marketing-tab]');
+    if(!tab)return;
+    if(!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const index=tabs.findIndex(t=>t.key===tab.dataset.marketingTab);
+    if(index<0)return;
+    const selected=event.key==='Home'?0:event.key==='End'?tabs.length-1:
+      (index+((event.key==='ArrowDown'||event.key==='ArrowRight')?1:-1)+tabs.length)%tabs.length;
+    navigateTo(tabs[selected].key);
+    page.querySelector('#marketing-tab-'+tabs[selected].key)?.focus();
+  });
   page.addEventListener('click',async event=>{
     const tab=event.target.closest('[data-marketing-tab]');
-    if(tab){
-      choose(tab.dataset.marketingTab);
-      // Keep a shareable, direct URL without resetting the draft or page state.
-      const hash='#marketing/'+tab.dataset.marketingTab;
-      if(location.hash!==hash)history.replaceState(null,'',hash);
+    if(tab){navigateTo(tab.dataset.marketingTab);return;}
+    const jump=event.target.closest('[data-marketing-jump]');
+    if(jump){
+      navigateTo(jump.dataset.marketingJump);
+      page.querySelector('#marketing-panel-'+jump.dataset.marketingJump)?.focus({preventScroll:true});
       return;
     }
     const generate=event.target.closest('[data-marketing-generate]');

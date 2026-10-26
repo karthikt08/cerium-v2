@@ -2,6 +2,14 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
+## Marketing interface and navigation
+
+Marketing is now a high-contrast, editorial workspace inspired by Cerium's landing-page visual language: a dark branded hero, real workspace activity ribbon, clear journey navigation, a focused draft editor and a small set of human-reviewed next steps. The re-engagement view clearly separates potential check-in tasks from marketing permission; the performance view explains exactly which saved records produce each number. The UI uses Figtree, violet brand accents, subtle lime highlights, responsive layouts, visible focus states, reduced motion and keyboard-operable tab navigation.
+
+The Ask Cerium panel has contextual Marketing prompts (create a post, re-book customers, lead sources, reviews) and visually distinct **trusted internal page links**. These links are ordinary safe same-app anchors, not model-generated URLs.
+
+The redesign does not change messaging authorization or data storage: editing a draft never publishes it, copying requires a click, and planning a check-in creates a normal Follow-up task only after a user clicks. Saved lead, invoice and review data remains the only source for performance counts.
+
 ## Clickable verified page links and Marketing deep links
 
 Ask Cerium now returns real, clickable same-app page links (`#leads`, `#invoices`, `#reviews`, and so on) along with concise guidance. Cross-tool workflows expose links for each step, while business tool advice offers direct links to relevant installed modules and a Settings review link. The links are generated from a shared internal allowlist, never assembled from generated model text. Unknown questions and greetings do not get misleading navigation links.

@@ -219,39 +219,8 @@
   outline-color:#8f71e9;
 }
 
-/* The newer Marketing hub was still cream/green compared with the rest.
-   Give it Cerium's real brand colors while retaining readable charts/copy. */
-.app-page .marketing-tag{
-  background:linear-gradient(112deg,#32307f,#6c35b9);color:#fff;
-  border-radius:8px;
-}
-.app-page .marketing-intro h1 em{color:#6736ca}
-.app-page .marketing-main{
-  border-color:#dacbf7;
-  background:linear-gradient(156deg,#fff,#fcfaff);
-  box-shadow:0 15px 38px -28px rgba(98,43,212,.33);
-}
-.app-page .marketing-stat{
-  border-color:#d5c6f5;
-  background:linear-gradient(135deg,#fff,#f1eaff);
-}
-.app-page .marketing-stat>strong{color:#42308a}
-.app-page .marketing-switcher{border-top-color:#c3b3ec}
-.app-page .marketing-tab{color:#58447f}
-.app-page .marketing-tab:hover:not(.active){background:#f1ebff;color:#4c2b9a}
-.app-page .marketing-tab.active{
-  background:linear-gradient(100deg,#e2d5ff,#f4eaff);
-  border-left:4px solid #733bdd;
-  color:#43218e;
-  box-shadow:inset 0 1px 0 #fff;
-}
-.app-page .marketing-link{color:#6334c2;text-decoration-color:#9b75e0}
-.app-page .marketing-bar{background:#e9dcfa}
-.app-page .marketing-bar>span{background:linear-gradient(90deg,#3b5bff,#7c3aed,#d946ef)}
-.app-page .marketing-tip{
-  background:#f5edff;border-left-color:#8549e4;
-}
-.app-page .marketing-callout{background:#f6f0ff;border-color:#dcccf4}
+/* Marketing visuals are owned by marketing.css, with the Cerium violet palette.
+   Do not override its component states from the generic workspace theme. */
 
 /* Product controls must remain readable and accessible on small screens. */
 @media(max-width:760px){

@@ -59,6 +59,12 @@ const CONTEXT_SUGGESTIONS = {
     { prompt: "How do I get more 5-star Google reviews?", label: "Get more 5-stars" },
     { prompt: "When is the best time to ask for a customer review?", label: "Review timing" }
   ],
+  marketing: [
+    { prompt: "Where can I draft a social media post?", label: "Create a post" },
+    { prompt: "Where can I re-book past customers?", label: "Re-book customers" },
+    { prompt: "Show marketing performance and lead sources", label: "Lead sources" },
+    { prompt: "How do I request customer reviews after completing a job?", label: "Ask for reviews" }
+  ],
   settings: [
     { prompt: "How can I customize my tools?", label: "Customize tools" },
     { prompt: "How do I close out the month and export financial records for accountant?", label: "Export for accountant" },
@@ -182,6 +188,10 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     const row=document.createElement('nav');
     row.className='guide-actions guide-direct-links';
     row.setAttribute('aria-label','Open relevant Cerium pages');
+    const heading=document.createElement('span');
+    heading.className='guide-links-heading';
+    heading.textContent='GO STRAIGHT TO';
+    row.append(heading);
     for(const link of links){
       const trusted=trustedGuideLink(link.href);
       if(!trusted)continue;
@@ -192,7 +202,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       anchor.textContent='Open '+trusted.label+' →';
       row.append(anchor);
     }
-    if(row.children.length)messages.append(row);
+    if(row.querySelector('a'))messages.append(row);
     messages.scrollTop=messages.scrollHeight;
   }
   function renderToolRecommendations(result){
