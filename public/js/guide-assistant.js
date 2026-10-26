@@ -149,7 +149,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     if(!clean||pending)return;
     const current=GUIDE_SECTIONS.includes(getSection?.())?getSection():'overview';
     const isRefinement=Boolean(lastBusinessDescription)&&
-      (/^(?:mostly|mainly|primarily|retail|wholesale|bulk|walk[ -]?in|tailor|custom|both|b2b|b2c|we (?:mostly|mainly)|i (?:mostly|mainly))\b/i.test(clean)||
+      (/^(?:mostly|mainly|primarily|retail|wholesale|bulk|walk[ -]?in|tailor\\w*|custom|both|b2b|b2c|we (?:mostly|mainly)|i (?:mostly|mainly))\b/i.test(clean)||
       /\b(?:mostly|mainly|primarily)\s+(?:wholesale|retail|bulk|tailoring|walk[ -]?in|custom)\b/i.test(clean));
     const wantRecommendations=awaitingBusinessDescription||isRefinement||isToolRecommendationRequest(clean);
     const businessDescription=isRefinement?(lastBusinessDescription+'; '+clean).slice(0,600):clean;
