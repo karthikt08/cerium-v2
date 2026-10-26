@@ -2,6 +2,7 @@
 // The engine runs locally; no customer records, paid AI API or trained model needed.
 // Suggestions are about Cerium's existing tools, not newly invented features.
 import {WORKSPACE_MODULES,defaultModules,isIndustry} from './industry-workspaces.js';
+import {identifyCeriumIndustry,recommendIndustryTools} from './industry-advisor-playbooks.js';
 
 const MODULES=new Map(WORKSPACE_MODULES.map(x=>[x.id,x]));
 const MODULE_REASONS=Object.freeze({
@@ -135,7 +136,8 @@ export function isToolRecommendationRequest(question=''){
   return INTRO.test(text)||
     /\b(?:recommend|suggest)\b.{0,105}\b(?:useful|suitable|right|best|me|us|my|our|for me|for us)\b/i.test(text)||
     /\b(?:what|which)\b.{0,75}\b(?:tools?|features?|modules?|should i use|do i need)\b/i.test(text)||
-    (BIZ_INTRO.test(text)&&(TEXTILE_TERMS.test(text)||COMMON_BIZ.test(text)))||
+    (BIZ_INTRO.test(text)&&(TEXTILE_TERMS.test(text)||COMMON_BIZ.test(text)||Boolean(identifyCeriumIndustry({description:text}))))||
+    /^(?:i|we) (?:do|offer|provide|specialize in|work in|run|own|operate)\b.{0,110}\b(?:plumb\w*|electri\w*|hvac|refrigeration|roof\w*|paint\w*|landscap\w*|garden\w*|clean\w*|construction|handyman|consult\w*|freelanc\w*)\b/i.test(text)||
     /\b(?:tools?|modules?|features?)\b.{0,75}\b(?:for|fit|suit)\b.{0,75}\b(?:business|company|shop|studio|agency|trade)\b/i.test(text)||
     /\b(?:set.?up|organize|personalize|customize)\b.{0,30}\b(?:my|our)\b.{0,25}\b(?:business|company|workspace)\b/i.test(text)||
     /\b(?:i run|i own|we run|our business is)\b.{0,160}\b(?:which tools?|what tools?|what should i use|recommend|suggest)\b/i.test(text)||
@@ -152,6 +154,13 @@ export function recommendBusinessTools({description='',trade='',category='other'
   const savedTextile=!explicitOther?textileProfile(input):null;
   if(primaryTextile||savedTextile)
     return recommendTextileTools(primaryTextile?primary:input,enabledModules,selectedCategory);
+  // Ten official Cerium industry presets each have a complete, distinct playbook.
+  // The user's explicitly described trade overrides stale saved preferences.
+  const industry=recommendIndustryTools({
+    description:primary,trade:String(trade||'').slice(0,120),
+    category:selectedCategory,enabledModules
+  });
+  if(industry)return industry;
   const scored=new Map();
   const detected=[];
   let evidence=0;
