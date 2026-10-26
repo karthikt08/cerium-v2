@@ -38,7 +38,7 @@
 .pg.home .tb i{width:10px;height:10px;border-radius:50%;background:var(--ln);display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
 .pg.home .tb i:nth-child(1){background:#ff5f56}
 .pg.home .tb i:nth-child(2){background:#ffbd2e}
-.pg.home .tb i:nth-child(3){background:#27c93f}
+.pg.home .tb i:nth-child(3){background:#9583ed}
 .pg.home .tb span{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:3.5px 12px;border-radius:8px;border:1px solid var(--ln);background:#fff;font-size:12px;font-weight:500;letter-spacing:-.01em;box-shadow:0 1px 2px rgba(12,23,41,.03);transition:border-color .2s,box-shadow .2s}
 .pg.home .tb span:hover{border-color:color-mix(in srgb,var(--ac) 40%,var(--ln));box-shadow:0 2px 6px rgba(12,23,41,.06)}
 .pg.home .tb b{color:var(--ink);font-weight:600}
@@ -48,7 +48,7 @@
 .pg.home .pn label,.pg.home .pn p{padding:8px 6px;border-radius:8px;transition:background .2s ease,transform .2s ease}
 .pg.home .pn label:hover,.pg.home .pn p:hover{background:rgba(255,255,255,.7);transform:translateX(1px)}
 .pg.home .mc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;border:1px solid rgba(47,91,255,.25);transition:background .35s ease,border-color .35s ease,box-shadow .35s ease}
-.pg.home .mc.matched{background:linear-gradient(135deg,rgba(236,253,245,.96) 0%,rgba(209,250,229,.92) 100%);border-color:rgba(16,185,129,.35);color:#065f46;box-shadow:0 6px 20px -4px rgba(16,185,129,.18),inset 0 1px 0 rgba(255,255,255,.9)}
+.pg.home .mc.matched{background:linear-gradient(135deg,rgba(244,241,255,.96) 0%,rgba(232,227,255,.92) 100%);border-color:rgba(118,100,218,.35);color:#514494;box-shadow:0 6px 20px -4px rgba(118,100,218,.18),inset 0 1px 0 rgba(255,255,255,.9)}
 .pg.home .mc>span{grid-row:1/3;display:block;min-height:3.6em}
 .pg.home .mc button{grid-column:2;min-width:140px;border:1px solid transparent;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease}
 .pg.home .mc button:hover{transform:translateY(-1px);box-shadow:0 4px 10px -3px rgba(12,23,41,.2)}
@@ -80,8 +80,8 @@
 
 .pg.home .pr{transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s cubic-bezier(.2,.8,.2,1);will-change:transform}
 .pg.home .pr:hover{transform:translateY(-3px);box-shadow:0 36px 70px -28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.25),0 0 45px -10px rgba(59,91,255,.25)}
-.pg.home .pr .c.g{animation:badge-pulse 2.8s ease-in-out infinite;box-shadow:0 1px 3px rgba(16,185,129,.12),inset 0 1px 0 rgba(255,255,255,.8)}
-@keyframes badge-pulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(16,185,129,.12),inset 0 1px 0 rgba(255,255,255,.8)}50%{transform:scale(1.05);box-shadow:0 0 14px rgba(16,185,129,.35),0 2px 6px rgba(16,185,129,.2),inset 0 1px 0 #fff}}
+.pg.home .pr .c.g{animation:badge-pulse 2.8s ease-in-out infinite;box-shadow:0 1px 3px rgba(118,100,218,.12),inset 0 1px 0 rgba(255,255,255,.8)}
+@keyframes badge-pulse{0%,100%{transform:scale(1);box-shadow:0 1px 3px rgba(118,100,218,.12),inset 0 1px 0 rgba(255,255,255,.8)}50%{transform:scale(1.05);box-shadow:0 0 14px rgba(118,100,218,.35),0 2px 6px rgba(118,100,218,.2),inset 0 1px 0 #fff}}
 
 /* ---------- "who it is for" strip ---------- */
 .pg.home .mq{padding:0;overflow:visible}

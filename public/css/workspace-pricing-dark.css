@@ -1,0 +1,265 @@
+/* Workspace skin based on index.html #pricing:
+   navy canvas (#0c1729), deep ink (#10131a), warm-white raised pricing card,
+   blue/violet/magenta accents. No green-coded UI states.
+   Keep content and editable documents light for legibility and printing. */
+.app-page{
+  --ink:#202635;
+  --accent:#4a52ce;
+  --accent-soft:#eaeaff;
+  --ac:#4a52ce;
+  --cerium-ui-primary:#454ed2;
+  --cerium-ui-primary-hover:#343cae;
+  --cerium-ui-focus:#8d94ff;
+  --workspace-blue:#3b5bff;
+  --workspace-violet:#7c3aed;
+  --workspace-magenta:#d946ef;
+  --workspace-glow:rgba(124,58,237,.22);
+  --pricing-ink:#0c1729;
+  --pricing-elevated:#142139;
+  --pricing-edge:rgba(163,174,220,.21);
+  --pricing-light:#f9fbfd;
+  --cerium-vibrant-gradient:linear-gradient(105deg,#3b5bff,#7c3aed 57%,#d946ef);
+  background:#0c1729;
+}
+.app-page .main-frame{
+  color:#eff1fa;
+  background:
+    radial-gradient(ellipse 46% 45% at 98% 4%,rgba(79,90,206,.16),transparent 79%),
+    radial-gradient(ellipse 39% 37% at 1% 94%,rgba(145,71,196,.10),transparent 82%),
+    #0c1729;
+}
+.app-page .sidebar{
+  background:linear-gradient(167deg,#101b30,#141f36 64%,#171a35);
+  border-right:1px solid #2b344e;
+  color:#eef1fc;
+}
+.app-page .brand{color:#f9faff}
+.app-page .brand-period{color:#b1a0ff;text-shadow:0 0 15px rgba(124,58,237,.38)}
+.app-page .workspace-label{color:#f3f4ff}
+.app-page .workspace-label strong{color:#f5f6ff}
+.app-page .workspace-label small{color:#b3b9d4}
+.app-page .workspace-monogram{
+  background:linear-gradient(145deg,#2b3260,#392a61);
+  border-color:#555080;color:#f0eafd;
+}
+.app-page .sidebar .nav-label{color:#929cc6}
+.app-page .sidebar .nav-link{
+  color:#c4cce7;transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+.app-page .sidebar .nav-link:hover:not([aria-current="page"]){
+  background:rgba(113,116,195,.16);color:#fff;
+}
+.app-page .sidebar .nav-link[aria-current="page"]{
+  color:#fff;font-weight:700;
+  background:linear-gradient(95deg,rgba(62,78,165,.62),rgba(106,53,167,.4));
+  border:1px solid rgba(167,150,244,.32);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 7px 21px -17px rgba(91,70,233,.65);
+}
+.app-page .sidebar .nav-link[aria-current="page"]::before{
+  background:var(--cerium-vibrant-gradient);
+  box-shadow:0 0 12px rgba(142,114,248,.5);
+}
+.app-page .nav-count{
+  background:#303a68;color:#e1e2ff;
+}
+.app-page .sidebar-bottom{border-top-color:#2b3553}
+.app-page .plan-link,.app-page .signout{color:#bcc5de}
+.app-page .plan-link:hover,.app-page .signout:hover{color:#fff}
+.app-page .plan-dot{background:#a49af7;box-shadow:0 0 0 3px rgba(164,154,247,.14)}
+.app-page .main-frame>.topbar{
+  background:rgba(16,27,48,.92);border-bottom-color:#313959;
+  color:#e8edfa;backdrop-filter:blur(18px);
+  box-shadow:0 11px 30px -26px rgba(0,0,0,.57);
+}
+.app-page .main-frame>.topbar::after{
+  background:linear-gradient(90deg,transparent,rgba(59,91,255,.53),rgba(124,58,237,.64),rgba(217,70,239,.38),transparent);
+}
+.app-page .breadcrumb,.app-page .breadcrumb .icon{color:#aab6d8}
+.app-page .breadcrumb strong{color:#f1f2fd}
+.app-page .sync-label{color:#a7b3d1}
+.app-page .topbar .icon-button{color:#d3d9ef}
+.app-page .topbar .icon-button:hover{background:#2b365c;color:#fff}
+.app-page .user-avatar{
+  background:linear-gradient(145deg,#4a5394,#714f9a);color:#fff;
+  border-color:#1d2a43;box-shadow:0 0 0 1px #6570af;
+}
+
+/* Outer canvas is the dark pricing section; all business content stays
+   on elevated almost-white pricing-card surfaces. */
+.app-page .page-width>.page-heading h1,
+.app-page .page-width>.page-heading h2,
+.app-page .marketing-page-heading h1,
+.app-page .marketing-intro h1{
+  color:#f5f6ff;
+}
+.app-page .page-width>.page-heading .eyebrow,
+.app-page .marketing-page-heading .eyebrow,
+.app-page .marketing-intro .eyebrow{color:#aeb7e5}
+.app-page .page-width>.page-heading .page-description,
+.app-page .marketing-page-heading p,
+.app-page .marketing-intro p{color:#b8c3db}
+.app-page .page-note{color:#a7b5d4}
+.app-page .page-note .icon{color:#9aa9da}
+
+/* Pricing-hero-style navy glass rather than another milky purple wash. */
+.app-page .overview-stage{
+  border:1px solid rgba(168,174,240,.28);
+  color:#f9faff;
+  background:
+    radial-gradient(ellipse 48% 72% at 94% 5%,rgba(69,87,201,.25),transparent 79%),
+    radial-gradient(ellipse 35% 60% at 68% 99%,rgba(166,76,205,.15),transparent 78%),
+    linear-gradient(140deg,#13223a,#1c2344 82%,#271e47);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 27px 54px -33px rgba(0,0,0,.8);
+}
+.app-page .overview-stage::before{
+  background:radial-gradient(ellipse 35% 40% at 73% 42%,rgba(90,105,245,.2),transparent 78%),
+             radial-gradient(ellipse 29% 32% at 95% 70%,rgba(192,86,224,.17),transparent 78%);
+}
+.app-page .overview-stage::after{
+  opacity:.22;background-image:
+    linear-gradient(rgba(165,156,255,.24) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(165,156,255,.24) 1px,transparent 1px);
+}
+.app-page .overview-stage .eyebrow{color:#b5baf7}
+.app-page .overview-stage h1{color:#fff}
+.app-page .overview-stage .overview-title-accent{
+  background-image:linear-gradient(105deg,#9db2ff,#c4b5fd 51%,#f0abfc 78%,#9db2ff);
+  filter:drop-shadow(0 6px 16px rgba(131,116,252,.2));
+}
+.app-page .overview-stage .page-description{color:#ced4ee}
+.app-page .overview-shortcuts{border-top-color:rgba(181,170,248,.2)}
+.app-page .overview-shortcut{
+  background:rgba(26,38,71,.92);border-color:rgba(168,169,240,.35);
+  color:#e9e7ff;box-shadow:0 4px 15px rgba(0,0,0,.1);
+}
+.app-page .overview-shortcut .icon{color:#b5b6ff}
+.app-page .overview-shortcut:hover{
+  background:#29345d;border-color:#9c8beb;color:#fff;
+}
+
+/* Older modules nest .panel inside custom wrappers. Give every light
+   operational surface a dark-ink default so white-on-white text cannot result
+   merely from inheriting the navy shell's light foreground. */
+.app-page .main-frame :is(.panel,.board-column,.metric,.quote-card,
+  .jobs-stat,.marketing-main,.marketing-stat,.marketing-customer,
+  .quotes-summary>div,.reminders-stats>div,.jobs-panel){
+  color:#25314b;
+}
+/* The pricing card is white on navy: keep that high-contrast hierarchy.
+   Existing scroll reveals and hover lift still operate on these surfaces. */
+.app-page .metrics-grid .metric,
+.app-page .dashboard-grid>.panel,
+.app-page .page-width>.panel{
+  color:#25314b;
+  background:linear-gradient(170deg,#fff 0%,#f9fbfd 100%);
+  border-color:rgba(212,215,237,.95);
+  box-shadow:inset 0 1px 0 #fff,0 20px 39px -29px rgba(0,0,0,.57);
+}
+.app-page .metrics-grid .metric::before{
+  background:var(--cerium-vibrant-gradient);
+  opacity:.74;transform:scaleX(.82);
+}
+.app-page .metrics-grid .metric .metric-value{color:#172644;font-weight:750}
+.app-page .metrics-grid .metric.warning .metric-value{color:#93552d}
+.app-page .metrics-grid .metric .metric-top .icon,
+.app-page .dashboard-grid>.panel .panel-title .icon{color:#6958c3}
+.app-page .dashboard-grid>.panel .panel-title h2::after{background:var(--cerium-vibrant-gradient)}
+.app-page .metric-top{color:#66718b}
+.app-page .metric-foot{color:#6a748f}
+.app-page .metric-foot .dot{background:#8276d8}
+.app-page :is(.panel-count,.badge.blue,.badge.purple){
+  color:#4b428d;background:#efedfa;border-color:#d8d4ee;
+}
+.app-page .text-button{color:#5148b5}
+.app-page .text-button:hover{color:#342ba3}
+.app-page .stage-item:nth-child(1) .stage-line{background:#6277e7}
+.app-page .stage-item:nth-child(2) .stage-line{background:#8b6fdb}
+.app-page .stage-item:nth-child(3) .stage-line{background:#b477df}
+.app-page .stage-item:nth-child(4) .stage-line{background:#7793d8}
+.app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
+  .jobs-stats>.jobs-stat,.jobs-panel,.jobs-bottom>.panel,
+  .board-column>.lead-card,.reminders-stats>div,.reminders-columns>.panel,
+  .settings-grid .panel,.marketing-main,.marketing-stat,.marketing-customer){
+  background:linear-gradient(160deg,#fff,#fafbff);
+  border-color:#dce0ee;
+  color:#25314b;
+  box-shadow:0 16px 31px -27px rgba(3,11,27,.5);
+}
+/* Marketing's angled tabs use ::after for their visible fill. Color that
+   surface as well, and keep the header's light summary tile legible. */
+.app-page .marketing-page-heading h1 span{color:#c4b5fd}
+.app-page .marketing-page-eyebrow{color:#b9b8e8}
+.app-page .marketing-page-eyebrow span{color:#aeb6d4}
+.app-page .marketing-tab:not(.active){color:#414665}
+.app-page .marketing-tab:not(.active):hover{color:#3c2f89}
+.app-page .marketing-tab:not(.active)::after{background:#f4f5fc}
+.app-page .marketing-tab.active{color:#fff}
+.app-page .marketing-tab.active::before{background:#7771c8}
+.app-page .marketing-tab.active::after{
+  background:
+    linear-gradient(90deg,#6374dd,#b283d1) top left / calc(100% - 1px) 3px no-repeat,
+    linear-gradient(102deg,#263a6c,#47376e);
+}
+.app-page .marketing-tab.active .marketing-tab-number{color:#d2c7ff}
+.app-page .marketing-page-summary{color:#39425d}
+.app-page .marketing-page-summary strong{color:#202c47}
+.app-page .marketing-page-summary strong span{color:#5f617b}
+.app-page .marketing-intro{color:#eff1fa}
+
+/* Shared dark CTA treatment echoes the dark pricing section's button.
+   Semantic red/warning actions remain distinct; completed/verified is violet. */
+.app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
+  color:#fff;background:linear-gradient(112deg,#3b5bff,#6551d5 69%,#7c3aed);
+  border-color:#5b59c7;
+  box-shadow:0 8px 18px -10px rgba(54,65,198,.52);
+}
+.app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:hover:not(:disabled){
+  background:linear-gradient(112deg,#344fe1,#5741c0 69%,#682bd6);
+  border-color:#6e58d4;
+}
+.app-page .button.secondary:not(:disabled){color:#384564}
+.app-page .button.secondary:hover:not(:disabled){background:#f2efff;border-color:#beb1f1;color:#42368b}
+.app-page .badge.green,.app-page .badge.purple,
+.app-page .job-status.green,.app-page .job-tile.green,
+.app-page .quote-accepted,.app-page .quote-converted,
+.app-page .task-check.completed,.app-page .billing-verify-status.is-verified,
+.app-page .jobs-linked-invoice,.app-page .edition-chip,
+.app-page[data-edition="in"] .edition-chip{
+  background:#ecebff;border-color:#cac9f2;color:#4e438e;
+}
+.app-page .job-tile.green{border-left-color:#7771ce}
+.app-page .task-check.completed{color:#5a51b4}
+.app-page .plan-dot,.app-page .guide-status-dot{
+  background:#a99aff;box-shadow:0 0 8px rgba(169,154,255,.32);
+}
+.app-page .guide-status-pill{
+  background:#ecebff;border-color:#cbc4ef;color:#493d87;
+}
+/* Indian localization is not a success state and must not be green. */
+.app-page[data-edition="in"] .workspace-label small{color:#c8bdf1}
+.app-page .india-guide{
+  background:linear-gradient(125deg,#f4f3ff,#fafbff 80%);
+  border-color:#d9d3f0;color:#343453;
+}
+.app-page .india-guide .eyebrow{color:#6453a0}
+.app-page .india-guide p:not(.eyebrow){color:#696580}
+.app-page .jobs-linked-invoice{color:#4e438e}
+.app-page .job-status.green{font-weight:700}
+.app-page .page-width :is(.button,.text-button,.link):focus-visible{outline-color:#a29afd}
+
+/* Use neutral controls for dense work, including modal editors and invoices. */
+@media(max-width:760px){
+  .app-page .sidebar{background:linear-gradient(165deg,#101b30,#1a2040)}
+  .app-page .main-frame{
+    background:radial-gradient(ellipse 75% 45% at 100% 0%,rgba(79,90,206,.14),transparent 83%),#0c1729;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page .overview-stage::before{transform:none!important}
+}
+@media print{
+  .app-page,.app-page .main-frame{color:#202635;background:#fff!important}
+  .app-page .sidebar,.app-page .overview-stage,.app-page .metrics-grid .metric,
+  .app-page .dashboard-grid>.panel,.app-page .page-width>.panel{background:#fff!important;box-shadow:none!important;color:#202635!important}
+  .app-page .page-width>.page-heading h1{color:#202635}
+}

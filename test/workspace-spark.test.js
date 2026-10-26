@@ -8,7 +8,7 @@ test('workspace adds landing-derived design only after module styles and before 
   const app=read('app.html'),styles=[...app.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
   assert.equal(styles.filter(x=>x==='css/workspace-spark.css').length,1);
   assert.ok(styles.indexOf('css/guide-assistant.css')<styles.indexOf('css/workspace-spark.css'));
-  assert.deepEqual(styles.slice(-4),['css/workspace-spark.css','css/workspace-vibrance.css','css/ui-consistency.css','css/typography.css']);
+  assert.deepEqual(styles.slice(-5),['css/workspace-spark.css','css/workspace-vibrance.css','css/ui-consistency.css','css/workspace-pricing-dark.css','css/typography.css']);
   assert.equal((app.match(/src="js\/workspace-cursor\.js"/g)||[]).length,1,'no extra cursor engine');
   assert.doesNotMatch(app,/css\/spatial\.css/,'avoid landing CSS overrides inside the application');
 });
