@@ -1,9 +1,9 @@
 import {GUIDE_SECTIONS, pickGuide} from './guide-knowledge.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
-import {isToolRecommendationRequest} from './business-tool-advisor.js';
+import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
 
 // Purely navigational: this widget never submits, edits, deletes, or pays on a user's behalf.
-export function mountGuideAssistant({api, getSection, root=document.getElementById('workspace')}={}) {
+export function mountGuideAssistant({api, getSection, getBusiness=()=>({}), root=document.getElementById('workspace')}={}) {
   if(!root || root.querySelector('#cerium-guide'))return;
   const shell=document.createElement('div');
   shell.id='cerium-guide';
@@ -103,7 +103,8 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
     messages.append(container);
     messages.scrollTop=messages.scrollHeight;
   }
-  function localAnswer(question,section){
+  function localAnswer(question,section,recommendTools=false){
+    if(recommendTools)return recommendBusinessTools({...getBusiness(),description:question});
     const match=pickGuide(question,section);
     return {reply:match.answer,steps:match.steps,section:match.section,title:match.title,source:'guide'};
   }
@@ -121,16 +122,16 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
       try{
         result=typeof api?.askGuide==='function'
           ? await api.askGuide({question:clean,currentSection:current,recommendTools:wantRecommendations})
-          : localAnswer(clean,current);
+          : localAnswer(clean,current,wantRecommendations);
       }catch{
-        result=localAnswer(clean,current);
+        result=localAnswer(clean,current,wantRecommendations);
       }
-      if(!result || typeof result.reply!=='string')result=localAnswer(clean,current);
+      if(!result || typeof result.reply!=='string')result=localAnswer(clean,current,wantRecommendations);
       // Recommendations and NavLM uncertainty deliberately have no destination.
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
       const safe=recommendation||uncertain||GUIDE_SECTIONS.includes(result.section)
-        ? result : {...result,...localAnswer(clean,current)};
+        ? result : {...result,...localAnswer(clean,current,wantRecommendations)};
       progress.textContent=safe.reply.slice(0,850)+
         (safe.steps && (safe.source==='guide'||safe.source==='navlm')?'\n\n'+safe.steps.slice(0,400):'');
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
