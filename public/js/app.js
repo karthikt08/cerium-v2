@@ -564,5 +564,9 @@ async function initialize() {
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 wireWorkspaceCustomizer({api:API,refresh,toast,getTrade:()=>state.ws?.account?.trade});
-mountGuideAssistant({api:API,getSection:()=>state.section});
+mountGuideAssistant({api:API,getSection:()=>state.section,getBusiness:()=>({
+  trade:state.ws?.account?.trade||'',
+  category:state.ws?.account?.workspacePreferences?.category||'other',
+  enabledModules:state.ws?.account?.workspacePreferences?.modules||[]
+})});
 $('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
