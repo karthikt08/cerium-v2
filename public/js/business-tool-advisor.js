@@ -94,7 +94,7 @@ export function recommendBusinessTools({description='',trade='',category='other'
   }
   const recommendations=[...scored.values()]
     .sort((a,b)=>b.score-a.score||WORKSPACE_MODULES.findIndex(x=>x.id===a.id)-WORKSPACE_MODULES.findIndex(x=>x.id===b.id))
-    .slice(0,6).map(({id,label,reasons})=>({id,label,reason:reasons.find(x=>!x.startsWith('A useful starting point'))||reasons[0]||MODULE_REASONS[id],
+    .slice(0,6).map(({id,label,reasons})=>({id,label,reason:reasons.find(x=>x.startsWith('You '))||reasons.find(x=>!x.startsWith('A useful starting point'))||reasons[0]||MODULE_REASONS[id],
       currentlyEnabled:Array.isArray(enabledModules)&&enabledModules.includes(id)}));
   const summary=detected.length?'For your '+detected[0]+' business, I would start with these Cerium tools.':
     'Based on the business work you described, I recommend these Cerium tools.';
