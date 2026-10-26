@@ -172,7 +172,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       if(!panel.hidden)input.focus();
     }
   }
-  bubble('Hey! Tell me what you want to do in Cerium, or describe your business and I’ll recommend useful tools.');
+  bubble('Find a feature, ask about a workflow, or describe your business for tailored tool suggestions.');
   trigger.addEventListener('click',()=>panel.hidden?openGuide():closeGuide());
   close.addEventListener('click',closeGuide);
   shell.querySelector('#guide-form').addEventListener('submit',event=>{
