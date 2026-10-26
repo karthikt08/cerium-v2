@@ -7,7 +7,7 @@ import {MARKETING_FEATURE_TABS,marketingFeatureFromHash} from './marketing-featu
 export {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
 const arrow='<span aria-hidden="true">→</span>';
-const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="marketing-link">'+esc(label)+' '+arrow+'</a>';
+const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="text-button marketing-link">'+esc(label)+' '+arrow+'</a>';
 const tabs=MARKETING_FEATURE_TABS;
 export function renderMarketingPage(ws){
   const today=businessLocalDate(ws?.account?.timeZone);
@@ -27,52 +27,58 @@ export function renderMarketingPage(ws){
     '<div class="marketing-priority"><span class="marketing-priority-index">0'+(index+1)+'</span><div><strong>'+esc(item.title)+'</strong><p>'+esc(item.reason)+'</p></div></div>').join('');
   const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
   return '<section class="marketing-page" data-marketing-page>'+
-    '<header class="marketing-page-heading">'+
-      '<div class="marketing-page-heading-copy"><span class="marketing-page-eyebrow">WORKSPACE <span aria-hidden="true">/</span> MARKETING</span>'+
-      '<h1>Marketing <span>workspace</span></h1>'+
-      '<p>One place to get discovered, reconnect with customers and understand what is working.</p></div>'+
-      '<div class="marketing-page-summary" aria-label="Recorded marketing activity"><span class="marketing-page-summary-label">YOUR ACTIVITY</span>'+
-        '<strong>'+esc(data.totalLeads)+' <span>leads</span></strong><small>'+esc(data.reviewsReceived)+' reviews marked received · '+esc(data.repeatCustomers)+' returning customers</small>'+
-      '</div>'+
-    '</header>'+
+    '<div class="page-heading marketing-page-heading"><div>'+
+      '<p class="eyebrow">GROW YOUR BUSINESS</p>'+
+      '<h1>Marketing</h1>'+
+      '<p class="page-description">Get discovered, reconnect with customers, and review activity recorded in Cerium.</p>'+
+      '</div><div class="heading-actions marketing-heading-actions">'+
+      '<a class="button secondary" href="#reviews" data-nav="reviews">Reviews</a>'+
+      '<button type="button" class="button primary" data-marketing-jump="visibility">Create a message</button>'+
+      '</div></div>'+
     '<div class="marketing-layout">'+
       '<nav class="marketing-switcher" role="tablist" aria-label="Marketing features">'+
         tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'" tabindex="'+(index===0?'0':'-1')+'" title="'+esc(item.label)+'">'+
           '<span class="marketing-tab-number">'+String(index+1).padStart(2,'0')+'</span><span class="marketing-tab-copy"><strong>'+esc(item.label)+'</strong></span>'+
         '</button>').join('')+
       '</nav>'+
-      '<div class="marketing-main">'+
+      '<div class="panel marketing-main">'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-visibility" aria-labelledby="marketing-tab-visibility" data-marketing-panel="visibility">'+
-      '<header class="marketing-section-heading"><div><span class="marketing-kicker">01 / REACH & REPUTATION</span><h2>Give people a reason<br>to choose you.</h2>'+
-        '<p class="marketing-description">Your work builds your reputation. Make it easier for people to see it and hear from you.</p></div>'+
-        '<span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
-      '<div class="marketing-actions">'+navLink('reviews','Review requests')+navLink('leads','Your enquiries')+'</div>'+
+      '<div class="panel-header marketing-feature-header"><div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-reviews"></use></svg><h2>Get found and chosen</h2></div>'+
+        '<p class="panel-subtitle">Create messages and manage review requests. Nothing is published or sent automatically.</p></div>'+
+        '<div class="marketing-panel-links">'+navLink('reviews','Review requests')+navLink('leads','Your enquiries')+'</div>'+
+      '</div><div class="panel-body marketing-feature-body">'+
       '<div class="marketing-feature-grid"><div class="marketing-composer">'+
-        '<div class="marketing-composer-title"><div><span class="marketing-eyebrow">CONTENT DESK</span><h3>A message worth sharing.</h3><p>Start with a draft, make it yours, then decide whether to publish or send it.</p></div><span class="marketing-draft-badge">DRAFT ONLY</span></div>'+
-        '<div class="marketing-fields"><label>What are you writing?<select data-marketing-draft-kind>'+
+        '<div class="marketing-composer-title"><div><h3>Message draft</h3><p>Start with a suggestion, edit the text and choose when to share it.</p></div><span class="badge marketing-draft-badge">Draft only</span></div>'+
+        '<div class="marketing-fields form-grid"><label class="field">Message type<select data-marketing-draft-kind>'+
           '<option value="post">Social post</option><option value="update">Business profile update</option><option value="review">Review request</option><option value="rebook">Re-booking check-in</option></select></label>'+
-          '<label>What do you offer?<input data-marketing-service maxlength="100" value="'+esc(service)+'" placeholder="e.g. garden maintenance"></label></div>'+
-        '<label class="marketing-message-label">YOUR MESSAGE<textarea data-marketing-draft rows="6" maxlength="1600">'+esc(initial)+'</textarea></label>'+
-        '<div class="marketing-composer-actions"><button type="button" class="button secondary marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="button primary marketing-primary-button" data-marketing-copy>Copy draft <span aria-hidden="true">↗</span></button></div>'+
+          '<label class="field">What do you offer?<input data-marketing-service maxlength="100" value="'+esc(service)+'" placeholder="e.g. garden maintenance"></label></div>'+
+        '<label class="field marketing-message-label">Message<textarea data-marketing-draft rows="6" maxlength="1600">'+esc(initial)+'</textarea></label>'+
+        '<div class="marketing-composer-actions"><button type="button" class="button secondary marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="button primary marketing-primary-button" data-marketing-copy>Copy draft</button></div>'+
         '<p class="marketing-fineprint" data-marketing-copy-status role="status">Review accuracy, permission and platform rules before sharing. No messages are sent automatically.</p>'+
-      '</div><aside class="marketing-next-moves"><span class="marketing-eyebrow">SUGGESTED NEXT STEPS</span><h3>Start where it matters.</h3>'+
+      '</div><aside class="marketing-next-moves"><p class="eyebrow">SUGGESTED NEXT STEPS</p><h3>Recommended actions</h3>'+
         '<div class="marketing-priority-list">'+priorities+'</div>'+
         '<p class="marketing-aside-foot">Suggestions are based only on what you have recorded in Cerium.</p>'+
-      '</aside></div>'+
+      '</aside></div></div>'+
     '</section>'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-reengage" aria-labelledby="marketing-tab-reengage" data-marketing-panel="reengage" hidden>'+
-      '<header class="marketing-section-heading"><div><span class="marketing-kicker">02 / RELATIONSHIPS</span><h2>Be remembered for<br>the right reasons.</h2>'+
-        '<p class="marketing-description">Past customers already know your work. A thoughtful check-in can be more useful than a mass campaign.</p></div><span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
-      '<div class="marketing-actions">'+navLink('followups','All follow-ups')+navLink('invoices','Customer invoices')+'</div>'+
-      '<div class="marketing-relationship-summary"><div><span class="marketing-eyebrow">RE-ENGAGEMENT OPPORTUNITIES</span><strong>'+data.candidates.length+'</strong><small>suggested customers to review</small></div>'+
+      '<div class="panel-header marketing-feature-header"><div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-followups"></use></svg><h2>Re-book and re-engage</h2></div>'+
+        '<p class="panel-subtitle">Review past customer relationships and plan a manual follow-up.</p></div>'+
+        '<div class="marketing-panel-links">'+navLink('followups','All follow-ups')+navLink('invoices','Customer invoices')+'</div>'+
+      '</div><div class="panel-body marketing-feature-body">'+
+      '<div class="marketing-relationship-summary"><div><span class="eyebrow">RE-ENGAGEMENT OPPORTUNITIES</span><strong>'+data.candidates.length+'</strong><small>suggested customers to review</small></div>'+
         '<p>Only customers with a paid invoice at least 30 days old and no open follow-up. This is not evidence of consent to marketing.</p></div>'+
       '<div class="marketing-list-heading"><h3>Consider checking in</h3><span>Human review required</span></div>'+
       '<div class="marketing-customer-list">'+candidates+'</div>'+
-      '<p class="marketing-fineprint marketing-relationship-note">Plan check-in saves a task in Follow-ups. Verify the customer’s contact preferences before calling, texting, or emailing. No messages are sent automatically.</p>'+
+      '<p class="marketing-fineprint marketing-relationship-note">Plan check-in saves a task in Follow-ups. Verify the customer’s contact preferences before calling, texting, or emailing. No messages are sent automatically.</p></div>'+
     '</section>'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-performance" aria-labelledby="marketing-tab-performance" data-marketing-panel="performance" hidden>'+
-      '<header class="marketing-section-heading"><div><span class="marketing-kicker">03 / YOUR NUMBERS</span><h2>Know what is<br>actually working.</h2>'+
-        '<p class="marketing-description">Clear signals from leads, reviews and follow-ups—not pretend impressions or made-up marketing results.</p></div><span class="marketing-section-symbol" aria-hidden="true">↗</span></header>'+
+      '<div class="panel-header marketing-feature-header"><div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-leads"></use></svg><h2>Track performance</h2></div>'+
+        '<p class="panel-subtitle">Activity from saved leads, invoices, follow-ups and reviews—no invented marketing metrics.</p></div>'+
+        '<div class="marketing-panel-links">'+navLink('leads','Review lead sources')+navLink('reviews','Customer feedback')+'</div>'+
+      '</div><div class="panel-body marketing-feature-body">'+
       '<div class="marketing-insight-grid">'+
         stat('Leads marked Booked or Done',data.bookedLeads,'Of '+data.totalLeads+' recorded leads')+
         stat('Reviews marked received',data.reviewsReceived,'Of '+data.reviewRequests+' requested or received')+
@@ -80,8 +86,8 @@ export function renderMarketingPage(ws){
         stat('Past paying customers',data.pastPaidCustomers,'Deduplicated by name')+
       '</div>'+
       '<section class="marketing-sources"><div class="marketing-list-heading"><h3>Where enquiries originate</h3><span>Based on lead source labels</span></div>'+sources+'</section>'+
-      '<div class="marketing-callout"><span class="marketing-callout-mark" aria-hidden="true">i</span><div><strong>What we do not measure yet</strong><p>Cerium does not currently collect website visits, ad impressions, reach, campaign spend, published posts or attributed marketing revenue. We will not display made-up ROI or engagement metrics.</p></div></div>'+
-      '<div class="marketing-actions marketing-footer-actions">'+navLink('leads','Review lead sources')+navLink('reviews','Customer feedback')+'</div>'+
+      '<div class="notice marketing-callout"><span class="marketing-callout-mark" aria-hidden="true">i</span><div><strong>What we do not measure yet</strong><p>Cerium does not currently collect website visits, ad impressions, reach, campaign spend, published posts or attributed marketing revenue. We will not display made-up ROI or engagement metrics.</p></div></div>'+
+      '</div>'+
     '</section></div></div>'+
   '</section>';
 }

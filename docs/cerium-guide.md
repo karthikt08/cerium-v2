@@ -18,7 +18,7 @@ Styles in `public/css/marketing.css` are horizontal and overflow-safe; no redesi
 
 ### Design direction
 
-The previous large hero and side rail were replaced with a compact Marketing heading, slanted browser-like top tabs and one full-width, tall work surface. The UI deliberately reuses Cerium's shared color tokens, Figtree typography, white panel surfaces, subtle borders, 9px control corners and primary/secondary buttons. Only the selected tab has a restrained blue-violet gradient accent. The existing draft editor, manual check-ins, analytics and AI links are preserved.
+Marketing now uses the actual shared workspace markup: `page-heading`, `heading-actions`, `panel`, `panel-header`, `panel-body`, `panel-title`, `panel-subtitle`, `form-grid`, `field`, `button`, `badge`, `eyebrow`, and `text-button`, rather than imitating those components with a separate Marketing theme. The original large hero, custom heading and redundant summary tile have been removed. Angled feature tabs remain directly above a generous standard Cerium panel; there is only a subtle active-tab accent. The existing draft editor, manual check-ins, analytics, keyboard interaction and AI deep links remain functional.
 
 ## Clickable verified page links and Marketing deep links
 
