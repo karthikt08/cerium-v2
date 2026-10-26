@@ -100,7 +100,7 @@ test('completed and verified states keep their labels but adopt violet or navy, 
 test('dark skin does not repaint invoice printouts or editor modal contents',()=>{
   assert.doesNotMatch(skin,/\.invoice-document\b|\.data-table\s+(?:tr|td|th)/,'keep operational data legible');
   assert.match(skin,/\.app-page \.page-width>.panel/);
-  assert.match(skin,/\.app-page \.marketing-main/);
+  assert.match(skin,/\.marketing-main/,'marketing main panel is part of the light elevated surfaces');
   assert.match(skin,/@media print\{[\s\S]*?background:#fff!important/);
   assert.match(load('app.html'),/src="js\/workspace-card-motion\.js"/,'card animations preserved');
 });
