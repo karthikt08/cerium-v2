@@ -49,7 +49,7 @@ describe('old services are gone', () => {
   it('no page stores personal data in the browser', () => {
     for (const f of [...pages.map((p) => `public/${p}`), ...listFiles(path.join(PUBLIC, 'js')).map((p) => path.relative(ROOT, p))]) {
       let text = read(f);
-      if (f === 'public/js/app.js') {
+      if (f.split(path.sep).join('/') === 'public/js/app.js') {
         // Only a boolean sidebar layout preference may be stored locally.
         // No business records, PII, session data, or other browser storage.
         assert.match(text, /const SIDEBAR_COLLAPSE_KEY='cerium\.sidebar\.collapsed'/);
