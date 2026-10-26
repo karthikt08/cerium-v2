@@ -9,7 +9,7 @@
 .quote-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid #e5e8f2;box-shadow:0 8px 26px rgba(37,49,74,.035);border-radius:16px;overflow:visible;min-width:0}
 .quote-card-main{padding:20px;flex:1;min-width:0}.quote-card-top{display:flex;justify-content:space-between;gap:9px;align-items:center}
 .quote-number{font-size:11px;letter-spacing:0;font-weight:550;color:#8895aa;white-space:nowrap}.quote-short-id{font-size:11px;letter-spacing:.15px;font-weight:650;color:#738099}.quote-pill{border-radius:999px;font-size:10px;font-weight:800;padding:5px 11px;background:#edf1f7;color:#5f718d}
-.quote-accepted,.quote-converted{background:#e9f7ef;color:#29845d}.quote-sent{background:#eceafb;color:#6556ad}.quote-declined{background:#fff0ee;color:#b05b55}
+.quote-accepted,.quote-converted{background:#f0edff;color:#6052ac}.quote-sent{background:#eceafb;color:#6556ad}.quote-declined{background:#fff0ee;color:#b05b55}
 .quote-card h3{font-size:18px;letter-spacing:-.45px;margin:14px 0 4px;color:#22334e}
 .quote-card p{font-size:12px;color:#75849a;overflow-wrap:anywhere;line-height:1.5;margin:0}
 .quote-card-bottom{margin-top:20px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
