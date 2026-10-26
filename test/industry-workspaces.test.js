@@ -8,7 +8,7 @@ import {
 } from '../public/js/industry-workspaces.js';
 import {startServer,signIn,ALICE,BOB} from './helpers.js';
 import {prepareBusiness} from './business-fixtures.js';
-import {customizeBusinessNavigation,customizeOverview,renderOverviewTools} from '../public/js/workspace-customizer.js';
+import {customizeBusinessNavigation,customizeOverview,renderOverviewTools,renderWorkspaceCustomizer} from '../public/js/workspace-customizer.js';
 
 const source=p=>readFileSync(fileURLToPath(new URL('../'+p,import.meta.url)),'utf8');
 
@@ -29,6 +29,23 @@ test('ten distinct preset industries plus a fully selectable Other profile',()=>
  assert.ok(unique.size>=5,'Trade presets should vary meaningfully');
  assert.deepEqual(new Set(defaultModules('other')),ids);
 });
+test('choose-tools screens explain existing modules and never offer shared hubs as optional checkboxes',()=>{
+ const ids=WORKSPACE_MODULES.map(item=>item.id);
+ assert.equal(ids.length,8);
+ for(const module of WORKSPACE_MODULES){
+   assert.ok(module.description&&module.description.length>15,module.id+' should explain its current purpose');
+ }
+ const html=renderWorkspaceCustomizer({category:'other',modules:['invoices','leads']});
+ assert.equal((html.match(/class="ws-pick-module"/g)||[]).length,8);
+ assert.match(html,/Included in every workspace/);
+ for(const title of ['Overview','Marketing','Ask Cerium'])assert.ok(html.includes(title));
+ assert.doesNotMatch(html,/name="modules" value="(?:marketing|overview|assistant)"/);
+ const wizard=source('public/js/business-setup-ui.js');
+ assert.match(wizard,/recommendBusinessTools/,'onboarding must use the same tool advisor as Settings');
+ assert.match(wizard,/tool-choice-copy/);
+ assert.match(wizard,/Overview, Marketing and Ask Cerium are included/);
+});
+
 test('smart assistant is local, explainable and suggestions are user-editable',()=>{
  assert.equal(suggestIndustry('I repair water pipes').category,'plumbing');
  assert.equal(suggestIndustry('Commercial AC maintenance').category,'hvac');
