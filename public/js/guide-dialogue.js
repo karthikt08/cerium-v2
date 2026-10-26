@@ -40,6 +40,42 @@ export function conversationReply(question,{lastSection=null}={}){
   return null;
 }
 
+// Cross-feature workflows make the guide useful when a task spans several screens.
+// Every destination is an existing, allowlisted Cerium section; no execution occurs.
+const WORKFLOWS=[
+  {
+    matches:/\b(?:from|turn|convert|after|process|workflow)\b.{0,110}\b(?:lead|prospect|quote|estimate)\b.{0,115}\b(?:invoice|payment|paid)\b/i,
+    reply:'For a customer-to-payment workflow: capture the lead, prepare a quote, schedule the approved work, create an invoice, then review the payment.',
+    actions:['leads','quotes','jobs','invoices','payments']
+  },
+  {
+    matches:/\b(?:import|excel|csv|spreadsheet)\b.{0,130}\b(?:quote|estimate|proposal)\b/i,
+    reply:'First import your contacts in Leads. Then open Estimates & quotes to prepare a quote for the customer.',
+    actions:['leads','quotes']
+  },
+  {
+    matches:/\b(?:schedul|jobs?|appointments?|work)\b.{0,90}\b(?:invoic|bill(?:ing)?)\b/i,
+    reply:'Schedule the work in Jobs & dispatch, then create the customer invoice in Invoices after reviewing the completed work.',
+    actions:['jobs','invoices']
+  },
+  {
+    matches:/\b(?:unpaid|overdue|late payment)\b.{0,70}\b(?:remind|follow.?up|chase)\b/i,
+    reply:'First check the invoice in Invoices. Then use Payment reminders to prepare a follow-up, subject to your delivery settings.',
+    actions:['invoices','reminders']
+  }
+];
+export function workflowReply(question){
+  const text=String(question||'').trim().slice(0,420);
+  const plan=WORKFLOWS.find(item=>item.matches.test(text));
+  if(!plan)return null;
+  return {
+    type:'workflow',source:'guide',reply:plan.reply,
+    section:null,title:null,steps:null,
+    actions:plan.actions.filter(section=>GUIDE_SECTIONS.includes(section))
+      .map(section=>({section,title:TOPICS.get(section).title}))
+  };
+}
+
 const TASKS=[
   {section:'invoices',match:/\b(?:pdf|download|print|save (?:an? )?invoice)\b/i,
     answer:'To save an invoice as a PDF, open Invoices, preview the invoice, then choose Print / save PDF.'},
