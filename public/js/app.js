@@ -111,33 +111,47 @@ function overview() {
   const preference=ws.account.workspacePreferences||{};
   const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
   const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
-  const industryNote=`<div class="notice" role="status"><div><strong>${esc(workspaceTitle)}</strong><p>Your selected tools, arranged for your work. <a href="#settings" data-nav="settings">Customize your tools →</a></p></div></div>`;
+  // The business-specific tool notice becomes a compact utility row inside
+  // the Overview hero instead of occupying a second full-width card.
+  const workspaceRow=`<section class="overview-workspace-row" aria-label="Your selected workspace">
+    <div class="overview-workspace-copy"><span class="overview-row-icon" aria-hidden="true">${icon('settings')}</span>
+      <div><h2>${esc(workspaceTitle)}</h2><p>Your selected tools, arranged for your work.</p></div>
+    </div>
+    <a class="overview-customize-link" href="#settings" data-nav="settings">Customize your tools ${icon('arrow')}</a>
+  </section>`;
   const day=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',...(tz?{timeZone:tz}:{})});
   const tasks=filteredRows('followups',ws,{status:'Due'}),invoices=ws.invoices.filter(x=>['Sent','Overdue'].includes(x.status)).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
   const leads=ws.leads.slice(0,3),reviews=ws.reviews.filter(x=>x.status!=='Reviewed').slice(0,3);
-  const indiaWelcome=isIndia()?`<section class="india-guide" aria-label="India edition">
-    <div class="india-guide-body"><p class="eyebrow">INDIA EDITION ACTIVE · INR BILLING · ₹500 / MONTH</p>
-    <h2>Your business, in <span class="ac">rupees.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
-    <p>Invoices use INR and include optional GST draft fields. ${ws.account.upiVpa?'UPI ID is configured for new invoice payment instructions.':'Add a UPI ID in Settings to include payment instructions on new invoices.'} GST drafts require accountant review before statutory use.</p></div>
-    <div class="india-guide-actions"><a class="button secondary" href="#settings" data-nav="settings">Set up GST & UPI</a>${button('Create INR invoice','new','data-kind="invoice"')}</div>
+  // Keep the India billing context/actions, but embed them inside the same
+  // pricing-inspired card when this business is in the India edition.
+  const indiaRow=isIndia()?`<section class="overview-india-row" aria-label="India edition">
+    <div class="overview-india-copy">
+      <p class="overview-india-eyebrow"><span class="overview-india-dot" aria-hidden="true"></span> INDIA EDITION ACTIVE · INR BILLING · ₹500 / MONTH</p>
+      <h2>Your business, in <span>rupees.</span></h2>
+      <p>Invoices use INR and include optional GST draft fields. ${ws.account.upiVpa?'UPI ID is configured for new invoice payment instructions.':'Add a UPI ID in Settings to include payment instructions on new invoices.'} GST drafts require accountant review before statutory use.</p>
+    </div>
+    <div class="overview-india-actions"><a class="button secondary" href="#settings" data-nav="settings">Set up GST & UPI</a>${button('Create INR invoice','new','data-kind="invoice"')}</div>
   </section>`:'';
   const metric=(label,value,foot,nav,ic,warn=false)=>`<a href="#${nav}" data-nav="${nav}" data-workspace-module="${nav}" class="metric ${warn?'warning':''}"><div class="metric-top"><span>${label}</span>${icon(ic)}</div><strong class="metric-value">${value}</strong><span class="metric-foot"><i class="dot"></i>${foot}</span></a>`;
-  // Borrow the landing page's spatial grid, gradient wordmark and shortcut
-  // treatment without changing ordinary forms, tables, navigation or data.
-  const overviewHero=`<section class="overview-stage" aria-label="Daily overview">
-    <div class="page-heading"><div><p class="eyebrow">${esc(day)}</p>
-      <h1>${esc(greeting)}, <span class="overview-title-accent">${esc(first)}.</span></h1>
-      <p class="page-description">Here's what needs your attention today.</p>
-    </div><div class="heading-actions">${addButton('lead','New lead')}</div></div>
-    <nav class="overview-shortcuts" aria-label="Quick workspace shortcuts">
-      <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}Jobs & dispatch ${icon('arrow')}</a>
-      <a class="overview-shortcut" href="#invoices" data-nav="invoices">${icon('invoices')}Invoices ${icon('arrow')}</a>
-      <a class="overview-shortcut" href="#marketing" data-nav="marketing">${icon('marketing')}Marketing ${icon('arrow')}</a>
-    </nav>
+  // The three former stacked panels now render as one functional,
+  // responsive dark Overview. All route links and action handlers are retained.
+  const overviewHero=`<section class="overview-stage overview-stage-unified" aria-label="Daily overview">
+    <div class="overview-stage-main">
+      <div class="page-heading"><div><p class="eyebrow">${esc(day)}</p>
+        <h1>${esc(greeting)}, <span class="overview-title-accent">${esc(first)}.</span></h1>
+        <p class="page-description">Here's what needs your attention today.</p>
+      </div><div class="heading-actions">${addButton('lead','New lead')}</div></div>
+      <nav class="overview-shortcuts" aria-label="Quick workspace shortcuts">
+        <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}Jobs & dispatch ${icon('arrow')}</a>
+        <a class="overview-shortcut" href="#invoices" data-nav="invoices">${icon('invoices')}Invoices ${icon('arrow')}</a>
+        <a class="overview-shortcut" href="#marketing" data-nav="marketing">${icon('marketing')}Marketing ${icon('arrow')}</a>
+      </nav>
+    </div>
+    ${workspaceRow}
+    ${indiaRow}
   </section>`;
-  return overviewHero+industryNote+
+  return overviewHero+
     (!currencyMismatch()?'':'<div class="notice" role="status"><div><strong>Previous currency records</strong><p>Your workspace still contains earlier amounts in '+esc(ws.account.currency)+'. They are preserved as originally recorded; see Settings before creating new dollar invoices.</p></div></div>')+
-    indiaWelcome+
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',dashboardCash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',dashboardCash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+
     `<div class="dashboard-grid"><section class="panel" data-workspace-module="followups">${panelHeader('followups','Today’s follow-ups',tasks.length?`${tasks.length} ${tasks.length===1?'customer needs':'customers need'} a check-in`:'Your next conversations, in one place',viewLink('followups'))}<div class="panel-body">${tasks.length?tasks.slice(0,4).map(taskRow).join(''):empty('You’re all caught up','Add a follow-up when a customer needs a call or message.',button('Add follow-up','new','data-kind="followup"','secondary'))}</div><div class="panel-footer"><span>${tasks.length>4?`Showing 4 of ${tasks.length} due`:'A small follow-up can make a big difference.'}</span>${button(icon('plus')+'Add','new','data-kind="followup"','secondary')}</div></section>`+
     `<section class="panel" data-workspace-module="invoices">${panelHeader('invoices','Awaiting payment','A clear view of what’s coming in',viewLink('invoices'))}<div class="panel-body">${invoices.length?invoices.slice(0,3).map(invoiceRow).join(''):empty('No outstanding invoices','Create your next invoice when a job is ready to bill.',button('Create invoice','new','data-kind="invoice"','secondary'))}</div><div class="panel-footer"><span>${invoices.length} open ${invoices.length===1?'invoice':'invoices'}</span><strong class="amount">${cash(m.outstanding)}</strong></div></section>`+

@@ -12,7 +12,9 @@ test('pricing-night palette is loaded after page styles but does not darken page
     const html=read(page);
     const links=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(m=>m[1]);
     assert.equal(links.filter(x=>x==='css/status-pricing-night.css').length,1,page);
-    assert.deepEqual(links.slice(-3),['css/status-pricing-night.css','css/ui-consistency.css','css/typography.css'],page);
+    if(page==='app.html'){
+      assert.deepEqual(links.slice(-4),['css/status-pricing-night.css','css/ui-consistency.css','css/workspace-overview-unified.css','css/typography.css'],page);
+    }else assert.deepEqual(links.slice(-3),['css/status-pricing-night.css','css/ui-consistency.css','css/typography.css'],page);
   }
   assert.doesNotMatch(read('app.html'),/workspace-pricing-dark\.css/);
   assert.match(read('css/workspace-vibrance.css'),/background:#f6f7fc/,'workspace stays light');
