@@ -112,19 +112,39 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
       const on=tab.dataset.marketingTab===selected;
       tab.classList.toggle('active',on);
       tab.setAttribute('aria-selected',String(on));
+      tab.tabIndex=on?0:-1;
     }
     for(const panel of page.querySelectorAll('[data-marketing-panel]'))
       panel.hidden=panel.dataset.marketingPanel!==selected;
   };
   const deepLink=()=>/^#marketing\/(visibility|reengage|performance)$/.exec(location.hash)?.[1]||'visibility';
   choose(deepLink());
+  const navigateTo=key=>{
+    if(!tabs.some(t=>t.key===key))return;
+    choose(key);
+    // A shareable deep link without remounting the page or erasing an edited draft.
+    const hash='#marketing/'+key;
+    if(location.hash!==hash)history.replaceState(null,'',hash);
+  };
+  page.addEventListener('keydown',event=>{
+    const tab=event.target.closest('[data-marketing-tab]');
+    if(!tab)return;
+    if(!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const index=tabs.findIndex(t=>t.key===tab.dataset.marketingTab);
+    if(index<0)return;
+    const selected=event.key==='Home'?0:event.key==='End'?tabs.length-1:
+      (index+((event.key==='ArrowDown'||event.key==='ArrowRight')?1:-1)+tabs.length)%tabs.length;
+    navigateTo(tabs[selected].key);
+    page.querySelector('#marketing-tab-'+tabs[selected].key)?.focus();
+  });
   page.addEventListener('click',async event=>{
     const tab=event.target.closest('[data-marketing-tab]');
-    if(tab){
-      choose(tab.dataset.marketingTab);
-      // Keep a shareable, direct URL without resetting the draft or page state.
-      const hash='#marketing/'+tab.dataset.marketingTab;
-      if(location.hash!==hash)history.replaceState(null,'',hash);
+    if(tab){navigateTo(tab.dataset.marketingTab);return;}
+    const jump=event.target.closest('[data-marketing-jump]');
+    if(jump){
+      navigateTo(jump.dataset.marketingJump);
+      page.querySelector('#marketing-panel-'+jump.dataset.marketingJump)?.focus({preventScroll:true});
       return;
     }
     const generate=event.target.closest('[data-marketing-generate]');
