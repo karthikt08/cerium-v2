@@ -94,10 +94,10 @@
 .app-page .table-actions .button{white-space:nowrap}
 
 /* Preserve dedicated icon-only and destructive utilities. */
-.app-page :is(.icon-button,.quote-x,.ws-config-close,.jobs-modal-header>button,.quote-more summary){
+.app-page :is(.icon-button,.quote-x,.ws-config-close,.jobs-modal-header>button,.quote-more summary,.guide-close){
   border-radius:var(--cerium-ui-radius);
 }
-.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close){
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close,.guide-close){
   display:inline-flex;align-items:center;justify-content:center;
   flex:none;min-width:38px;width:38px;min-height:38px;height:38px;
   padding:0;border:1px solid var(--cerium-ui-border);
@@ -105,10 +105,10 @@
   background:#f7f9fd;color:#64748b;line-height:1;font-size:19px;
   transition:background-color .18s ease,border-color .18s ease,color .18s ease;
 }
-.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close):hover{
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close,.guide-close):hover{
   background:#eef2fb;border-color:#bfc9e1;color:#24354f;
 }
-.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close):focus-visible{
+.app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close,.guide-close):focus-visible{
   outline:3px solid var(--cerium-ui-focus);outline-offset:2px;
 }
 
