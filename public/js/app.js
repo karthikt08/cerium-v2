@@ -13,6 +13,7 @@ import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import {openLeadImport} from './spreadsheet-import-ui.js';
 import {openInvoicePrint} from './invoice-print.js';
 import {mountGuideAssistant} from './guide-assistant.js';
+import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, localDate, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
@@ -129,6 +130,7 @@ function overview() {
     <nav class="overview-shortcuts" aria-label="Quick workspace shortcuts">
       <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}Jobs & dispatch ${icon('arrow')}</a>
       <a class="overview-shortcut" href="#invoices" data-nav="invoices">${icon('invoices')}Invoices ${icon('arrow')}</a>
+      <a class="overview-shortcut" href="#marketing" data-nav="marketing">${icon('marketing')}Marketing ${icon('arrow')}</a>
     </nav>
   </section>`;
   return overviewHero+industryNote+
@@ -275,8 +277,9 @@ function supportPage() {
 function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
+  if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast});
   if(singular[s])renderResults();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
