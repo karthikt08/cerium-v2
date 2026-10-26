@@ -70,3 +70,21 @@ body[data-edition="in"] .workspace-label small{color:#276c53}
 @media print{.invoice-document .invoice-info{grid-template-columns:1.4fr 1fr 1fr}.invoice-top{flex-direction:row}.invoice-document thead{display:table-header-group}.invoice-document tr,.invoice-tax-summary,.invoice-total{break-inside:avoid}}
 
 .invoice-document table{width:100%;min-width:0;table-layout:fixed}.invoice-document th:first-child{width:40%}.invoice-document th:nth-child(2){width:12%}.invoice-document th:nth-child(3),.invoice-document th:nth-child(4){width:24%}
+
+/* Invoice sharing controls use the existing workspace button system. */
+.invoice-share-toolbar{border-top:1px solid var(--line);padding:14px 20px;background:#f8faff}
+.invoice-share-toolbar p{font-size:11px;color:#63718c;line-height:1.6;margin:0 0 10px}
+.invoice-share-toolbar p strong{color:#394963}
+.invoice-share-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.invoice-share-buttons .button{min-height:34px}
+.invoice-upi-payment{display:flex;align-items:center;gap:16px;margin:18px 0;padding:16px;border:1px solid #dce5f5;background:#f9fbff;border-radius:12px;break-inside:avoid}
+.invoice-upi-qr-frame{flex:none;text-align:center}
+.invoice-upi-qr{width:132px;height:132px;display:block;background:#fff;border-radius:5px}
+.invoice-upi-qr-frame small{display:block;margin-top:5px;color:#586680;font-size:10px}
+.invoice-upi-payment-details{min-width:0;overflow-wrap:anywhere}
+.invoice-upi-payment-details strong{font-size:13px;color:#2f405c}
+.invoice-upi-payment-details p{font-size:11px;line-height:1.5;margin:4px 0}
+.invoice-upi-payment-details a{color:#3d5fda;text-decoration:underline;text-underline-offset:2px}
+.invoice-upi-payment-details small{font-size:10px;display:block;color:#6d798d;line-height:1.5;margin-top:7px}
+@media(max-width:480px){.invoice-upi-payment{flex-direction:column;align-items:flex-start}.invoice-share-toolbar{padding:12px}}
+@media print{.invoice-share-toolbar{display:none!important}.invoice-upi-payment{background:#fff;border:1px solid #dce5f5}.invoice-upi-qr{width:106px;height:106px}}
