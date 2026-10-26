@@ -75,7 +75,8 @@ export function safeReviewURL(value) {
   try { const u=new URL(value); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
 }
 export function routeFromHash(hash) {
-  const name = String(hash || '').replace(/^#/, '');
+  const path = String(hash || '').replace(/^#/, '');
+  const name = /^marketing\/(visibility|reengage|performance)$/.test(path)?'marketing':path;
   const alias = {today:'overview',bank:'payments',account:'settings',messages:'support'};
   return SECTIONS[alias[name] || name] ? (alias[name] || name) : 'overview';
 }
