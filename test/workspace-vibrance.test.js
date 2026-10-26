@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../public/'+path,import.meta.url),'utf8');
 const page=read('app.html');
 const css=read('css/workspace-vibrance.css');
+const marketingCss=read('css/marketing.css');
 
 function luminance(hex){
   const rgb=hex.match(/[0-9a-f]{2}/gi).map(pair=>parseInt(pair,16)/255)
@@ -63,16 +64,17 @@ test('dashboard and all core operational summary cards inherit vibrant treatment
     '.app-page .metrics-grid .metric::before',
     '.app-page .dashboard-grid>.panel',
     '.app-page .sidebar .nav-link[aria-current="page"]',
-    '.app-page .marketing-tab.active',
-    '.app-page .marketing-bar>span',
     '.quotes-summary>div',
     '.jobs-stats>.jobs-stat',
     '.board-column>.lead-card',
     '.reminders-stats>div',
     '.settings-grid .panel'
   ])assert.ok(css.includes(marker),'missing component: '+marker);
-  assert.match(css,/\.app-page \.marketing-main\{/);
-  assert.match(css,/\.app-page \.marketing-stat\{/);
+  assert.match(marketingCss,/\.marketing-tab\.active\{/);
+  assert.match(marketingCss,/\.marketing-bar>span\{/);
+  assert.match(marketingCss,/\.marketing-main\{/);
+  assert.match(marketingCss,/\.marketing-stat\{/);
+  assert.doesNotMatch(css,/\.app-page \.marketing-tab\.active/,'Marketing controls its own palette instead of conflicting with workspace styles');
   assert.match(css,/@media\(hover:hover\) and \(pointer:fine\)/);
 });
 
