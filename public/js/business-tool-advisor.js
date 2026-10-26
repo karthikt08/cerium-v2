@@ -147,8 +147,11 @@ export function recommendBusinessTools({description='',trade='',category='other'
   const input=(primary+' '+String(trade||'').slice(0,120)).trim();
   // Respect the user's explicit industry: do not mix a textile shop with an
   // unrelated saved workspace preset such as 'construction'.
-  if(textileProfile(primary)||textileProfile(input))
-    return recommendTextileTools(textileProfile(primary)?primary:input,enabledModules,selectedCategory);
+  const primaryTextile=textileProfile(primary);
+  const explicitOther=/\b(?:i|we) (?:run|own|operate|sell|have)\b|\b(?:my|our) business is\b/i.test(primary);
+  const savedTextile=!explicitOther?textileProfile(input):null;
+  if(primaryTextile||savedTextile)
+    return recommendTextileTools(primaryTextile?primary:input,enabledModules,selectedCategory);
   const scored=new Map();
   const detected=[];
   let evidence=0;
