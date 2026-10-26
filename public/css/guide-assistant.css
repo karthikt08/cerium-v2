@@ -68,3 +68,14 @@
 .guide-page-link{display:inline-flex;width:auto;align-items:center;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#bba9e1;font-size:11px;line-height:1.4}
 .guide-page-link:hover{text-decoration-color:currentColor}
 .guide-page-link:focus-visible{outline:2px solid #a98ee9;outline-offset:3px}
+
+
+/* Direct navigation should read like deliberate product links, not chatbot cards. */
+.guide-direct-links{border-top:1px solid #e9e2f1;padding-top:9px;margin-top:2px;gap:6px}
+.guide-direct-links .guide-links-heading{display:block;flex:0 0 100%;color:#817394;font-size:9px;font-weight:850;line-height:1.4;letter-spacing:.12em}
+.guide-direct-links .guide-page-link{display:inline-flex;align-items:center;min-height:34px;width:auto;flex:0 1 auto;padding:8px 11px;justify-content:flex-start;border-radius:8px;background:#fff;border:1px solid #dcd1ee;box-shadow:none;color:#6244a7;font-size:11px;font-weight:750;line-height:1.3;text-decoration:none}
+.guide-direct-links .guide-page-link:first-of-type{background:#efe9ff;border-color:#c6b3ed;color:#4c2a95}
+.guide-direct-links .guide-page-link:hover{background:#e8deff;border-color:#ae95e7;box-shadow:0 3px 9px rgba(97,65,162,.09);transform:translateY(-1px)}
+.guide-actions .guide-workflow-link{background:#fff;border-color:#dfd5ee;box-shadow:none;gap:10px}
+.guide-actions .guide-workflow-link:hover{background:#f5f0ff;border-color:#bda9e6}
+.guide-workflow-link .guide-step-badge{border-radius:6px;background:#e6dcfa;color:#59419a;text-transform:none;font-size:9px;letter-spacing:0}
