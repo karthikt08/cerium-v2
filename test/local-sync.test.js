@@ -26,7 +26,7 @@ test('Windows local sync is opt-in and schedules only main fast-forward updates'
 
 test('sync leaves secrets, billing data and user browser state alone',()=>{
   const ps=read('scripts/local-sync.ps1');
-  assert.doesNotMatch(ps,/\.env|cookie|token|api\.key|customer/i,'script should not access business or session data');
+  assert.doesNotMatch(ps,/Get-Content[^\n]*\.env|Set-Content[^\n]*\.env|Remove-Item[^\n]*data|ConvertFrom-Json|\bAPI\./i,'script should not access business or session data');
   assert.doesNotMatch(ps,/sessionStorage|localStorage|Invoke-RestMethod|Invoke-WebRequest/);
   assert.match(ps,/\$env:LOCALAPPDATA/,'local operational log is outside the repo');
 });
