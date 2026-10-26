@@ -57,7 +57,7 @@ test('dark shell text and actionable buttons maintain accessible contrast',()=>{
   assert.ok(contrast('#ffffff','#7c3aed')>=4.5,'violet CTA text is readable');
   assert.match(skin,/\.app-page \.breadcrumb strong\{color:#f1f2fd\}/);
   assert.match(skin,/\.app-page \.page-width>.page-heading h1/);
-  assert.match(skin,/\.app-page \.marketing-tab.active::after\{/,'Marketing's real tab pseudo surface is dark');
+  assert.match(skin,/\.app-page \.marketing-tab.active::after\{/,"Marketing tab pseudo surface is dark");
   assert.match(skin,/\.app-page \.marketing-page-summary strong\{color:#202c47\}/,'white summary panel text remains dark');
   assert.match(skin,/@media\(max-width:760px\)/);
   assert.match(skin,/@media\(prefers-reduced-motion:reduce\)/);
