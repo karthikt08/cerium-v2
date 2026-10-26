@@ -8,7 +8,7 @@ test('workspace adds landing-derived design only after module styles and before 
   const app=read('app.html'),styles=[...app.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
   assert.equal(styles.filter(x=>x==='css/workspace-spark.css').length,1);
   assert.ok(styles.indexOf('css/guide-assistant.css')<styles.indexOf('css/workspace-spark.css'));
-  assert.deepEqual(styles.slice(-5),['css/workspace-spark.css','css/workspace-vibrance.css','css/status-pricing-night.css','css/ui-consistency.css','css/typography.css']);
+  assert.deepEqual(styles.slice(-6),['css/workspace-spark.css','css/workspace-vibrance.css','css/status-pricing-night.css','css/ui-consistency.css','css/workspace-overview-unified.css','css/typography.css']);
   assert.equal((app.match(/src="js\/workspace-cursor\.js"/g)||[]).length,1,'no extra cursor engine');
   assert.doesNotMatch(app,/css\/spatial\.css/,'avoid landing CSS overrides inside the application');
 });
@@ -16,14 +16,16 @@ test('workspace adds landing-derived design only after module styles and before 
 test('overview visual hero keeps dynamic business-local greeting and actionable navigation',()=>{
   const js=read('js/app.js');
   assert.match(js,/const greeting=`Good \$\{hour<12/,'maintain time-of-day greeting');
-  assert.match(js,/const overviewHero=`<section class="overview-stage"/);
+  assert.match(js,/const overviewHero=`<section class="overview-stage overview-stage-unified"/);
   assert.match(js,/\$\{esc\(day\)\}/,'local date stays escaped');
   assert.match(js,/overview-title-accent">\$\{esc\(first\)\}\.<\/span>/,'business-user name is escaped');
   assert.match(js,/\$\{addButton\('lead','New lead'\)\}/,'primary create-lead action remains');
   assert.match(js,/class="overview-shortcuts" aria-label="Quick workspace shortcuts"/);
   assert.match(js,/href="#jobs" data-nav="jobs"/);
   assert.match(js,/href="#invoices" data-nav="invoices"/);
-  assert.match(js,/return overviewHero\+industryNote/,'keep business customization and notices');
+  assert.match(js,/return overviewHero\+/,'single unified header precedes working panels');
+  assert.match(js,/\$\{workspaceRow\}/,'customization row remains inside hero');
+  assert.match(js,/\$\{indiaRow\}/,'India row remains inside hero');
   for(const value of ['Active leads','Follow-ups due','Outstanding','Overdue','metrics-grid','dashboard-grid'])
     assert.ok(js.includes(value),'keep existing dashboard data: '+value);
   assert.match(js,/if\(s==='overview'\)customizeOverview/,'customizable dashboard modules preserved');
