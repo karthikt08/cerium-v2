@@ -52,3 +52,7 @@
 .guide-business-choice{border:1px solid #d8cced;background:#fff;color:#544580;border-radius:999px;padding:7px 10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer}
 .guide-business-choice:hover{background:#f6f1fe;border-color:#af9ad7}
 .guide-business-choice:focus-visible{outline:2px solid #aa94ff;outline-offset:2px}
+
+.guide-business-workflow{border:1px solid #e8e0f4;background:#f9f7fd;border-radius:10px;padding:9px 11px;display:grid;gap:4px}
+.guide-business-workflow strong{font-size:11px;color:#5c4787;line-height:1.4}
+.guide-business-workflow span{font-size:11px;color:#6e647e;line-height:1.45}
