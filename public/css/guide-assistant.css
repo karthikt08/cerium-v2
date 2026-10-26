@@ -1,125 +1,129 @@
-/* Cerium Guide: compact, accessible, elevated AI workspace companion. */
-.cerium-guide{position:fixed;right:26px;bottom:24px;z-index:48;font-family:inherit;color:#2c283f}
+/* Cerium Guide: elite, accessible, spatial AI workspace companion matching landing page design system. */
+.cerium-guide{position:fixed;right:26px;bottom:24px;z-index:48;font-family:inherit;color:#0f172a}
 .cerium-guide *{box-sizing:border-box}
-.guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(175,158,255,.45);background:linear-gradient(135deg,#241d44 0%,#1a1435 100%);color:#fbf9ff;padding:12px 18px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 14px 38px -8px rgba(18,12,45,.45),0 0 22px rgba(142,98,240,.24);cursor:pointer;transition:all .18s ease}
-.guide-trigger:hover{border-color:rgba(205,192,255,.75);box-shadow:0 16px 44px -6px rgba(18,12,45,.55),0 0 30px rgba(152,110,252,.35)}
-.guide-trigger:focus-visible,.cerium-guide button:focus-visible,.cerium-guide input:focus-visible{outline:2px solid #aa94ff;outline-offset:3px}
-.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#8767e3,#6b49cc);color:#fff;font-size:15px;box-shadow:0 0 10px rgba(135,103,227,.4)}
 
-/* Organized glassmorphic modal container */
-.guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(440px,calc(100vw - 28px));height:min(600px,calc(100dvh - 100px));min-height:340px;background:#fff;border:1px solid rgba(215,206,238,.95);border-radius:18px;box-shadow:0 24px 64px -12px rgba(18,12,45,.28),0 8px 24px -6px rgba(18,12,45,.12),0 0 0 1px rgba(255,255,255,.9) inset;overflow:hidden}
+/* Floating Obsidian Trigger Button */
+.guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#f8fafc;padding:12px 18px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 14px 34px -8px rgba(15,23,42,.45),0 0 20px rgba(59,91,255,.16);cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.2,1)}
+.guide-trigger:hover{border-color:rgba(255,255,255,.28);box-shadow:0 18px 42px -6px rgba(15,23,42,.55),0 0 28px rgba(59,91,255,.28);transform:translateY(-1px)}
+.guide-trigger:focus-visible,.cerium-guide button:focus-visible,.cerium-guide input:focus-visible{outline:2px solid #3b82f6;outline-offset:3px}
+.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#3b5bff 0%,#7c3aed 100%);color:#fff;font-size:14px;box-shadow:0 2px 8px rgba(59,91,255,.35)}
+
+/* Luminous Architectural Modal Container */
+.guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(440px,calc(100vw - 28px));height:min(600px,calc(100dvh - 100px));min-height:340px;background:#ffffff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 24px 60px -12px rgba(15,23,42,.18),0 8px 24px -6px rgba(15,23,42,.08),0 0 0 1px rgba(255,255,255,.9) inset;overflow:hidden}
 .guide-panel[hidden]{display:none}
 
-/* Organized Assistant Header */
-.guide-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 18px 11px;background:linear-gradient(135deg,#f7f3ff 0%,#ffffff 50%,#f4efff 100%);border-bottom:1px solid #ebe5f5}
+/* Elite Two-Tier Header */
+.guide-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 18px 11px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border-bottom:1px solid #e2e8f0}
 .guide-header-main{display:flex;flex-direction:column}
 .guide-header-badge-row{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.guide-eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#765ab6}
-.guide-status-pill{display:inline-flex;align-items:center;gap:4px;padding:1.5px 6px;background:#eef9f2;border:1px solid #c8ecd2;border-radius:999px;font-size:9.5px;font-weight:700;color:#1e7e45}
-.guide-status-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.6);animation:guideDotPulse 2s ease-in-out infinite}
-@keyframes guideDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
-.guide-context-badge{display:inline-flex;align-items:center;padding:1.5px 7px;background:#f3effc;border:1px solid #dfd5f5;border-radius:999px;font-size:9.5px;font-weight:600;color:#694fb2}
-.guide-header h2{font-size:17px;letter-spacing:-.3px;line-height:1.25;margin:3px 0 0;color:#201736}
+.guide-eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#64748b}
+.guide-status-pill{display:inline-flex;align-items:center;gap:4px;padding:1.5px 7px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;font-size:9.5px;font-weight:700;color:#065f46}
+.guide-status-dot{width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6);animation:guideDotPulse 2s ease-in-out infinite}
+@keyframes guideDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.85)}}
+.guide-context-badge{display:inline-flex;align-items:center;padding:1.5px 7px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;font-size:9.5px;font-weight:600;color:#334155}
+.guide-header h2{font-size:17px;letter-spacing:-.03em;line-height:1.25;margin:3px 0 0;color:#0f172a;font-weight:700}
 .guide-header-actions{display:flex;align-items:center;gap:6px}
-.guide-header-btn{width:30px;height:30px;border-radius:8px;border:1px solid #ded5ee;background:#fff;color:#6e6088;display:grid;place-items:center;cursor:pointer;transition:all .16s ease;padding:0}
-.guide-header-btn:hover{background:#f4effd;border-color:#baa4e4;color:#321e5c;transform:translateY(-1px);box-shadow:0 2px 6px rgba(80,50,150,.08)}
-.guide-close{width:30px;height:30px;border:1px solid transparent;border-radius:8px;background:transparent;color:#6e6088;font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0;transition:all .16s ease}
-.guide-close:hover{background:#f1ecf9;border-color:#dcd3ee;color:#22163b}
+.guide-header-btn{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#ffffff;color:#64748b;display:grid;place-items:center;cursor:pointer;transition:all .16s ease;padding:0}
+.guide-header-btn:hover{background:#f1f5f9;border-color:#cbd5e1;color:#0f172a;transform:translateY(-1px);box-shadow:0 2px 6px rgba(15,23,42,.06)}
+.guide-close{width:30px;height:30px;border:1px solid transparent;border-radius:8px;background:transparent;color:#64748b;font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0;transition:all .16s ease}
+.guide-close:hover{background:#f1f5f9;border-color:#e2e8f0;color:#0f172a}
 
-/* Message Log Area */
-.guide-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 16px 12px;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin;overscroll-behavior:contain;background:linear-gradient(180deg,#fbf9fe 0%,#ffffff 100%)}
+/* Message Log Stream */
+.guide-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 16px 12px;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin;overscroll-behavior:contain;background:#ffffff}
 .guide-messages::-webkit-scrollbar{width:5px}
-.guide-messages::-webkit-scrollbar-thumb{background:#d7cee5;border-radius:999px}
+.guide-messages::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
 
 /* Welcome Card */
-.guide-welcome-card{background:linear-gradient(135deg,#f9f6fe 0%,#ffffff 100%);border:1px solid #e7dff5;border-radius:12px;padding:12px 14px;box-shadow:0 2px 8px rgba(35,22,65,.03);display:flex;flex-direction:column;gap:8px}
+.guide-welcome-card{background:linear-gradient(180deg,#f8fafc 0%,#ffffff 100%);border:1px solid #e2e8f0;border-radius:12px;padding:13px 15px;box-shadow:0 2px 8px rgba(15,23,42,.03);display:flex;flex-direction:column;gap:8px}
 .guide-welcome-header{display:flex;align-items:flex-start;gap:10px}
-.guide-welcome-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#8767e3,#6b49cc);color:#fff;display:grid;place-items:center;font-size:13px;flex-shrink:0;box-shadow:0 2px 6px rgba(135,103,227,.3)}
-.guide-welcome-header strong{display:block;font-size:13px;color:#251b40;font-weight:700;line-height:1.3}
-.guide-welcome-sub{margin:2px 0 0;font-size:11.5px;color:#685b82;line-height:1.45}
+.guide-welcome-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);color:#fff;display:grid;place-items:center;font-size:13px;flex-shrink:0;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.guide-welcome-header strong{display:block;font-size:13px;color:#0f172a;font-weight:700;line-height:1.3}
+.guide-welcome-sub{margin:2px 0 0;font-size:11.5px;color:#64748b;line-height:1.45}
 .guide-welcome-features{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
-.guide-welcome-pill{display:inline-flex;align-items:center;padding:2px 8px;background:#fff;border:1px solid #ded5ee;border-radius:999px;font-size:10px;font-weight:600;color:#5a4880}
+.guide-welcome-pill{display:inline-flex;align-items:center;padding:2.5px 8px;background:#ffffff;border:1px solid #e2e8f0;border-radius:999px;font-size:10px;font-weight:600;color:#334155;box-shadow:0 1px 2px rgba(15,23,42,.03)}
 
-/* Message Bubbles */
-.guide-bubble{align-self:flex-start;max-width:95%;padding:11px 14px;border:1px solid #e7e1f1;border-radius:14px 14px 14px 4px;background:#fff;color:#2c273e;font-size:13px;line-height:1.52;box-shadow:0 2px 8px rgba(35,22,65,.04);white-space:pre-wrap;overflow-wrap:anywhere}
-.guide-bubble.user{align-self:flex-end;background:linear-gradient(135deg,#624bbd 0%,#503ca4 100%);border-color:#735ac9;color:#fff;border-radius:14px 14px 4px 14px;box-shadow:0 4px 14px rgba(82,60,164,.22);font-weight:500}
-.guide-bubble.guide-thinking{color:#7a6a9b;font-style:italic;background:#fbf9fe;border-color:#e5def3;animation:guidePulse 1.6s ease-in-out infinite}
+/* High-Contrast Message Bubbles */
+.guide-bubble{align-self:flex-start;max-width:95%;padding:11px 14px;border:1px solid #e2e8f0;border-radius:14px 14px 14px 4px;background:#ffffff;color:#1e293b;font-size:13px;line-height:1.52;box-shadow:0 2px 6px rgba(15,23,42,.04);white-space:pre-wrap;overflow-wrap:anywhere}
+.guide-bubble.user{align-self:flex-end;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border-color:rgba(255,255,255,.08);color:#ffffff;border-radius:14px 14px 4px 14px;box-shadow:0 4px 14px rgba(15,23,42,.22);font-weight:500}
+.guide-bubble.guide-thinking{color:#64748b;font-style:italic;background:#f8fafc;border-color:#e2e8f0;animation:guidePulse 1.6s ease-in-out infinite}
 @keyframes guidePulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-/* Organized Execution Steps Box */
-.guide-steps-box{display:block;margin-top:10px;padding:10px 12px;background:#f7f3fd;border:1px solid #e4d8f5;border-radius:10px;color:#4e397c}
-.guide-steps-header{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b4fad;margin-bottom:5px}
-.guide-steps{display:block;font-size:12px;line-height:1.5;color:#524077;font-weight:500}
+/* Framed Execution Sequence Callout */
+.guide-steps-box{display:block;margin-top:10px;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #2563eb;border-radius:8px;color:#1e293b}
+.guide-steps-header{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#0f172a;margin-bottom:5px}
+.guide-steps{display:block;font-size:12px;line-height:1.5;color:#334155;font-weight:500}
 
-/* Unified Workflow & Action Plan Card */
-.guide-workflow-card{width:100%;border:1px solid #dcd1f3;border-radius:12px;background:linear-gradient(180deg,#fcfbfe 0%,#ffffff 100%);padding:10px 12px 11px;box-shadow:0 2px 10px rgba(40,25,80,.04);margin:0 0 4px}
-.guide-workflow-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:7px;margin-bottom:8px;border-bottom:1px solid #ece4f7}
-.guide-plan-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#533e88}
-.guide-plan-count{font-size:10px;font-weight:700;color:#7f6e9f;background:#eee7f8;border:1px solid #ded5f0;padding:1px 7px;border-radius:999px}
+/* Structured Action Sequence Card */
+.guide-workflow-card{width:100%;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;padding:11px 13px;box-shadow:0 4px 16px -4px rgba(15,23,42,.06);margin:0 0 4px}
+.guide-workflow-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:7px;margin-bottom:8px;border-bottom:1px solid #f1f5f9}
+.guide-plan-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0f172a}
+.guide-plan-count{font-size:10px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;padding:1px 7px;border-radius:999px}
 .guide-workflow-actions{display:flex;flex-direction:column;gap:6px;margin:0;width:100%}
 .guide-actions{display:flex;flex-direction:column;gap:6px;margin:-2px 0 4px;width:100%}
 
-.guide-action{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;border:1px solid #d5c8ef;background:linear-gradient(135deg,#f8f5ff 0%,#f1ebfc 100%);color:#432e7c;border-radius:9px;padding:8px 12px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;text-decoration:none;cursor:pointer;transition:all .18s ease}
-.guide-action:hover{background:linear-gradient(135deg,#eee6fd 0%,#e6dbf8 100%);border-color:#a48bdd;color:#220f54;box-shadow:0 3px 10px rgba(100,65,185,.12);transform:translateY(-1px)}
-.guide-step-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;background:#7c5dc7;color:#fff;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;box-shadow:0 1px 4px rgba(124,93,199,.25)}
-.guide-step-badge.guide-choice-badge{background:#503ca4}
+/* Action Buttons */
+.guide-action{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;border:1px solid #e2e8f0;background:#ffffff;color:#0f172a;border-radius:8px;padding:8px 12px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;text-decoration:none;cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.2,1);box-shadow:0 1px 3px rgba(15,23,42,.03)}
+.guide-action:hover{background:#f8fafc;border-color:#cbd5e1;color:#0f172a;box-shadow:0 4px 12px rgba(15,23,42,.08);transform:translateY(-1px)}
+.guide-step-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;background:#0f172a;color:#ffffff;border-radius:5px;font-size:9.5px;font-weight:750;text-transform:uppercase;letter-spacing:.03em;flex-shrink:0}
+.guide-step-badge.guide-choice-badge{background:#f1f5f9;color:#334155;border:1px solid #cbd5e1}
 .guide-action-label{flex:1;text-align:left}
-.guide-action-arrow{color:#8c7ab5;font-size:13px;font-weight:700;transition:transform .16s ease}
-.guide-action:hover .guide-action-arrow{color:#5b41a0;transform:translateX(2px)}
+.guide-action-arrow{color:#94a3b8;font-size:13px;font-weight:700;transition:all .16s ease}
+.guide-action:hover .guide-action-arrow{color:#2563eb;transform:translateX(2px)}
 
 /* Direct Navigation Links */
-.guide-direct-links{display:flex;flex-direction:row;flex-wrap:wrap;border-top:1px solid #e9e2f1;padding-top:9px;margin:1px 0 7px;gap:6px}
-.guide-direct-links .guide-links-heading{display:block;flex:0 0 100%;color:#817394;font-size:9px;font-weight:850;line-height:1.4;letter-spacing:.12em}
-.guide-direct-links .guide-page-link{display:inline-flex;align-items:center;min-height:34px;width:auto;flex:0 1 auto;padding:8px 11px;justify-content:flex-start;border-radius:8px;background:#fff;border:1px solid #dcd1ee;box-shadow:none;color:#6244a7;font-size:11px;font-weight:750;line-height:1.3;text-decoration:none;cursor:pointer;transition:all .18s ease}
-.guide-direct-links .guide-page-link:first-of-type{background:#efe9ff;border-color:#c6b3ed;color:#4c2a95}
-.guide-direct-links .guide-page-link:hover{background:#e8deff;border-color:#ae95e7;box-shadow:0 3px 9px rgba(97,65,162,.09);transform:translateY(-1px)}
-.guide-direct-links .guide-page-link:focus-visible{outline:2px solid #a98ee9;outline-offset:3px}
+.guide-direct-links{display:flex;flex-direction:row;flex-wrap:wrap;border-top:1px solid #e2e8f0;padding-top:9px;margin:1px 0 7px;gap:6px}
+.guide-direct-links .guide-links-heading{display:block;flex:0 0 100%;color:#64748b;font-size:9px;font-weight:850;line-height:1.4;letter-spacing:.12em;text-transform:uppercase}
+.guide-direct-links .guide-page-link{display:inline-flex;align-items:center;min-height:34px;width:auto;flex:0 1 auto;padding:7px 11px;justify-content:flex-start;border-radius:8px;background:#ffffff;border:1px solid #e2e8f0;box-shadow:0 1px 2px rgba(15,23,42,.03);color:#1e293b;font-size:11px;font-weight:700;line-height:1.3;text-decoration:none;cursor:pointer;transition:all .18s ease}
+.guide-direct-links .guide-page-link:first-of-type{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
+.guide-direct-links .guide-page-link:hover{background:#f8fafc;border-color:#94a3b8;box-shadow:0 3px 9px rgba(15,23,42,.06);transform:translateY(-1px)}
+.guide-direct-links .guide-page-link:focus-visible{outline:2px solid #2563eb;outline-offset:3px}
 
-.guide-actions .guide-workflow-link{background:#fff;border-color:#dfd5ee;box-shadow:none;gap:10px}
-.guide-actions .guide-workflow-link:hover{background:#f5f0ff;border-color:#bda9e6}
-.guide-workflow-link .guide-step-badge{border-radius:6px;background:#e6dcfa;color:#59419a;text-transform:none;font-size:9px;letter-spacing:0}
+.guide-actions .guide-workflow-link{background:#ffffff;border-color:#e2e8f0;box-shadow:0 1px 3px rgba(15,23,42,.03);gap:10px}
+.guide-actions .guide-workflow-link:hover{background:#f8fafc;border-color:#cbd5e1}
+.guide-workflow-link .guide-step-badge{border-radius:5px;background:#0f172a;color:#ffffff;text-transform:uppercase;font-size:9.5px;letter-spacing:.03em}
 
 /* Organized Suggestions Tray */
-.guide-suggestions{display:flex;flex-direction:column;gap:7px;padding:8px 16px 11px;background:#faf8fe;border-top:1px solid #ede6f6}
+.guide-suggestions{display:flex;flex-direction:column;gap:7px;padding:9px 16px 11px;background:#f8fafc;border-top:1px solid #e2e8f0}
 .guide-suggestions[hidden]{display:none!important}
-.guide-suggestions-header{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#5a4781}
+.guide-suggestions-header{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#475569}
 .guide-suggestions-icon{font-size:12px}
+.guide-suggestions-header strong{color:#0f172a}
 .guide-suggestions-chips{display:flex;flex-wrap:wrap;gap:6px}
-.guide-suggestions button{border:1px solid #ded5ed;border-radius:999px;background:#fff;color:#4b3d68;padding:6px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;cursor:pointer;transition:all .16s ease;box-shadow:0 1px 3px rgba(35,22,65,.03)}
-.guide-suggestions button:hover{border-color:#ad97dc;background:#f6f1fe;color:#271450;box-shadow:0 2px 8px rgba(100,65,185,.1);transform:translateY(-1px)}
+.guide-suggestions button{border:1px solid #e2e8f0;border-radius:999px;background:#ffffff;color:#334155;padding:6px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;cursor:pointer;transition:all .16s ease;box-shadow:0 1px 3px rgba(15,23,42,.03)}
+.guide-suggestions button:hover{border-color:#3b82f6;background:#ffffff;color:#0f172a;box-shadow:0 2px 8px rgba(37,99,235,.12);transform:translateY(-1px)}
 
 /* Organized Footer Zone */
-.guide-footer-zone{border-top:1px solid #ebe4f5;background:#fff;flex-shrink:0}
+.guide-footer-zone{border-top:1px solid #e2e8f0;background:#ffffff;flex-shrink:0}
 .guide-form{display:flex;gap:8px;padding:10px 16px 6px}
-.guide-form input{min-width:0;flex:1;border:1px solid #dcd4ea;background:#faf9fd;border-radius:10px;color:#2c283f;padding:10px 12px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.3;outline:none;transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease}
-.guide-form input::placeholder{color:#8c859d}
-.guide-form input:focus{border-color:#8c6de5;background:#fff;box-shadow:0 0 0 3px rgba(140,109,229,.16)}
-.guide-send{border:0;border-radius:10px;padding:0 16px;background:linear-gradient(135deg,#8765dc 0%,#6e4bc3 100%);color:#fff;font-family:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;transition:filter .16s ease,box-shadow .16s ease,transform .16s ease;box-shadow:0 2px 8px rgba(110,75,195,.22)}
-.guide-send:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 14px rgba(110,75,195,.36);transform:translateY(-1px)}
+.guide-form input{min-width:0;flex:1;border:1px solid #e2e8f0;background:#f8fafc;border-radius:10px;color:#0f172a;padding:10px 12px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.3;outline:none;transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease}
+.guide-form input::placeholder{color:#94a3b8}
+.guide-form input:focus{border-color:#2563eb;background:#ffffff;box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.guide-send{border:0;border-radius:10px;padding:0 18px;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#ffffff;font-family:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;transition:filter .16s ease,box-shadow .16s ease,transform .16s ease;box-shadow:0 2px 8px rgba(15,23,42,.2)}
+.guide-send:hover:not(:disabled){filter:brightness(1.15);box-shadow:0 4px 14px rgba(15,23,42,.32);transform:translateY(-1px)}
 .guide-send:disabled{opacity:.5;cursor:wait}
-.guide-privacy{display:flex;align-items:center;gap:5px;padding:0 16px 9px;font-size:10.5px;line-height:1.4;color:#877f99}
-.guide-privacy-icon{font-size:10px;opacity:.8}
+.guide-privacy{display:flex;align-items:center;gap:5px;padding:0 16px 9px;font-size:10.5px;line-height:1.4;color:#94a3b8}
+.guide-privacy-icon{font-size:10px;color:#64748b}
 
 /* Tool Recommendations */
 .guide-recommendations{display:grid;gap:8px;width:100%;margin:2px 0 6px}
-.guide-recommendations-header{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#59428c;padding-bottom:3px}
-.guide-recommendation{display:grid;gap:3px;padding:10px 12px;border:1px solid #e4dcfa;border-radius:10px;background:#fff;box-shadow:0 1px 4px rgba(30,20,50,.03)}
-.guide-recommendation strong{font-size:12px;line-height:1.4;color:#30244b}
-.guide-recommendation span{font-size:11px;line-height:1.45;color:#6f6583}
-.guide-recommendation-priority{display:inline-block;margin-left:5px;padding:1px 6px;background:#f3effb;border:1px solid #dfd6f0;border-radius:4px;color:#6c5894;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.guide-recommendation-limit{margin:2px 0;padding-left:9px;border-left:2px solid #9d88cc;font-size:11px;line-height:1.45;color:#6d6280}
-.guide-review-tools{width:100%;text-align:center;padding:10px;margin-top:4px;border:1px solid #8e6ee0;background:linear-gradient(135deg,#7c5dc7,#6848b8);color:#fff;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(110,75,195,.2)}
-.guide-review-tools:hover{filter:brightness(1.08);box-shadow:0 4px 14px rgba(110,75,195,.35)}
+.guide-recommendations-header{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0f172a;padding-bottom:3px}
+.guide-recommendation{display:grid;gap:3px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#ffffff;box-shadow:0 1px 4px rgba(15,23,42,.03)}
+.guide-recommendation strong{font-size:12px;line-height:1.4;color:#0f172a}
+.guide-recommendation span{font-size:11px;line-height:1.45;color:#475569}
+.guide-recommendation-priority{display:inline-block;margin-left:5px;padding:1px 6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1d4ed8;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.guide-recommendation-limit{margin:2px 0;padding-left:9px;border-left:2px solid #64748b;font-size:11px;line-height:1.45;color:#475569}
+.guide-review-tools{width:100%;text-align:center;padding:10px;margin-top:4px;border:1px solid #334155;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#ffffff;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(15,23,42,.2)}
+.guide-review-tools:hover{filter:brightness(1.15);box-shadow:0 4px 14px rgba(15,23,42,.35)}
 
-.guide-business-followup{margin:7px 0 2px;font-size:12px;line-height:1.45;color:#4e426a}
+.guide-business-followup{margin:7px 0 2px;font-size:12px;line-height:1.45;color:#334155}
 .guide-business-choices{display:flex;flex-wrap:wrap;gap:6px}
-.guide-business-choice{border:1px solid #d4c5ea;background:#fff;color:#4f3d7a;border-radius:999px;padding:6px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer;transition:all .16s ease}
-.guide-business-choice:hover{background:#f6f1fe;border-color:#a891d4;color:#2e1c56;box-shadow:0 2px 8px rgba(110,75,200,.08)}
-.guide-business-choice:focus-visible{outline:2px solid #aa94ff;outline-offset:2px}
+.guide-business-choice{border:1px solid #e2e8f0;background:#ffffff;color:#334155;border-radius:999px;padding:6px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer;transition:all .16s ease}
+.guide-business-choice:hover{background:#f8fafc;border-color:#3b82f6;color:#0f172a;box-shadow:0 2px 8px rgba(37,99,235,.1)}
+.guide-business-choice:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 
-.guide-business-workflow{border:1px solid #e7dff2;background:#f9f7fd;border-radius:10px;padding:9px 12px;display:grid;gap:4px}
-.guide-business-workflow strong{font-size:11px;color:#5a4387;line-height:1.4}
-.guide-business-workflow span{font-size:11px;color:#6d637f;line-height:1.45}
+.guide-business-workflow{border:1px solid #e2e8f0;background:#f8fafc;border-radius:10px;padding:9px 12px;display:grid;gap:4px}
+.guide-business-workflow strong{font-size:11px;color:#0f172a;line-height:1.4}
+.guide-business-workflow span{font-size:11px;color:#475569;line-height:1.45}
 
 @media(max-width:760px){
   .cerium-guide{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}
