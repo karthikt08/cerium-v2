@@ -2,13 +2,23 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
-## Marketing interface and navigation
+## Expandable feature-tab workspace
 
-Marketing is now a high-contrast, editorial workspace inspired by Cerium's landing-page visual language: a dark branded hero, real workspace activity ribbon, clear journey navigation, a focused draft editor and a small set of human-reviewed next steps. The re-engagement view clearly separates potential check-in tasks from marketing permission; the performance view explains exactly which saved records produce each number. The UI uses Figtree, violet brand accents, subtle lime highlights, responsive layouts, visible focus states, reduced motion and keyboard-operable tab navigation.
+Cerium Marketing uses a horizontal, angled tab row **above one large, shared content screen**, based on the product sketch. The original three features remain real, working sections: Get found and chosen (human-reviewed drafts and reviews), Re-book and re-engage (opt-in follow-up tasks), and Track performance (recorded activity only).
 
-The Ask Cerium panel has contextual Marketing prompts (create a post, re-book customers, lead sources, reviews) and visually distinct **trusted internal page links**. These links are ordinary safe same-app anchors, not model-generated URLs.
+The tab rail scrolls horizontally on narrow screens and when future features are added. Switching tabs preserves an edited draft. Keyboard arrow keys, Home and End work, and each registered tab can be linked directly from Ask Cerium.
 
-The redesign does not change messaging authorization or data storage: editing a draft never publishes it, copying requires a click, and planning a check-in creates a normal Follow-up task only after a user clicks. Saved lead, invoice and review data remains the only source for performance counts.
+To add a new Marketing feature:
+
+1. Register its key and label in `public/js/marketing-features.js`. This approved registry also controls the workspace router and safe deep links.
+2. Implement a matching `data-marketing-panel` section with the same key inside `renderMarketingPage()` in `public/js/marketing-page.js`. Add actual behavior, not placeholder tabs.
+3. Test rendering, keyboard/deep-link navigation, permissions and data safety. Run `npm test` and the offline preview exporter.
+
+Styles in `public/css/marketing.css` are horizontal and overflow-safe; no redesign is required when adding another tab. Unregistered feature links are rejected.
+
+### Design direction
+
+The previous large hero and side rail were replaced with a shorter Marketing heading, slanted browser-like top tabs and one full-width, tall work surface. Cerium retains its violet palette. Existing draft editing, manual check-ins, analytics and AI links are preserved.
 
 ## Clickable verified page links and Marketing deep links
 
