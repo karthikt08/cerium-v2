@@ -101,6 +101,16 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       limitation.textContent=String(note).slice(0,180);
       container.append(limitation);
     }
+    if(typeof result.workflow==='string'&&result.workflow){
+      const flow=document.createElement('div');
+      flow.className='guide-business-workflow';
+      const heading=document.createElement('strong');
+      heading.textContent='Typical workflow';
+      const body=document.createElement('span');
+      body.textContent=result.workflow.slice(0,200);
+      flow.append(heading,body);
+      container.append(flow);
+    }
     if(typeof result.followUp==='string'&&result.followUp){
       const question=document.createElement('p');
       question.className='guide-business-followup';
