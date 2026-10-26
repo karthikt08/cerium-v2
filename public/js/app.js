@@ -105,7 +105,6 @@ function overview() {
   const hour=tz?Number(new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'numeric',hourCycle:'h23'}).format(now)):now.getHours();
   const first=ws.account.name.trim().split(/\s+/)[0]||'there';
   const greeting=`Good ${hour<12?'morning':hour<18?'afternoon':'evening'}`;
-  const title=`${greeting}, ${first}.`;
   const preference=ws.account.workspacePreferences||{};
   const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
   const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
