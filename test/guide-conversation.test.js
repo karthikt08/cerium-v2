@@ -124,3 +124,49 @@ test('cross-feature workflows produce useful, verified navigation sequences',asy
   for(const step of [...fromLead.actions,...imported.actions,...scheduling.actions])
     assert.ok(['leads','quotes','jobs','invoices','payments'].includes(step.section));
 });
+
+test('cross-feature advanced tasks workflows produce verified multi-step guidance and actions',async()=>{
+  // 1. Accepted quote to job & invoice conversion
+  const quoteWorkflow=await answerGuide('How do I convert an accepted quote into a scheduled job and invoice?','overview',{provider:'guide'});
+  assert.equal(quoteWorkflow.type,'workflow');
+  assert.deepEqual(quoteWorkflow.actions.map(item=>item.section),['quotes','jobs','invoices']);
+  assert.ok(quoteWorkflow.steps.includes('Estimates & quotes'));
+  assert.ok(quoteWorkflow.steps.includes('Jobs & dispatch'));
+  assert.ok(quoteWorkflow.steps.includes('Invoices'));
+
+  // 2. Partial payments & bank reconciliation
+  const reconcileWorkflow=await answerGuide('How do I handle partial payments and reconcile bank deposits?','overview',{provider:'guide'});
+  assert.equal(reconcileWorkflow.type,'workflow');
+  assert.deepEqual(reconcileWorkflow.actions.map(item=>item.section),['invoices','payments']);
+  assert.match(reconcileWorkflow.reply,/partial payments/i);
+
+  // 3. GST invoice tax drafting
+  const gstWorkflow=await answerGuide('How do I prepare a GST tax invoice with line item rates?','overview',{provider:'guide'});
+  assert.equal(gstWorkflow.type,'workflow');
+  assert.deepEqual(gstWorkflow.actions.map(item=>item.section),['settings','invoices']);
+  assert.match(gstWorkflow.reply,/tax/i);
+
+  // 4. Crew dispatch & schedule conflict resolution
+  const crewWorkflow=await answerGuide('How do I dispatch crew and resolve schedule conflicts?','overview',{provider:'guide'});
+  assert.equal(crewWorkflow.type,'workflow');
+  assert.deepEqual(crewWorkflow.actions.map(item=>item.section),['jobs','followups']);
+  assert.match(crewWorkflow.reply,/overlapping appointments/i);
+
+  // 5. Customer review loop after completed job
+  const reviewWorkflow=await answerGuide('How do I request customer reviews after completing a job?','overview',{provider:'guide'});
+  assert.equal(reviewWorkflow.type,'workflow');
+  assert.deepEqual(reviewWorkflow.actions.map(item=>item.section),['jobs','reviews']);
+  assert.match(reviewWorkflow.reply,/Reviews/);
+
+  // 6. Month-end financial reconciliation and export
+  const exportWorkflow=await answerGuide('How do I close out the month and export financial records for accountant?','overview',{provider:'guide'});
+  assert.equal(exportWorkflow.type,'workflow');
+  assert.deepEqual(exportWorkflow.actions.map(item=>item.section),['invoices','payments','settings']);
+  assert.match(exportWorkflow.reply,/accounting records/i);
+
+  // 7. Advanced tasks query capabilities
+  const advCaps=await answerGuide('What advanced tasks can you handle?','overview',{provider:'guide'});
+  assert.equal(advCaps.type,'conversation');
+  assert.equal(advCaps.kind,'capabilities');
+  assert.match(advCaps.reply,/multi-step operations/i);
+});

@@ -2,18 +2,34 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
-## Conversational guidance and short workflow plans
+## Conversational guidance and advanced workflow plans
 
 Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknowledgements and frustration **before** trying to route anywhere. These turns are answered locally, even if OpenAI or Ollama is configured.
 
 - Questions such as "Where can I save an invoice PDF?" receive short task-specific answers and an allowlisted Open Invoices action, not repeated generic help text.
 - The chat remembers only the last verified navigation section while the page stays open. "How do I do that?" can use that context; without a prior relevant feature, the assistant asks which task the user meant.
 - Natural descriptions of businesses ("I run a bakery") can trigger the existing local business tool advisor. Business follow-ups continue until a suitable description is available.
-- Questions spanning supported tools (e.g. "How do I turn a lead into an invoice?") return a brief workflow and **several verified navigation buttons**. The assistant does not execute those steps.
+- **Advanced multi-step operations:** The assistant guides users through complex contractor workflows with step-by-step numbered plans and verified direct-action buttons:
+  - **Accepted quote conversion:** Confirm approval in Estimates & quotes, book appointments in Jobs & dispatch, then bill completed work in Invoices (`quotes` → `jobs` → `invoices`).
+  - **Partial payments & bank reconciliation:** Inspect remaining invoice balance, match incoming deposits in Payments, and verify automatic balance updates (`invoices` → `payments`).
+  - **GST & tax invoice preparation:** Review business tax declarations in Settings, apply line-item tax rates, and inspect the preview breakdown before saving PDFs (`settings` → `invoices`).
+  - **Bulk contact import & scheduling:** Upload spreadsheets in Leads, inspect duplicate flags, and book work in Jobs & dispatch (`leads` → `jobs`).
+  - **Crew dispatch & conflict resolution:** Identify overlapping technician slots in Jobs & dispatch and record briefing notes in Follow-ups (`jobs` → `followups`).
+  - **Customer review requests:** Mark completed jobs as Done and send feedback requests in Reviews (`jobs` → `reviews`).
+  - **Month-end financial closeout & tax export:** Verify balances in Invoices and Payments, then export complete accounting records from Settings (`invoices` → `payments` → `settings`).
 - Unsupported or vague requests return a clarification with **no guessed destination**, regardless of the currently open section.
 - Messages and chat context are not written to the database. Only a single verified prior section name is sent from the browser to the authenticated guide endpoint; that name is not forwarded to any AI provider.
 
 The zero-API-cost NavLM classifier still specializes in identifying Cerium tasks; it is **not a general-purpose conversational generative model**. Conversational controls and cross-module workflow guidance are a lightweight safety and usability layer on top. For open-ended generative answers, deploy a compatible optional AI provider.
+
+## Refined assistant UI & visual architecture
+
+The Ask Cerium interface is designed to blend seamlessly with Cerium's software design language:
+- **Elevated floating trigger:** Obsidian-violet gradient button with an ambient glow halo, high-contrast border, and purple sparkle badge.
+- **Floating glassmorphic modal:** Subtle translucent border, elevated dual-drop shadow, and brand header with dynamic animated accent underline.
+- **Structured step breakdown:** Complex workflows render a clear `Step-by-step workflow` card and sequentially numbered action pills (`Step 1`, `Step 2`, `Step 3`) that link directly to each module.
+- **Quick-action suggestion chips:** One-click shortcuts for both common tasks and advanced operations (Quote to invoice, Reconcile deposits, GST tax invoice, Crew dispatch).
+- **Responsive & accessible:** Full keyboard navigation (`Esc` to dismiss, tab-accessible buttons), dark mode contrast compliance, and strict `prefers-reduced-motion` suppression.
 
 ## Personalized tool advice for custom businesses
 
@@ -98,35 +114,3 @@ Set the following in the Cerium server's private .env file:
     CERIUM_OLLAMA_BASE_URL=http://127.0.0.1:11434
 
 Restart Cerium (npm run dev locally). On lower-memory hardware, try qwen3.5:2b; the 9b model may perform better on adequately powered hardware.
-
-**Hosting distinction:** Installing Ollama only on your Windows laptop does not make it accessible from a remotely deployed Cerium server. Put Ollama on the same server or arrange a secure localhost tunnel. The Cerium Guide backend only accepts loopback addresses (127.0.0.1, localhost, [::1]) and never sends requests to user-provided hosts. Do not expose port 11434 publicly.
-
-Ollama download sizes: qwen3.5:2b ~2.7–3.1 GB, qwen3.5:4b ~3.3–4 GB, qwen3.5:9b ~6.6–7.6 GB depending on quantization. Total required RAM is higher than the model download size; CPU-only throughput can be slow. Benchmark actual hardware before enabling the assistant for many customers.
-
-## Other options
-
-With CERIUM_AI_PROVIDER=guide, the fixed built-in guide works without model inference. If no provider is selected and no OpenAI key exists, the legacy fixed guide remains the fallback. Select CERIUM_AI_PROVIDER=navlm to enable the trained classifier.
-
-For paid OpenAI responses, configure:
-
-    CERIUM_AI_PROVIDER=openai
-    CERIUM_AI_API_KEY=<your secret>
-    CERIUM_AI_MODEL=gpt-4.1-mini
-
-If provider is not specified, the server defaults to guide mode without a key and OpenAI when a key is supplied. Explicitly selecting ollama never falls back to paid OpenAI calls.
-
-## Privacy and permissions
-
-- With NavLM, all processing stays on the Node server. With Ollama or OpenAI, only the user's typed question, the current section, and static Cerium product guidance go to the selected model. User account, customer, invoice and bank records are not included automatically.
-- With local Ollama, prompts remain on the Cerium/Ollama host (subject to local system logs); with OpenAI, prompts go to that third-party service.
-- Browser replies use textContent, not generated HTML; navigation links are independently restricted to verified sections.
-- The assistant cannot initiate payments, invoice changes, bank matches, email sends or deletions.
-- The endpoint requires login, workspace onboarding, same origin, CSRF, input size checks, and rate limiting. Only two local model inferences can run simultaneously.
-- No chat history is stored in the Cerium database. In-page messages disappear on reload.
-- Avoid entering personal customer information or payment secrets into prompts.
-
-## Verification
-
-Run npm test for full regression checks. Run npm run preview:export for an offline assistant demo. Test both desktop and mobile, model loading time, concurrent users and offline fallbacks prior to deployment.
-
-This remains a navigation-only v1, not an autonomous operations agent.

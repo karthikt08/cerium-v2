@@ -13,16 +13,18 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.innerHTML='<button type="button" class="guide-trigger" id="guide-trigger" aria-expanded="false" aria-controls="guide-panel">'+
     '<span class="guide-mark" aria-hidden="true">✦</span><span>Ask Cerium</span></button>'+
     '<section class="guide-panel" id="guide-panel" aria-label="Cerium assistant" hidden>'+
-      '<div class="guide-header"><div><span class="guide-eyebrow">CERIUM · YOUR WORKSPACE</span><h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2></div>'+
+      '<div class="guide-header"><div><span class="guide-eyebrow">CERIUM · WORKSPACE AI</span><h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2></div>'+
         '<button type="button" class="guide-close" aria-label="Close assistant" id="guide-close">×</button></div>'+
       '<div class="guide-messages" id="guide-messages" role="log" aria-live="polite" aria-relevant="additions"></div>'+
       '<div class="guide-suggestions" id="guide-suggestions" aria-label="Try asking">'+
         '<button type="button" data-guide-prompt="Which Cerium tools should I use for my business?">Recommend tools</button>'+
+        '<button type="button" data-guide-prompt="How do I convert an accepted quote into a job and invoice?">Quote to invoice</button>'+
+        '<button type="button" data-guide-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits</button>'+
+        '<button type="button" data-guide-prompt="How do I prepare a GST tax invoice with line item rates?">GST tax invoice</button>'+
         '<button type="button" data-guide-prompt="How do I import an Excel spreadsheet?">Import Excel</button>'+
-        '<button type="button" data-guide-prompt="How can I save an invoice PDF?">Invoice PDFs</button>'+
-        '<button type="button" data-guide-prompt="How do I schedule a job?">Schedule a job</button>'+
+        '<button type="button" data-guide-prompt="How do I dispatch crew and avoid schedule conflicts?">Crew dispatch</button>'+
       '</div>'+
-      '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about a task or your business…" autocomplete="off" maxlength="420" required>'+
+      '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
         '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button></form>'+
       '<p class="guide-privacy">Read-only guidance. Avoid private details; an enabled AI provider may process your question.</p>'+
     '</section>';
@@ -59,7 +61,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     messages.scrollTop=messages.scrollHeight;
     return item;
   }
-  function routeButton(section,title){
+  function routeButton(section,title,stepNumber=null){
     if(!GUIDE_SECTIONS.includes(section))return;
     const row=document.createElement('div');
     row.className='guide-actions';
@@ -67,7 +69,16 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     action.type='button';
     action.className='guide-action';
     action.dataset.guideDestination=section;
-    action.textContent='Open '+String(title||section).slice(0,75)+' →';
+    if(stepNumber){
+      const badge=document.createElement('span');
+      badge.className='guide-step-badge';
+      badge.textContent='Step '+stepNumber;
+      action.append(badge);
+    }
+    const label=document.createElement('span');
+    label.className='guide-action-label';
+    label.textContent='Open '+String(title||section).slice(0,75)+' →';
+    action.append(label);
     row.append(action);
     messages.append(row);
     messages.scrollTop=messages.scrollHeight;
@@ -169,6 +180,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     suggestions.hidden=true;
     bubble(clean,'user');
     const progress=bubble('Thinking…');
+    progress.classList.add('guide-thinking');
     try{
       let result;
       try{
@@ -187,21 +199,22 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       const conversational=result.type==='conversation'&&result.section===null;
       const safe=recommendation||workflow||conversational||uncertain||GUIDE_SECTIONS.includes(result.section)
         ?result:localAnswer(clean,current,wantRecommendations,businessDescription);
+      progress.classList.remove('guide-thinking');
       progress.textContent=safe.reply.slice(0,850);
-      if(safe.steps&&/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)&&
+      if(safe.steps&&(/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)||workflow)&&
         !safe.reply.includes('→')){
         const steps=document.createElement('span');
         steps.className='guide-steps';
-        steps.textContent=safe.steps.slice(0,250);
+        steps.textContent=safe.steps.slice(0,350);
         progress.append(steps);
       }
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
       if(recommendation)renderToolRecommendations(safe);
       else if(workflow){
-        for(const step of safe.actions.slice(0,5)){
-          if(step&&GUIDE_SECTIONS.includes(step.section))routeButton(step.section,step.title||step.section);
-        }
+        safe.actions.slice(0,5).forEach((step,i)=>{
+          if(step&&GUIDE_SECTIONS.includes(step.section))routeButton(step.section,step.title||step.section,i+1);
+        });
         lastSection=null;
       }
       else if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
