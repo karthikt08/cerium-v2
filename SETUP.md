@@ -159,15 +159,15 @@ scheduling jobs or automated reminders so the selected times are unambiguous.
 1. In Razorpay, create a **monthly subscription plan** for **USD 20.00**, interval **1 month**. Confirm Razorpay supports the currency and recurring mandate for the countries/cards you will serve. Create separate monthly plans for every other supported regional price (India INR ₹500; USD $16/$12/$8).
 2. Configure `RAZORPAY_PLAN_ID=plan_...` alongside your Razorpay API key, secret and webhook secret. The app validates the plan's live amount, currency, and interval before starting checkout.
 
-**Optional annual billing — two months free:** For each tier you want to enable, create a **separate Razorpay yearly plan** with `period=yearly`, `interval=1`, and an annual charge equal to **10 × that tier's monthly charge**, in that tier's currency. Set the matching environment variable; leave an unsupported tier unset (it is not silently replaced with a different tier):
+**Optional annual billing — one month free:** For each tier you want to enable, create a **separate Razorpay yearly plan** with `period=yearly`, `interval=1`, and an annual charge equal to **11 × that tier's monthly charge**, in that tier's currency. Set the matching environment variable; leave an unsupported tier unset (it is not silently replaced with a different tier):
 
-| Verified business tier | Monthly | Annual (10 months paid, 12 months service) | Annual plan environment variable |
+| Verified business tier | Monthly | Annual (11 months paid, 12 months service) | Annual plan environment variable |
 | --- | ---: | ---: | --- |
-| USD standard/high or unclassified | $20 | $200 | `RAZORPAY_ANNUAL_PLAN_ID` |
-| USD upper-middle | $16 | $160 | `RAZORPAY_ANNUAL_UPPER_MIDDLE_PLAN_ID` |
-| USD lower-middle | $12 | $120 | `RAZORPAY_ANNUAL_LOWER_MIDDLE_PLAN_ID` |
-| USD low | $8 | $80 | `RAZORPAY_ANNUAL_LOW_PLAN_ID` |
-| India INR | ₹500 | ₹5,000 | `RAZORPAY_ANNUAL_IN_PLAN_ID` |
+| USD standard/high or unclassified | $20 | $220 | `RAZORPAY_ANNUAL_PLAN_ID` |
+| USD upper-middle | $16 | $176 | `RAZORPAY_ANNUAL_UPPER_MIDDLE_PLAN_ID` |
+| USD lower-middle | $12 | $132 | `RAZORPAY_ANNUAL_LOWER_MIDDLE_PLAN_ID` |
+| USD low | $8 | $88 | `RAZORPAY_ANNUAL_LOW_PLAN_ID` |
+| India INR | ₹500 | ₹5,500 | `RAZORPAY_ANNUAL_IN_PLAN_ID` |
 
 Amounts above exclude applicable taxes. Both monthly and annual use the same phone verification, mandatory business setup, trial eligibility and provider-authorized checkout. The API fetches each configured Razorpay plan to enforce **the exact amount, currency, `period` and `interval`** before creating a mandate. Annual plans use 10 annual billing cycles (monthly uses 120 monthly billing cycles) to bound the provider subscription. Existing monthly mandates are not automatically converted: cancel future renewals and then authorize a new interval only after verifying the old mandate and remaining paid entitlement. Provider support for annual international and UPI mandates may vary: test each enabled tier in Razorpay Test Mode before deploying. **Configuring code alone does not create Razorpay plans or enable annual checkout.**
 3. Enable verified subscription webhook events (`subscription.authenticated`, `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.halted`, `subscription.completed`) at `/webhooks/razorpay`. Subscription state is persisted on the server; do not edit the browser's state to activate an account.
