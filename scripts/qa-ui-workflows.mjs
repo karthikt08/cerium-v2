@@ -156,5 +156,15 @@ try{
   const user=t.db.getUserByEmail('ui-in@example.com');t.db.setUserPlan(user.id,{plan:'expired',planStatus:'expired'});await page.reload();await page.locator('#page-body').waitFor({state:'visible'});
   await page.getByText('Your free trial has ended — read-only access',{exact:true}).waitFor();assert.equal(await page.locator('[data-action=new][data-kind=invoice]').isDisabled(),true);assert.match(await page.locator('#page-body').textContent(),/India Customer/);
  });
+ await check('Contact form validates and prepares an email handoff',async()=>{
+  await page.goto(t.url+'/contact.html');await page.locator('#cf button[type=submit]').click();assert.equal(await page.locator('#f-name').evaluate(e=>e.validity.valueMissing),true);
+  await page.locator('#f-name').fill('Contact Test');await page.locator('#f-email').fill('contact@example.com');await page.locator('#f-msg').fill('Synthetic local UI test');await page.locator('#cf button[type=submit]').click();await page.locator('#fs').waitFor({state:'visible'});assert.match(await page.locator('#fs').textContent(),/email app should open/);
+ });
+ await check('Signed-in waitlist retry, join, export, delete cancellation and logout',async()=>{
+  await page.route('**/api/me',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));await page.goto(t.url+'/waitlist.html');await page.locator('#retry').waitFor();await page.unroute('**/api/me');await page.locator('#retry').click();
+  await page.locator('#s-join').waitFor({state:'visible'});await page.locator('#j-biz').fill('Waitlist test');await page.locator('#j-go').click();await page.locator('#s-on').waitFor({state:'visible'});
+  const download=page.waitForEvent('download');await page.getByRole('link',{name:'Download my data'}).click();assert.equal((await download).suggestedFilename(),'cerium-my-data.json');
+  await page.locator('#del').click();await page.locator('#dlg-no').click();assert.equal(await page.locator('#dlg').isVisible(),false);await page.locator('#out').click();await page.waitForURL('**/index.html');assert.equal((await (await context.request.get(t.url+'/api/me')).json()).signedIn,false);
+ });
  await check('No uncaught browser errors across workflows',async()=>assert.deepEqual(errors,[]));
 }finally{writeFileSync(join(out,'workflows.json'),JSON.stringify(results,null,2));await browser.close();await t.close();if(results.some(r=>!r.pass))process.exitCode=1;}

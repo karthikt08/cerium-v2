@@ -36,7 +36,7 @@ async function inspect(p,label,width){
  data.cursor=await p.evaluate(()=>({native:getComputedStyle(document.elementFromPoint(Math.min(innerWidth-20,250),180)||document.body).cursor,ring:!!document.querySelector('.workspace-cursor.visible')}));
  if(width===1440||width===390)await p.screenshot({path:join(out,label+'-'+width+'.png'),animations:'disabled'});
  results.pages.push({page:label,width,...data});
- if(data.overflow||data.clipped.length||data.unnamed.length)process.exitCode=1;
+ if(data.overflow||data.clipped.length||data.unnamed.length||(data.cursor.native==='none'&&!data.cursor.ring))process.exitCode=1;
  console.log(label,width,JSON.stringify({overflow:data.overflow,clipped:data.clipped.length,unnamed:data.unnamed.length}));
 }
 try{
@@ -66,6 +66,10 @@ try{
    await app.evaluate(s=>location.hash=s,section);await app.waitForTimeout(100);
    await inspect(app,'workspace-'+section,width);
   }
+ }
+ const identity=await owner.me();const joined=await owner.req('/api/waitlist',{method:'POST',csrf:identity.csrfToken,json:{business:'UI audit'}});if(!joined.ok)throw new Error('Could not prepare signed-in waitlist fixture');
+ for(const width of [1440,768,390,320]){
+  await app.setViewportSize({width,height:900});await app.goto(t.url+'/waitlist.html');await app.locator('#s-on').waitFor({state:'visible'});await inspect(app,'waitlist-signed',width);
  }
  for(const path of ['welcome.html','verify.html?edit=business','enter.html?next=%2Fapp.html']){
   await app.setViewportSize({width:390,height:900});await app.goto(t.url+'/'+path);await app.waitForTimeout(250);await inspect(app,path.split('.')[0],390);

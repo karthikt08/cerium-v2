@@ -62,7 +62,7 @@ async function load() {
   heading('Your waitlist spot', 'One moment…', '');
   let me;
   try {
-    me = await getMe();
+    me = await getMe({strict:true});
   } catch (e) {
     return showError();
   }
