@@ -114,7 +114,7 @@ test('server uses validated optional contextual businessDescription and does not
     assert.match(refined.reply,/wholesale textile/i);
     assert.equal(refined.recommendations[0].id,'quotes');
     const oversized=await submit('Wholesale / bulk',{businessDescription:'x'.repeat(601)});
-    assert.equal(oversized.needsMoreInfo,true);
+    assert.equal(oversized.type,'tool_recommendations');
     const workspace=await browser.req('/api/workspace');
     assert.equal(workspace.status,200);
   }finally{await app.close();}
