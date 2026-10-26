@@ -66,7 +66,7 @@
 .ws-spark{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;
   background:#e0eaff;color:#4674df;font-size:15px}
 .ws-privacy-badge{margin-left:auto;border:1px solid #d1e5de;border-radius:999px;
-  background:#eaf8f1;color:#5c4e9e;padding:4px 9px;white-space:nowrap;
+  background:#eaf8f1;color:#3156ad;padding:4px 9px;white-space:nowrap;
   font-size:10px;font-weight:700}
 .ws-actions-inline{display:flex;flex-wrap:wrap;gap:8px}
 .workspace-config-dialog .ws-module-fieldset{border:0;padding:0;margin:0;min-width:0}
