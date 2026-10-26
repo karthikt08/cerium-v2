@@ -1228,7 +1228,7 @@ export function openDb(file) {
         customerPhone: r.customer_phone || '',
         customerEmail: r.customer_email || '',
         jobTitle: r.job_title || '',
-        completedDate: r.completed_date || today,
+        completedDate: r.completed_date || businessToday,
         status: r.status,
         lastSentAt: r.last_sent_at || null,
         rating: r.rating || null,
@@ -1637,7 +1637,7 @@ export function openDb(file) {
     createReview(userId, payload) {
       payload=workspaceFields('review',payload,true);
       const id = 'RV-' + randomBytes(4).toString('hex');
-      const today = todayStr();
+      const today = userBusinessToday(userId);
       q.insertReview.run(
         id, userId, (payload.customerName || '').trim(), (payload.customerPhone || '').trim(),
         (payload.customerEmail || '').trim(), (payload.jobTitle || '').trim(),
@@ -1653,7 +1653,7 @@ export function openDb(file) {
     },
 
     sendReviewRequest(userId, id) {
-      q.sendReview.run('Sent', todayStr(), id, userId);
+      q.sendReview.run('Sent', userBusinessToday(userId), id, userId);
       return { ok: true };
     },
 

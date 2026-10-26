@@ -13,7 +13,7 @@ test('every page uses one Cerium UI system before the final Figtree typography l
   assert.ok(pages.length>=17,'audit should include all customer-facing pages');
   for(const page of pages){
     const html=read(page),head=html.split('</head>')[0];
-    const refs=[...head.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*href="([^"]+)"/g)].map(m=>m[1]);
+    const refs=[...head.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*href="([^"]+)"/g)].map(m=>m[1].replace(/^\//,''));
     assert.equal(refs.filter(x=>x==='css/ui-consistency.css').length,1,page+' must load one shared UI layer');
     if(page==='app.html'){
       assert.equal(refs.at(-3),'css/ui-consistency.css',page+' keeps controls before the Overview skin');

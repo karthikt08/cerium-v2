@@ -12,7 +12,7 @@ const shared=read('css/typography.css');
 test('all CERIUM HTML pages load the same Figtree font and last-in-cascade typography stylesheet',()=>{
   assert.ok(pages.length>=16,'Test must cover every public HTML page.');
   for(const page of pages){
-    const html=read(page),head=html.split('</head>')[0];
+    const html=read(page),head=html.split('</head>')[0].replace(/href="\/css\//g,'href="css/');
     const rule='<link rel="stylesheet" href="css/typography.css">';
     assert.equal(head.split(rule).length-1,1,page+' should load shared typography exactly once');
     const stylesheetLinks=[...head.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*>/g)].map(x=>x[0]);
