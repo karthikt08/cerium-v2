@@ -7,22 +7,23 @@ import {ROOT,TERMS_VERSION} from '../server/config.js';
 const read=name=>fs.readFileSync(path.join(ROOT,'public',name),'utf8');
 const pages=['index.html','benefits.html','pricing.html','about.html','contact.html','signup.html','login.html','terms.html','privacy.html'];
 
-test('homepage has six concise benefit cards and a visible full benefits link',()=>{
+test('homepage has nine current-feature benefit cards and a visible full benefits link',()=>{
   const html=read('index.html');
   const section=html.split('<section class="sc" id="benefits">')[1]?.split('</section>')[0];
   assert.ok(section,'benefits section must exist');
-  assert.equal((section.match(/<article class="cd"/g)||[]).length,6);
+  assert.equal((section.match(/<article class="cd"/g)||[]).length,9);
   assert.match(section,/<a href="benefits\.html">Explore all Cerium features/);
   assert.match(section,/Excel files/);
   assert.match(section,/quote to booked job/);
+  for(const feature of ['WhatsApp','Marketing','Ask Cerium'])assert.ok(section.includes(feature),feature);
 });
 
 test('feature directory describes implemented modules without claiming a live bank feed',()=>{
   const html=read('benefits.html');
-  assert.equal((html.match(/<article class="feature cd" data-rv/g)||[]).length,14);
-  for(const heading of ['Lead pipeline','Excel &amp; CSV lead import','Estimates and quotes','Crew assignments','Country-aware invoices','Customisable workspace'])assert.ok(html.includes(heading),heading);
+  assert.equal((html.match(/<article class="feature cd" data-rv/g)||[]).length,18);
+  for(const heading of ['Lead pipeline','Excel &amp; CSV lead import','Estimates and quotes','Crew assignments','Invoices that fit your country','Choose the tools you work with','A practical marketing workspace','Guidance with links to the right page','UPI links and scannable QR'])assert.ok(html.includes(heading),heading);
   assert.match(html,/Live bank-feed connections are not yet available/);
-  for(const anchor of ['win-work','deliver-work','get-paid','run-business'])assert.ok(html.includes('id="'+anchor+'"'));
+  for(const anchor of ['win-work','deliver-work','get-paid','grow-business','run-business'])assert.ok(html.includes('id="'+anchor+'"'));
 });
 
 test('marketing pages link to the full guide and do not advertise unimplemented bank feeds',()=>{
@@ -77,7 +78,7 @@ test('benefits page inherits the landing purple ambient glow and magnetic cursor
     assert.ok(html.includes('="'+asset+'"'),'Benefits page must reuse '+asset);
   assert.equal((html.match(/src="js\/workspace-cursor\.js"/g)||[]).length,1,'one cursor engine');
   assert.doesNotMatch(html,/src="js\/cursor\.js"/,'do not mix two cursor engines');
-  assert.match(html,/<span class="ac">invoice\.<\/span>/,'reuse landing brand gradient');
+  assert.match(html,/<span class="ac">next opportunity\.<\/span>/,'reuse landing brand gradient');
   assert.match(html,/rgba\(102,69,221,\.38\)/,'feature card hover preserves purple halo');
   assert.match(html,/@media\(prefers-reduced-motion:reduce\)/,'respect reduced motion');
   assert.match(read('js/home.js'),/pg\.style\.setProperty\('--px'/,'ambient moves with pointer');
@@ -86,7 +87,7 @@ test('benefits page inherits the landing purple ambient glow and magnetic cursor
 
 test('benefits categories use workspace-style rounded rectangles and every card stacks its text',()=>{
   const html=read('benefits.html');
-  assert.equal((html.match(/<article class="feature cd" data-rv>/g)||[]).length,14);
+  assert.equal((html.match(/<article class="feature cd" data-rv>/g)||[]).length,18);
   assert.match(html,/\.pg\.home\.benefits-page \.hero-nav a\{[^}]*border-radius:9px/,'category controls must be rounded rectangles, not full pills');
   assert.doesNotMatch(html,/\.hero-nav a\{[^}]*border-radius:99px/,'avoid oversized pill styling');
   assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd\{display:flex;flex-direction:column;align-items:flex-start/,'cards stack content');
@@ -94,7 +95,7 @@ test('benefits categories use workspace-style rounded rectangles and every card 
   assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd h3\{display:block/,'headings no longer sit inline with category labels');
   assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd > p:not\(\.note\)\{display:block/,'body descriptions occupy their own paragraph');
   assert.match(html,/\.pg\.home\.benefits-page \.feature\.cd > p\.note\{display:block/,'notes get a separate row');
-  for(const destination of ['#win-work','#deliver-work','#get-paid','#run-business'])
+  for(const destination of ['#win-work','#deliver-work','#get-paid','#grow-business','#run-business'])
     assert.ok(html.includes('href="'+destination+'"'),'keep live in-page navigation: '+destination);
   assert.match(html,/css\/spatial\.css/,'preserve ambient purple glow');
   assert.match(html,/js\/workspace-cursor\.js/,'preserve the magnetic cursor');
