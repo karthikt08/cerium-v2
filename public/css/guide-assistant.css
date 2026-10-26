@@ -1,64 +1,70 @@
-/* Cerium Guide: compact, accessible, and visually part of the workspace. */
-.cerium-guide{position:fixed;right:26px;bottom:24px;z-index:48;font-family:inherit;color:#2c2b40}
+/* Cerium Guide: compact, accessible, elevated AI workspace companion. */
+.cerium-guide{position:fixed;right:26px;bottom:24px;z-index:48;font-family:inherit;color:#2c283f}
 .cerium-guide *{box-sizing:border-box}
-.guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(169,154,255,.42);background:#241d41;color:#faf7ff;padding:12px 17px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 15px 48px #150f3460,0 0 24px #9566f240;cursor:pointer}
+.guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(175,158,255,.45);background:linear-gradient(135deg,#241d44 0%,#1a1435 100%);color:#fbf9ff;padding:12px 18px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 14px 38px -8px rgba(18,12,45,.45),0 0 22px rgba(142,98,240,.24);cursor:pointer;transition:all .18s ease}
+.guide-trigger:hover{border-color:rgba(205,192,255,.75);box-shadow:0 16px 44px -6px rgba(18,12,45,.55),0 0 30px rgba(152,110,252,.35)}
 .guide-trigger:focus-visible,.cerium-guide button:focus-visible,.cerium-guide input:focus-visible{outline:2px solid #aa94ff;outline-offset:3px}
-.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:9px;background:#8063cb;color:#fff;font-size:17px}
-.guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(402px,calc(100vw - 28px));height:min(520px,calc(100dvh - 105px));min-height:280px;background:#fff;border:1px solid #dfdcef;border-radius:19px;box-shadow:0 16px 45px #18113270;overflow:hidden}
+.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#8767e3,#6b49cc);color:#fff;font-size:15px;box-shadow:0 0 10px rgba(135,103,227,.4)}
+.guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(416px,calc(100vw - 28px));height:min(540px,calc(100dvh - 105px));min-height:320px;background:#fff;border:1px solid rgba(220,214,240,.95);border-radius:18px;box-shadow:0 24px 64px -12px rgba(18,12,45,.28),0 8px 24px -6px rgba(18,12,45,.12),0 0 0 1px rgba(255,255,255,.9) inset;overflow:hidden}
 .guide-panel[hidden]{display:none}
-.guide-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:15px 17px 13px;background:linear-gradient(125deg,#f4f0ff,#fbfaff)}
-.guide-eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;color:#765ab6}
-.guide-header h2{font-size:18px;letter-spacing:-.3px;line-height:1.25;margin:4px 0 0;color:#241a3a}
-.guide-close{border:0;background:transparent;color:#695b86;font-size:23px;cursor:pointer;padding:0 5px}
-.guide-messages{flex:1;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;overscroll-behavior:contain}
-.guide-bubble{align-self:flex-start;max-width:93%;padding:10px 12px;border:1px solid #e9e5f3;border-radius:13px;background:#f7f6fb;color:#424259;font-size:13px;line-height:1.48;white-space:pre-wrap;overflow-wrap:anywhere}
-.guide-bubble.user{align-self:flex-end;background:#61509b;border-color:#7865b1;color:#fff}
-.guide-actions{display:flex;flex-wrap:wrap;gap:7px;margin:-3px 0 3px}
-.guide-action{border:1px solid #cec4ea;background:#f2edff;color:#574395;border-radius:9px;padding:8px 11px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}
-.guide-suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 15px 12px}
-.guide-suggestions button{border:1px solid #e2dced;border-radius:999px;background:#fff;color:#54466f;padding:8px 10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;cursor:pointer}
-.guide-form{display:flex;gap:8px;padding:12px 13px 7px;border-top:1px solid #ebe8f3}
-.guide-form input{min-width:0;flex:1;border:1px solid #d8d3e7;background:#fff;border-radius:10px;color:#34304c;padding:11px 12px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.3;outline:none}
-.guide-form input::placeholder{color:#8d88a0}
-.guide-send{border:0;border-radius:10px;padding:0 15px;background:#8f72db;color:white;font-family:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer}
+.guide-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:15px 18px 13px;background:linear-gradient(135deg,#f7f3ff 0%,#ffffff 50%,#f4efff 100%);border-bottom:1px solid #ebe5f5}
+.guide-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#765ab6}
+.guide-header h2{font-size:18px;letter-spacing:-.3px;line-height:1.25;margin:4px 0 0;color:#201736}
+.guide-close{width:32px;height:32px;border:1px solid transparent;border-radius:8px;background:transparent;color:#6e6088;font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0;transition:all .16s ease}
+.guide-close:hover{background:#f1ecf9;border-color:#dcd3ee;color:#22163b}
+.guide-messages{flex:1;overflow:auto;padding:15px 16px 12px;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin;overscroll-behavior:contain;background:linear-gradient(180deg,#fbf9fe 0%,#ffffff 100%)}
+.guide-bubble{align-self:flex-start;max-width:94%;padding:10px 13px;border:1px solid #e7e1f1;border-radius:14px 14px 14px 4px;background:#fff;color:#2c273e;font-size:13px;line-height:1.5;box-shadow:0 2px 8px rgba(35,22,65,.04);white-space:pre-wrap;overflow-wrap:anywhere}
+.guide-bubble.user{align-self:flex-end;background:linear-gradient(135deg,#624bbd 0%,#503ca4 100%);border-color:#735ac9;color:#fff;border-radius:14px 14px 4px 14px;box-shadow:0 4px 14px rgba(82,60,164,.22)}
+.guide-bubble.guide-thinking{color:#7a6a9b;font-style:italic;background:#fbf9fe;border-color:#e5def3;animation:guidePulse 1.6s ease-in-out infinite}
+@keyframes guidePulse{0%,100%{opacity:1}50%{opacity:.5}}
+.guide-steps{display:block;margin-top:9px;padding:9px 12px;background:#f7f3fd;border:1px solid #e6dcf5;border-radius:9px;color:#574482;font-size:12px;line-height:1.5;font-weight:500}
+.guide-actions{display:flex;flex-direction:column;gap:6px;margin:-2px 0 4px;width:100%}
+.guide-action{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:1px solid #d5c8ef;background:linear-gradient(135deg,#f7f4ff 0%,#f1ecfc 100%);color:#4e3984;border-radius:9px;padding:8px 12px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;cursor:pointer;transition:all .18s ease}
+.guide-action:hover{background:linear-gradient(135deg,#eee6fd 0%,#e6dbf8 100%);border-color:#aa94df;color:#2e1a61;box-shadow:0 4px 12px rgba(110,75,200,.12);transform:translateY(-1px)}
+.guide-step-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;background:#7c5dc7;color:#fff;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.guide-action-label{flex:1;text-align:left}
+.guide-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.guide-suggestions button{border:1px solid #dfd7ed;border-radius:999px;background:#fff;color:#4e4069;padding:7px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;cursor:pointer;transition:all .16s ease}
+.guide-suggestions button:hover{border-color:#b7a4de;background:#f8f4ff;color:#321f58;box-shadow:0 2px 8px rgba(110,75,200,.08)}
+.guide-form{display:flex;gap:8px;padding:12px 16px 8px;border-top:1px solid #ece6f5;background:#fff;flex-shrink:0}
+.guide-form input{min-width:0;flex:1;border:1px solid #dcd4ea;background:#faf9fd;border-radius:10px;color:#2c283f;padding:10px 12px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.3;outline:none;transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease}
+.guide-form input::placeholder{color:#8c859d}
+.guide-form input:focus{border-color:#8c6de5;background:#fff;box-shadow:0 0 0 3px rgba(140,109,229,.16)}
+.guide-send{border:0;border-radius:10px;padding:0 16px;background:linear-gradient(135deg,#8765dc 0%,#6e4bc3 100%);color:#fff;font-family:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;transition:filter .16s ease,box-shadow .16s ease;box-shadow:0 2px 8px rgba(110,75,195,.22)}
+.guide-send:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 14px rgba(110,75,195,.36)}
 .guide-send:disabled{opacity:.5;cursor:wait}
-.guide-privacy{padding:0 13px 10px;font-size:10px;line-height:1.35;color:#777188}
-@media(max-width:760px){.cerium-guide{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.guide-panel{bottom:58px;width:min(390px,calc(100vw - 24px));height:min(510px,calc(100dvh - 90px))}.guide-trigger{padding:10px 13px}}
-@media(prefers-reduced-motion:reduce){.cerium-guide *{scroll-behavior:auto!important;transition:none!important}}
+.guide-privacy{padding:0 16px 10px;font-size:10px;line-height:1.4;color:#877f99;flex-shrink:0}
+@media(max-width:760px){.cerium-guide{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.guide-panel{bottom:58px;width:min(390px,calc(100vw - 24px));height:min(510px,calc(100dvh - 90px));min-height:0}.guide-trigger{padding:10px 14px}.guide-header{padding:13px 15px 12px}.guide-messages{padding:13px}.guide-privacy{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.cerium-guide *{scroll-behavior:auto!important;transition:none!important;animation:none!important;transform:none!important}}
 
 .guide-suggestions[hidden]{display:none!important}
 
-/* Explainable tool recommendations; plain text, no decorative AI-generated cards. */
-.guide-recommendations{display:grid;gap:8px;width:100%;margin:-4px 0 6px}
-.guide-recommendation{display:grid;gap:3px;padding:10px 12px;border:1px solid #e8e3f2;border-radius:10px;background:#fff}
-.guide-recommendation strong{font-size:12px;line-height:1.4;color:#34284f}
-.guide-recommendation span{font-size:11px;line-height:1.45;color:#726986}
-.guide-recommendation-limit{margin:1px 0;padding-left:9px;border-left:2px solid #a390d2;font-size:11px;line-height:1.45;color:#736884}
-.guide-review-tools{width:100%;text-align:center;padding:10px}
+/* Explainable tool recommendations; clean, structured cards. */
+.guide-recommendations{display:grid;gap:8px;width:100%;margin:-2px 0 6px}
+.guide-recommendation{display:grid;gap:3px;padding:10px 12px;border:1px solid #e7dfef;border-radius:10px;background:#fff;box-shadow:0 1px 4px rgba(30,20,50,.03)}
+.guide-recommendation strong{font-size:12px;line-height:1.4;color:#30244b}
+.guide-recommendation span{font-size:11px;line-height:1.45;color:#6f6583}
+.guide-recommendation-priority{display:inline-block;margin-left:5px;padding:1px 6px;background:#f3effb;border:1px solid #dfd6f0;border-radius:4px;color:#6c5894;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.guide-recommendation-limit{margin:2px 0;padding-left:9px;border-left:2px solid #9d88cc;font-size:11px;line-height:1.45;color:#6d6280}
+.guide-review-tools{width:100%;text-align:center;padding:10px;margin-top:4px}
+.guide-review-tools:hover{filter:brightness(.96)}
 
-.guide-steps{display:block;margin-top:8px;padding-top:8px;border-top:1px solid #e5deef;color:#72658b;font-size:12px;line-height:1.45}
 .guide-messages::-webkit-scrollbar{width:5px}
-.guide-messages::-webkit-scrollbar-thumb{background:#ddd5e9;border-radius:999px}
-.guide-form{flex-shrink:0}
-.guide-send:hover:not(:disabled),.guide-review-tools:hover{filter:brightness(.96)}
-.guide-suggestions button:hover{border-color:#b5a4de;background:#f9f6ff}
-.guide-privacy{flex-shrink:0}
-@media(max-width:760px){.guide-panel{min-height:0}.guide-header{padding:13px 15px 12px}.guide-messages{padding:13px}.guide-privacy{font-size:10px}}
+.guide-messages::-webkit-scrollbar-thumb{background:#d7cee5;border-radius:999px}
 
 /* Helpful details after recommending tools, not mandatory onboarding prompts. */
-.guide-recommendation-priority{display:inline-block;margin-left:4px;color:#7a6b94;font-size:10px;font-weight:600;white-space:nowrap}
-.guide-business-followup{margin:7px 0 1px;font-size:12px;line-height:1.45;color:#51466c}
+.guide-business-followup{margin:7px 0 2px;font-size:12px;line-height:1.45;color:#4e426a}
 .guide-business-choices{display:flex;flex-wrap:wrap;gap:6px}
-.guide-business-choice{border:1px solid #d8cced;background:#fff;color:#544580;border-radius:999px;padding:7px 10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer}
-.guide-business-choice:hover{background:#f6f1fe;border-color:#af9ad7}
+.guide-business-choice{border:1px solid #d4c5ea;background:#fff;color:#4f3d7a;border-radius:999px;padding:6px 11px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;cursor:pointer;transition:all .16s ease}
+.guide-business-choice:hover{background:#f6f1fe;border-color:#a891d4;color:#2e1c56;box-shadow:0 2px 8px rgba(110,75,200,.08)}
 .guide-business-choice:focus-visible{outline:2px solid #aa94ff;outline-offset:2px}
 
-.guide-business-workflow{border:1px solid #e8e0f4;background:#f9f7fd;border-radius:10px;padding:9px 11px;display:grid;gap:4px}
-.guide-business-workflow strong{font-size:11px;color:#5c4787;line-height:1.4}
-.guide-business-workflow span{font-size:11px;color:#6e647e;line-height:1.45}
+.guide-business-workflow{border:1px solid #e7dff2;background:#f9f7fd;border-radius:10px;padding:9px 12px;display:grid;gap:4px}
+.guide-business-workflow strong{font-size:11px;color:#5a4387;line-height:1.4}
+.guide-business-workflow span{font-size:11px;color:#6d637f;line-height:1.45}
 
 /* Trusted links are actual same-app anchors; keep them recognizably clickable. */
-.guide-direct-links{display:flex;flex-wrap:wrap;gap:7px;margin:1px 0 7px}
-.guide-page-link{display:inline-flex;align-items:center;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#bba9e1;font-size:11px;line-height:1.4}
+.guide-direct-links{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;margin:1px 0 7px}
+.guide-page-link{display:inline-flex;width:auto;align-items:center;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#bba9e1;font-size:11px;line-height:1.4}
 .guide-page-link:hover{text-decoration-color:currentColor}
 .guide-page-link:focus-visible{outline:2px solid #a98ee9;outline-offset:3px}
