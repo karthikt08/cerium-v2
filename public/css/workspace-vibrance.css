@@ -149,6 +149,49 @@
 .app-page .text-button{color:#5743b0}
 .app-page .text-button:hover{color:#4128a3}
 
+/* Carry the same saturated surfaces through operational summaries. These
+   are cards, not editable rows or tables, so the data stays easy to scan. */
+.app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
+  .jobs-stats>.jobs-stat,.jobs-panel,.jobs-bottom>.panel,
+  .board-column>.lead-card,.reminders-stats>div,.reminders-columns>.panel,
+  .settings-grid .panel){
+  border-color:#dacbf7;
+  background:linear-gradient(139deg,#fff 46%,#f7f1ff 100%);
+  box-shadow:0 9px 24px -24px rgba(111,55,219,.35);
+}
+.app-page :is(.quotes-summary strong,.jobs-stats .jobs-stat strong,
+  .reminders-stats>div strong){
+  color:#35256f;
+}
+.app-page .quotes-progress>span{
+  border-color:#d9c9f6;
+  background:linear-gradient(120deg,#fff,#f1eaff);
+  color:#544587;
+}
+.app-page .quotes-progress b{
+  background:#e4d6ff;color:#5932ac;
+}
+.app-page .quote-sent,.app-page .job-status.purple{
+  background:#e9ddff;color:#5a30a8;
+}
+.app-page .jobs-upcoming-date{
+  background:linear-gradient(138deg,#e8e9ff,#f0ddff);
+  color:#4b35ae;
+}
+.app-page .jobs-crew-avatar{
+  background:#e6deff;color:#4f35a8;
+}
+.app-page .task-check:hover{
+  border-color:#8250d6;background:#f0eaff;
+}
+@media(hover:hover) and (pointer:fine){
+  .app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
+    .jobs-stats>.jobs-stat,.board-column>.lead-card,.reminders-stats>div):hover{
+    border-color:#aa87eb;
+    box-shadow:0 16px 35px -25px rgba(118,49,219,.39);
+  }
+}
+
 /* Buttons share the same rounded shape as before, but land with a vivid
    color. Keep danger/red, success/green, and disabled states untouched. */
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
