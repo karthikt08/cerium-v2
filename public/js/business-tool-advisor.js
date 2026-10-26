@@ -43,7 +43,7 @@ const TEXTILE_TAILOR=/\b(?:tailor(?:ing)?|stitch(?:ing|es)?|alterations?|custom.
 const TEXTILE_MANUFACTURING=/\b(?:manufactur(?:e|er|ing)|factories|factory|mill|weav(?:e|ing)|spin(?:ning)?|production plant)\b/i;
 const COMMON_BIZ=/\b(?:shop|store|business|company|studio|agency|workshop|service|firm|practice|factory|boutique|retail|wholesale|merchant|trading|trader|seller|salon|restaurant|cafe|bakery)\b/i;
 const BIZ_INTRO=/\b(?:i|we|my|our)\b.{0,35}\b(?:run|own|operate|sell|selling|make|manufacture|business|shop|store|studio|factory|workshop|company|supply)\b/i;
-const TEXTILE_LIMIT='Cerium does not track textile stock, sizes, SKUs or barcode/POS sales; use a dedicated inventory/POS system for those tasks.';
+const TEXTILE_LIMIT='Cerium does not track textile stock, sizes, SKUs or barcode/point-of-sale (POS) transactions; use dedicated inventory and POS software for those tasks.';
 const textileQuestion='Do you mostly serve walk-in retail customers, wholesale buyers, or custom tailoring orders? I can refine this setup.';
 const textileModes={
   retail:{
