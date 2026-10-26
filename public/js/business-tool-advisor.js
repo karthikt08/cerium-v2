@@ -34,6 +34,91 @@ const WORKFLOWS=[
   {regex:/overdue|late pay|unpaid invoices?|payment reminders?|collect debts?|chase payments?|due notices?/i,modules:['reminders'],reason:'You need to follow up about outstanding payments.'},
   {regex:/reviews?|ratings?|testimonials?|feedback|reputation|google review/i,modules:['reviews'],reason:'You want to collect post-service customer feedback.'}
 ];
+
+// Specialized business archetypes supplement the general workflow scorer.
+// For a textile shop, distinguish retail, trade orders, tailoring, and manufacturing.
+const TEXTILE_TERMS=/\b(?:textiles?|fabrics?|cloth(?:ing|es)?|garments?|sarees?|saris?|dress materials?|apparel|yarns?|silks?|cotton shop|draper(?:y|ies)|haberdashery|tailor(?:ing)?|stitching|seamstress|alterations?)\b/i;
+const TEXTILE_WHOLESALE=/\b(?:wholesal(?:e|er|ers|ing)|bulk|b2b|distribut(?:e|or|ion)|suppl(?:y|ier|iers)|dealer|trade buyers?|reseller|large orders?)\b/i;
+const TEXTILE_TAILOR=/\b(?:tailor(?:ing)?|stitch(?:ing|es)?|alterations?|custom.?made|made.to.measure|bespoke|sewing|outfit orders?)\b/i;
+const TEXTILE_MANUFACTURING=/\b(?:manufactur(?:e|er|ing)|factories|factory|mill|weav(?:e|ing)|spin(?:ning)?|production plant)\b/i;
+const COMMON_BIZ=/\b(?:shop|store|business|company|studio|agency|workshop|service|firm|practice|factory|boutique|retail|wholesale|merchant|trading|trader|seller|salon|restaurant|cafe|bakery)\b/i;
+const BIZ_INTRO=/\b(?:i|we|my|our)\b.{0,35}\b(?:run|own|operate|sell|selling|make|manufacture|business|shop|store|studio|factory|workshop|company|supply)\b/i;
+const TEXTILE_LIMIT='Cerium does not track textile stock, sizes, SKUs or barcode/point-of-sale (POS) transactions; use dedicated inventory and POS software for those tasks.';
+const textileQuestion='Do you mostly serve walk-in retail customers, wholesale buyers, or custom tailoring orders? I can refine this setup.';
+const textileModes={
+  retail:{
+    title:'textile shop',
+    core:[
+      ['invoices','Create customer invoices for fabric, clothing and other textile purchases.'],
+      ['payments','Review payments received against customer invoices.']
+    ],
+    useful:[
+      ['leads','Useful if you keep a list of repeat buyers or take customer enquiries.'],
+      ['quotes','Useful for bulk fabric orders or custom orders that need price approval.']
+    ]
+  },
+  wholesale:{
+    title:'wholesale textile business',
+    core:[
+      ['quotes','Prepare itemized quotes for bulk fabric or garment orders.'],
+      ['invoices','Bill wholesale customers for confirmed orders.'],
+      ['payments','Review customer payments and invoice balances.']
+    ],
+    useful:[
+      ['leads','Track trade enquiries and buyers before they order.'],
+      ['followups','Keep track of repeat buyers and outstanding quotes.']
+    ]
+  },
+  tailoring:{
+    title:'tailoring and custom textile business',
+    core:[
+      ['jobs','Schedule fittings, alterations or commissioned work.'],
+      ['quotes','Estimate the price of custom stitching or garments.'],
+      ['invoices','Invoice customers when work is ready.']
+    ],
+    useful:[
+      ['payments','Review payments and deposits recorded for invoices.'],
+      ['followups','Track customer pickups, callbacks and next steps.']
+    ]
+  },
+  manufacturing:{
+    title:'textile manufacturing business',
+    core:[
+      ['quotes','Prepare proposals for customer production orders.'],
+      ['invoices','Invoice buyers for fulfilled orders.'],
+      ['payments','Review incoming invoice payments.']
+    ],
+    useful:[
+      ['leads','Track potential distribution and wholesale customers.'],
+      ['followups','Manage customer follow-ups and pending proposals.']
+    ]
+  }
+};
+function textileProfile(input){
+  if(!TEXTILE_TERMS.test(input))return null;
+  const mode=TEXTILE_TAILOR.test(input)?'tailoring':TEXTILE_MANUFACTURING.test(input)?'manufacturing':
+    TEXTILE_WHOLESALE.test(input)?'wholesale':'retail';
+  return {mode,profile:textileModes[mode]};
+}
+function recommendTextileTools(input,enabledModules,category){
+  const {mode,profile}=textileProfile(input);
+  const recommendations=[...profile.core.map(([id,reason])=>({id,reason,priority:'core'})),
+    ...profile.useful.map(([id,reason])=>({id,reason,priority:'optional'}))].map(item=>({
+      ...item,label:MODULES.get(item.id).label,
+      currentlyEnabled:Array.isArray(enabledModules)&&enabledModules.includes(item.id)
+    }));
+  const followUp=mode==='retail'?textileQuestion:null;
+  const note=mode==='retail'?'This covers billing and customer relationships, not a retail checkout.':
+    'These cover the customer-facing workflow, not production, inventory or accounting.';
+  return {
+    type:'tool_recommendations',source:'advisor',needsMoreInfo:false,category,
+    modules:recommendations.map(x=>x.id),recommendations,
+    reply:'For a '+profile.title+', start with '+profile.core.map(x=>MODULES.get(x[0]).label).join(' and ')+'. '+note+' Review the suggestions before saving any changes.',
+    followUp,followUpOptions:followUp?['Walk-in retail','Wholesale / bulk','Tailoring / custom orders']:[],
+    limitations:[TEXTILE_LIMIT]
+  };
+}
+
 const LIMITATIONS=[
   {regex:/retail|boutique|store|shop|restaurant|cafe|bakery|grocery|e.?commerce|stock|inventory|pos\b|point of sale/i,
     text:'Cerium is not a point-of-sale, inventory or online-ordering system.'},
@@ -48,6 +133,9 @@ const INTRO=/\b(?:suggest|recommend|which|what|best|necessary|essential|ideal|su
 export function isToolRecommendationRequest(question=''){
   const text=String(question||'').slice(0,420);
   return INTRO.test(text)||
+    /\b(?:recommend|suggest)\b.{0,105}\b(?:useful|suitable|right|best|me|us|my|our|for me|for us)\b/i.test(text)||
+    /\b(?:what|which)\b.{0,75}\b(?:tools?|features?|modules?|should i use|do i need)\b/i.test(text)||
+    (BIZ_INTRO.test(text)&&(TEXTILE_TERMS.test(text)||COMMON_BIZ.test(text)))||
     /\b(?:tools?|modules?|features?)\b.{0,75}\b(?:for|fit|suit)\b.{0,75}\b(?:business|company|shop|studio|agency|trade)\b/i.test(text)||
     /\b(?:set.?up|organize|personalize|customize)\b.{0,30}\b(?:my|our)\b.{0,25}\b(?:business|company|workspace)\b/i.test(text)||
     /\b(?:i run|i own|we run|our business is)\b.{0,160}\b(?:which tools?|what tools?|what should i use|recommend|suggest)\b/i.test(text)||
@@ -55,7 +143,15 @@ export function isToolRecommendationRequest(question=''){
 }
 export function recommendBusinessTools({description='',trade='',category='other',enabledModules=[]}={}){
   const selectedCategory=isIndustry(category)?category:'other';
-  const input=(String(description||'').slice(0,420)+' '+String(trade||'').slice(0,120)).trim();
+  const primary=String(description||'').slice(0,420);
+  const input=(primary+' '+String(trade||'').slice(0,120)).trim();
+  // Respect the user's explicit industry: do not mix a textile shop with an
+  // unrelated saved workspace preset such as 'construction'.
+  const primaryTextile=textileProfile(primary);
+  const explicitOther=/\b(?:i|we) (?:run|own|operate|sell|have)\b|\b(?:my|our) business is\b/i.test(primary);
+  const savedTextile=!explicitOther?textileProfile(input):null;
+  if(primaryTextile||savedTextile)
+    return recommendTextileTools(primaryTextile?primary:input,enabledModules,selectedCategory);
   const scored=new Map();
   const detected=[];
   let evidence=0;
@@ -86,6 +182,26 @@ export function recommendBusinessTools({description='',trade='',category='other'
     }
   }
   const limitations=LIMITATIONS.filter(x=>x.regex.test(input)).map(x=>x.text);
+  if(!evidence && /\b(?:run|own|operate|sell|selling|produce|make|manufacture)\b/i.test(primary)&&COMMON_BIZ.test(primary)){
+    // Unknown but sufficiently described business: offer cautious universal
+    // customer-facing tools rather than asking for the same description again.
+    const ids=['invoices','payments','leads'];
+    const reasons={
+      invoices:'Useful if you invoice customers for products or services.',
+      payments:'Useful if you review payments against customer invoices.',
+      leads:'Optional for tracking repeat buyers and new enquiries.'
+    };
+    const recommendations=ids.map((id,i)=>({
+      id,label:MODULES.get(id).label,reason:reasons[id],
+      priority:i===2?'optional':'core',
+      currentlyEnabled:Array.isArray(enabledModules)&&enabledModules.includes(id)
+    }));
+    return {type:'tool_recommendations',source:'advisor',needsMoreInfo:false,
+      category:selectedCategory,modules:ids,recommendations,
+      reply:'I can suggest a starting point based on what you sell or do. Start with customer billing and payment review if those are part of your workflow. You can review these tools before saving.',
+      followUp:'Do you mainly sell products, book appointments, or take custom project orders? I can narrow the recommendations.',
+      followUpOptions:[],limitations:[]};
+  }
   if(!evidence){
     return {
       type:'tool_recommendations',source:'advisor',needsMoreInfo:true,

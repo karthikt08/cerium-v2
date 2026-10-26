@@ -44,6 +44,7 @@ export async function answerGuide(question,currentSection='overview',{
   fetcher=fetch,
   businessContext={},
   recommendTools=false,
+  businessDescription=null,
   lastSection=null
 }={}) {
   // Handle the conversational turn before choosing a provider or a destination.
@@ -54,7 +55,7 @@ export async function answerGuide(question,currentSection='overview',{
   // Business recommendations never go to an AI provider: the private profile context
   // is processed by this local, verified tool advisor on the Cerium server.
   if(recommendTools===true||isToolRecommendationRequest(question))
-    return recommendBusinessTools({...businessContext,description:question});
+    return recommendBusinessTools({...businessContext,description:typeof businessDescription==='string'&&businessDescription.length<=600?businessDescription:question});
   const section=GUIDE_SECTIONS.includes(currentSection)?currentSection:'overview';
   const topic=pickGuide(question,section);
   const fallback=topic.matched?conciseGuideResponse(question,topic):unknownGuideResponse();

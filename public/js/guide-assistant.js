@@ -37,6 +37,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   const known=new Map(WORKSPACE_MODULES.map(item=>[item.id,item]));
   let pending=false;
   let awaitingBusinessDescription=false;
+  let lastBusinessDescription='';
   let lastSection=null;
 
   function openGuide(){
@@ -83,6 +84,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       card.className='guide-recommendation';
       const name=document.createElement('strong');
       name.textContent=known.get(item.id).label;
+      if(item.priority==='core'||item.priority==='optional'){
+        const priority=document.createElement('small');
+        priority.className='guide-recommendation-priority';
+        priority.textContent=item.priority==='core'?'Start here':'If relevant';
+        name.append(' ',priority);
+      }
       const reason=document.createElement('span');
       reason.textContent=String(item.reason||'Recommended for your workflow.').slice(0,170);
       card.append(name,reason);
@@ -93,6 +100,27 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       limitation.className='guide-recommendation-limit';
       limitation.textContent=String(note).slice(0,180);
       container.append(limitation);
+    }
+    if(typeof result.followUp==='string'&&result.followUp){
+      const question=document.createElement('p');
+      question.className='guide-business-followup';
+      question.textContent=result.followUp.slice(0,250);
+      container.append(question);
+      const options=Array.isArray(result.followUpOptions)?result.followUpOptions.slice(0,4):[];
+      if(options.length){
+        const choices=document.createElement('div');
+        choices.className='guide-business-choices';
+        for(const option of options){
+          if(typeof option!=='string'||option.length>45)continue;
+          const choice=document.createElement('button');
+          choice.type='button';
+          choice.className='guide-business-choice';
+          choice.textContent=option;
+          choice.addEventListener('click',()=>ask(option));
+          choices.append(choice);
+        }
+        container.append(choices);
+      }
     }
     const action=document.createElement('button');
     action.type='button';
@@ -107,12 +135,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     messages.append(container);
     messages.scrollTop=messages.scrollHeight;
   }
-  function localAnswer(question,section,recommendTools=false){
+  function localAnswer(question,section,recommendTools=false,businessDescription=question){
     const conversational=conversationReply(question,{lastSection});
     if(conversational)return conversational;
     const workflow=workflowReply(question);
     if(workflow)return workflow;
-    if(recommendTools)return recommendBusinessTools({...getBusiness(),description:question});
+    if(recommendTools)return recommendBusinessTools({...getBusiness(),description:businessDescription});
     const match=pickGuide(question,section);
     return match.matched?conciseGuideResponse(question,match):unknownGuideResponse();
   }
@@ -120,7 +148,11 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     const clean=String(question||'').trim();
     if(!clean||pending)return;
     const current=GUIDE_SECTIONS.includes(getSection?.())?getSection():'overview';
-    const wantRecommendations=awaitingBusinessDescription||isToolRecommendationRequest(clean);
+    const isRefinement=Boolean(lastBusinessDescription)&&
+      (/^(?:mostly|mainly|primarily|retail|wholesale|bulk|walk[ -]?in|tailor\w*|custom|both|b2b|b2c|we (?:mostly|mainly)|i (?:mostly|mainly))\b/i.test(clean)||
+      /\b(?:mostly|mainly|primarily)\s+(?:wholesale|retail|bulk|tailoring|walk[ -]?in|custom)\b/i.test(clean));
+    const wantRecommendations=awaitingBusinessDescription||isRefinement||isToolRecommendationRequest(clean);
+    const businessDescription=isRefinement?(lastBusinessDescription+'; '+clean).slice(0,600):clean;
     pending=true;
     input.disabled=true;
     send.disabled=true;
@@ -131,12 +163,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       let result;
       try{
         result=typeof api?.askGuide==='function'
-          ?await api.askGuide({question:clean,currentSection:current,lastSection,recommendTools:wantRecommendations})
-          :localAnswer(clean,current,wantRecommendations);
+          ?await api.askGuide({question:clean,currentSection:current,lastSection,recommendTools:wantRecommendations,businessDescription})
+          :localAnswer(clean,current,wantRecommendations,businessDescription);
       }catch{
-        result=localAnswer(clean,current,wantRecommendations);
+        result=localAnswer(clean,current,wantRecommendations,businessDescription);
       }
-      if(!result||typeof result.reply!=='string')result=localAnswer(clean,current,wantRecommendations);
+      if(!result||typeof result.reply!=='string')result=localAnswer(clean,current,wantRecommendations,businessDescription);
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
       const workflow=result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null;
       // A deliberate NavLM abstention, or conversational reply, must never inherit
@@ -144,7 +176,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
       const conversational=result.type==='conversation'&&result.section===null;
       const safe=recommendation||workflow||conversational||uncertain||GUIDE_SECTIONS.includes(result.section)
-        ?result:localAnswer(clean,current,wantRecommendations);
+        ?result:localAnswer(clean,current,wantRecommendations,businessDescription);
       progress.textContent=safe.reply.slice(0,850);
       if(safe.steps&&/^(?:how\b|show me how|walk me through|what are the steps)/i.test(clean)&&
         !safe.reply.includes('→')){
@@ -154,6 +186,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         progress.append(steps);
       }
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
+      if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
       if(recommendation)renderToolRecommendations(safe);
       else if(workflow){
         for(const step of safe.actions.slice(0,5)){
