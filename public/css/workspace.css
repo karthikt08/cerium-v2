@@ -117,7 +117,15 @@ body[data-edition="in"] .workspace-label small{color:#233f89}
     margin:22px 0 17px;justify-content:center;
   }
   .app-page .workspace.sidebar-collapsed .workspace-label>div{display:none}
-  .app-page .workspace.sidebar-collapsed .navigation-scroll{overflow-x:hidden}
+  /* Keep the icon rail scrollable without the native scrollbar and arrow buttons. */
+  .app-page .workspace.sidebar-collapsed .navigation-scroll{
+    overflow-x:hidden;overflow-y:auto;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .app-page .workspace.sidebar-collapsed .navigation-scroll::-webkit-scrollbar{
+    display:none;width:0;height:0;
+  }
   .app-page .workspace.sidebar-collapsed .nav-label{display:none}
   .app-page .workspace.sidebar-collapsed .nav-list{gap:5px}
   .app-page .workspace.sidebar-collapsed .nav-link{
