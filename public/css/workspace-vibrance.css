@@ -1,0 +1,230 @@
+/* Cerium workspace — landing palette, at product-friendly intensity.
+   Deliberately app-scoped: marketing pages, forms, invoices and print exports
+   retain their function, and semantic success/warning/error colors stay intact.
+   Exact accent family matches landing: #3b5bff → #7c3aed → #d946ef. */
+.app-page{
+  --accent:#4934db;
+  --accent-soft:#ece8ff;
+  --ac:#4934db;
+  --cerium-ui-primary:#4934db;
+  --cerium-ui-primary-hover:#3e2dc7;
+  --cerium-ui-focus:#7564e7;
+  --workspace-blue:#3b5bff;
+  --workspace-violet:#7c3aed;
+  --workspace-magenta:#d946ef;
+  --workspace-glow:rgba(124,58,237,.26);
+  --cerium-vibrant-gradient:linear-gradient(112deg,#3b5bff 0%,#713ce7 52%,#b52ee4 100%);
+  background:#f3f1ff;
+}
+
+/* Background lighting is placed on the actual scroll shell, not the z-index:-1
+   ambient node hidden behind the workspace. Saturated but translucent. */
+.app-page .main-frame{
+  background:
+    radial-gradient(ellipse 46% 45% at 94% 9%,rgba(123,67,250,.23),transparent 79%),
+    radial-gradient(ellipse 35% 42% at 0% 88%,rgba(239,97,227,.13),transparent 79%),
+    linear-gradient(135deg,#f5f4ff 0%,#f8faff 47%,#fcf5ff 100%);
+}
+.app-page .sidebar{
+  background:linear-gradient(168deg,rgba(255,255,255,.98),rgba(245,241,255,.98) 73%,rgba(252,243,255,.97));
+  border-right-color:#d9cff9;
+}
+.app-page .brand-period{
+  color:#7c3aed;
+  text-shadow:0 0 15px rgba(124,58,237,.32);
+}
+.app-page .workspace-monogram{
+  background:linear-gradient(135deg,#e7e8ff,#efdfff);
+  border-color:#c4b8f7;color:#5842b6;
+}
+.app-page .workspace-label strong{color:#28214c}
+.app-page .nav-label{color:#66599a;font-weight:750}
+.app-page .sidebar .nav-link{
+  color:#5d597d;
+}
+.app-page .sidebar .nav-link:hover:not([aria-current="page"]){
+  background:rgba(228,218,255,.73);color:#403092;
+}
+.app-page .sidebar .nav-link[aria-current="page"]{
+  background:linear-gradient(100deg,#dedaff 0%,#f4e7ff 100%);
+  color:#3f299a;
+  font-weight:750;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 5px 16px -12px rgba(93,42,205,.4);
+}
+.app-page .sidebar .nav-link[aria-current="page"]::before{
+  background:linear-gradient(180deg,#3b5bff,#7c3aed,#d946ef);
+  box-shadow:0 0 12px rgba(124,58,237,.5);
+  width:4px;
+}
+.app-page .nav-count{background:#e5ddff;color:#5634b3}
+.app-page .sidebar-bottom{border-top-color:#ddd4f2}
+.app-page .plan-dot{background:#2c9977}
+.app-page .user-avatar{
+  background:linear-gradient(140deg,#e6deff,#facff5);
+  border-color:#fff;
+  box-shadow:0 0 0 1px #c4aeec,0 0 15px rgba(142,81,228,.19);
+  color:#4834a8;
+}
+.app-page .main-frame>.topbar{
+  background:rgba(255,255,255,.84);
+  border-bottom-color:#ded5f5;
+  box-shadow:0 5px 22px -18px rgba(114,46,205,.26);
+}
+.app-page .main-frame>.topbar::after{
+  background:linear-gradient(90deg,transparent,rgba(59,91,255,.49),rgba(124,58,237,.58),rgba(217,70,239,.45),transparent);
+}
+.app-page .breadcrumb strong{color:#413575;font-weight:650}
+.app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#6252a0}
+.app-page .page-heading h1{color:#242040}
+
+/* Stronger halo and real landing gradient, still on a white readable card. */
+.app-page .overview-stage{
+  border-color:#c7b4f7;
+  background:
+    radial-gradient(ellipse 44% 76% at 100% 0%,rgba(134,79,249,.27),transparent 80%),
+    radial-gradient(ellipse 38% 66% at 63% 95%,rgba(231,100,234,.13),transparent 76%),
+    linear-gradient(117deg,rgba(255,255,255,.99),rgba(244,237,255,.96) 72%,rgba(251,230,255,.9));
+  box-shadow:inset 0 1px 0 #fff,0 19px 48px -31px rgba(106,54,219,.5);
+}
+.app-page .overview-stage::before{
+  background:
+    radial-gradient(ellipse 36% 41% at 69% 39%,rgba(117,83,255,.37),transparent 73%),
+    radial-gradient(ellipse 28% 32% at 95% 67%,rgba(237,124,255,.24),transparent 77%);
+}
+.app-page .overview-stage .eyebrow{color:#6141a5}
+.app-page .overview-stage .eyebrow::before{background:var(--cerium-vibrant-gradient)}
+.app-page .overview-stage .overview-title-accent{
+  background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);
+  filter:drop-shadow(0 7px 14px rgba(124,58,237,.21));
+}
+.app-page .overview-stage .page-description{color:#5d567a}
+.app-page .overview-shortcut{
+  background:rgba(255,255,255,.88);
+  border-color:#c8b5f2;color:#503d9e;
+  box-shadow:0 2px 12px rgba(108,59,214,.05);
+}
+.app-page .overview-shortcut .icon{color:#7046ce}
+.app-page .overview-shortcut:hover{
+  background:#f2eaff;border-color:#8b65e5;
+  color:#42258f;
+  box-shadow:0 9px 20px -13px rgba(111,50,219,.48);
+}
+
+/* Dashboard: brighten actual card bodies and accents, not the data tables. */
+.app-page .metrics-grid .metric{
+  border-color:#d4c7fa;
+  background:linear-gradient(135deg,#fff 28%,#f2edff 100%);
+  box-shadow:inset 0 1px 0 #fff,0 12px 28px -24px rgba(116,52,223,.35);
+}
+.app-page .metrics-grid .metric::before{
+  background:var(--cerium-vibrant-gradient);
+  opacity:.8;transform:scaleX(.82);
+}
+.app-page .metrics-grid .metric.warning::before{
+  background:linear-gradient(90deg,#e2a04f,#c66cd6);
+}
+.app-page .metric-top{color:#5d517e}
+.app-page .metrics-grid .metric .metric-top .icon{color:#753cda}
+.app-page .metrics-grid .metric .metric-value{color:#2c215b;font-weight:750}
+.app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
+.app-page .metric-foot{color:#645b7b}
+.app-page .metric-foot .dot{background:#9a67e5}
+.app-page .dashboard-grid>.panel{
+  border-color:#ddd1f5;
+  background:linear-gradient(160deg,#fff 0%,#fdfaff 100%);
+  box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.24);
+}
+.app-page .dashboard-grid>.panel .panel-title .icon{color:#753cda}
+.app-page .dashboard-grid>.panel .panel-title h2::after{
+  background:var(--cerium-vibrant-gradient);
+  box-shadow:0 3px 12px rgba(124,58,237,.38);
+}
+.app-page :is(.panel-count,.badge.blue,.badge.purple){
+  background:#eee6ff;border-color:#ded0fa;color:#5a379d;
+}
+.app-page .stage-item:nth-child(1) .stage-line{background:#6376ff}
+.app-page .stage-item:nth-child(2) .stage-line{background:#a165ef}
+.app-page .stage-item:nth-child(3) .stage-line{background:#ca77e9}
+.app-page .stage-item:nth-child(4) .stage-line{background:#5ab9c2}
+.app-page .text-button{color:#5743b0}
+.app-page .text-button:hover{color:#4128a3}
+
+/* Buttons share the same rounded shape as before, but land with a vivid
+   color. Keep danger/red, success/green, and disabled states untouched. */
+.app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
+  color:#fff;
+  background:linear-gradient(112deg,#435cf2,#7139da 72%,#823ad6);
+  border-color:rgba(80,48,174,.45);
+  box-shadow:0 8px 17px -10px rgba(88,51,201,.54);
+}
+.app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:hover:not(:disabled){
+  background:linear-gradient(112deg,#334eeb,#6030c9 72%,#7430c5);
+  border-color:#6130cc;
+  box-shadow:0 10px 22px -11px rgba(95,39,206,.6);
+}
+.app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:focus-visible{
+  outline:3px solid #a182f3;outline-offset:3px;
+}
+.app-page .button.secondary:hover:not(:disabled){
+  background:#f2ecff;border-color:#ba9bec;color:#46328e;
+}
+.app-page :is(.icon-button,.view-toggle button):hover:not(:disabled){
+  background:#ede6ff;color:#5b36b8;
+}
+.app-page :is(input,select,textarea):focus-visible{
+  border-color:#916be7;
+  outline-color:#8f71e9;
+}
+
+/* The newer Marketing hub was still cream/green compared with the rest.
+   Give it Cerium's real brand colors while retaining readable charts/copy. */
+.app-page .marketing-tag{
+  background:linear-gradient(112deg,#32307f,#6c35b9);color:#fff;
+  border-radius:8px;
+}
+.app-page .marketing-intro h1 em{color:#6736ca}
+.app-page .marketing-main{
+  border-color:#dacbf7;
+  background:linear-gradient(156deg,#fff,#fcfaff);
+  box-shadow:0 15px 38px -28px rgba(98,43,212,.33);
+}
+.app-page .marketing-stat{
+  border-color:#d5c6f5;
+  background:linear-gradient(135deg,#fff,#f1eaff);
+}
+.app-page .marketing-stat>strong{color:#42308a}
+.app-page .marketing-switcher{border-top-color:#c3b3ec}
+.app-page .marketing-tab{color:#58447f}
+.app-page .marketing-tab:hover:not(.active){background:#f1ebff;color:#4c2b9a}
+.app-page .marketing-tab.active{
+  background:linear-gradient(100deg,#e2d5ff,#f4eaff);
+  border-left:4px solid #733bdd;
+  color:#43218e;
+  box-shadow:inset 0 1px 0 #fff;
+}
+.app-page .marketing-link{color:#6334c2;text-decoration-color:#9b75e0}
+.app-page .marketing-bar{background:#e9dcfa}
+.app-page .marketing-bar>span{background:linear-gradient(90deg,#3b5bff,#7c3aed,#d946ef)}
+.app-page .marketing-tip{
+  background:#f5edff;border-left-color:#8549e4;
+}
+.app-page .marketing-callout{background:#f6f0ff;border-color:#dcccf4}
+
+/* Product controls must remain readable and accessible on small screens. */
+@media(max-width:760px){
+  .app-page .sidebar{background:linear-gradient(165deg,#fff,#f3ecff)}
+  .app-page .main-frame{
+    background:radial-gradient(ellipse 75% 45% at 100% 0%,rgba(135,80,249,.16),transparent 83%),#f8f6ff;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page .overview-shortcut,.app-page .sidebar .nav-link,.app-page .metrics-grid .metric{
+    transition:none!important;
+  }
+}
+@media print{
+  .app-page .main-frame,.app-page .sidebar,.app-page .overview-stage,.app-page .metrics-grid .metric,.app-page .dashboard-grid>.panel{
+    background:#fff!important;box-shadow:none!important;
+  }
+  .app-page .main-frame>.topbar::after{display:none!important}
+}
