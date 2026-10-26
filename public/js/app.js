@@ -195,7 +195,7 @@ function settingsPage() {
   const plan=a.billingPrice||billingPlan(a.country);
   const currentAnnual=plan.billingCycle==='annual';
   const moneyPrice=(plan.currency==='INR'?'₹':String.fromCharCode(36))+(currentAnnual?plan.annualPrice:plan.monthlyPrice);
-  const annualNewPrice=(plan.currency==='INR'?'₹':String.fromCharCode(36))+(billingPlan(a.country).monthlyPrice*10);
+  const annualNewPrice=(plan.currency==='INR'?'₹':String.fromCharCode(36))+(billingPlan(a.country).monthlyPrice*11);
   const canAuthorize=!a.subscription||['created','cancelled','expired'].includes(a.subscription.status);
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
@@ -240,11 +240,11 @@ function settingsPage() {
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / ${currentAnnual?'year':'month'}</small></p>
-    ${currentAnnual?`<p class="muted">Annual billing · 12 months for the price of 10. Monthly equivalent shown before taxes.</p>`:''}
+    ${currentAnnual?`<p class="muted">Annual billing · billed once every 12 months at the agreed rate, excluding taxes.</p>`:''}
     <p class="muted">${plan.currency} billing${plan.discountPercent?` · ${plan.discountPercent}% country discount`:""}. Same features in every country. The price excludes applicable tax.</p>
     ${a.subscription&&a.availableBillingPrice&&plan.monthlyPrice!==a.availableBillingPrice.monthlyPrice?`<p class="muted">Your current authorization retains its agreed price. New country pricing is ${esc(priceLabel(a.country))}/month. Cancel future renewals before authorizing a new plan; paid access is retained.</p>`:""}
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
-    ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${proof.checkoutConfigured?button('Authorize monthly billing','upgrade'):''}${proof.annualCheckoutConfigured?button('Authorize annual billing · '+annualNewPrice+'/year · 2 months free','upgrade-annual'):''}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
+    ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${proof.checkoutConfigured?button('Authorize monthly billing','upgrade'):''}${proof.annualCheckoutConfigured?button('Authorize annual billing · '+annualNewPrice+'/year · 1 month free','upgrade-annual'):''}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
   </div></section><section class="panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
