@@ -3,8 +3,8 @@ import {billingPlan} from '../public/js/countries.js';
 export const BILLING_CYCLES=Object.freeze(['monthly','annual']);
 export const validBillingCycle=value=>BILLING_CYCLES.includes(value);
 
-// Exactly two months free: annual charge = ten times the same country-tier
-// monthly price. Provider plans must be created separately for each currency/tier.
+// Exactly one month free: annual charge = eleven times the same country-tier
+// monthly price. Previously authorized yearly charges remain unchanged. Provider plans must be created separately for each currency/tier.
 export function checkoutPlan(config,country,billingCycle='monthly'){
   const price=billingPlan(country);
   if(!price||!validBillingCycle(billingCycle))return null;
@@ -16,8 +16,8 @@ export function checkoutPlan(config,country,billingCycle='monthly'){
        ({upperMiddle:config.razorpayUpperMiddlePlanId,lowerMiddle:config.razorpayLowerMiddlePlanId,low:config.razorpayLowPlanId}[price.tier]||
         (['high','unclassified'].includes(price.tier)?config.razorpayPlanId:'')));
   const configured=Boolean(config.razorpayConfigured&&/^plan_[A-Za-z0-9]+$/.test(planId||'')&&config.webhookConfigured);
-  return {...price,billingCycle,minorUnits:price.minorUnits*(billingCycle==='annual'?10:1),
-    annualPrice:price.monthlyPrice*10,planId,configured};
+  return {...price,billingCycle,minorUnits:price.minorUnits*(billingCycle==='annual'?11:1),
+    annualPrice:price.monthlyPrice*11,planId,configured};
 }
 
 // A signed authorization is a price agreement. Annual country-data updates and
@@ -36,7 +36,7 @@ export function subscriptionPrice(country,subscription){
       discountPercent:currency==='USD'?(billingCycle==='annual'
         ?price.discountPercent:100-agreed/20):null};
   }
-  return {...price,billingCycle:'monthly',annualPrice:price.monthlyPrice*10};
+  return {...price,billingCycle:'monthly',annualPrice:price.monthlyPrice*11};
 }
 
 export function checkoutAvailable(config,country,subscription,billingCycle='monthly'){
