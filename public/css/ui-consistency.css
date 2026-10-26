@@ -163,6 +163,10 @@
   max-width:100%;
 }
 .app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer)
+:is(input:read-only,textarea:read-only,input:disabled,select:disabled,textarea:disabled){
+  background-color:#f7f9fc;color:#7b879b;
+}
+.app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select):focus-visible{
   border-color:#8399e8;outline:3px solid rgba(114,137,239,.32);outline-offset:1px;
 }
