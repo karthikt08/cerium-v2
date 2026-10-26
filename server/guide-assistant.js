@@ -1,5 +1,6 @@
 import {GUIDE_SECTIONS, GUIDE_TOPICS, pickGuide} from '../public/js/guide-knowledge.js';
 import {navigateWithNavLM} from './navlm.js';
+import {isToolRecommendationRequest,recommendBusinessTools} from '../public/js/business-tool-advisor.js';
 
 const SYSTEM_GUIDE = 'You are Cerium Guide, a concise in-app navigation assistant for a contractor operations product. '+
   'Answer ONLY how to use or navigate this product. Ground every claim in the provided verified guide information. '+
@@ -39,8 +40,14 @@ export async function answerGuide(question,currentSection='overview',{
   apiKey=process.env.CERIUM_AI_API_KEY||'',
   model=process.env.CERIUM_AI_MODEL||'',
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
-  fetcher=fetch
+  fetcher=fetch,
+  businessContext={},
+  recommendTools=false
 }={}) {
+  // Business recommendations never go to an AI provider: the private profile context
+  // is processed by this local, verified tool advisor on the Cerium server.
+  if(recommendTools===true||isToolRecommendationRequest(question))
+    return recommendBusinessTools({...businessContext,description:question});
   const section=GUIDE_SECTIONS.includes(currentSection)?currentSection:'overview';
   const topic=pickGuide(question,section);
   const fallback={reply:topic.answer,steps:topic.steps,section:topic.section,title:topic.title,source:'guide'};

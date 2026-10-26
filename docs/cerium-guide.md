@@ -2,6 +2,22 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
+## Personalized tool advice for custom businesses
+
+Ask Cerium can recommend the **existing Cerium tools** a business needs, even when the business does not fit one of the original contractor presets.
+
+Try: "I run a mobile dog grooming business with appointments and invoices. Which Cerium tools should I use?" or "Which features fit my small clothing boutique?" The advisor proposes up to six existing modules with short explanations. For businesses needing inventory, POS, clinical records, payroll or route optimization, it notes that Cerium does not provide those products rather than pretending it does.
+
+**Where the information comes from:**
+- On authenticated API requests, Cerium reads only the signed-in user's saved trade, workspace category and currently visible module IDs. It does not read a different tenant's data.
+- The user can type a different business or workflow in their question. If the context is too vague, the advisor asks for a description instead of recommending every feature.
+- The recommendation engine is a local, interpretable scoring layer (public/js/business-tool-advisor.js) built on top of the existing business settings. It is **not a newly trained generative LLM**. It runs before the selected NavLM/Qwen/OpenAI provider, so a tool-advice request never sends saved business context to an external provider.
+- If the API is temporarily unavailable, the browser uses the same local advisor and signed-in workspace settings for recommendations.
+- Ask Cerium displays reasons and a **Review suggested tools in Settings** action. Clicking that action opens the normal customize-tools dialog with suggested modules preselected; **no settings are saved until the user clicks Save my workspace**. Hiding a module never deletes its data.
+- The existing Settings > Customize tools > Suggest my tools action also uses this advisor, keeping its recommendations consistent with Ask Cerium.
+
+This is a first version of workflow recommendations; manually check suitability for unusual businesses before saving. Recommendations do not provide compliance, licensing, payment, tax or regulatory advice.
+
 ## Cerium NavLM v0.1 — purpose-built zero-cost navigation model
 
 NavLM is a trained, non-generative intent classifier for Cerium's actual workspace. It uses a versioned dataset of roughly 300 manually authored navigation examples, a dependency-free TF-IDF nearest-prototype model, and a small, independent validation set. It learns weighted text features; it is not a newly pretrained transformer or general-purpose LLM.

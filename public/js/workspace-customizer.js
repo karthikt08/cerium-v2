@@ -1,5 +1,6 @@
 // CERIUM workspace configuration. No data is deleted or access rights changed.
-import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,recommendWorkspace} from './industry-workspaces.js';
+import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules} from './industry-workspaces.js';
+import {recommendBusinessTools} from './business-tool-advisor.js';
 import {escapeHTML as esc} from './workspace-model.js';
 
 export function renderWorkspaceCustomizer(preferences={}) {
@@ -97,6 +98,30 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     const label=f.querySelector('#workspace-recommendation-note');
     if(label)label.textContent=note||'You can adjust these suggestions before saving.';
   }
+  // Ask Cerium can hand over an allowlisted recommendation; nothing is saved until
+  // the user reviews the checkboxes and clicks Save my workspace.
+  let pendingAdvisorModules=null;
+  function showAdvisorReview(){
+    if(!pendingAdvisorModules)return;
+    const modal=document.getElementById('workspace-customizer-dialog');
+    if(!modal)return;
+    apply(pendingAdvisorModules,'Suggested by Ask Cerium. Review these tools and click Save my workspace to apply them.');
+    pendingAdvisorModules=null;
+    if(!modal.open)modal.showModal();
+    modal.querySelector('#workspace-save-modules')?.focus();
+  }
+  document.addEventListener('cerium:review-tools',event=>{
+    const requested=event.detail?.modules;
+    const allowed=new Set(WORKSPACE_MODULES.map(module=>module.id));
+    if(!Array.isArray(requested)||!requested.length||requested.length>allowed.size||
+      requested.some(id=>!allowed.has(id))||new Set(requested).size!==requested.length)return;
+    pendingAdvisorModules=[...requested];
+    if(location.hash==='#settings')showAdvisorReview();
+    else location.hash='#settings';
+  });
+  window.addEventListener('hashchange',()=>{
+    if(location.hash==='#settings'&&pendingAdvisorModules)queueMicrotask(showAdvisorReview);
+  });
   document.addEventListener('click',e=>{
     const open=e.target.closest('#workspace-open-customizer');
     if(open){
@@ -126,12 +151,16 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     }
     if(e.target.closest('#workspace-recommend')){
       const f=form();if(!f)return;
-      const rec=recommendWorkspace({
+      const rec=recommendBusinessTools({
         category:f.elements.category.value,
         description:f.querySelector('#workspace-work-description').value,
         trade:getTrade()||''
       });
-      apply(rec.modules,rec.explanation+' Review before saving.');
+      if(rec.needsMoreInfo){
+        f.querySelector('#workspace-recommendation-note').textContent=rec.reply;
+        return;
+      }
+      apply(rec.modules,rec.reply+' Review before saving.');
     }
   });
   document.addEventListener('submit',async e=>{

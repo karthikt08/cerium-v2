@@ -27,3 +27,11 @@
 @media(prefers-reduced-motion:reduce){.cerium-guide *{scroll-behavior:auto!important;transition:none!important}}
 
 .guide-suggestions[hidden]{display:none!important}
+
+/* Explainable tool recommendations; plain text, no decorative AI-generated cards. */
+.guide-recommendations{display:grid;gap:8px;width:100%;margin:-4px 0 6px}
+.guide-recommendation{display:grid;gap:3px;padding:10px 12px;border:1px solid #e8e3f2;border-radius:10px;background:#fff}
+.guide-recommendation strong{font-size:12px;line-height:1.4;color:#34284f}
+.guide-recommendation span{font-size:11px;line-height:1.45;color:#726986}
+.guide-recommendation-limit{margin:1px 0;padding-left:9px;border-left:2px solid #a390d2;font-size:11px;line-height:1.45;color:#736884}
+.guide-review-tools{width:100%;text-align:center;padding:10px}

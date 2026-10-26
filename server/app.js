@@ -756,7 +756,14 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   const guideLimiter=makeLimiter({windowMs:60*1000,limit:12});
   api.post('/assistant/message',guideLimiter,writeLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
     if(!validateGuideQuestion(req.body?.question))return res.status(400).json({error:'invalid_question',message:'Enter a question of up to 420 characters.'});
-    const answer=await answerGuide(req.body.question,req.body?.currentSection);
+    // Only business type and saved workspace preferences are used for tool advice.
+    // Never send account identity, customer lists, invoices or billing records to AI providers.
+    const businessUser=db.getUserById(req.session.userId);
+    const preferences=db.getWorkspacePreferences(req.session.userId);
+    const answer=await answerGuide(req.body.question,req.body?.currentSection,{
+      businessContext:{trade:businessUser?.trade||'',category:preferences?.category||'other',enabledModules:preferences?.modules||[]},
+      recommendTools:req.body?.recommendTools===true
+    });
     return res.json(answer);
   });
 
