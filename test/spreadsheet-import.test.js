@@ -125,3 +125,24 @@ test('rejected mapping never modifies leads',async()=>{
     assert.equal((await (await b.req('/api/workspace')).json()).leads.length,0);
   }finally{await t.close();}
 });
+
+test('CSV and XLSX contact lists without stages import as New without scheduling follow-ups',async()=>{
+  const t=await startServer();try{
+    const b=t.browser();await signIn(t,b,{profile:ALICE});const csrf=(await b.me()).csrfToken;
+    const uploads=[
+      csv('Name,Email\nCSV Customer,csv@example.com\n'),
+      csv('Name,Stage\nBlank Stage,\nInvalid Stage,Unknown\n'),
+      xlsx({'xl/worksheets/sheet1.xml':'<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>Name</t></is></c></row><row><c r="A2" t="inlineStr"><is><t>Excel Customer</t></is></c></row></sheetData></worksheet>'})
+    ];
+    for(const upload of uploads){
+      const preview=await (await b.req('/api/import/leads/preview',{method:'POST',csrf,json:upload})).json();
+      assert.equal(preview.ready,1);assert.equal(preview.samples[0].stage,'New');
+      if(upload===uploads[1])assert.equal(preview.invalid,1,'An explicit unknown stage remains invalid');
+      const saved=await (await b.req('/api/import/leads/commit',{method:'POST',csrf,json:upload})).json();assert.equal(saved.imported,1);
+      const repeated=await (await b.req('/api/import/leads/commit',{method:'POST',csrf,json:upload})).json();assert.equal(repeated.imported,0);
+    }
+    const ws=await (await b.req('/api/workspace')).json();
+    assert.equal(ws.leads.length,3);assert.ok(ws.leads.every(l=>l.stage==='New'));
+    assert.equal(ws.followUps.length,0);assert.equal(ws.reviews.length,0);
+  }finally{await t.close();}
+});

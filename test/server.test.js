@@ -16,6 +16,18 @@ describe('pages and safety headers', () => {
   before(async () => { t = await startServer(); });
   after(() => t.close());
 
+  it('nested missing pages load their recovery UI assets from the site root', async () => {
+    const url=t.url+'/missing/nested/page';
+    const response=await fetch(url);assert.equal(response.status,404);
+    const html=await response.text();
+    const assets=[...html.matchAll(/(?:href|src)="([^"#]+\.(?:css|js|svg|ico))"/g)].map(m=>new URL(m[1],url));
+    assert.ok(assets.length>=8);
+    for(const asset of assets){
+      assert.equal(asset.origin,t.url);const r=await fetch(asset);
+      assert.equal(r.status,200,asset.pathname+' must load on nested 404 routes');
+    }
+  });
+
   it('serves the home page with strict headers', async () => {
     const r = await t.browser().req('/');
     assert.equal(r.status, 200);

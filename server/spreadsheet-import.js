@@ -187,7 +187,7 @@ export function mappedLeads(parsed,mapping){
       const match=['New','Quoted','Booked','Done'].find(x=>x.toLowerCase()===data.stage.toLowerCase());
       if(!match)errors.push('Stage must be New, Quoted, Booked or Done.');
       else data.stage=match;
-    }
+    }else data.stage='New';
     return {number:i+2,data,errors};
   });
 }

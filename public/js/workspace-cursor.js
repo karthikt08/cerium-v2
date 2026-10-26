@@ -1,6 +1,6 @@
 /* The Cerium magnetic ring; pointer precision and native text editing stay intact. */
 (() => {
-  const fine=matchMedia('(hover:hover) and (pointer:fine)'),reduce=matchMedia('(prefers-reduced-motion:reduce)');
+  const fine=matchMedia('(hover:hover) and (pointer:fine)'),reduce=matchMedia('(prefers-reduced-motion:reduce)'),contrast=matchMedia('(forced-colors:active)');
   const root=document.documentElement,c=document.createElement('div');c.className='workspace-cursor';c.setAttribute('aria-hidden','true');
   const controls='a,button,[role="button"],input[type="checkbox"],input[type="radio"],summary,select,[role="option"],[role="tab"],.ws-pick-module,.dial-option,.dial-trigger,[data-action],[data-quote-action],[data-job-action],.quote-x,.quote-remove,.close-x,.ws-config-close';
   let x=-50,y=-50,cx=-50,cy=-50,w=14,h=14,r=7,target=null,prevTarget=null,targetRadius=10,frame=0,down=false,active=false;
@@ -53,7 +53,7 @@
   }
   function request(){if(!frame)frame=requestAnimationFrame(draw);}
   addEventListener('pointermove',e=>{
-    if(!fine.matches||reduce.matches||e.pointerType==='touch'){hide();return;}
+    if(!fine.matches||reduce.matches||contrast.matches||e.pointerType==='touch'){hide();return;}
     x=e.clientX;y=e.clientY;
     if(!active){cx=x;cy=y;active=true;document.body.append(c);}
     targetAtPointer(e.target);
@@ -70,7 +70,7 @@
   let scrollTicking=false;
   document.addEventListener('scroll',()=>{if(!active||scrollTicking)return;scrollTicking=true;requestAnimationFrame(()=>{scrollTicking=false;targetAtPointer();request();});},{passive:true,capture:true});
   document.addEventListener('close',()=>{if(active){targetAtPointer();request();}},true);
-  fine.addEventListener('change',hide);reduce.addEventListener('change',hide);
+  fine.addEventListener('change',hide);reduce.addEventListener('change',hide);contrast.addEventListener('change',hide);
   // A closing or opening top-layer dialog must immediately sync pointer ring hosting.
   new MutationObserver(()=>{if(active){targetAtPointer();request();}}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
 })();
