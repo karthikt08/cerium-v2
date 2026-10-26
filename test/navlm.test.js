@@ -66,6 +66,7 @@ test('Cerium Guide can select NavLM with no API key and no network access',async
 test('NavLM UI suppresses navigation on model abstention',()=>{
   const ui=fs.readFileSync(new URL('../public/js/guide-assistant.js',import.meta.url),'utf8');
   assert.match(ui,/result\.source==='navlm'&&result\.matched===false/);
-  assert.match(ui,/if\(GUIDE_SECTIONS\.includes\(safe\.section\)\)routeButton/);
+  assert.match(ui,/renderGuideLinks\(safe,clean\)/);
+  assert.match(ui,/anchor\.href=trusted\.href/);
   assert.doesNotMatch(ui,/createInvoice|deleteInvoice|matchPayment/);
 });
