@@ -89,3 +89,10 @@ user-acceptance reviews are completed.
 Sources:
 - CBIC Rule 46: https://taxinformation.cbic.gov.in/content-page/explore-rules/1000136/1000001
 - Razorpay recurring methods: https://razorpay.com/docs/payments/subscriptions/supported-payment-methods/
+
+## Customer invoice handoff and QR (October 2026)
+
+- From an invoice preview, **WhatsApp**, **SMS** and **Email** open drafts with the invoice number, customer, work, total, due date and available UPI URI. No message is sent by CERIUM and no paid messaging API is required. WhatsApp uses a `wa.me` share link; phone and email apps are opened via `sms:` and `mailto:`.
+- These drafts are *summaries*, not secure online invoice pages or PDF attachments. Use **Print / save PDF** to save the complete invoice and attach it separately if needed. Desktop SMS links depend on the visitor's device/app support.
+- Eligible Indian INR invoices with a saved valid supplier UPI ID and a positive balance show an **offline-generated, printable UPI QR** and a direct app link, both containing the invoice's snapshotted UPI ID and exact displayed total. Paid invoices suppress the pay prompt. Other editions never display the UPI controls.
+- Customer payment happens in an external UPI app. CERIUM has no settlement confirmation: users must verify the receipt before marking Paid. The QR library is included locally under the [MIT license](licenses/qrcodegen.LICENSE.md); payment data is not sent to an image/QR service.

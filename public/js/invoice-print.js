@@ -55,6 +55,14 @@ export function invoicePrintHTML({invoiceMarkup, paper = 'A4', title = 'Invoice'
   .invoice-tax-summary strong{font-weight:700}
   .invoice-total{display:flex;justify-content:space-between;gap:20px;border-top:1.5px solid #c5d0dd;padding:14px 0 12px;margin:14px 0 16px auto;min-width:225px;max-width:45%;font-weight:700;font-size:16px;line-height:1.32;break-inside:avoid;page-break-inside:avoid}
   .invoice-total span:last-child{text-align:right;overflow-wrap:anywhere}
+  .invoice-upi-payment{display:flex;align-items:center;gap:18px;padding:15px 0;margin:14px 0;border-top:1px solid #e0e7ee;break-inside:avoid;page-break-inside:avoid}
+  .invoice-upi-qr-frame{flex:none;text-align:center;width:112px}
+  .invoice-upi-qr{display:block;width:106px;height:106px;background:#fff}
+  .invoice-upi-qr-frame small{font-size:9px;color:#59677a}
+  .invoice-upi-payment-details{min-width:0;overflow-wrap:anywhere}
+  .invoice-upi-payment-details strong{font-size:11px}
+  .invoice-upi-payment-details p{font-size:10px;line-height:1.5;margin:3px 0}
+  .invoice-upi-payment-details small{display:block;font-size:9px;color:#647087;line-height:1.5;margin-top:6px}
   .invoice-preserve-lines{font-size:10.4px;line-height:1.62;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
   .invoice-document a{color:#273247;text-decoration:none;overflow-wrap:anywhere}
   .invoice-document [data-no-print]{display:none!important}
@@ -70,7 +78,7 @@ export function invoicePrintHTML({invoiceMarkup, paper = 'A4', title = 'Invoice'
     .invoice-document tbody{display:table-row-group}
     .invoice-document tr{page-break-inside:avoid;break-inside:avoid}
     .invoice-document .invoice-top,.invoice-document .invoice-info{page-break-inside:avoid;break-inside:avoid}
-    .invoice-document .invoice-tax-summary,.invoice-document .invoice-total{break-inside:avoid;page-break-inside:avoid}
+    .invoice-document .invoice-tax-summary,.invoice-document .invoice-total,.invoice-document .invoice-upi-payment{break-inside:avoid;page-break-inside:avoid}
   }
   @media screen and (max-width:850px){.print-sheet{max-width:100%;min-height:0;padding:25px 22px}.invoice-top{gap:16px}.invoice-info{gap:14px}}
 </style></head><body>
