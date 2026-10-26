@@ -25,7 +25,7 @@ It merges the marketing landing suite, authentication system, operations web app
 
 ---
 
-**Marketing hub UI:** Browser-style angled feature tabs now sit above one spacious shared work surface, with horizontal scrolling for future features, keyboard navigation and safe deep links. Existing Marketing workflows and approvals remain intact.
+**Marketing hub UI:** Cerium-native angled tabs sit above one spacious shared work surface. White panels, subtle blue-violet accents, Figtree type, standard primary/secondary controls and 9px rounded inputs match the rest of the software. Horizontal scrolling allows new features; keyboard navigation and safe deep links remain supported.
 
 **Marketing hub:** Get found and chosen, re-book and re-engage, and track performance with real leads, reviews, paid-invoice histories, and saved follow-up tasks. It offers editable draft templates and explicit review before sharing; Cerium does not auto-send messages, publish to platforms, track ad spend, or claim campaign ROI. Marketing is reached from the sidebar and supports direct links to each area.
 
