@@ -88,7 +88,7 @@ test('Tabs support keyboard navigation, scrolling and stable marketing links',()
   assert.match(ui,/history\.replaceState\(null,'',hash\)/);
   assert.match(ui,/scrollIntoView/);
   assert.match(ui,/choose\(deepLink\(\)\)/);
-  assert.match(ui,/tabs\.find\(tab=>location\.hash/);
+  assert.match(ui,/marketingFeatureFromHash\(location\.hash\)/);
   for(const feature of MARKETING_FEATURE_TABS)assert.ok(trustedGuideLink('#marketing/'+feature.key));
 });
 
