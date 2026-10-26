@@ -19,7 +19,8 @@ test('mandatory setup uses the same brand, navigation structure, and font as the
     assert.ok(theme.includes(token),'Onboarding design token '+token);
   }
   const styles=[...html.split('</head>')[0].matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
-  assert.equal(styles.at(-2),'css/onboarding-theme.css');
+  assert.equal(styles.at(-3),'css/onboarding-theme.css');
+  assert.equal(styles.at(-2),'css/ui-consistency.css');
   assert.equal(styles.at(-1),'css/typography.css');
 });
 
