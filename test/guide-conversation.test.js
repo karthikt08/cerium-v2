@@ -109,3 +109,18 @@ test('browser handles conversation and unknown answers without bogus navigation'
   assert.match(code,/if\(GUIDE_SECTIONS\.includes\(safe\.section\)\)routeButton/);
   assert.doesNotMatch(code,/createInvoice|deleteInvoice|matchPayment/);
 });
+
+test('cross-feature workflows produce useful, verified navigation sequences',async()=>{
+  const fromLead=await answerGuide('How do I turn a lead into an invoice?','overview',{provider:'navlm'});
+  assert.equal(fromLead.type,'workflow');
+  assert.deepEqual(fromLead.actions.map(item=>item.section),['leads','quotes','jobs','invoices','payments']);
+  assert.equal(fromLead.section,null);
+  const imported=await answerGuide('How do I import Excel contacts and send a quote?','overview',{provider:'guide'});
+  assert.equal(imported.type,'workflow');
+  assert.deepEqual(imported.actions.map(item=>item.section),['leads','quotes']);
+  const scheduling=await answerGuide('How do I schedule a job and invoice it?','settings',{provider:'guide'});
+  assert.equal(scheduling.type,'workflow');
+  assert.deepEqual(scheduling.actions.map(item=>item.section),['jobs','invoices']);
+  for(const step of [...fromLead.actions,...imported.actions,...scheduling.actions])
+    assert.ok(['leads','quotes','jobs','invoices','payments'].includes(step.section));
+});
