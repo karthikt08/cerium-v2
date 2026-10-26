@@ -59,7 +59,7 @@
   background:#eaf0ff;color:#3456c5;border-color:#cdd9fa;box-shadow:inset 0 -2px 0 #4263eb;font-weight:600;
 }
 .business-wizard .wizard-progress [data-complete=true]{
-  color:#52735f;background:#f3f6f9;border-color:#e0e8ed;box-shadow:none;
+  color:#665e8b;background:#f3f6f9;border-color:#e0e8ed;box-shadow:none;
 }
 .business-wizard .business-fields{gap:14px}
 .business-wizard label{gap:6px;color:#536075;font-size:12px;font-weight:600}
