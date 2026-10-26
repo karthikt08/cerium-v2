@@ -21,15 +21,15 @@ export function renderMarketingPage(ws){
   }).join(''):'<p class="marketing-empty">No lead sources yet. When you save lead origins, this section will show the distribution.</p>';
   const candidates=data.candidates.length?data.candidates.map((person,index)=>
     '<div class="marketing-customer"><div class="marketing-customer-monogram" aria-hidden="true">'+esc((person.name||'?').charAt(0).toUpperCase())+'</div><div class="marketing-customer-details"><strong>'+esc(person.name)+'</strong><small>Last paid invoice · '+esc(person.lastDate||'Date unavailable')+' · '+person.paidInvoices+' paid invoice'+(person.paidInvoices===1?'':'s')+'</small></div>'+
-    '<button type="button" class="marketing-light-button" data-marketing-followup="'+index+'">Plan check-in '+arrow+'</button></div>'
+    '<button type="button" class="button secondary marketing-light-button" data-marketing-followup="'+index+'">Plan check-in '+arrow+'</button></div>'
   ).join(''):'<div class="marketing-empty marketing-empty-action"><span class="marketing-empty-mark" aria-hidden="true">↗</span><strong>No check-ins to suggest just yet</strong><span>This list uses paid invoices older than 30 days and excludes customers who already have an open follow-up.</span></div>';
   const priorities=data.priorities.slice(0,3).map((item,index)=>
     '<div class="marketing-priority"><span class="marketing-priority-index">0'+(index+1)+'</span><div><strong>'+esc(item.title)+'</strong><p>'+esc(item.reason)+'</p></div></div>').join('');
   const stat=(label,count,details)=>'<div class="marketing-stat"><span>'+esc(label)+'</span><strong>'+esc(count)+'</strong><small>'+esc(details)+'</small></div>';
   return '<section class="marketing-page" data-marketing-page>'+
     '<header class="marketing-page-heading">'+
-      '<div class="marketing-page-heading-copy"><span class="marketing-page-eyebrow">CERIUM <span aria-hidden="true">/</span> GROW YOUR BUSINESS</span>'+
-      '<h1>Marketing <span>workspace.</span></h1>'+
+      '<div class="marketing-page-heading-copy"><span class="marketing-page-eyebrow">WORKSPACE <span aria-hidden="true">/</span> MARKETING</span>'+
+      '<h1>Marketing <span>workspace</span></h1>'+
       '<p>One place to get discovered, reconnect with customers and understand what is working.</p></div>'+
       '<div class="marketing-page-summary" aria-label="Recorded marketing activity"><span class="marketing-page-summary-label">YOUR ACTIVITY</span>'+
         '<strong>'+esc(data.totalLeads)+' <span>leads</span></strong><small>'+esc(data.reviewsReceived)+' reviews marked received · '+esc(data.repeatCustomers)+' returning customers</small>'+
@@ -53,7 +53,7 @@ export function renderMarketingPage(ws){
           '<option value="post">Social post</option><option value="update">Business profile update</option><option value="review">Review request</option><option value="rebook">Re-booking check-in</option></select></label>'+
           '<label>What do you offer?<input data-marketing-service maxlength="100" value="'+esc(service)+'" placeholder="e.g. garden maintenance"></label></div>'+
         '<label class="marketing-message-label">YOUR MESSAGE<textarea data-marketing-draft rows="6" maxlength="1600">'+esc(initial)+'</textarea></label>'+
-        '<div class="marketing-composer-actions"><button type="button" class="marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="marketing-primary-button" data-marketing-copy>Copy draft <span aria-hidden="true">↗</span></button></div>'+
+        '<div class="marketing-composer-actions"><button type="button" class="button secondary marketing-light-button" data-marketing-generate>Regenerate draft</button><button type="button" class="button primary marketing-primary-button" data-marketing-copy>Copy draft <span aria-hidden="true">↗</span></button></div>'+
         '<p class="marketing-fineprint" data-marketing-copy-status role="status">Review accuracy, permission and platform rules before sharing. No messages are sent automatically.</p>'+
       '</div><aside class="marketing-next-moves"><span class="marketing-eyebrow">SUGGESTED NEXT STEPS</span><h3>Start where it matters.</h3>'+
         '<div class="marketing-priority-list">'+priorities+'</div>'+
