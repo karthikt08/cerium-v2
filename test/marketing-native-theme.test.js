@@ -20,7 +20,12 @@ test('Marketing uses Cerium workspace tokens instead of a separate purple system
   assert.match(shared,/--cerium-ui-radius:9px/);
   assert.match(css,/\.marketing-page-heading h1\{/);
   assert.match(css,/\.marketing-main\{[^}]*border:1px solid/);
-  assert.match(css,/\.marketing-section-heading h2\{/);
+  assert.match(html,/class="page-heading marketing-page-heading"/);
+  assert.match(html,/class="panel marketing-main"/);
+  assert.match(html,/class="panel-header marketing-feature-header"/);
+  assert.match(html,/class="panel-body marketing-feature-body"/);
+  assert.match(html,/class="marketing-fields form-grid"/);
+  assert.match(html,/class="field marketing-message-label"/);
   assert.doesNotMatch(css,/background:#7452c7/,'Use the shared Cerium action color, not standalone Marketing violet');
 });
 
@@ -35,7 +40,7 @@ test('Marketing adopts the same primary and secondary button components as the a
 });
 
 test('Browser-style scalable top tabs retain the large shared workspace and deep links',()=>{
-  assert.ok(html.indexOf('class="marketing-switcher"')<html.indexOf('class="marketing-main"'));
+  assert.ok(html.indexOf('class="marketing-switcher"')<html.indexOf('class="panel marketing-main"'));
   assert.match(css,/\.marketing-switcher\{[^}]*overflow-x:auto/);
   assert.match(css,/\.marketing-tab::before/);
   assert.match(css,/clip-path:polygon/);
