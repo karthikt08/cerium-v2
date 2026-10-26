@@ -2,6 +2,19 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
+## Conversational guidance and short workflow plans
+
+Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknowledgements and frustration **before** trying to route anywhere. These turns are answered locally, even if OpenAI or Ollama is configured.
+
+- Questions such as "Where can I save an invoice PDF?" receive short task-specific answers and an allowlisted Open Invoices action, not repeated generic help text.
+- The chat remembers only the last verified navigation section while the page stays open. "How do I do that?" can use that context; without a prior relevant feature, the assistant asks which task the user meant.
+- Natural descriptions of businesses ("I run a bakery") can trigger the existing local business tool advisor. Business follow-ups continue until a suitable description is available.
+- Questions spanning supported tools (e.g. "How do I turn a lead into an invoice?") return a brief workflow and **several verified navigation buttons**. The assistant does not execute those steps.
+- Unsupported or vague requests return a clarification with **no guessed destination**, regardless of the currently open section.
+- Messages and chat context are not written to the database. Only a single verified prior section name is sent from the browser to the authenticated guide endpoint; that name is not forwarded to any AI provider.
+
+The zero-API-cost NavLM classifier still specializes in identifying Cerium tasks; it is **not a general-purpose conversational generative model**. Conversational controls and cross-module workflow guidance are a lightweight safety and usability layer on top. For open-ended generative answers, deploy a compatible optional AI provider.
+
 ## Personalized tool advice for custom businesses
 
 Ask Cerium can recommend the **existing Cerium tools** a business needs, even when the business does not fit one of the original contractor presets.

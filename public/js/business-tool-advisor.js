@@ -50,7 +50,8 @@ export function isToolRecommendationRequest(question=''){
   return INTRO.test(text)||
     /\b(?:tools?|modules?|features?)\b.{0,75}\b(?:for|fit|suit)\b.{0,75}\b(?:business|company|shop|studio|agency|trade)\b/i.test(text)||
     /\b(?:set.?up|organize|personalize|customize)\b.{0,30}\b(?:my|our)\b.{0,25}\b(?:business|company|workspace)\b/i.test(text)||
-    /\b(?:i run|i own|we run|our business is)\b.{0,160}\b(?:which tools?|what tools?|what should i use|recommend|suggest)\b/i.test(text);
+    /\b(?:i run|i own|we run|our business is)\b.{0,160}\b(?:which tools?|what tools?|what should i use|recommend|suggest)\b/i.test(text)||
+    /^(?:i (?:run|own|operate|have)|we (?:run|own|operate)|my business is|our business is|i(?:'m| am) running)\b.{3,150}\b(?:business|company|shop|studio|salon|agency|bakery|restaurant|boutique|service|practice|store|plumbing|hvac|consulting|photography|grooming|gym)\b/i.test(text);
 }
 export function recommendBusinessTools({description='',trade='',category='other',enabledModules=[]}={}){
   const selectedCategory=isIndustry(category)?category:'other';

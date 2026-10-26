@@ -1,6 +1,7 @@
 import {GUIDE_SECTIONS, GUIDE_TOPICS, pickGuide} from '../public/js/guide-knowledge.js';
 import {navigateWithNavLM} from './navlm.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from '../public/js/business-tool-advisor.js';
+import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from '../public/js/guide-dialogue.js';
 
 const SYSTEM_GUIDE = 'You are Cerium Guide, a concise in-app navigation assistant for a contractor operations product. '+
   'Answer ONLY how to use or navigate this product. Ground every claim in the provided verified guide information. '+
@@ -42,23 +43,39 @@ export async function answerGuide(question,currentSection='overview',{
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
   fetcher=fetch,
   businessContext={},
-  recommendTools=false
+  recommendTools=false,
+  lastSection=null
 }={}) {
+  // Handle the conversational turn before choosing a provider or a destination.
+  const conversational=conversationReply(question,{lastSection});
+  if(conversational)return conversational;
+  const workflow=workflowReply(question);
+  if(workflow)return workflow;
   // Business recommendations never go to an AI provider: the private profile context
   // is processed by this local, verified tool advisor on the Cerium server.
   if(recommendTools===true||isToolRecommendationRequest(question))
     return recommendBusinessTools({...businessContext,description:question});
   const section=GUIDE_SECTIONS.includes(currentSection)?currentSection:'overview';
   const topic=pickGuide(question,section);
-  const fallback={reply:topic.answer,steps:topic.steps,section:topic.section,title:topic.title,source:'guide'};
+  const fallback=topic.matched?conciseGuideResponse(question,topic):unknownGuideResponse();
   // Only typed text and static app documentation are shared with the configured model.
   // The server does not pass the workspace, account details or customer records.
   const staticGuide=GUIDE_TOPICS.map(t=>t.title+' ('+t.section+'): '+t.answer+' Steps: '+t.steps).join('\n');
   const instructions=SYSTEM_GUIDE+'\nVERIFIED CERIUM GUIDE:\n'+staticGuide+
-    '\nCurrent section: '+section+'. Suggested navigation: '+topic.title+'.';
+    '\nCurrent section: '+section+'. Suggested navigation: '+(topic.matched?topic.title:'none; ask for clarification')+'.';
   const activeProvider=provider||(apiKey?'openai':'guide');
-  if(activeProvider==='navlm')return navigateWithNavLM(question);
-  if(activeProvider==='guide')return fallback;
+  if(activeProvider==='navlm'){
+    const match=navigateWithNavLM(question);
+    if(!match.matched)return match;
+    const matchedTopic=GUIDE_TOPICS.find(t=>t.section===match.section);
+    return conciseGuideResponse(question,matchedTopic,'navlm');
+  }
+  if(activeProvider==='guide'){
+    if(topic.matched)return fallback;
+    const trained=navigateWithNavLM(question);
+    if(trained.matched)return conciseGuideResponse(question,GUIDE_TOPICS.find(t=>t.section===trained.section));
+    return fallback;
+  }
   if(activeProvider==='openai') {
     const chosenModel=model||'gpt-4.1-mini';
     if(!apiKey || !/^[-\w.]{2,80}$/.test(chosenModel))return fallback;
