@@ -137,7 +137,7 @@ function editQuote(ws,id='',leadId=''){
   const d=document.getElementById('cerium-quote-dialog');
   updateTotal(d.querySelector('form'));
   d.querySelector('[name=leadId]')?.addEventListener('change',ev=>{
-    const lead=ws.leads.find(l=>l.id===ev.target.value);
+    const lead=(ws.leads||[]).find(l=>l.id===ev.target.value);
     if(!lead)return;
     const form=ev.target.form;
     if(!form.elements.customerName.value)form.elements.customerName.value=lead.name;
