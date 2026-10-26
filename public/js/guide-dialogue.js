@@ -54,7 +54,7 @@ const WORKFLOWS=[
     actions:['leads','quotes']
   },
   {
-    matches:/\b(?:schedul|jobs?|appointments?|work)\b.{0,90}\b(?:invoic|bill(?:ing)?)\b/i,
+    matches:/\b(?:schedul\w*|jobs?|appointments?|work)\b.{0,90}\b(?:invoic\w*|bill(?:ing)?)\b/i,
     reply:'Schedule the work in Jobs & dispatch, then create the customer invoice in Invoices after reviewing the completed work.',
     actions:['jobs','invoices']
   },
