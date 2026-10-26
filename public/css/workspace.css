@@ -88,3 +88,62 @@ body[data-edition="in"] .workspace-label small{color:#233f89}
 .invoice-upi-payment-details small{font-size:10px;display:block;color:#6d798d;line-height:1.5;margin-top:7px}
 @media(max-width:480px){.invoice-upi-payment{flex-direction:column;align-items:flex-start}.invoice-share-toolbar{padding:12px}}
 @media print{.invoice-share-toolbar{display:none!important}.invoice-upi-payment{background:#fff;border:1px solid #dce5f5}.invoice-upi-qr{width:106px;height:106px}}
+
+
+/* Compact desktop navigation. The mobile slide-out drawer remains independent. */
+.sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.sidebar-top .brand{min-width:0;padding-left:6px;padding-right:0}
+.sidebar-collapse-toggle{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;padding:0;border:1px solid #d8d9e9;border-radius:9px;
+  background:rgba(255,255,255,.85);color:#615489;
+  transition:background .18s,border-color .18s,color .18s;
+}
+.sidebar-collapse-toggle .icon{width:19px;height:19px;stroke-width:1.8}
+.sidebar-collapse-toggle:hover{background:#eeebfa;border-color:#b5a8dd;color:#44318d}
+.sidebar-collapse-toggle:focus-visible{outline:3px solid #9586e7;outline-offset:2px}
+@media(min-width:761px){
+  .app-page .workspace{transition:grid-template-columns .22s cubic-bezier(.2,.8,.2,1)}
+  .app-page .workspace.sidebar-collapsed{grid-template-columns:76px minmax(0,1fr)}
+  .app-page .workspace.sidebar-collapsed .sidebar{padding:23px 10px 13px}
+  .app-page .workspace.sidebar-collapsed .sidebar-top{flex-direction:column;gap:13px}
+  .app-page .workspace.sidebar-collapsed .sidebar-top .brand{
+    padding:0;justify-content:center;min-height:32px;width:100%;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-top .brand>span{display:none}
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle{width:42px;height:36px}
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle .icon{transform:rotate(180deg)}
+  .app-page .workspace.sidebar-collapsed .workspace-label{
+    margin:22px 0 17px;justify-content:center;
+  }
+  .app-page .workspace.sidebar-collapsed .workspace-label>div{display:none}
+  .app-page .workspace.sidebar-collapsed .navigation-scroll{overflow-x:hidden}
+  .app-page .workspace.sidebar-collapsed .nav-label{display:none}
+  .app-page .workspace.sidebar-collapsed .nav-list{gap:5px}
+  .app-page .workspace.sidebar-collapsed .nav-link{
+    justify-content:center;gap:0;min-height:43px;padding:11px 0;
+  }
+  .app-page .workspace.sidebar-collapsed .nav-link>.icon{width:19px;height:19px}
+  .app-page .workspace.sidebar-collapsed .nav-link>span{display:none}
+  .app-page .workspace.sidebar-collapsed nav[aria-label="Workspace settings"]{
+    margin-top:15px;padding-top:13px;border-top:1px solid #dedbea;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-bottom{
+    padding:12px 0 0;margin-top:10px;gap:0;justify-items:center;
+  }
+  .app-page .workspace.sidebar-collapsed .plan-link{display:none}
+  .app-page .workspace.sidebar-collapsed .signout{
+    justify-content:center;width:43px;min-height:43px;padding:11px;
+    border-radius:9px;
+  }
+  .app-page .workspace.sidebar-collapsed .signout .icon{width:19px;height:19px}
+  .app-page .workspace.sidebar-collapsed .signout-label{display:none}
+  .app-page .workspace.sidebar-collapsed .signout:hover{background:#eeebfa;color:#44318d}
+}
+@media(max-width:760px){
+  .sidebar-collapse-toggle{display:none}
+  .sidebar-top .brand{padding:0 14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page .workspace,.sidebar-collapse-toggle{transition:none!important}
+}

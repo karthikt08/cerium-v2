@@ -32,3 +32,27 @@ test('lead cards on pipeline board include edit and delete buttons',()=>{
  assert.match(appJs,/<article class="lead-card"[^>]*>[\s\S]*?data-action="edit"[^>]*data-kind="lead"/);
  assert.match(appJs,/<article class="lead-card"[^>]*>[\s\S]*?data-action="delete"[^>]*data-kind="lead"[\s\S]*?icon\('close'\)/);
 });
+
+
+test('desktop sidebar collapses to an accessible icon rail without changing mobile navigation',()=>{
+ const html=read('app.html'),css=read('css/workspace.css'),js=read('js/app.js');
+ assert.match(html,/id="sidebar-collapse-toggle"[^>]*aria-controls="sidebar"[^>]*aria-expanded="true"[^>]*aria-label="Collapse sidebar"/);
+ assert.match(html,/class="sidebar-top"/);
+ assert.match(html,/class="signout-label">Sign out<\/span>/);
+ assert.match(css,/@media\(min-width:761px\)/,'compact rail only on desktop');
+ assert.match(css,/\.app-page \.workspace\.sidebar-collapsed\{grid-template-columns:76px minmax\(0,1fr\)\}/);
+ assert.match(css,/\.workspace\.sidebar-collapsed \.nav-link>span\{display:none\}/);
+ assert.match(css,/\.workspace\.sidebar-collapsed \.sidebar-top \.brand>span\{display:none\}/);
+ assert.match(css,/\.workspace\.sidebar-collapsed \.signout-label\{display:none\}/);
+ assert.match(css,/@media\(max-width:760px\)\{\s*\.sidebar-collapse-toggle\{display:none\}/,'mobile uses existing drawer');
+ assert.match(js,/const SIDEBAR_COLLAPSE_KEY='cerium\.sidebar\.collapsed'/);
+ assert.match(js,/localStorage\.getItem\(SIDEBAR_COLLAPSE_KEY\)/);
+ assert.match(js,/localStorage\.setItem\(SIDEBAR_COLLAPSE_KEY,value\?'1':'0'\)/);
+ assert.match(js,/setSidebarCollapsed\(saved\)/);
+ assert.match(js,/link\.setAttribute\('aria-label',name\);link\.title=name/,'icon-only destinations stay named and discoverable');
+ assert.match(js,/toggle\.setAttribute\('aria-expanded',String\(!value\)\)/);
+ assert.match(js,/function openNavigation\(\)/,'existing mobile drawer remains');
+ assert.match(js,/function closeNavigation\(\)/);
+ assert.match(js,/window\.addEventListener\('resize'/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/,'transition can be disabled');
+});

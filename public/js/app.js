@@ -76,7 +76,7 @@ async function refresh() {
 function renderChrome() {
   const a=state.ws.account,m=metrics(state.ws);
   customizeBusinessNavigation(document,a.workspacePreferences?.modules);
-  $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1);
+  $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1); $('business-initial').title=a.businessName||'Your business';
   $('user-avatar').textContent=initials(a.name); $('user-avatar').setAttribute('aria-label',`Account settings for ${a.name || 'your account'}`);
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
   const india=a.country==='IN'&&a.currency==='INR';
@@ -418,6 +418,34 @@ function openNavigation() {
 function closeNavigation() {
   const open=$('sidebar').classList.contains('is-open');$('sidebar').classList.remove('is-open');$('nav-backdrop').hidden=true;$('main-frame').inert=false;$('menu-toggle').setAttribute('aria-expanded','false');if(open)$('menu-toggle').focus();$('sidebar').inert=innerWidth<=760;
 }
+// Desktop-only compact rail preference. CSS keeps the mobile drawer full width
+// even if this device's saved desktop preference is collapsed.
+const SIDEBAR_COLLAPSE_KEY='cerium.sidebar.collapsed';
+function setSidebarCollapsed(collapsed,persist=false){
+  const value=Boolean(collapsed);
+  $('workspace').classList.toggle('sidebar-collapsed',value);
+  const toggle=$('sidebar-collapse-toggle'),label=value?'Expand sidebar':'Collapse sidebar';
+  toggle.setAttribute('aria-expanded',String(!value));
+  toggle.setAttribute('aria-label',label);
+  toggle.title=label;
+  if(persist){
+    try{localStorage.setItem(SIDEBAR_COLLAPSE_KEY,value?'1':'0');}catch{}
+  }
+}
+function initializeSidebarCollapse(){
+  // Keep an accessible name and native hover tooltip when link copy is hidden.
+  for(const link of $('sidebar').querySelectorAll('.nav-link')){
+    const name=link.querySelector('span:not(.nav-count)')?.textContent?.trim();
+    if(name){link.setAttribute('aria-label',name);link.title=name;}
+  }
+  let saved=false;
+  try{saved=localStorage.getItem(SIDEBAR_COLLAPSE_KEY)==='1';}catch{}
+  setSidebarCollapsed(saved);
+  $('sidebar-collapse-toggle').addEventListener('click',()=>{
+    setSidebarCollapsed(!$('workspace').classList.contains('sidebar-collapsed'),true);
+  });
+}
+initializeSidebarCollapse();
 $('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
 window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();});
 window.addEventListener('hashchange',()=>navigate(routeFromHash(location.hash),true));
