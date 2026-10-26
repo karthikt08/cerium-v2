@@ -2,8 +2,8 @@ import {billingPlan} from './countries.js';
 const paintAnnual=plan=>{
   if(!plan)return;
   const symbol=plan.currency==='INR'?'₹':String.fromCharCode(36);
-  for(const el of document.querySelectorAll('[data-region-annual-price]'))el.textContent=symbol+(plan.monthlyPrice*10);
-  for(const el of document.querySelectorAll('[data-region-annual-savings]'))el.textContent=symbol+(plan.monthlyPrice*2);
+  for(const el of document.querySelectorAll('[data-region-annual-price]'))el.textContent=symbol+(plan.monthlyPrice*11);
+  for(const el of document.querySelectorAll('[data-region-annual-savings]'))el.textContent=symbol+plan.monthlyPrice;
 };
 // Public prices are suggested by the backend. For an already signed-in user,
 // show the account's stored billing edition rather than their current IP.
