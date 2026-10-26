@@ -223,7 +223,7 @@ const changes=[
   {id:'followups',match:/\b(?:follow.ups?|callbacks?|chase clients?|pending decisions?|repeat clients?)\b/i,
     reason:'Customer callbacks and pending decisions are part of your workflow.'},
   {id:'jobs',match:/\b(?:appointments?|schedule|dispatch|crews?|site visits?|technicians?|book visits?)\b/i,
-    reason:'You mentioned visits, bookings or scheduling field work.'},
+    reason:'You described visits, bookings or scheduling field work.'},
   {id:'payments',match:/\b(?:deposits?|paid invoices?|bank transfers?|payments?|reconcil\w*)\b/i,
     reason:'You need to review payments against customer invoices.'}
 ];
@@ -239,8 +239,9 @@ export function recommendIndustryTools({description='',trade='',category='other'
     if(!signal.match.test(text))continue;
     const old=byId.get(signal.id);
     if(old){
+      old.reason=signal.reason+' '+old.reason;
       if(old.priority==='optional'){
-        old.priority='core';old.weight=11;old.reason=signal.reason;
+        old.priority='core';old.weight=11;
       }
     }else if(VALID.has(signal.id)){
       byId.set(signal.id,{id:signal.id,reason:signal.reason,priority:'core',weight:11});
