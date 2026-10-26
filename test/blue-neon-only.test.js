@@ -28,9 +28,9 @@ test('the original light Cerium workspace remains unchanged',()=>{
   const html=read('app.html');
   const css=read('css/workspace-vibrance.css');
   const styles=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
-  assert.deepEqual(styles.slice(-4),[
+  assert.deepEqual(styles.slice(-5),[
     'css/workspace-spark.css','css/workspace-vibrance.css',
-    'css/ui-consistency.css','css/typography.css'
+    'css/status-pricing-night.css','css/ui-consistency.css','css/typography.css'
   ]);
   assert.doesNotMatch(html,/workspace-pricing-dark\.css/,'never switch the full software into dark mode');
   assert.match(read('css/workspace.css'),/:root\{color-scheme:light;/);
@@ -41,14 +41,20 @@ test('the original light Cerium workspace remains unchanged',()=>{
   assert.match(read('index.html'),/\.en\{[^}]*background:#0c1729/,'homepage pricing section remains dark');
 });
 
-test('formerly green visual accents use the pricing-inspired electric blue family',()=>{
+test('former green fallback colors are explicitly replaced by the midnight status skin',()=>{
   const workspace=read('css/workspace.css');
   const jobs=read('css/jobs.css');
   const quotes=read('css/quotes.css');
   const guide=read('css/guide-assistant.css');
   const verify=read('css/verify-phone.css');
   const home=read('index.html');
-  assert.match(workspace,/--green:#3b5bff/,'legacy variable now paints blue');
+  assert.match(workspace,/--green:#3b5bff/,'original post-green source remains as a fallback');
+  const night=read('css/status-pricing-night.css');
+  assert.match(night,/--cerium-status-night:/);
+  assert.match(night,/#202b55 0%,#151a27 48%,#10131a 100%/);
+  for(const selector of ['.badge.green','.task-check.completed','.job-status.green','.job-tile.green','.quote-accepted','.guide-status-pill','.verified-business-country','.c.g','.mc.matched']){
+    assert.ok(night.includes(selector),'dark gradient covers former green element '+selector);
+  }
   assert.match(jobs,/\.job-tile\.green\{[^}]*#3b5bff/);
   assert.match(jobs,/\.job-status\.green\{[^}]*#1d3c93/);
   assert.match(quotes,/\.quote-accepted,\.quote-converted\{background:#e7efff;color:#2554bd/);
@@ -69,7 +75,7 @@ test('no public CSS or HTML includes green-hued paint values',()=>{
 
 test('only status paint changes, not status labels, workspace logic or printed documents',()=>{
   const app=read('js/app.js'),jobs=read('js/jobs-page.js');
-  assert.match(app,/Done:'green',Paid:'green'/,'legacy classes can remain; their colors are blue');
+  assert.match(app,/Done:'green',Paid:'green'/,'legacy classes and status labels remain unchanged');
   assert.match(jobs,/Completed:'green'/);
   assert.match(read('app.html'),/id="invoice-dialog"/);
   assert.doesNotMatch(read('css/workspace-vibrance.css'),/\.invoice-document\b/);

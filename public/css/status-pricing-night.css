@@ -1,0 +1,108 @@
+/* Only former GREEN statuses/accents get the screenshot's pricing-night palette.
+   Reference screenshot: blue ink at top-left, almost-black #10131a center,
+   quiet plum at bottom-right. The workspace, cards, sidebar, CTAs and page
+   background are intentionally untouched. */
+:root{
+  --cerium-status-night:
+    radial-gradient(ellipse 85% 100% at 3% 0%,rgba(48,64,132,.57),transparent 71%),
+    radial-gradient(ellipse 78% 85% at 100% 100%,rgba(97,62,69,.51),transparent 72%),
+    linear-gradient(128deg,#202b55 0%,#151a27 48%,#10131a 100%);
+  --cerium-status-night-text:#f6f7ff;
+  --cerium-status-night-muted:#d0d6ee;
+  --cerium-status-night-border:#46517c;
+  --cerium-status-night-glint:#a3b2ff;
+}
+/* Workday badges, checkboxes and verified business markers. */
+.app-page :is(.badge.green,.task-check.completed,.billing-verify-status.is-verified,
+ .edition-chip:is([data-status="complete"],[data-status="verified"])){
+  background:var(--cerium-status-night);
+  color:var(--cerium-status-night-text);
+  border:1px solid var(--cerium-status-night-border);
+  box-shadow:0 4px 12px -8px rgba(16,19,26,.45);
+}
+.app-page .task-check.completed .icon{color:#f6f7ff}
+.app-page[data-edition="in"] .edition-chip,
+.app-page .india-guide,
+.app-page .jobs-linked-invoice{
+  background:var(--cerium-status-night);
+  color:var(--cerium-status-night-text);
+  border-color:var(--cerium-status-night-border);
+}
+.app-page[data-edition="in"] .workspace-label small{color:#25335f}
+.app-page .india-guide :is(h2,.eyebrow){color:#eef0ff}
+.app-page .india-guide p:not(.eyebrow){color:var(--cerium-status-night-muted)}
+.app-page .india-guide .button.secondary{background:#f9faff;color:#24305b}
+.app-page .plan-dot{background:#273862;box-shadow:0 0 0 2px rgba(76,92,149,.18)}
+/* Finished work remains recognizable by its label and checkmark, not green. */
+.app-page .job-status.green,
+.app-page .quote-accepted,
+.app-page .quote-converted,
+.app-page .job-tile.green{
+  background:var(--cerium-status-night);
+  color:var(--cerium-status-night-text);
+  border-color:var(--cerium-status-night-border);
+  box-shadow:0 5px 17px -12px rgba(16,19,26,.46);
+}
+.app-page .job-tile.green{border-left:3px solid #7e8edd}
+.app-page .job-tile.green :is(strong,.job-tile-time,small),
+.app-page .job-tile.green>span:not(.job-tile-time){color:var(--cerium-status-night-text)}
+.app-page .job-tile.green :is(small,.job-tile-time){opacity:.83}
+.app-page .jobs-linked-invoice{border:1px solid var(--cerium-status-night-border)}
+/* Assistant availability pill: quiet blue edge on an ink-black surface. */
+.app-page .guide-status-pill{
+  background:var(--cerium-status-night);color:#f6f7ff;
+  border-color:var(--cerium-status-night-border);
+}
+.app-page .guide-status-dot{
+  background:var(--cerium-status-night-glint);
+  box-shadow:0 0 6px rgba(163,178,255,.42);
+}
+.app-page .ws-privacy-badge{
+  background:var(--cerium-status-night);color:#f6f7ff;
+  border-color:var(--cerium-status-night-border);
+}
+/* The original green setup-completed and verified chips, not the entire wizard. */
+.onboarding-page :is(.wizard-progress [data-complete=true],.setup-steps [data-complete=true],
+ .onboarding-rail-steps [data-complete=true] .onboarding-rail-number,
+ .verified-business-country,.business-wizard .verified-business-country){
+  background:var(--cerium-status-night);
+  color:var(--cerium-status-night-text);
+  border-color:var(--cerium-status-night-border);
+}
+.onboarding-page .onboarding-rail-lock{color:#25345c}
+.welcome-page .welcome-badge-dot{
+  background:#24325b;box-shadow:0 0 0 2px rgba(48,64,132,.21);
+}
+/* Public landing success/matched chips. No impact on normal hero or pricing card. */
+.pg :is(.c.g,.mc.matched,.msg.ok,.banner),.pg.home .mc.matched{
+  background:var(--cerium-status-night);
+  color:var(--cerium-status-night-text);
+  border-color:var(--cerium-status-night-border);
+  box-shadow:0 6px 18px -12px rgba(16,19,26,.45);
+}
+.pg .mc.matched .no{color:#e7ebff;border-color:#788ac5}
+.pg.home .tb i:nth-child(3),.pg .tb i:nth-child(3){background:#25335e}
+/* Feature checkmarks were green, so use ink-blue discs and white ticks. */
+.pg .pcard-features li::before{
+  background:var(--cerium-status-night);
+  color:#fff;border-color:var(--cerium-status-night-border);
+  box-shadow:0 3px 8px -4px rgba(16,19,26,.4);
+}
+.pg .steps li.done::before{
+  background:var(--cerium-status-night);
+  color:#fff;box-shadow:0 0 8px rgba(38,50,91,.27);
+}
+/* Keep focused items visible and preserve all existing motion controls. */
+.app-page :is(.job-tile.green,.task-check.completed,.badge.green):focus-visible,
+.onboarding-page [data-complete=true]:focus-visible{
+  outline:3px solid #9daaff;outline-offset:3px;
+}
+@media print{
+  .app-page :is(.job-status.green,.job-tile.green,.badge.green,.task-check.completed,
+  .quote-accepted,.quote-converted,.billing-verify-status.is-verified),
+  .onboarding-page [data-complete=true],.pg :is(.c.g,.msg.ok,.banner){
+    background:#fff!important;color:#202635!important;box-shadow:none!important;
+    border-color:#cfd4e3!important;
+  }
+  .app-page .job-tile.green :is(strong,span,small){color:#202635!important}
+}
