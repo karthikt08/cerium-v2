@@ -141,7 +141,7 @@
 .marketing-bar{height:8px;border-radius:20px;overflow:hidden;background:#f0ebf5}
 .marketing-bar>span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#6946cb,#b088ea)}
 .marketing-callout{display:flex;align-items:flex-start;gap:12px;background:#f4f1fa;border:1px solid #e5ddee;padding:14px 15px;border-radius:12px;margin:15px 0}
-.marketing-callout-mark{flex:0 0 23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#dfd4f4;color:#6947a9;font:800 12px/1 inherit}
+.marketing-callout-mark{flex:0 0 23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#dfd4f4;color:#6947a9;font-size:12px;font-weight:800;line-height:1}
 .marketing-callout strong{font-size:11px;color:#4a4161}
 .marketing-callout p{font-size:10.5px;line-height:1.55;color:#7e738b;margin:4px 0 0}
 .marketing-footer-actions{margin:18px 0 3px}
