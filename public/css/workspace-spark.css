@@ -8,6 +8,20 @@
   --workspace-glow:rgba(116,91,218,.17);
 }
 
+/* A small glass highlight across the software title bar echoes the landing
+   header without making it float or obscuring scrolling content. */
+.app-page .main-frame>.topbar{
+  position:relative;
+  background:rgba(255,255,255,.75);
+  border-bottom-color:rgba(203,208,232,.7);
+  box-shadow:0 4px 18px -17px rgba(75,75,146,.17);
+}
+.app-page .main-frame>.topbar::after{
+  content:"";position:absolute;left:24px;right:24px;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(104,117,218,.32),rgba(183,120,214,.24),transparent);
+  pointer-events:none;
+}
+
 /* Quiet halo and spatial grid behind only the dashboard greeting. The existing
    magnetic cursor already supplies --cursor-x / --cursor-y on fine pointers. */
 .app-page .overview-stage{
