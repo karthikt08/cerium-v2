@@ -44,7 +44,7 @@ export function renderMarketingPage(ws){
       '<div class="panel marketing-main">'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-visibility" aria-labelledby="marketing-tab-visibility" data-marketing-panel="visibility">'+
       '<div class="panel-header marketing-feature-header"><div>'+
-        '<div class="panel-title"><h2>Get found and chosen</h2></div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-reviews"></use></svg><h2>Get found and chosen</h2></div>'+
         '<p class="panel-subtitle">Create messages and manage review requests. Nothing is published or sent automatically.</p></div>'+
         '<div class="marketing-panel-links">'+navLink('reviews','Review requests')+navLink('leads','Your enquiries')+'</div>'+
       '</div><div class="panel-body marketing-feature-body">'+
@@ -63,7 +63,7 @@ export function renderMarketingPage(ws){
     '</section>'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-reengage" aria-labelledby="marketing-tab-reengage" data-marketing-panel="reengage" hidden>'+
       '<div class="panel-header marketing-feature-header"><div>'+
-        '<div class="panel-title"><h2>Re-book and re-engage</h2></div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-followups"></use></svg><h2>Re-book and re-engage</h2></div>'+
         '<p class="panel-subtitle">Review past customer relationships and plan a manual follow-up.</p></div>'+
         '<div class="marketing-panel-links">'+navLink('followups','All follow-ups')+navLink('invoices','Customer invoices')+'</div>'+
       '</div><div class="panel-body marketing-feature-body">'+
@@ -75,7 +75,7 @@ export function renderMarketingPage(ws){
     '</section>'+
     '<section role="tabpanel" tabindex="0" id="marketing-panel-performance" aria-labelledby="marketing-tab-performance" data-marketing-panel="performance" hidden>'+
       '<div class="panel-header marketing-feature-header"><div>'+
-        '<div class="panel-title"><h2>Track performance</h2></div>'+
+        '<div class="panel-title"><svg class="icon" aria-hidden="true"><use href="#i-leads"></use></svg><h2>Track performance</h2></div>'+
         '<p class="panel-subtitle">Activity from saved leads, invoices, follow-ups and reviews—no invented marketing metrics.</p></div>'+
         '<div class="marketing-panel-links">'+navLink('leads','Review lead sources')+navLink('reviews','Customer feedback')+'</div>'+
       '</div><div class="panel-body marketing-feature-body">'+
