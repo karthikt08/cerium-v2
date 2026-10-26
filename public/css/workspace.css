@@ -88,3 +88,23 @@ body[data-edition="in"] .workspace-label small{color:#233f89}
 .invoice-upi-payment-details small{font-size:10px;display:block;color:#6d798d;line-height:1.5;margin-top:7px}
 @media(max-width:480px){.invoice-upi-payment{flex-direction:column;align-items:flex-start}.invoice-share-toolbar{padding:12px}}
 @media print{.invoice-share-toolbar{display:none!important}.invoice-upi-payment{background:#fff;border:1px solid #dce5f5}.invoice-upi-qr{width:106px;height:106px}}
+
+/* Collapsible desktop rail: the workspace uses the released width. The menu
+   button stays in the topbar as a permanent way to restore navigation. */
+.app-page .sidebar-heading{display:flex;align-items:center;justify-content:space-between;gap:3px;min-width:0}
+.app-page .sidebar-heading .brand{min-width:0;flex:1;padding-inline:5px;gap:7px;font-size:17px;letter-spacing:1.1px;white-space:nowrap}
+.app-page .sidebar-heading .brand img{flex:none}
+.app-page .sidebar-collapse-toggle{width:36px;height:36px;border:1px solid #e1e3ed;border-radius:9px;background:rgba(255,255,255,.72);color:#62647c;flex:none}
+.app-page .sidebar-collapse-toggle:hover{color:#463b89;background:#f1effa;border-color:#d1cbe6}
+.app-page .sidebar-collapse-toggle .icon{width:19px;height:19px;stroke-width:1.8}
+.app-page .sidebar-collapse-toggle:focus-visible,.app-page #menu-toggle:focus-visible{outline:3px solid #8679d9;outline-offset:3px}
+@media(min-width:761px){
+  .app-page .workspace.is-sidebar-collapsed{grid-template-columns:minmax(0,1fr)}
+  .app-page .workspace.is-sidebar-collapsed>.sidebar{display:none}
+  .app-page .workspace.is-sidebar-collapsed .mobile-menu{display:inline-flex;width:36px;height:36px;border:1px solid #e1e3ed;background:rgba(255,255,255,.8)}
+  .app-page .workspace.is-sidebar-collapsed .mobile-menu:hover{background:#f1effa;border-color:#d1cbe6}
+}
+@media(max-width:760px){
+  .app-page .sidebar-heading .brand{padding-inline:5px}
+  .app-page .sidebar-collapse-toggle{width:38px;height:38px}
+}
