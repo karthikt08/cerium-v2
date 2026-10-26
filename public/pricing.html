@@ -56,6 +56,7 @@ body{margin:0;background:#f4f6fa}
 <link rel="stylesheet" href="css/controls.css">
 <link rel="stylesheet" href="css/country-pricing.css">
 <link rel="stylesheet" href="css/typography.css">
+<link rel="stylesheet" href="css/pricing-motion.css">
 </head>
 <body>
 <div class="pg home" id="pg" style="--ac:#2f5bff">
@@ -90,11 +91,11 @@ body{margin:0;background:#f4f6fa}
       <h2>One platform. A fairer starting point.</h2>
       <p>The same tools and support at every price. Discounts reflect the country where your business operates, never your ethnicity or nationality.</p>
       <div class="country-price-tiers" aria-label="Monthly country prices">
-        <div><strong>$20</strong><span>High income</span><small>Standard price</small></div>
-        <div><strong>$16</strong><span>Upper-middle income</span><small>20% off</small></div>
-        <div><strong>$12</strong><span>Lower-middle income</span><small>40% off</small></div>
-        <div><strong>$8</strong><span>Low income</span><small>60% off</small></div>
-        <div><strong>₹500</strong><span>India</span><small>Local INR price</small></div>
+        <div data-rv style="--i:0"><strong>$20</strong><span>High income</span><small>Standard price</small></div>
+        <div data-rv style="--i:1"><strong>$16</strong><span>Upper-middle income</span><small>20% off</small></div>
+        <div data-rv style="--i:2"><strong>$12</strong><span>Lower-middle income</span><small>40% off</small></div>
+        <div data-rv style="--i:3"><strong>$8</strong><span>Low income</span><small>60% off</small></div>
+        <div data-rv style="--i:4"><strong>₹500</strong><span>India</span><small>Local INR price</small></div>
       </div>
       <label for="pricing-country">Find your business country</label>
       <select id="pricing-country"><option value="">Choose a country</option></select>
