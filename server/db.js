@@ -704,7 +704,7 @@ export function openDb(file) {
        !place||!hsn||!/^[0-9]{4,8}$/.test(hsn)||!safeGSTrate(gstRate)))
       throw Object.assign(new Error('GST invoices need supplier state, place of supply, numeric HSN/SAC and a valid GST rate.'),{code:'invalid_gst_invoice',status:400});
     if(!gstin&&(gstRate||customerGSTIN||hsn))
-      throw Object.assign(new Error('Add your business GSTIN in Settings before charging GST.'),{code:'invalid_gst_invoice',status:400});
+      throw Object.assign(new Error('This business is not GST-registered. Use a commercial invoice without GST charges or tax-only fields, or add the business GSTIN in Settings if registered.'),{code:'invalid_gst_invoice',status:400});
     const tax=gstin?gstBreakdown(base,gstRate,user.india_state,place):{taxable:base,gstRate:0,cgst:0,sgst:0,utgst:0,igst:0,total:base};
     return {currency:'INR',supplierGstin:gstin,supplierState:user.india_state||'',customerGstin:customerGSTIN,
       placeOfSupply:gstin?place:'',hsnSac:hsn,...tax,upiVpa:user.upi_vpa||''};
