@@ -31,6 +31,16 @@ Try: "I run a mobile dog grooming business with appointments and invoices. Which
 
 This is a first version of workflow recommendations; manually check suitability for unusual businesses before saving. Recommendations do not provide compliance, licensing, payment, tax or regulatory advice.
 
+### Textile, fabric and other shops
+
+For a message such as "I run a typical textile shop. Recommend what's useful", the advisor recognizes the business immediately and recommends **Invoices** and **Payments** first; it marks **Leads** and **Quotes** optional where repeat buyers or bulk/custom orders matter. It never assumes shop owners need contractor dispatch tools.
+
+The same language model-free advisor distinguishes wholesale textile distribution (quotes and account billing), tailoring (scheduling, quotes and invoices), and textile manufacturing (customer quotes and invoicing). It explicitly calls out missing retail inventory/POS and SKU tracking rather than inventing non-existent modules.
+
+If a business is clearly described but not in a predefined trade taxonomy, the assistant gives cautious cross-industry starting suggestions **before** asking a targeted, optional question. It asks for more details only when the user has not provided enough business information.
+
+Users can select optional "Walk-in retail", "Wholesale / bulk" or "Tailoring / custom orders" clarification chips. The browser retains only the business description from this assistant session, capped at 600 characters, to refine a later suggestion. This text is never stored in business records and **tool-recommendation requests are not sent to OpenAI/Ollama**. Explicitly selecting *Review these tools in Settings* only prepares the choices; the user still controls saving.
+
 ## Cerium NavLM v0.1 — purpose-built zero-cost navigation model
 
 NavLM is a trained, non-generative intent classifier for Cerium's actual workspace. It uses a versioned dataset of roughly 300 manually authored navigation examples, a dependency-free TF-IDF nearest-prototype model, and a small, independent validation set. It learns weighted text features; it is not a newly pretrained transformer or general-purpose LLM.
