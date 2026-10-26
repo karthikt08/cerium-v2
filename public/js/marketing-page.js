@@ -94,9 +94,17 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
     for(const panel of page.querySelectorAll('[data-marketing-panel]'))
       panel.hidden=panel.dataset.marketingPanel!==selected;
   };
+  const deepLink=()=>/^#marketing\/(visibility|reengage|performance)$/.exec(location.hash)?.[1]||'visibility';
+  choose(deepLink());
   page.addEventListener('click',async event=>{
     const tab=event.target.closest('[data-marketing-tab]');
-    if(tab){choose(tab.dataset.marketingTab);return;}
+    if(tab){
+      choose(tab.dataset.marketingTab);
+      // Keep a shareable, direct URL without resetting the draft or page state.
+      const hash='#marketing/'+tab.dataset.marketingTab;
+      if(location.hash!==hash)history.replaceState(null,'',hash);
+      return;
+    }
     const generate=event.target.closest('[data-marketing-generate]');
     if(generate){
       const business=getWorkspace()?.account||{};
