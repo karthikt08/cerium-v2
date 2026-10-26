@@ -112,6 +112,11 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
 .pr ul{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:12px}.pr li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px}
 .pr li::before{content:"";flex:none;width:6px;height:11px;border:solid var(--ac);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);margin:2px 6px 0 4px}
 .pr .btn{width:100%}.pr .fn{font-size:13px;margin-top:16px}
+.pr-annual{display:grid;gap:5px;margin:-3px 0 23px;padding:15px 17px;border:1px solid rgba(124,89,218,.26);border-radius:12px;background:linear-gradient(110deg,rgba(244,240,255,.95),rgba(249,250,255,.95))}
+.pr-annual strong{font-weight:750;color:#382e77}.pr-annual .pr-annual-title{font-size:14px;font-weight:650;color:var(--ink);line-height:1.45}
+.pr-annual .pr-annual-detail{font-size:12.5px;color:var(--mut);line-height:1.5}
+.pr .fn a{color:#314db7;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:610px){.pr .am{flex-wrap:wrap;gap:8px}.pr .am b{font-size:clamp(2.9rem,13vw,4.2rem)}}
 .ft{max-width:1160px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;font-size:15px}
 .ft h5{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 .ft a{display:block;padding:4px 0;color:var(--mut)}.ft a:hover{color:var(--ink)}.ft a.lg{display:flex;padding:0;color:var(--ink)}
@@ -156,7 +161,7 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
     <a class="btn btn-auth-action" href="signup.html">Start 15-Day Free Trial<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     <a class="btn gh" href="login.html">Sign in →</a>
   </div>
-  <p class="fn u" style="animation-delay:.36s">Free for 15 days, then <span data-region-price>$20</span>/month. Cancel anytime. Phone verification required before access. A verified phone and Razorpay payment authorization are required before the trial; the first regular monthly charge follows the trial.</p>
+  <p class="fn u" style="animation-delay:.36s">Free for 15 days, then <span data-region-price>$20</span>/month, or <span data-region-annual-price>$220</span>/year where annual checkout is available. Cancel future renewals anytime. Phone verification, business setup and Razorpay authorization are required before the trial; the first regular charge follows the trial.</p>
 </div>
 
 <div class="sg u" style="animation-delay:.2s">
@@ -221,6 +226,10 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
 <div class="pr" data-rv>
   <p class="ey">One simple plan</p>
   <div class="am"><b data-region-price>$20</b><span>per month</span><em class="c g" style="margin-left:6px">15-day free trial</em></div>
+  <div class="pr-annual" aria-label="Optional annual billing">
+    <span class="pr-annual-title">Or <strong data-region-annual-price>$220</strong>/year · one month free</span>
+    <span class="pr-annual-detail">Pay for 11 months, use 12. Save <strong data-region-annual-savings>$20</strong> per year compared with monthly payments. Available where yearly checkout is enabled.</span>
+  </div>
   <ul>
     <li>15-day trial after verification and payment authorisation</li>
     <li>Unlimited leads, follow-ups, and reminders</li>
@@ -230,7 +239,7 @@ body{margin:0;background:#f4f6fa}sc-for,sc-if{display:contents}
     <li>Export or delete your data anytime</li>
   </ul>
   <a class="btn btn-auth-action" href="signup.html">Start 15-Day Free Trial</a>
-  <p class="fn">India: ₹500/month. Other eligible countries: $8–$20 USD/month by income group, after the trial. Payment-method authorisation is required before workspace access.</p>
+  <p class="fn">Country pricing: $20 / $16 / $12 / $8 USD per month, or ₹500/month in India. The annual option is 11 monthly payments for 12 months. Prices exclude applicable taxes; a verified business country and payment authorisation are required. <a href="pricing.html">See full pricing and availability</a>.</p>
 </div>
 </div></section>
 
