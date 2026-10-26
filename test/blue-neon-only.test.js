@@ -28,9 +28,10 @@ test('the original light Cerium workspace remains unchanged',()=>{
   const html=read('app.html');
   const css=read('css/workspace-vibrance.css');
   const styles=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
-  assert.deepEqual(styles.slice(-5),[
+  assert.deepEqual(styles.slice(-6),[
     'css/workspace-spark.css','css/workspace-vibrance.css',
-    'css/status-pricing-night.css','css/ui-consistency.css','css/typography.css'
+    'css/status-pricing-night.css','css/ui-consistency.css',
+    'css/workspace-overview-unified.css','css/typography.css'
   ]);
   assert.doesNotMatch(html,/workspace-pricing-dark\.css/,'never switch the full software into dark mode');
   assert.match(read('css/workspace.css'),/:root\{color-scheme:light;/);
