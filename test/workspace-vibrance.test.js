@@ -37,11 +37,13 @@ test('workspace retains landing accents with restrained glow and neutral surface
     assert.ok(css.includes(color),'workspace uses signature color '+color);
   }
   assert.match(spatial,/rgba\(117,83,255,\.38\)/);
-  assert.match(css,/rgba\(117,83,255,\.18\)/,'hero ambient stays subtle');
+  assert.match(css,/rgba\(117,83,255,\.21\)/,'hero has a perceptible but contained glow');
   assert.doesNotMatch(css,/rgba\(117,83,255,\.37\)/,'no overbright ambient glow');
-  assert.match(css,/rgba\(113,90,215,\.095\)/,'workspace background is quiet');
-  assert.match(css,/background:linear-gradient\(135deg,#fff 52%,#fbfaff 100%\)/,'KPI cards are predominantly white');
-  assert.match(css,/background:linear-gradient\(139deg,#fff 56%,#fcfbff 100%\)/,'operational cards are predominantly white');
+  assert.match(css,/rgba\(113,90,215,\.12\)/,'workspace background remains quiet');
+  assert.match(css,/background:linear-gradient\(135deg,#fff 43%,#f8f5ff 100%\)/,'KPI cards keep a white-majority, lilac-tinted surface');
+  assert.match(css,/background:linear-gradient\(139deg,#fff 52%,#faf8ff 100%\)/,'operational cards remain primarily white');
+  assert.match(css,/opacity:\.66;transform:scaleX\(\.8\)/,'KPI accents remain visible even before hover');
+  assert.doesNotMatch(css,/rgba\(113,90,215,\.23\)/,'keep out the previous full-strength workspace glow');
   assert.match(css,/\.app-page \.main-frame\{/);
   assert.match(css,/\.app-page \.sidebar\{/);
   assert.match(css,/\.app-page \.overview-stage\{/);
@@ -51,10 +53,10 @@ test('workspace retains landing accents with restrained glow and neutral surface
 });
 
 test('primary actions retain high contrast while business status colors remain distinct',()=>{
-  assert.ok(contrast('4b4bd1','ffffff')>=4.5,'primary workspace accent must contrast with white text');
-  assert.ok(contrast('4140bc','ffffff')>=4.5,'primary hover accent must contrast with white text');
-  assert.ok(contrast('44398e','ecebfd')>=4.5,'active sidebar item must have readable contrast');
-  assert.match(css,/--cerium-ui-primary:#4b4bd1/);
+  assert.ok(contrast('5542c8','ffffff')>=4.5,'primary workspace accent must contrast with white text');
+  assert.ok(contrast('4534ae','ffffff')>=4.5,'primary hover accent must contrast with white text');
+  assert.ok(contrast('44318d','e6e3fb')>=4.5,'active sidebar item must have readable contrast');
+  assert.match(css,/--cerium-ui-primary:#5542c8/);
   assert.match(css,/\.app-page :is\(\.main-frame,\.dialog,\.c-modal,\.jobs-dialog,\.quotes-dialog,\.workspace-config-dialog\) \.button\.primary:not\(:disabled\)/);
   assert.match(css,/\.app-page \.button\.secondary:hover:not\(:disabled\)/);
   assert.doesNotMatch(css,/\.button\.danger\{/,'do not recolor destructive actions');

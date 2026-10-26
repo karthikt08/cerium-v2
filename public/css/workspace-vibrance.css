@@ -1,19 +1,19 @@
-/* Cerium workspace — balanced landing accents, quiet product surfaces.
+/* Cerium workspace — clear brand accents on calm product surfaces.
    Deliberately app-scoped: marketing pages, forms, invoices and print exports
    retain their function, and semantic success/warning/error colors stay intact.
    Exact accent family matches landing: #3b5bff → #7c3aed → #d946ef. */
 .app-page{
-  --accent:#4b4bd1;
+  --accent:#5542c8;
   --accent-soft:#f0effb;
-  --ac:#4b4bd1;
-  --cerium-ui-primary:#4b4bd1;
-  --cerium-ui-primary-hover:#4140bc;
-  --cerium-ui-focus:#7f80db;
+  --ac:#5542c8;
+  --cerium-ui-primary:#5542c8;
+  --cerium-ui-primary-hover:#4534ae;
+  --cerium-ui-focus:#8d78df;
   --workspace-blue:#3b5bff;
   --workspace-violet:#7c3aed;
   --workspace-magenta:#d946ef;
-  --workspace-glow:rgba(113,89,202,.13);
-  --cerium-vibrant-gradient:linear-gradient(112deg,#5068db 0%,#7359c9 55%,#ae78d1 100%);
+  --workspace-glow:rgba(113,89,202,.16);
+  --cerium-vibrant-gradient:linear-gradient(112deg,#4563e2 0%,#7650d4 55%,#b05fd4 100%);
   background:#f6f7fc;
 }
 
@@ -21,8 +21,8 @@
    workplace neutral. Avoid broad neon washes behind everyday operations. */
 .app-page .main-frame{
   background:
-    radial-gradient(ellipse 46% 45% at 94% 9%,rgba(113,90,215,.095),transparent 79%),
-    radial-gradient(ellipse 35% 42% at 0% 88%,rgba(190,123,209,.045),transparent 79%),
+    radial-gradient(ellipse 46% 45% at 94% 9%,rgba(113,90,215,.12),transparent 79%),
+    radial-gradient(ellipse 35% 42% at 0% 88%,rgba(190,123,209,.055),transparent 79%),
     linear-gradient(135deg,#f7f8fc 0%,#fafbfe 52%,#faf8fd 100%);
 }
 .app-page .sidebar{
@@ -46,14 +46,14 @@
   background:rgba(233,229,249,.56);color:#504694;
 }
 .app-page .sidebar .nav-link[aria-current="page"]{
-  background:linear-gradient(100deg,#ecebfd 0%,#f6f3fc 100%);
-  color:#44398e;
+  background:linear-gradient(100deg,#e6e3fb 0%,#f3effc 100%);
+  color:#44318d;
   font-weight:700;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 16px -12px rgba(93,42,205,.18);
 }
 .app-page .sidebar .nav-link[aria-current="page"]::before{
   background:linear-gradient(180deg,#3b5bff,#7c3aed,#d946ef);
-  box-shadow:0 0 10px rgba(124,58,237,.24);
+  box-shadow:0 0 10px rgba(124,58,237,.31);
   width:3px;
 }
 .app-page .nav-count{background:#eeebf8;color:#605392}
@@ -71,7 +71,7 @@
   box-shadow:0 5px 22px -18px rgba(100,71,160,.12);
 }
 .app-page .main-frame>.topbar::after{
-  background:linear-gradient(90deg,transparent,rgba(59,91,255,.21),rgba(124,58,237,.25),rgba(217,70,239,.17),transparent);
+  background:linear-gradient(90deg,transparent,rgba(59,91,255,.3),rgba(124,58,237,.34),rgba(217,70,239,.24),transparent);
 }
 .app-page .breadcrumb strong{color:#504b74;font-weight:650}
 .app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#7565a2}
@@ -79,17 +79,17 @@
 
 /* A visible but contained brand halo on the Overview, not a full color wash. */
 .app-page .overview-stage{
-  border-color:#d9d4ec;
+  border-color:#d4caec;
   background:
-    radial-gradient(ellipse 44% 76% at 100% 0%,rgba(125,91,219,.13),transparent 80%),
-    radial-gradient(ellipse 38% 66% at 63% 95%,rgba(191,125,205,.055),transparent 76%),
+    radial-gradient(ellipse 44% 76% at 100% 0%,rgba(125,91,219,.17),transparent 80%),
+    radial-gradient(ellipse 38% 66% at 63% 95%,rgba(191,125,205,.07),transparent 76%),
     linear-gradient(117deg,rgba(255,255,255,.99),rgba(250,248,255,.97) 72%,rgba(251,247,255,.96));
   box-shadow:inset 0 1px 0 #fff,0 19px 48px -31px rgba(106,54,219,.22);
 }
 .app-page .overview-stage::before{
   background:
-    radial-gradient(ellipse 36% 41% at 69% 39%,rgba(117,83,255,.18),transparent 73%),
-    radial-gradient(ellipse 28% 32% at 95% 67%,rgba(237,124,255,.10),transparent 77%);
+    radial-gradient(ellipse 36% 41% at 69% 39%,rgba(117,83,255,.21),transparent 73%),
+    radial-gradient(ellipse 28% 32% at 95% 67%,rgba(237,124,255,.12),transparent 77%);
 }
 .app-page .overview-stage .eyebrow{color:#66589c}
 .app-page .overview-stage .eyebrow::before{background:var(--cerium-vibrant-gradient)}
@@ -112,26 +112,26 @@
 
 /* Dashboard: brighten actual card bodies and accents, not the data tables. */
 .app-page .metrics-grid .metric{
-  border-color:#e1ddec;
-  background:linear-gradient(135deg,#fff 52%,#fbfaff 100%);
+  border-color:#dcd3ed;
+  background:linear-gradient(135deg,#fff 43%,#f8f5ff 100%);
   box-shadow:inset 0 1px 0 #fff,0 12px 28px -24px rgba(116,52,223,.18);
 }
 .app-page .metrics-grid .metric::before{
   background:var(--cerium-vibrant-gradient);
-  opacity:.48;transform:scaleX(.68);
+  opacity:.66;transform:scaleX(.8);
 }
 .app-page .metrics-grid .metric.warning::before{
   background:linear-gradient(90deg,#e2a04f,#c66cd6);
 }
 .app-page .metric-top{color:#6b6d82}
-.app-page .metrics-grid .metric .metric-top .icon{color:#7968b4}
+.app-page .metrics-grid .metric .metric-top .icon{color:#6e50bd}
 .app-page .metrics-grid .metric .metric-value{color:#2d304b;font-weight:700}
 .app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
 .app-page .metric-foot{color:#77798d}
-.app-page .metric-foot .dot{background:#a48bdb}
+.app-page .metric-foot .dot{background:#9473d4}
 .app-page .dashboard-grid>.panel{
-  border-color:#e5e1ee;
-  background:linear-gradient(160deg,#fff 0%,#fdfcff 100%);
+  border-color:#ded5ed;
+  background:linear-gradient(160deg,#fff 0%,#fbf9ff 100%);
   box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.11);
 }
 .app-page .dashboard-grid>.panel .panel-title .icon{color:#7b69ad}
@@ -140,11 +140,11 @@
   box-shadow:0 3px 12px rgba(124,58,237,.18);
 }
 .app-page :is(.panel-count,.badge.blue,.badge.purple){
-  background:#f1edfa;border-color:#e6e0f1;color:#635390;
+  background:#eee7fb;border-color:#e2d7f4;color:#5d4296;
 }
-.app-page .stage-item:nth-child(1) .stage-line{background:#8f9bdf}
-.app-page .stage-item:nth-child(2) .stage-line{background:#b29ad9}
-.app-page .stage-item:nth-child(3) .stage-line{background:#d2a7d7}
+.app-page .stage-item:nth-child(1) .stage-line{background:#7186e5}
+.app-page .stage-item:nth-child(2) .stage-line{background:#9e7ada}
+.app-page .stage-item:nth-child(3) .stage-line{background:#bf89d5}
 .app-page .stage-item:nth-child(4) .stage-line{background:#83c4c7}
 .app-page .text-button{color:#5743b0}
 .app-page .text-button:hover{color:#4128a3}
@@ -155,8 +155,8 @@
   .jobs-stats>.jobs-stat,.jobs-panel,.jobs-bottom>.panel,
   .board-column>.lead-card,.reminders-stats>div,.reminders-columns>.panel,
   .settings-grid .panel){
-  border-color:#e3dfec;
-  background:linear-gradient(139deg,#fff 56%,#fcfbff 100%);
+  border-color:#e0d9ed;
+  background:linear-gradient(139deg,#fff 52%,#faf8ff 100%);
   box-shadow:0 9px 24px -24px rgba(111,55,219,.13);
 }
 .app-page :is(.quotes-summary strong,.jobs-stats .jobs-stat strong,
@@ -196,14 +196,14 @@
    Preserve clear contrast and keep red/green semantic controls untouched. */
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
   color:#fff;
-  background:linear-gradient(112deg,#4c60d3,#6555c7 72%,#7059bf);
+  background:linear-gradient(112deg,#4661df,#6948cc 72%,#8153c6);
   border-color:rgba(80,69,156,.33);
-  box-shadow:0 6px 14px -10px rgba(88,61,164,.3);
+  box-shadow:0 7px 17px -10px rgba(88,61,164,.38);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:hover:not(:disabled){
-  background:linear-gradient(112deg,#4255c2,#5845b6 72%,#624ab2);
+  background:linear-gradient(112deg,#3d55cd,#5938b8 72%,#7043ae);
   border-color:#6250b2;
-  box-shadow:0 8px 19px -11px rgba(95,67,173,.32);
+  box-shadow:0 9px 21px -11px rgba(95,67,173,.4);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:focus-visible{
   outline:3px solid #aaa0e0;outline-offset:3px;
