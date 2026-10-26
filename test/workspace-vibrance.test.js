@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../public/'+path,import.meta.url),'utf8');
 const page=read('app.html');
 const css=read('css/workspace-vibrance.css');
+const marketingCss=read('css/marketing.css');
 
 function luminance(hex){
   const rgb=hex.match(/[0-9a-f]{2}/gi).map(pair=>parseInt(pair,16)/255)
@@ -36,11 +37,11 @@ test('workspace retains landing accents with restrained glow and neutral surface
     assert.ok(css.includes(color),'workspace uses signature color '+color);
   }
   assert.match(spatial,/rgba\(117,83,255,\.38\)/);
-  assert.match(css,/rgba\(117,83,255,\.18\)/,'hero ambient is restrained');
-  assert.doesNotMatch(css,/rgba\(117,83,255,\.37\)/,'do not restore the overly bright glow');
-  assert.match(css,/rgba\(113,90,215,\.095\)/,'background glow stays subdued');
-  assert.match(css,/background:linear-gradient\(135deg,#fff 52%,#fbfaff 100%\)/,'KPI cards remain primarily white');
-  assert.match(css,/background:linear-gradient\(139deg,#fff 56%,#fcfbff 100%\)/,'operational cards remain primarily white');
+  assert.match(css,/rgba\(117,83,255,\.18\)/,'hero ambient stays subtle');
+  assert.doesNotMatch(css,/rgba\(117,83,255,\.37\)/,'no overbright ambient glow');
+  assert.match(css,/rgba\(113,90,215,\.095\)/,'workspace background is quiet');
+  assert.match(css,/background:linear-gradient\(135deg,#fff 52%,#fbfaff 100%\)/,'KPI cards are predominantly white');
+  assert.match(css,/background:linear-gradient\(139deg,#fff 56%,#fcfbff 100%\)/,'operational cards are predominantly white');
   assert.match(css,/\.app-page \.main-frame\{/);
   assert.match(css,/\.app-page \.sidebar\{/);
   assert.match(css,/\.app-page \.overview-stage\{/);
@@ -67,16 +68,17 @@ test('dashboard and all core operational summary cards inherit vibrant treatment
     '.app-page .metrics-grid .metric::before',
     '.app-page .dashboard-grid>.panel',
     '.app-page .sidebar .nav-link[aria-current="page"]',
-    '.app-page .marketing-tab.active',
-    '.app-page .marketing-bar>span',
     '.quotes-summary>div',
     '.jobs-stats>.jobs-stat',
     '.board-column>.lead-card',
     '.reminders-stats>div',
     '.settings-grid .panel'
   ])assert.ok(css.includes(marker),'missing component: '+marker);
-  assert.match(css,/\.app-page \.marketing-main\{/);
-  assert.match(css,/\.app-page \.marketing-stat\{/);
+  assert.match(marketingCss,/\.marketing-tab\.active\{/);
+  assert.match(marketingCss,/\.marketing-bar>span\{/);
+  assert.match(marketingCss,/\.marketing-main\{/);
+  assert.match(marketingCss,/\.marketing-stat\{/);
+  assert.doesNotMatch(css,/\.app-page \.marketing-tab\.active/,'Marketing controls its own palette instead of conflicting with workspace styles');
   assert.match(css,/@media\(hover:hover\) and \(pointer:fine\)/);
 });
 

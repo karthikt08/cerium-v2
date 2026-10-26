@@ -219,38 +219,8 @@
   outline-color:#a69ae0;
 }
 
-/* Keep Marketing in the same family without a second fully purple theme. */
-.app-page .marketing-tag{
-  background:linear-gradient(112deg,#454780,#6254a1);color:#fff;
-  border-radius:8px;
-}
-.app-page .marketing-intro h1 em{color:#6855b7}
-.app-page .marketing-main{
-  border-color:#e3dfec;
-  background:#fff;
-  box-shadow:0 15px 38px -28px rgba(98,65,167,.14);
-}
-.app-page .marketing-stat{
-  border-color:#e1ddec;
-  background:linear-gradient(135deg,#fff,#fbfaff);
-}
-.app-page .marketing-stat>strong{color:#403b66}
-.app-page .marketing-switcher{border-top-color:#ded8e9}
-.app-page .marketing-tab{color:#615b7b}
-.app-page .marketing-tab:hover:not(.active){background:#f5f2fa;color:#53458d}
-.app-page .marketing-tab.active{
-  background:linear-gradient(100deg,#edeaf9,#f7f5fc);
-  border-left:3px solid #7760bd;
-  color:#4e4286;
-  box-shadow:inset 0 1px 0 #fff;
-}
-.app-page .marketing-link{color:#6251ac;text-decoration-color:#b0a1dc}
-.app-page .marketing-bar{background:#ece9f3}
-.app-page .marketing-bar>span{background:var(--cerium-vibrant-gradient)}
-.app-page .marketing-tip{
-  background:#f8f6fc;border-left-color:#9884cc;
-}
-.app-page .marketing-callout{background:#faf9fc;border-color:#e4dfed}
+/* Marketing visuals are owned by marketing.css, with the Cerium violet palette.
+   Do not override its component states from the generic workspace theme. */
 
 /* Product controls must remain readable and accessible on small screens. */
 @media(max-width:760px){
