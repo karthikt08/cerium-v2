@@ -193,7 +193,7 @@ for(const id of all){
     throw new Error('Invalid playbook size for '+id);
 }
 const aliases=[
-  {id:'construction',test:/\b(?:construction|builder|building|renovat|remodel|civil works?|general contract|site work)\b/i},
+  {id:'construction',test:/\b(?:construction|builder|building|renovat\w*|remodel\w*|civil works?|general contract\w*|site work)\b/i},
   {id:'plumbing',test:/\b(?:plumb\w*|pipe repair|drain cleaning|water heater)\b/i},
   {id:'electrical',test:/\b(?:electric\w*|wiring|switchboard|power install|panel install)\b/i},
   {id:'hvac',test:/\b(?:hvac|heating|ventilation|air.condition\w*|refrigerat\w*|ac repair)\b/i},
@@ -209,7 +209,7 @@ export const SUPPORTED_INDUSTRY_IDS=Object.freeze([...all]);
 // recognized, use the saved trade, then the official dropdown category.
 export function identifyCeriumIndustry({description='',trade='',category='other'}={}){
   const find=text=>aliases.find(profile=>profile.test.test(String(text||'').slice(0,600)))?.id||null;
-  return find(description)||find(trade)||(isIndustry(category)&&category!=='other'?category:null);
+  return find(description)||(isIndustry(category)&&category!=='other'?category:null)||find(trade);
 }
 const changes=[
   {id:'reminders',match:/\b(?:overdue|late payments?|unpaid invoices?|payment reminders?|chase payments?|past.due|outstanding invoices?)\b/i,
