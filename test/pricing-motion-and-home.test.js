@@ -18,7 +18,9 @@ test('pricing page cards inherit Cerium spatial scroll reveal and subtle hover a
   assert.match(css,/animation-delay:calc\(var\(--i,0\)\*\.095s\)/,'entrance is staggered rather than simultaneous');
   assert.match(css,/animation:cerium-pricing-enter/,'reveal animation has actual trigger');
   assert.match(css,/from\{opacity:0;translate:0 25px\}/,'translate is separate from hover transforms');
-  assert.doesNotMatch(css,/@keyframes cerium-pricing-enter\{[\s\S]*?transform:/,'reveal should not lock CSS hover transform');
+  const reveal=css.match(/@keyframes cerium-pricing-enter\{[\s\S]*?\n\}/)?.[0]||'';
+  assert.ok(reveal,'entrance keyframes must be present');
+  assert.doesNotMatch(reveal,/transform:/,'reveal must not lock CSS hover transform');
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/,'disabled for reduced-motion preferences');
   assert.match(css,/@media print/,'cards remain visible in print');
 });
