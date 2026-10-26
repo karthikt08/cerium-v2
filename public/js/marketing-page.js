@@ -3,17 +3,11 @@
 import {marketingInsights,draftMarketingCopy,marketingFollowUp} from './marketing-model.js';
 import {escapeHTML as esc} from './workspace-model.js';
 import {businessLocalDate} from './us-market.js';
+import {MARKETING_FEATURE_TABS,marketingFeatureFromHash} from './marketing-features.js';
+export {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
 const arrow='<span aria-hidden="true">→</span>';
 const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="marketing-link">'+esc(label)+' '+arrow+'</a>';
-// New Marketing features are registered here. Each entry gets a top tab and
-// needs a matching data-marketing-panel section; add its approved deep-link
-// route to guide-links.js when exposing it through Ask Cerium.
-export const MARKETING_FEATURE_TABS=Object.freeze([
-  {key:'visibility',label:'Get found and chosen',shortLabel:'Get found'},
-  {key:'reengage',label:'Re-book and re-engage',shortLabel:'Re-engage'},
-  {key:'performance',label:'Track performance',shortLabel:'Performance'}
-]);
 const tabs=MARKETING_FEATURE_TABS;
 export function renderMarketingPage(ws){
   const today=businessLocalDate(ws?.account?.timeZone);
@@ -106,7 +100,7 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
     for(const panel of page.querySelectorAll('[data-marketing-panel]'))
       panel.hidden=panel.dataset.marketingPanel!==selected;
   };
-  const deepLink=()=>tabs.find(tab=>location.hash==='#marketing/'+tab.key)?.key||tabs[0].key;
+  const deepLink=()=>marketingFeatureFromHash(location.hash)||tabs[0].key;
   choose(deepLink());
   const navigateTo=key=>{
     if(!tabs.some(t=>t.key===key))return;
