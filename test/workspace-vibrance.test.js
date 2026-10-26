@@ -19,12 +19,11 @@ function contrast(a,b){
 
 test('only workspace loads vibrant palette, after spatial effects and before shared controls/font',()=>{
   const styles=[...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(styles.slice(-5),[
+  assert.deepEqual(styles.slice(-4),[
     'css/workspace-spark.css','css/workspace-vibrance.css',
-    'css/ui-consistency.css','css/workspace-pricing-dark.css','css/typography.css'
+    'css/ui-consistency.css','css/typography.css'
   ]);
   assert.equal(styles.filter(x=>x==='css/workspace-vibrance.css').length,1);
-  assert.equal(styles.filter(x=>x==='css/workspace-pricing-dark.css').length,1);
   assert.match(page,/<body class="app-page">/);
   for(const filename of ['index.html','pricing.html','benefits.html','verify.html','terms.html']){
     assert.doesNotMatch(read(filename),/css\/workspace-vibrance\.css/,'marketing and onboarding stay unchanged: '+filename);
