@@ -62,3 +62,9 @@
 .guide-business-workflow{border:1px solid #e7dff2;background:#f9f7fd;border-radius:10px;padding:9px 12px;display:grid;gap:4px}
 .guide-business-workflow strong{font-size:11px;color:#5a4387;line-height:1.4}
 .guide-business-workflow span{font-size:11px;color:#6d637f;line-height:1.45}
+
+/* Trusted links are actual same-app anchors; keep them recognizably clickable. */
+.guide-direct-links{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;margin:1px 0 7px}
+.guide-page-link{display:inline-flex;width:auto;align-items:center;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#bba9e1;font-size:11px;line-height:1.4}
+.guide-page-link:hover{text-decoration-color:currentColor}
+.guide-page-link:focus-visible{outline:2px solid #a98ee9;outline-offset:3px}

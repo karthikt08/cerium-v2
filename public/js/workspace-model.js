@@ -10,6 +10,7 @@ export const SECTIONS = {
   invoices: ['Invoices', 'Create invoices and keep track of what is owed.'],
   payments: ['Payments', 'Review paid invoices and match recorded deposits.'],
   reviews: ['Reviews', 'Follow through with customers after the job is done.'],
+  marketing: ['Marketing', 'Plan outreach, re-engage customers and track real workspace activity.'],
   settings: ['Settings', 'Manage your business profile, plan, and data.'],
   support: ['Help & feedback', 'Get in touch with the people building Cerium.'],
 };
@@ -74,7 +75,8 @@ export function safeReviewURL(value) {
   try { const u=new URL(value); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
 }
 export function routeFromHash(hash) {
-  const name = String(hash || '').replace(/^#/, '');
+  const path = String(hash || '').replace(/^#/, '');
+  const name = /^marketing\/(visibility|reengage|performance)$/.test(path)?'marketing':path;
   const alias = {today:'overview',bank:'payments',account:'settings',messages:'support'};
   return SECTIONS[alias[name] || name] ? (alias[name] || name) : 'overview';
 }

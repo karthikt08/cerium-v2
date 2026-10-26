@@ -2,6 +2,17 @@
 
 Cerium Guide adds an Ask Cerium button to the authenticated workspace. It answers questions about existing Cerium modules (including spreadsheet imports, invoices and PDFs), suggests steps and offers a button to navigate to a known section.
 
+## Clickable verified page links and Marketing deep links
+
+Ask Cerium now returns real, clickable same-app page links (`#leads`, `#invoices`, `#reviews`, and so on) along with concise guidance. Cross-tool workflows expose links for each step, while business tool advice offers direct links to relevant installed modules and a Settings review link. The links are generated from a shared internal allowlist, never assembled from generated model text. Unknown questions and greetings do not get misleading navigation links.
+
+The new Marketing workspace has addressable sections:
+- `#marketing/visibility` — Get found and chosen (review requests and editable social/profile drafts).
+- `#marketing/reengage` — Re-book and re-engage (candidate check-ins using existing paid invoice records, with an explicitly approved task-save).
+- `#marketing/performance` — Track performance (lead sources, review activity, follow-ups and returning customers from recorded data).
+
+Marketing is a cross-cutting workspace entry alongside Overview and Settings. It does not auto-publish, auto-message, track campaign ROI or generate unverified Google ratings. Drafts stay editable and do not require a paid AI provider. A user's explicit click is required before saving a check-in follow-up, and any actual outreach is separately handled by the user.
+
 ## Conversational guidance and advanced workflow plans
 
 Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknowledgements and frustration **before** trying to route anywhere. These turns are answered locally, even if OpenAI or Ollama is configured.

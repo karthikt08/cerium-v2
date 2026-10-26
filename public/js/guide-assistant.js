@@ -1,4 +1,5 @@
 import {GUIDE_SECTIONS,pickGuide} from './guide-knowledge.js';
+import {guideNavigationLinks,trustedGuideLink} from './guide-links.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
 import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
@@ -62,25 +63,59 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     return item;
   }
   function routeButton(section,title,stepNumber=null){
+    // Advanced workflow steps retain numbered action pills, but are real
+    // anchors whose destinations are revalidated against the internal allowlist.
     if(!GUIDE_SECTIONS.includes(section))return;
+    const trusted=trustedGuideLink('#'+section);
+    if(!trusted)return;
     const row=document.createElement('div');
     row.className='guide-actions';
-    const action=document.createElement('button');
-    action.type='button';
-    action.className='guide-action';
-    action.dataset.guideDestination=section;
+    const anchor=document.createElement('a');
+    anchor.className='guide-action guide-workflow-link';
+    anchor.href=trusted.href;
+    anchor.dataset.guideDestination=trusted.href;
     if(stepNumber){
       const badge=document.createElement('span');
       badge.className='guide-step-badge';
       badge.textContent='Step '+stepNumber;
-      action.append(badge);
+      anchor.append(badge);
     }
     const label=document.createElement('span');
     label.className='guide-action-label';
-    label.textContent='Open '+String(title||section).slice(0,75)+' →';
-    action.append(label);
-    row.append(action);
+    label.textContent='Open '+String(title||trusted.label).slice(0,75)+' →';
+    anchor.append(label);
+    row.append(anchor);
     messages.append(row);
+    messages.scrollTop=messages.scrollHeight;
+  }
+  function renderGuideLinks(result,question){
+    // Never trust model-generated destinations. Resolve every link from the
+    // local allowlist; render a unique set of real same-app anchors.
+    const links=guideNavigationLinks(result,question);
+    if(!links.length)return;
+    if(result.type==='workflow'&&Array.isArray(result.actions)){
+      // Preserve the newer advanced-workflow step badges without duplicating
+      // the same navigation links in another row.
+      links.forEach((link,i)=>{
+        const step=result.actions.find(action=>'#'+action?.section===link.href);
+        routeButton(link.href.slice(1),step?.title||link.label,i+1);
+      });
+      return;
+    }
+    const row=document.createElement('nav');
+    row.className='guide-actions guide-direct-links';
+    row.setAttribute('aria-label','Open relevant Cerium pages');
+    for(const link of links){
+      const trusted=trustedGuideLink(link.href);
+      if(!trusted)continue;
+      const anchor=document.createElement('a');
+      anchor.className='guide-action guide-page-link';
+      anchor.href=trusted.href;
+      anchor.dataset.guideDestination=trusted.href;
+      anchor.textContent='Open '+trusted.label+' →';
+      row.append(anchor);
+    }
+    if(row.children.length)messages.append(row);
     messages.scrollTop=messages.scrollHeight;
   }
   function renderToolRecommendations(result){
@@ -211,13 +246,8 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
       if(recommendation)renderToolRecommendations(safe);
-      else if(workflow){
-        safe.actions.slice(0,5).forEach((step,i)=>{
-          if(step&&GUIDE_SECTIONS.includes(step.section))routeButton(step.section,step.title||step.section,i+1);
-        });
-        lastSection=null;
-      }
-      else if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
+      if(workflow)lastSection=null;
+      renderGuideLinks(safe,clean);
       if(GUIDE_SECTIONS.includes(safe.section))lastSection=safe.section;
       suggestions.hidden=!(conversational||uncertain||safe.needsMoreInfo);
     }finally{
@@ -238,11 +268,14 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.addEventListener('click',event=>{
     const prompt=event.target.closest('[data-guide-prompt]');
     if(prompt){ask(prompt.dataset.guidePrompt);return;}
-    const destination=event.target.closest('[data-guide-destination]')?.dataset.guideDestination;
-    if(!GUIDE_SECTIONS.includes(destination))return;
+    const anchor=event.target.closest('a[data-guide-destination]');
+    const destination=trustedGuideLink(anchor?.getAttribute('href'));
+    if(!destination)return;
     closeGuide();
-    if(location.hash==='#'+destination)document.getElementById('workspace-main')?.focus({preventScroll:true});
-    else location.hash='#'+destination;
+    if(location.hash===destination.href){
+      event.preventDefault();
+      document.getElementById('workspace-main')?.focus({preventScroll:true});
+    }
   });
   shell.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&!panel.hidden){event.preventDefault();closeGuide();}

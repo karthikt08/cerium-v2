@@ -58,12 +58,12 @@ export function customizeBusinessNavigation(root,modules) {
   const selected=Array.isArray(modules)?modules:WORKSPACE_MODULES.map(x=>x.id);
   const links=new Map([...nav.querySelectorAll('[data-nav]')].map(link=>[link.dataset.nav,link]));
   for(const [key,link] of links) {
-    const visible=key==='overview'||selected.includes(key);
+    const visible=key==='overview'||key==='marketing'||selected.includes(key);
     link.hidden=!visible;
     link.style.display=visible?'':'none';
   }
   for(const key of selected){const link=links.get(key);if(link)nav.append(link);}
-  // Overview is the permanent dashboard entry, not an optional business tool.
+  // Overview and Marketing are shared workspace hubs; neither is hidden by module preferences.
   const overview=links.get('overview');
   if(overview)nav.prepend(overview);
 }

@@ -1,5 +1,6 @@
 import {GUIDE_SECTIONS, GUIDE_TOPICS, pickGuide} from '../public/js/guide-knowledge.js';
 import {navigateWithNavLM} from './navlm.js';
+import {guideNavigationLinks} from '../public/js/guide-links.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from '../public/js/business-tool-advisor.js';
 import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from '../public/js/guide-dialogue.js';
 
@@ -36,7 +37,7 @@ export function validateOllamaBaseURL(value='http://127.0.0.1:11434') {
 }
 let localInferenceCount=0;
 const MAX_LOCAL_INFERENCE=2;
-export async function answerGuide(question,currentSection='overview',{
+async function answerGuideBody(question,currentSection='overview',{
   provider=process.env.CERIUM_AI_PROVIDER||'',
   apiKey=process.env.CERIUM_AI_API_KEY||'',
   model=process.env.CERIUM_AI_MODEL||'',
@@ -65,6 +66,8 @@ export async function answerGuide(question,currentSection='overview',{
   const instructions=SYSTEM_GUIDE+'\nVERIFIED CERIUM GUIDE:\n'+staticGuide+
     '\nCurrent section: '+section+'. Suggested navigation: '+(topic.matched?topic.title:'none; ask for clarification')+'.';
   const activeProvider=provider||(apiKey?'openai':'guide');
+  // Marketing has verified local documentation, including when NavLM has no trained marketing label.
+  if(topic.matched&&topic.section==='marketing')return fallback;
   if(activeProvider==='navlm'){
     const match=navigateWithNavLM(question);
     if(!match.matched)return match;
@@ -127,4 +130,12 @@ export async function answerGuide(question,currentSection='overview',{
     }finally{localInferenceCount--;}
   }
   return fallback;
+}
+
+
+// The API returns verified destinations separately from any generated text.
+// Model output can change the explanation, never the destination URLs.
+export async function answerGuide(question,currentSection='overview',options={}){
+  const answer=await answerGuideBody(question,currentSection,options);
+  return {...answer,links:guideNavigationLinks(answer,question)};
 }
