@@ -224,13 +224,13 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .q{font-weight:500;letter-spacing:-.035em}
 .pg .av{background:var(--ink)}
 .pg .sr i{background:var(--ink)}
-.pg .pr{background:rgba(255,255,255,.82);border:1px solid #fff;border-radius:30px;box-shadow:inset 0 1px 0 #fff,0 40px 70px -40px rgba(0,0,0,.6);transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s cubic-bezier(.2,.8,.2,1);will-change:transform}
-.pg .pr:hover{transform:translateY(-2px)!important;box-shadow:0 24px 50px -20px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.15)!important}
+.pg .pr{background:linear-gradient(170deg,rgba(255,255,255,.96) 0%,rgba(248,250,253,.94) 100%);border:1px solid rgba(255,255,255,.9);border-radius:30px;box-shadow:inset 0 1px 0 #fff,0 36px 70px -30px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.2),0 0 45px -10px rgba(66,99,235,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.pg .pr:hover{transform:translateY(-3px)!important;box-shadow:inset 0 1px 0 #fff,0 42px 84px -30px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.3),0 0 60px -10px rgba(66,99,235,.32)!important}
 .pg .pr .c.g{animation:badge-pulse 2.8s ease-in-out infinite}
 .pg .am b{font-weight:500;letter-spacing:-.05em}
 .pg .pr li::before,.pg .doc .sum li::before{border-color:var(--ink)}
 .pg .c{background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px var(--ge);font-weight:500}
-.pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:#d9f2e4}
+.pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:linear-gradient(135deg,rgba(236,253,245,.95) 0%,rgba(209,250,229,.85) 100%);color:#047857;border:1px solid rgba(16,185,129,.28);box-shadow:0 1px 3px rgba(16,185,129,.1),inset 0 1px 0 rgba(255,255,255,.8)}
 
 /* ---- privacy and terms ---- */
 .pg .th,.pg .sh{font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;color:var(--mut)}
