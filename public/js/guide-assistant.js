@@ -1,4 +1,6 @@
 import {GUIDE_SECTIONS, pickGuide} from './guide-knowledge.js';
+import {WORKSPACE_MODULES} from './industry-workspaces.js';
+import {isToolRecommendationRequest} from './business-tool-advisor.js';
 
 // Purely navigational: this widget never submits, edits, deletes, or pays on a user's behalf.
 export function mountGuideAssistant({api, getSection, root=document.getElementById('workspace')}={}) {
@@ -16,7 +18,7 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
         '<button type="button" data-guide-prompt="How do I create an invoice?">Create an invoice</button>'+
         '<button type="button" data-guide-prompt="How can I import an Excel or CSV file?">Import a spreadsheet</button>'+
         '<button type="button" data-guide-prompt="How do I schedule a job?">Schedule work</button>'+
-        '<button type="button" data-guide-prompt="How do I customize my tools?">Customize tools</button>'+
+        '<button type="button" data-guide-prompt="Which Cerium tools should I use for my business?">Recommend my tools</button>'+
       '</div>'+
       '<form class="guide-form" id="guide-form"><input type="text" id="guide-question" aria-label="Ask about Cerium" placeholder="e.g. Where do I import customers?" autocomplete="off" maxlength="420" required>'+
         '<button type="submit" class="guide-send" id="guide-send">Ask</button></form>'+
@@ -30,6 +32,7 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
   const input=shell.querySelector('#guide-question');
   const send=shell.querySelector('#guide-send');
   let pending=false;
+  let awaitingBusinessDescription=false;
   function openGuide(){
     panel.hidden=false;
     trigger.setAttribute('aria-expanded','true');
@@ -62,6 +65,44 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
     messages.append(row);
     messages.scrollTop=messages.scrollHeight;
   }
+  function renderToolRecommendations(result){
+    const known=new Map(WORKSPACE_MODULES.map(m=>[m.id,m]));
+    const items=Array.isArray(result.recommendations)?result.recommendations
+      .filter(x=>x&&known.has(x.id)).slice(0,6):[];
+    if(!items.length)return;
+    const container=document.createElement('div');
+    container.className='guide-recommendations';
+    container.setAttribute('aria-label','Recommended Cerium tools');
+    for(const item of items){
+      const card=document.createElement('div');
+      card.className='guide-recommendation';
+      const name=document.createElement('strong');
+      name.textContent=known.get(item.id).label;
+      const explanation=document.createElement('span');
+      explanation.textContent=String(item.reason||'Recommended for the work you described.').slice(0,220);
+      card.append(name,explanation);
+      container.append(card);
+    }
+    const notes=Array.isArray(result.limitations)?result.limitations.slice(0,2):[];
+    for(const note of notes){
+      const element=document.createElement('p');
+      element.className='guide-recommendation-limit';
+      element.textContent=String(note).slice(0,200);
+      container.append(element);
+    }
+    const action=document.createElement('button');
+    action.type='button';
+    action.className='guide-action guide-review-tools';
+    action.textContent='Review suggested tools in Settings →';
+    action.addEventListener('click',()=>{
+      const modules=items.map(x=>x.id);
+      document.dispatchEvent(new CustomEvent('cerium:review-tools',{detail:{modules}}));
+      closeGuide();
+    });
+    container.append(action);
+    messages.append(container);
+    messages.scrollTop=messages.scrollHeight;
+  }
   function localAnswer(question,section){
     const match=pickGuide(question,section);
     return {reply:match.answer,steps:match.steps,section:match.section,title:match.title,source:'guide'};
@@ -70,6 +111,7 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
     const clean=String(question||'').trim();
     if(!clean || pending)return;
     const current=GUIDE_SECTIONS.includes(getSection?.())?getSection():'overview';
+    const wantRecommendations=awaitingBusinessDescription||isToolRecommendationRequest(clean);
     pending=true;input.disabled=true;send.disabled=true;
     bubble(clean,'user');
     const progress=bubble('Finding the right tool…');
@@ -78,19 +120,22 @@ export function mountGuideAssistant({api, getSection, root=document.getElementBy
       let result;
       try{
         result=typeof api?.askGuide==='function'
-          ? await api.askGuide({question:clean,currentSection:current})
+          ? await api.askGuide({question:clean,currentSection:current,recommendTools:wantRecommendations})
           : localAnswer(clean,current);
       }catch{
         result=localAnswer(clean,current);
       }
       if(!result || typeof result.reply!=='string')result=localAnswer(clean,current);
-      // A deliberate NavLM abstention has no destination: never invent a link.
+      // Recommendations and NavLM uncertainty deliberately have no destination.
+      const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
-      const safe=uncertain||GUIDE_SECTIONS.includes(result.section)
+      const safe=recommendation||uncertain||GUIDE_SECTIONS.includes(result.section)
         ? result : {...result,...localAnswer(clean,current)};
       progress.textContent=safe.reply.slice(0,850)+
         (safe.steps && (safe.source==='guide'||safe.source==='navlm')?'\n\n'+safe.steps.slice(0,400):'');
-      if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
+      awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
+      if(recommendation)renderToolRecommendations(safe);
+      else if(GUIDE_SECTIONS.includes(safe.section))routeButton(safe.section,safe.title||safe.section);
     }finally{
       pending=false;input.disabled=false;send.disabled=false;
       messages.scrollTop=messages.scrollHeight;
