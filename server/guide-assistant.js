@@ -65,6 +65,8 @@ export async function answerGuide(question,currentSection='overview',{
   const instructions=SYSTEM_GUIDE+'\nVERIFIED CERIUM GUIDE:\n'+staticGuide+
     '\nCurrent section: '+section+'. Suggested navigation: '+(topic.matched?topic.title:'none; ask for clarification')+'.';
   const activeProvider=provider||(apiKey?'openai':'guide');
+  // Marketing has verified local documentation, including when NavLM has no trained marketing label.
+  if(topic.matched&&topic.section==='marketing')return fallback;
   if(activeProvider==='navlm'){
     const match=navigateWithNavLM(question);
     if(!match.matched)return match;
