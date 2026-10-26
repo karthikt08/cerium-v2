@@ -17,7 +17,7 @@ const env={
   RAZORPAY_ANNUAL_IN_PLAN_ID:'plan_yearindia'
 };
 
-test('annual tier prices are exactly ten monthly fees and missing tiers never use another plan',()=>{
+test('annual tier prices are exactly eleven monthly fees and missing tiers never use another plan',()=>{
   const config={
     ...Object.fromEntries([
       ['razorpayPlanId','plan_monthus'],['razorpayAnnualPlanId','plan_yearus'],
@@ -25,10 +25,10 @@ test('annual tier prices are exactly ten monthly fees and missing tiers never us
       ['razorpayAnnualLowPlanId','plan_yearlow'],['razorpayAnnualIndiaPlanId','plan_yearindia']
     ]),razorpayConfigured:true,webhookConfigured:true
   };
-  for(const [country,price,planId] of [['US',200,'plan_yearus'],['BR',160,'plan_yearupper'],
-    ['NG',120,'plan_yearlower'],['UG',80,'plan_yearlow'],['IN',5000,'plan_yearindia']]){
+  for(const [country,price,planId] of [['US',220,'plan_yearus'],['BR',176,'plan_yearupper'],
+    ['NG',132,'plan_yearlower'],['UG',88,'plan_yearlow'],['IN',5500,'plan_yearindia']]){
     const m=billingPlan(country),annual=checkoutPlan(config,country,'annual');
-    assert.equal(annual.minorUnits,m.minorUnits*10,country);
+    assert.equal(annual.minorUnits,m.minorUnits*11,country);
     assert.equal(annual.annualPrice,price,country);
     assert.equal(annual.planId,planId,country);
     assert.equal(annual.configured,true,country);
@@ -45,7 +45,7 @@ test('yearly checkout confirms amount, period and 15-day trial before opening ac
   let scheduled,authorized=false,providerChecks=0;
   const t=await startServer({env,razorpay:{
     getPlan:async id=>{providerChecks++;assert.equal(id,'plan_yearus');
-      return {period:'yearly',interval:1,item:{amount:20000,currency:'USD'}};},
+      return {period:'yearly',interval:1,item:{amount:22000,currency:'USD'}};},
     createSubscription:async params=>{scheduled=params;
       return {id:'sub_annual_us',status:'created',start_at:params.startAt,expire_by:params.expireBy};},
     getSubscription:async()=>({id:'sub_annual_us',status:authorized?'authenticated':'pending',start_at:scheduled.startAt,charge_at:scheduled.startAt}),
@@ -59,13 +59,13 @@ test('yearly checkout confirms amount, period and 15-day trial before opening ac
     await completeBusiness(t,b,'US');
     const before=await (await b.req('/api/billing/status')).json();
     assert.equal(before.annualCheckoutAvailable,true);
-    assert.equal(before.annualPrice,200);
+    assert.equal(before.annualPrice,220);
     const response=await b.req('/api/billing/subscription',{method:'POST',csrf,
       json:{billingCycle:'annual',amount:1,currency:'INR',planId:'plan_tampered'}});
     assert.equal(response.status,200,await response.clone().text());
     const confirmation=await response.json();
     assert.equal(confirmation.billingCycle,'annual');
-    assert.equal(confirmation.amount,20000);assert.equal(confirmation.currency,'USD');
+    assert.equal(confirmation.amount,22000);assert.equal(confirmation.currency,'USD');
     assert.equal(confirmation.trialEligible,true);
     assert.equal(scheduled.planId,'plan_yearus');
     assert.equal(scheduled.totalCount,10);
@@ -80,9 +80,9 @@ test('yearly checkout confirms amount, period and 15-day trial before opening ac
     assert.equal((await b.req('/api/billing/subscription/verify',{method:'POST',csrf,json:verifyData})).status,200);
     const ws=await (await b.req('/api/workspace')).json();
     assert.equal(ws.account.subscription.billingCycle,'annual');
-    assert.equal(ws.account.billingPrice.annualPrice,200);
-    assert.equal(ws.account.billingPrice.monthlyPrice,200/12);
-    assert.equal(subscriptionPrice('US',t.db.getUserSubscription(user.id)).minorUnits,20000);
+    assert.equal(ws.account.billingPrice.annualPrice,220);
+    assert.equal(ws.account.billingPrice.monthlyPrice,220/12);
+    assert.equal(subscriptionPrice('US',t.db.getUserSubscription(user.id)).minorUnits,22000);
   }finally{await t.close();}
 });
 
@@ -93,7 +93,7 @@ test('annual billing fails closed with an unconfigured or mismatched Razorpay pl
     if(mode==='unconfigured')delete e.RAZORPAY_ANNUAL_PLAN_ID;
     const t=await startServer({env:e,razorpay:{
       getPlan:async()=>({period:mode==='wrong_period'?'monthly':'yearly',interval:1,
-        item:{amount:mode==='wrong_amount'?2000:20000,currency:mode==='wrong_currency'?'INR':'USD'}}),
+        item:{amount:mode==='wrong_amount'?2000:22000,currency:mode==='wrong_currency'?'INR':'USD'}}),
       createSubscription:async()=>{created++;return {id:'sub_unexpected'};}
     }});
     try{
