@@ -398,14 +398,63 @@ async function copyReview(id) {
   if(!navigator.clipboard?.writeText)throw new Error('Clipboard access is unavailable. Open Settings to copy your review link.');
   await navigator.clipboard.writeText(text);toast('Request copied. Send it in your email or messaging app.');
 }
-function openNavigation() {
-  $('sidebar').inert=false;$('sidebar').classList.add('is-open');$('nav-backdrop').hidden=false;$('menu-toggle').setAttribute('aria-expanded','true');$('main-frame').inert=true;$('sidebar').querySelector('[aria-current=page]')?.focus();
+// Desktop navigation can collapse completely; the topbar hamburger then
+// remains visible to restore it. Mobile keeps the existing overlay drawer.
+const SIDEBAR_PREFERENCE='cerium:sidebar-collapsed';
+let desktopSidebarCollapsed=false;
+try{desktopSidebarCollapsed=localStorage.getItem(SIDEBAR_PREFERENCE)==='true';}catch{/* Storage may be disabled. */}
+const mobileNavigation=()=>innerWidth<=760;
+function saveSidebarPreference(){
+  try{localStorage.setItem(SIDEBAR_PREFERENCE,String(desktopSidebarCollapsed));}catch{/* Keep the in-page choice. */}
 }
-function closeNavigation() {
-  const open=$('sidebar').classList.contains('is-open');$('sidebar').classList.remove('is-open');$('nav-backdrop').hidden=true;$('main-frame').inert=false;$('menu-toggle').setAttribute('aria-expanded','false');if(open)$('menu-toggle').focus();$('sidebar').inert=innerWidth<=760;
+function syncSidebarLayout(){
+  const mobile=mobileNavigation();
+  const collapsed=!mobile&&desktopSidebarCollapsed;
+  const drawerOpen=mobile&&$('sidebar').classList.contains('is-open');
+  $('workspace').classList.toggle('is-sidebar-collapsed',collapsed);
+  $('sidebar').inert=collapsed||(mobile&&!drawerOpen);
+  $('menu-toggle').setAttribute('aria-expanded',String(drawerOpen));
+  $('menu-toggle').setAttribute('aria-label',mobile?'Open navigation':'Show sidebar');
+  $('sidebar-collapse-toggle').setAttribute('aria-expanded',String(mobile?drawerOpen:!collapsed));
+  $('sidebar-collapse-toggle').setAttribute('aria-label',mobile?'Close navigation':'Hide sidebar');
 }
-$('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
-window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();});
+function openNavigation(){
+  if(!mobileNavigation())return;
+  $('sidebar').inert=false;
+  $('sidebar').classList.add('is-open');
+  $('nav-backdrop').hidden=false;
+  $('main-frame').inert=true;
+  syncSidebarLayout();
+  $('sidebar').querySelector('[aria-current=page]')?.focus();
+}
+function closeNavigation(restoreFocus=true){
+  const open=$('sidebar').classList.contains('is-open');
+  $('sidebar').classList.remove('is-open');
+  $('nav-backdrop').hidden=true;
+  $('main-frame').inert=false;
+  syncSidebarLayout();
+  if(open&&restoreFocus&&mobileNavigation())$('menu-toggle').focus();
+}
+function collapseSidebar(){
+  if(mobileNavigation()){closeNavigation();return;}
+  desktopSidebarCollapsed=true;
+  saveSidebarPreference();
+  syncSidebarLayout();
+  $('menu-toggle').focus();
+}
+function expandSidebar(){
+  desktopSidebarCollapsed=false;
+  saveSidebarPreference();
+  syncSidebarLayout();
+  $('sidebar-collapse-toggle').focus();
+}
+$('menu-toggle').addEventListener('click',()=>mobileNavigation()?openNavigation():expandSidebar());
+$('sidebar-collapse-toggle').addEventListener('click',collapseSidebar);
+$('nav-backdrop').addEventListener('click',()=>closeNavigation());
+window.addEventListener('resize',()=>{
+  if(!mobileNavigation()&&$('sidebar').classList.contains('is-open'))closeNavigation(false);
+  syncSidebarLayout();
+});
 window.addEventListener('hashchange',()=>navigate(routeFromHash(location.hash),true));
 document.addEventListener('cerium:open-invoice',e=>{
   if(!state.ws)return;
@@ -621,4 +670,4 @@ mountGuideAssistant({api:API,getSection:()=>state.section,getBusiness:()=>({
   category:state.ws?.account?.workspacePreferences?.category||'other',
   enabledModules:state.ws?.account?.workspacePreferences?.modules||[]
 })});
-$('sidebar').inert=innerWidth<=760;setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
+syncSidebarLayout();setNavigation();initializeJobsUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeRemindersUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initializeQuotesUI({API,refresh,getWorkspace:()=>state.ws,isReadOnly:readOnly,toast});initialize();
