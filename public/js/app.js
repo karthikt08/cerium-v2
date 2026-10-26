@@ -192,9 +192,9 @@ function settingsPage() {
   const addressLocality=[a.businessProfile?.businessCity,[bpState,a.businessProfile?.businessPostalCode||a.usZip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   const fullAddressLine=[addressLocality,countryLabel].filter(Boolean).join(' · ');
   const regionFields=ind
-    ?'<div class="form-section-title full-width"><h4>Business address & tax details</h4><p>GST state and payment routing displayed on invoices.</p></div>'
+    ?'<div class="form-section-title full-width"><h4>Business address & tax details</h4><p>GSTIN is optional for businesses that are not GST-registered. Unregistered businesses can issue ordinary invoices without GST.</p></div>'
       +field('location','City / service area',a.location,'text',{placeholder:'e.g. Chennai'})
-      +field('indiaState','GST registration state',a.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})
+      +field('indiaState','Business state / UT',a.indiaState||'','text',{choices:[{value:'',label:'Select state / UT'},...INDIA_STATE_OPTIONS]})
       +field('gstin','Business GSTIN (only if registered)',a.gstin||'','text',{max:15,placeholder:'15-character GSTIN'})
       +field('upiVpa','UPI ID for customer invoice payments',a.upiVpa||'','text',{max:194,placeholder:'business@bank'})
       +'<p class="muted full-width">UPI ID is displayed as payment instructions, not a verified collection or bank integration. GST fields are invoice drafts only; IRN/e-invoicing and GST filing are not connected.</p>'
