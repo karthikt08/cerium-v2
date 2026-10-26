@@ -74,7 +74,7 @@
   background:#24325b;box-shadow:0 0 0 2px rgba(48,64,132,.21);
 }
 /* Public landing success/matched chips. No impact on normal hero or pricing card. */
-.pg :is(.c.g,.mc.matched,.msg.ok,.banner){
+.pg :is(.c.g,.mc.matched,.msg.ok,.banner),.pg.home .mc.matched{
   background:var(--cerium-status-night);
   color:var(--cerium-status-night-text);
   border-color:var(--cerium-status-night-border);
