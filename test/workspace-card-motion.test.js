@@ -121,7 +121,8 @@ test('reduced motion and unsupported browsers do not hide cards',()=>{
   const enabled=motionHarness(),c=enabled.makeCard();
   enabled.mutation.changed();enabled.setReduced(true);
   assert.equal(c.classes.has('cerium-card-in'),true,'reduced-motion toggle reveals pending cards');
-  assert.equal(enabled.io,null);
+  assert.equal(enabled.io.disconnected,true,'previous observer is disconnected on reduced motion');
+  assert.equal(enabled.io.observed.size,0,'observer no longer tracks any cards');
 });
 
 test('the dynamic observer excludes modal, print, and table rows',()=>{
