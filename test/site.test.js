@@ -117,7 +117,8 @@ describe('every page works with a strict Content-Security-Policy', () => {
       const external = [...text.matchAll(/https?:\/\/[^'"`\s]+/g)].map(m => m[0]);
       for (const url of external) {
         const allowed = ['https://myaccount.google.com', 'http://localhost', 'https://checkout.razorpay.com/v1/checkout.js'];
-        assert.ok(allowed.some(origin => url.startsWith(origin)), `${path.basename(f)} mentions an unapproved outside address: ${url}`);
+        const invoiceShareDestination = path.basename(f) === 'invoice-sharing.js' && url === 'https://wa.me/?text=';
+        assert.ok(invoiceShareDestination || allowed.some(origin => url.startsWith(origin)), `${path.basename(f)} mentions an unapproved outside address: ${url}`);
         if (url.startsWith('https://checkout.razorpay.com')) {
           assert.equal(path.basename(f), 'billing.js', 'only the checkout integration may reference the provider script');
           assert.equal(url, 'https://checkout.razorpay.com/v1/checkout.js');
