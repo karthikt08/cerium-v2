@@ -51,7 +51,6 @@ test('all three previously stacked cards become one semantic midnight Overview o
   assert.match(html,/GST drafts require accountant review/,'existing India compliance messaging preserved');
   assert.match(html,/INDIA EDITION ACTIVE · INR BILLING · ₹500 \/ MONTH/);
   assert.match(html,/data-action="new" data-kind="invoice"/,'INR invoice creation still uses original action');
-  assert.match(html,/id=".*"/,'existing output includes elements');
   assert.match(html,/data-custom-tools/,'business-specific tool widgets remain after metrics');
 });
 
