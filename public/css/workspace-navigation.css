@@ -143,10 +143,12 @@
   transform:scaleX(1);
 }
 
-/* Standard page headings: Leads, Follow-ups, Invoices, Payments, Reviews,
-   Crew and Insights use plain h1 text; other pages already have .ac + .ul
-   markup and retain that existing underlined brand animation. */
-.app-page .workspace-feature-panel .page-heading:not(.marketing-page-heading) h1:not(:has(.ac)){
+/* Shared page-level titles: Leads, Follow-ups, Invoices, Payments, Reviews,
+   Crew, Insights, Marketing, Settings and Support all receive the same glow.
+   Scope to the authenticated workspace's page headings only. Exclude Jobs,
+   Quotes and Reminders (.ac/.ul), as well as the Overview greeting (which
+   already uses .overview-title-accent), to avoid duplicate decoration. */
+.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)){
   display:table;position:relative;max-width:100%;
   padding-bottom:10px;overflow-wrap:anywhere;
   color:#293b8e;
@@ -155,7 +157,7 @@
   -webkit-text-fill-color:transparent;
   filter:drop-shadow(0 3px 9px rgba(109,75,202,.20));
 }
-.app-page .workspace-feature-panel .page-heading:not(.marketing-page-heading) h1:not(:has(.ac))::after{
+.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after{
   content:"";position:absolute;pointer-events:none;
   left:0;bottom:0;height:3px;width:min(72%,220px);border-radius:10px;
   background:linear-gradient(90deg,#4263eb,#8650d1,#b766cf);
@@ -165,8 +167,8 @@
   filter:drop-shadow(0 4px 14px rgba(111,77,208,.28));
 }
 
-/* Marketing reuses a category-wide h1, so highlight its CURRENT subfeature
-   heading instead. Never add gradient text to the editor or record rows. */
+/* Marketing's selected internal subfeature also keeps a small matching accent.
+   Never apply this to the message editor, data records or arbitrary cards. */
 .app-page .workspace-feature-panel .marketing-feature-header .panel-title h2{
   position:relative;display:inline-block;padding-bottom:9px;
   color:#323d91;
@@ -188,15 +190,15 @@
   }
 }
 @media print{
-  .app-page .workspace-feature-panel :is(
-    .page-heading:not(.marketing-page-heading) h1:not(:has(.ac)),
+  .app-page #page-body :is(
+    .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
     .marketing-feature-header .panel-title h2
   ){
     background:none!important;color:#202635!important;
     -webkit-text-fill-color:currentColor!important;filter:none!important;
   }
-  .app-page .workspace-feature-panel :is(
-    .page-heading:not(.marketing-page-heading) h1:not(:has(.ac)),
+  .app-page #page-body :is(
+    .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
     .marketing-feature-header .panel-title h2
   )::after{display:none!important}
 }
