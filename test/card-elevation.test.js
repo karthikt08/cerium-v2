@@ -37,3 +37,13 @@ test('hover depth is pointer-specific and reduced-motion and print remain plain'
   assert.match(css,/@media print\{[\s\S]*?\.app-page #page-body :is\([\s\S]*?box-shadow:none!important/);
   assert.match(css,/\.app-page #page-body \.workspace-feature-panel\{/,'large workspace canvas uses quieter depth');
 });
+
+test('cards feature tactile boundary creases, darker ink typography, and atmospheric shadow diffusion',()=>{
+  assert.match(css,/inset 0 1px 0 rgba\(255,255,255,\.92\)/,'tactile top-bevel highlight crease');
+  assert.match(css,/inset 0 -1px 0 rgba\(15,23,42,\.02\)/,'crisp inner bottom crease');
+  assert.match(css,/0 0 0 1px rgba\(118,74,211,\.15\)/,'hover focus aura perimeter');
+  const workspace=read('css/workspace.css');
+  assert.match(workspace,/--ink:#0f172a;/,'darker high-contrast primary ink');
+  assert.match(workspace,/--mut:#475569;/,'crisp secondary muted text');
+  assert.match(workspace,/\.board-column\{background:#f5f7fb;border:1px solid #e2e8f0/,'board column boundary crease');
+});

@@ -1,9 +1,9 @@
 /* CERIUM Jobs & Dispatch — premium workspace styling, mobile-friendly. */
 .jobs{min-width:0}.jobs-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:0 0 24px}
-.jobs-stat{background:#fff;border:1px solid #e2e6ee;border-radius:16px;padding:19px;display:grid;gap:6px;box-shadow:0 7px 20px #22345b06}
-.jobs-stat>span{font-size:12px;font-weight:650;color:#738098}.jobs-stat strong{font-size:30px;letter-spacing:-1.3px;color:#182b49;font-family:var(--heading-font,inherit)}
-.jobs-stat small{font-size:12px;color:#7e8a9d}.jobs-panel{overflow:hidden;margin-bottom:23px}
-.jobs-tools{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 24px;border-bottom:1px solid #e5e9f0}
+.jobs-stat{background:#fff;border:1px solid #cbd5e1;border-radius:16px;padding:19px;display:grid;gap:6px;box-shadow:0 7px 20px #22345b06}
+.jobs-stat>span{font-size:12px;font-weight:650;color:#334155}.jobs-stat strong{font-size:30px;letter-spacing:-1.3px;color:#0f172a;font-family:var(--heading-font,inherit)}
+.jobs-stat small{font-size:12px;color:#475569}.jobs-panel{overflow:hidden;margin-bottom:23px}
+.jobs-tools{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 24px;border-bottom:1px solid #e2e8f0}
 .jobs-tools h2,.jobs-section-head h2{font-size:17px;letter-spacing:-.4px;font-weight:750;margin:0}.jobs-tools p{font-size:12px;color:#758198;margin-top:3px}
 .jobs-tools-actions{display:flex;align-items:center;gap:6px}.jobs-tools-actions select{background:white;border:1px solid #dce3ed;border-radius:9px;min-height:36px;padding:0 9px;font-size:12px;margin-right:7px}
 .jobs-tools-actions button{min-width:36px;min-height:36px;padding:0 10px;font-size:12px}

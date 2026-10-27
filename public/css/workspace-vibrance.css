@@ -75,7 +75,7 @@
 }
 .app-page .breadcrumb strong{color:#504b74;font-weight:650}
 .app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#7565a2}
-.app-page .page-heading h1{color:#292b43}
+.app-page .page-heading h1{color:#0f172a}
 
 /* A visible but contained brand halo on the Overview, not a full color wash. */
 .app-page .overview-stage{
@@ -97,7 +97,7 @@
   background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);
   filter:drop-shadow(0 5px 12px rgba(124,58,237,.12));
 }
-.app-page .overview-stage .page-description{color:#66667d}
+.app-page .overview-stage .page-description{color:#334155}
 .app-page .overview-shortcut{
   background:rgba(255,255,255,.88);
   border-color:#ded6f0;color:#5b5090;
@@ -112,7 +112,7 @@
 
 /* Dashboard: brighten actual card bodies and accents, not the data tables. */
 .app-page .metrics-grid .metric{
-  border-color:#dcd3ed;
+  border-color:#cbd5e1;
   background:linear-gradient(135deg,#fff 43%,#f8f5ff 100%);
   box-shadow:inset 0 1px 0 #fff,0 12px 28px -24px rgba(116,52,223,.18);
 }
@@ -123,14 +123,14 @@
 .app-page .metrics-grid .metric.warning::before{
   background:linear-gradient(90deg,#e2a04f,#c66cd6);
 }
-.app-page .metric-top{color:#6b6d82}
+.app-page .metric-top{color:#334155;font-weight:650}
 .app-page .metrics-grid .metric .metric-top .icon{color:#6e50bd}
-.app-page .metrics-grid .metric .metric-value{color:#2d304b;font-weight:700}
+.app-page .metrics-grid .metric .metric-value{color:#0f172a;font-weight:700}
 .app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
-.app-page .metric-foot{color:#77798d}
+.app-page .metric-foot{color:#334155;font-weight:550}
 .app-page .metric-foot .dot{background:#9473d4}
 .app-page .dashboard-grid>.panel{
-  border-color:#ded5ed;
+  border-color:#cbd5e1;
   background:linear-gradient(160deg,#fff 0%,#fbf9ff 100%);
   box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.11);
 }
@@ -155,13 +155,13 @@
   .jobs-stats>.jobs-stat,.jobs-panel,.jobs-bottom>.panel,
   .board-column>.lead-card,.reminders-stats>div,.reminders-columns>.panel,
   .settings-grid .panel){
-  border-color:#e0d9ed;
+  border-color:#cbd5e1;
   background:linear-gradient(139deg,#fff 52%,#faf8ff 100%);
   box-shadow:0 9px 24px -24px rgba(111,55,219,.13);
 }
 .app-page :is(.quotes-summary strong,.jobs-stats .jobs-stat strong,
   .reminders-stats>div strong){
-  color:#32344f;
+  color:#0f172a;
 }
 .app-page .quotes-progress>span{
   border-color:#e0dbeb;
@@ -197,15 +197,20 @@
    large feature canvas look like another floating dashboard card. */
 .app-page{
   --cerium-card-shadow:
-    inset 0 1px 0 rgba(255,255,255,.78),
-    0 2px 5px -3px rgba(24,36,76,.15),
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(15,23,42,.02),
+    0 1px 3px -1px rgba(15,23,42,.08),
     0 15px 31px -17px rgba(42,61,111,.28),
-    0 28px 51px -36px rgba(102,81,176,.22);
+    0 28px 51px -36px rgba(102,81,176,.22),
+    0 0 0 1px rgba(99,102,241,.03);
   --cerium-card-shadow-hover:
-    inset 0 1px 0 rgba(255,255,255,.88),
-    0 4px 11px -6px rgba(26,40,81,.18),
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgba(15,23,42,.04),
+    0 3px 8px -2px rgba(15,23,42,.12),
+    0 12px 28px -10px rgba(32,45,85,.20),
     0 21px 40px -18px rgba(44,62,123,.29),
-    0 34px 55px -35px rgba(103,75,178,.25);
+    0 34px 55px -35px rgba(103,75,178,.25),
+    0 0 0 1px rgba(118,74,211,.15);
 }
 .app-page #page-body :is(
   .metric,.panel,.quote-card,.jobs-stat,.jobs-panel,.lead-card,.marketing-stat
@@ -216,6 +221,8 @@
 /* Larger work area gets a softer shadow than the individual cards inside it. */
 .app-page #page-body .workspace-feature-panel{
   box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 1px 3px rgba(15,23,42,.04),
     0 4px 13px -10px rgba(33,48,92,.17),
     0 22px 44px -32px rgba(85,72,148,.23);
 }
