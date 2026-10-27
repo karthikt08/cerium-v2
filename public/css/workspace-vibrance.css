@@ -56,7 +56,7 @@
   box-shadow:0 0 10px rgba(124,58,237,.31);
   width:3px;
 }
-.app-page .nav-count{background:#eeebf8;color:#605392}
+.app-page .nav-count{display:none!important}
 .app-page .sidebar-bottom{border-top-color:#e6e3ed}
 .app-page .plan-dot{background:#3b5bff}
 .app-page .user-avatar{

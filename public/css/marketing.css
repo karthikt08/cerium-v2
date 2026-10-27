@@ -62,7 +62,7 @@
 .marketing-feature-header{min-height:96px;gap:20px;align-items:center;padding:23px 26px;border-bottom:1px solid #e8ebf2}
 .marketing-feature-header>div:first-child{flex:1 1 360px;min-width:0}
 .marketing-feature-header .panel-title{display:flex;align-items:center;gap:9px;min-width:0}
-.marketing-feature-header .panel-title .icon{flex:none}
+.marketing-feature-header .panel-title .icon{width:16px;height:16px;flex-shrink:0;color:#765ba8}
 .marketing-feature-header .panel-title h2{font-size:15px;font-weight:600;color:#30394e}
 .marketing-feature-header .panel-subtitle{font-size:11px;line-height:1.55;max-width:600px}
 .marketing-panel-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end;flex:0 1 auto;max-width:100%;min-width:0}

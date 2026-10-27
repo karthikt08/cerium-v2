@@ -82,3 +82,34 @@ test('assistant does not advertise unsupported partial payments or undo matching
   const undo=await answerGuide('How do I undo match?','payments',{provider:'guide'});
   assert.match(undo.reply,/no Undo match control/i);
 });
+
+test('2-tier tabbed layout provides feature tabs and subfeatures under active feature matching wireframe',()=>{
+  const leadsRoute=resolveWorkspaceRoute('#customers/leads');
+  const html=renderFeatureWorkspace(leadsRoute,['leads','followups','quotes'],'<div>Leads Content</div>');
+  
+  // Tier 1: Feature Tabs sitting above the container (Leads | Follow-ups | Estimates & Quotes)
+  assert.match(html,/class="workspace-category-heading"/);
+  assert.match(html,/class="workspace-feature-tabs" role="tablist"/);
+  assert.match(html,/id="workspace-tab-leads"[^>]*aria-selected="true"/);
+  assert.match(html,/id="workspace-tab-followups"[^>]*aria-selected="false"/);
+  assert.match(html,/id="workspace-tab-quotes"[^>]*aria-selected="false"/);
+  
+  // Tier 2: Subfeature Bar nested inside top of container under active feature
+  assert.match(html,/class="workspace-subfeature-strip"/);
+  assert.match(html,/class="workspace-subfeature-bar"/);
+  assert.match(html,/data-subfeature="list"[^>]*aria-pressed="true"[^>]*>[\s\S]*?All Leads/);
+  assert.match(html,/data-subfeature="board"[^>]*>[\s\S]*?Pipeline Board/);
+  assert.match(html,/data-subfeature="active"[^>]*>[\s\S]*?Active Leads/);
+  
+  // Tier 3: Main content panel
+  assert.match(html,/id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel"/);
+  assert.ok(html.includes('Leads Content'));
+
+  // Switching feature route to Billing
+  const invoicesRoute=resolveWorkspaceRoute('#billing/invoices');
+  const billingHtml=renderFeatureWorkspace(invoicesRoute,['invoices','payments','reminders','bank'],'<div>Invoices Content</div>');
+  assert.match(billingHtml,/id="workspace-tab-invoices"[^>]*aria-selected="true"/);
+  assert.match(billingHtml,/data-subfeature="All"[^>]*>[\s\S]*?All Invoices/);
+  assert.match(billingHtml,/data-subfeature="Sent"[^>]*>[\s\S]*?Unpaid &amp; Due/);
+  assert.match(billingHtml,/data-subfeature="Paid"[^>]*>[\s\S]*?Paid Invoices/);
+});

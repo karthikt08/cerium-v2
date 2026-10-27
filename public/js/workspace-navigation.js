@@ -2,6 +2,140 @@ import {WORKSPACE_CATEGORIES,WORKSPACE_UTILITIES,categoryFeatures,categoryDestin
 import {escapeHTML as esc} from './workspace-model.js';
 import {featureRecordCount} from './workspace-counts.js';
 const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"></use></svg>';
+
+export const FEATURE_SUBFEATURES = Object.freeze({
+  leads: Object.freeze([
+    { id: 'list', label: 'All Leads' },
+    { id: 'board', label: 'Pipeline Board' },
+    { id: 'active', label: 'Active Leads' }
+  ]),
+  followups: Object.freeze([
+    { id: 'Due', label: 'Due Today' },
+    { id: 'Upcoming', label: 'Upcoming' },
+    { id: 'Done', label: 'Completed' },
+    { id: 'All', label: 'All Tasks' }
+  ]),
+  quotes: Object.freeze([
+    { id: 'all', label: 'All Estimates' },
+    { id: 'sent', label: 'Awaiting Decision' },
+    { id: 'accepted', label: 'Ready to Schedule' }
+  ]),
+  schedule: Object.freeze([
+    { id: 'calendar', label: 'Weekly Calendar' },
+    { id: 'all', label: 'All Scheduled' },
+    { id: 'active', label: 'Active Work' }
+  ]),
+  dispatch: Object.freeze([
+    { id: 'all', label: 'All Scheduled' },
+    { id: 'active', label: 'Active Jobs' },
+    { id: 'unassigned', label: 'Unassigned Work' }
+  ]),
+  'crew-assignments': Object.freeze([
+    { id: 'crew', label: 'Crew Workload' },
+    { id: 'unassigned', label: 'Unassigned Work' }
+  ]),
+  invoices: Object.freeze([
+    { id: 'All', label: 'All Invoices' },
+    { id: 'Sent', label: 'Unpaid & Due' },
+    { id: 'Paid', label: 'Paid Invoices' },
+    { id: 'Draft', label: 'Drafts' }
+  ]),
+  payments: Object.freeze([
+    { id: 'paid', label: 'Recorded Payments' },
+    { id: 'bank', label: 'Bank Matching' }
+  ]),
+  reminders: Object.freeze([
+    { id: 'rules', label: 'Automation Rules' },
+    { id: 'templates', label: 'Message Templates' }
+  ]),
+  bank: Object.freeze([
+    { id: 'unmatched', label: 'Unmatched Deposits' },
+    { id: 'matched', label: 'Matched Records' }
+  ]),
+  visibility: Object.freeze([
+    { id: 'profile', label: 'Google Profile' },
+    { id: 'seo', label: 'Search Visibility' },
+    { id: 'reviews', label: 'Customer Reviews' }
+  ]),
+  reengage: Object.freeze([
+    { id: 'campaign', label: 'Campaigns' },
+    { id: 'history', label: 'Past Customers' }
+  ]),
+  reviews: Object.freeze([
+    { id: 'All', label: 'All Requests' },
+    { id: 'Sent', label: 'Awaiting Review' },
+    { id: 'Reviewed', label: 'Received Reviews' }
+  ]),
+  performance: Object.freeze([
+    { id: 'summary', label: 'Performance Summary' },
+    { id: 'sources', label: 'Lead Sources' }
+  ]),
+  crew: Object.freeze([
+    { id: 'active', label: 'Active Crew' },
+    { id: 'all', label: 'All Members' }
+  ]),
+  assignments: Object.freeze([
+    { id: 'assigned', label: 'Scheduled Work' },
+    { id: 'unassigned', label: 'Unassigned Work' }
+  ]),
+  business: Object.freeze([
+    { id: 'summary', label: 'Executive Summary' },
+    { id: 'operations', label: 'Operations Summary' }
+  ]),
+  sales: Object.freeze([
+    { id: 'pipeline', label: 'Sales Pipeline' },
+    { id: 'conversion', label: 'Booking Share' }
+  ]),
+  revenue: Object.freeze([
+    { id: 'paid', label: 'Paid Revenue' },
+    { id: 'outstanding', label: 'Outstanding Invoices' }
+  ])
+});
+
+function getSubfeatureCount(routeId, subId, ws){
+  if(!ws) return null;
+  if(routeId === 'leads'){
+    if(subId === 'list' || subId === 'board') return ws.leads?.length ?? null;
+    if(subId === 'active') return ws.leads?.filter(l => l.stage !== 'Done').length ?? null;
+  }
+  if(routeId === 'followups'){
+    const today = new Date().toISOString().slice(0, 10);
+    if(subId === 'Due') return ws.followUps?.filter(f => !f.done && (f.dueDate || '') <= today).length ?? null;
+    if(subId === 'Upcoming') return ws.followUps?.filter(f => !f.done && (f.dueDate || '') > today).length ?? null;
+    if(subId === 'Done') return ws.followUps?.filter(f => f.done).length ?? null;
+    if(subId === 'All') return ws.followUps?.length ?? null;
+  }
+  if(routeId === 'invoices'){
+    if(subId === 'All') return ws.invoices?.length ?? null;
+    if(subId === 'Sent') return ws.invoices?.filter(i => ['Sent','Overdue'].includes(i.status)).length ?? null;
+    if(subId === 'Paid') return ws.invoices?.filter(i => i.status === 'Paid').length ?? null;
+    if(subId === 'Draft') return ws.invoices?.filter(i => i.status === 'Draft').length ?? null;
+  }
+  if(routeId === 'quotes'){
+    if(subId === 'all') return ws.quotes?.length ?? null;
+    if(subId === 'sent') return ws.quotes?.filter(q => q.status === 'Sent').length ?? null;
+    if(subId === 'accepted') return ws.quotes?.filter(q => q.status === 'Accepted').length ?? null;
+  }
+  return null;
+}
+
+export function renderSubfeaturesBar(route, ws, currentSubfeature=''){
+  const subs = FEATURE_SUBFEATURES[route?.id];
+  if(!subs?.length) return '';
+  return `<div class="workspace-subfeature-strip" role="toolbar" aria-label="${esc(route.label)} subfeatures">
+    <div class="workspace-subfeature-bar">
+      ${subs.map((s, idx) => {
+        const isActive = currentSubfeature ? s.id === currentSubfeature : idx === 0;
+        const count = getSubfeatureCount(route.id, s.id, ws);
+        return `<button type="button" class="workspace-subfeature-tab${isActive ? ' active' : ''}" data-subfeature="${s.id}" data-kind="${route.id}" aria-pressed="${isActive ? 'true' : 'false'}">
+          <span class="workspace-subfeature-label">${esc(s.label)}</span>
+          ${count !== null && count !== undefined ? `<span class="workspace-subfeature-count">${count}</span>` : ''}
+        </button>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
 export function renderCategoryNavigation(){
   return WORKSPACE_CATEGORIES.map(c=>`<a class="nav-link" href="#${c.id}" data-category="${c.id}" aria-label="${esc(c.label)}" title="${esc(c.label)}">${icon(c.icon)}<span>${esc(c.label)}</span><span class="nav-count" data-category-count="${c.id}" hidden></span></a>`).join('');
 }
@@ -21,7 +155,7 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
       badge.hidden=!recordCount?.count;
       badge.textContent=recordCount?.count?String(recordCount.count):'';
       badge.title=recordCount?.label||'';
-      badge.setAttribute('aria-hidden','true'); // Included in the link's descriptive name.
+      badge.setAttribute('aria-hidden','true');
     }
     const categoryLabel=WORKSPACE_CATEGORIES.find(c=>c.id===category)?.label||category;
     const details=recordCount?.count?' · '+recordCount.label+' in '+destination.label:'';
@@ -29,7 +163,7 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
     link.title=categoryLabel+details;
   }
 }
-export function renderFeatureWorkspace(route,modules,content,workspace){
+export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=''){
   if(!route.category||route.category==='overview')return content;
   const tabs=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
@@ -40,7 +174,10 @@ export function renderFeatureWorkspace(route,modules,content,workspace){
       ${tabs.map(f=>`<a role="tab" id="workspace-tab-${f.id}" class="workspace-feature-tab" href="${f.href}" data-feature="${f.id}" data-nav="${f.href.slice(1)}" aria-selected="${f.id===route.id}" aria-controls="workspace-feature-panel" tabindex="${f.id===route.id?'0':'-1'}" aria-label="${esc(f.label)}${featureRecordCount(f,workspace)?.count?' · '+esc(featureRecordCount(f,workspace).label):''}"><span class="workspace-feature-label">${esc(f.label)}</span>${featureRecordCount(f,workspace)?.count?'<span class="workspace-feature-count" aria-hidden="true">'+featureRecordCount(f,workspace).count+'</span>':''}</a>`).join('')}
     </div></div>
     <section id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel" aria-labelledby="workspace-tab-${route.id}" tabindex="0">
-      ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
+      ${renderSubfeaturesBar(route,workspace,currentSubfeature)}
+      <div class="workspace-feature-content">
+        ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
+      </div>
     </section></section>`;
 }
 export function featureTitle(route){return workspacePathLabel(route);}

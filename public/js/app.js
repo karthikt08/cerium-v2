@@ -334,6 +334,14 @@ function renderPage() {
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
   $('page-body').innerHTML=renderFeatureWorkspace(state.route,state.ws.account.workspacePreferences?.modules,content,state.ws);
+  const activeSub = s==='leads'?(state.view==='board'?'board':(state.filters.leads?.status==='New'?'active':'list')):(s==='followups'?(state.filters.followups?.status||'Due'):(s==='invoices'?(state.filters.invoices?.status||'All'):(s==='reviews'?(state.filters.reviews?.status||'All'):'')));
+  if(activeSub){
+    $('page-body').querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+      const on=b.dataset.subfeature===activeSub;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-pressed',String(on));
+    });
+  }
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
@@ -525,6 +533,36 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{
   const category=e.target.closest('[data-category]'),nav=e.target.closest('[data-nav]');
   if(category||nav){if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go(category?categoryDestination(category.dataset.category,state.ws?.account.workspacePreferences?.modules,lastUsedTabs).href:nav.getAttribute('href'),Boolean(nav?.dataset.feature));return;}
+  const subTab=e.target.closest('.workspace-subfeature-tab');
+  if(subTab){
+    const {subfeature,kind}=subTab.dataset;
+    if(kind==='leads'){
+      if(subfeature==='list'){state.view='list';(state.filters.leads||={}).status='All';}
+      else if(subfeature==='board'){state.view='board';}
+      else if(subfeature==='active'){state.view='list';(state.filters.leads||={}).status='New';}
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));
+      renderResults();
+      return;
+    }
+    if(['followups','invoices','reviews'].includes(kind)){
+      state.filters[kind]||=initialFilters(kind);
+      state.filters[kind].status=subfeature;
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const sel=$('results')?.closest('.panel')?.querySelector('select[data-filter="status"]');
+      if(sel)sel.value=subfeature;
+      renderResults();
+      return;
+    }
+  }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
@@ -541,7 +579,17 @@ document.addEventListener('click',e=>{
     return;
   }
   if(action==='new'||action==='edit'){openRecord(kind,action==='edit'?id:null);return;}
-  if(action==='lead-view'){state.view=el.dataset.view;document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));renderResults();return;}
+  if(action==='lead-view'){
+    state.view=el.dataset.view;
+    document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));
+    document.querySelectorAll('.workspace-subfeature-bar [data-subfeature]').forEach(b=>{
+      const on=b.dataset.subfeature===state.view;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-pressed',String(on));
+    });
+    renderResults();
+    return;
+  }
   if(action==='preview-invoice'){previewInvoice(id);return;}
   if(action==='business-setup'){perform('business-setup',el,async()=>showLocalBusinessSetup(await API.getBusinessSetup(),true));return;}
   if(action==='print-invoice'){

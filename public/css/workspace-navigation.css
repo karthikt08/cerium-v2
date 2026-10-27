@@ -4,6 +4,7 @@
 .app-page .page-width{max-width:1480px;padding:36px 32px 100px;container:workspace-content / inline-size}
 .app-page .content-scroll{scroll-padding-block:24px 96px}
 .app-page .sidebar .nav-list{gap:6px}
+.app-page .sidebar .nav-count{display:none!important}
 .app-page .sidebar .nav-link{min-height:48px;padding-block:13px}
 .app-page .workspace.sidebar-collapsed .sidebar .nav-link{min-height:46px;padding:11px 0}
 .app-page #page-body .page-heading{flex-wrap:wrap;gap:20px 28px;margin-bottom:32px}
@@ -160,8 +161,8 @@
 }
 .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after{
   content:"";position:absolute;pointer-events:none;
-  left:0;bottom:-4px;height:12px;width:min(100%,220px);
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%233b5bff'/%3E%3Cstop offset='.55' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
+  left:0;bottom:-4px;height:12px;width:100%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%233b5bff'/%3E%3Cstop offset='.55' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
   filter:drop-shadow(0 3px 8px rgba(124,58,237,.32));
   clip-path:inset(0 0 0 0);
   animation:ac-ul-in 1.1s .25s cubic-bezier(.6,0,.2,1) both;
@@ -173,7 +174,7 @@
 /* Marketing's selected internal subfeature also keeps a small matching accent.
    Never apply this to the message editor, data records or arbitrary cards. */
 .app-page .workspace-feature-panel .marketing-feature-header .panel-title h2{
-  position:relative;display:inline-block;padding-bottom:9px;
+  position:relative;display:inline-block;padding-bottom:4px;
   color:#323d91;
   background:linear-gradient(98deg,#293f97,#6442ac 60%,#874d91);
   -webkit-background-clip:text;background-clip:text;
@@ -182,8 +183,8 @@
 }
 .app-page .workspace-feature-panel .marketing-feature-header .panel-title h2::after{
   content:"";position:absolute;pointer-events:none;
-  bottom:-3px;left:0;width:min(100%,150px);height:10px;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%233b5bff'/%3E%3Cstop offset='.55' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
+  bottom:-4px;left:0;width:100%;height:10px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%233b5bff'/%3E%3Cstop offset='.55' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
   filter:drop-shadow(0 2px 7px rgba(124,58,237,.28));
   clip-path:inset(0 0 0 0);
   animation:ac-ul-in 1.1s .25s cubic-bezier(.6,0,.2,1) both;
