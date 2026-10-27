@@ -7,17 +7,17 @@ const css=read('css/status-pricing-night.css');
 const pages=['app.html','verify.html','welcome.html','index.html','pricing.html',
   'login.html','signup.html','forgot-password.html','reset-password.html','waitlist.html'];
 
-test('pricing-night palette is loaded after page styles but does not darken page shells',()=>{
+test('status palette precedes the workspace theme and leaves public page shells alone',()=>{
   for(const page of pages){
     const html=read(page);
     const links=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(m=>m[1]);
     assert.equal(links.filter(x=>x==='css/status-pricing-night.css').length,1,page);
     if(page==='app.html'){
-      assert.deepEqual(links.slice(-5),['css/status-pricing-night.css','css/ui-consistency.css','css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/typography.css'],page);
+      assert.deepEqual(links.slice(-6),['css/status-pricing-night.css','css/ui-consistency.css','css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/workspace-midnight.css','css/typography.css'],page);
     }else assert.deepEqual(links.slice(-3),['css/status-pricing-night.css','css/ui-consistency.css','css/typography.css'],page);
   }
   assert.doesNotMatch(read('app.html'),/workspace-pricing-dark\.css/);
-  assert.match(read('css/workspace-vibrance.css'),/background:#f6f7fc/,'workspace stays light');
+  assert.match(read('css/workspace-vibrance.css'),/background:#f6f7fc/,'light foundation is preserved beneath the final theme');
   assert.match(read('index.html'),/\.en\{[^}]*background:#0c1729/,'pricing reference remains dark');
   assert.doesNotMatch(css,/\.app-page\s*\{\s*(?:background|color)/,'never darken the entire app');
   assert.doesNotMatch(css,/\.app-page \.main-frame\s*\{/, 'never change the workspace canvas');

@@ -1,0 +1,320 @@
+/* Midnight workspace, drawn from the Overview's navy / charcoal / plum palette.
+   This final paint layer leaves geometry, document printing and public pages
+   in their existing styles. Native controls participate in the dark scheme. */
+@media screen {
+  .app-page {
+    color-scheme:dark;
+    --night-canvas:#10131a;
+    --night-surface:#171f2f;
+    --night-raised:#202a40;
+    --night-hover:#293650;
+    --night-input:#111a2a;
+    --night-line:#394761;
+    --night-control-border:#647494;
+    --night-text:#f4f5ff;
+    --night-secondary:#d0d8eb;
+    --night-muted:#b3bfd6;
+    --night-accent:#c1b8ff;
+    --night-focus:#b5c4ff;
+    --ink:var(--night-text);
+    --mut:var(--night-muted);
+    --line:var(--night-line);
+    --border:var(--night-line);
+    --surface:var(--night-surface);
+    --accent:var(--night-accent);
+    --accent-soft:#2c2b4b;
+    --ac:var(--night-accent);
+    --cerium-ui-ink:var(--night-text);
+    --cerium-ui-muted:var(--night-muted);
+    --cerium-ui-border:var(--night-control-border);
+    --cerium-ui-border-hover:#9baed5;
+    --cerium-ui-subtle:var(--night-hover);
+    --cerium-ui-primary:#315cca;
+    --cerium-ui-primary-hover:#3d69d8;
+    --cerium-ui-focus:var(--night-focus);
+    --cerium-action-blue-hover:#3d69d8;
+    background:var(--night-canvas);
+    color:var(--night-text);
+  }
+
+  /* Navigation and the continuous work surface. */
+  .app-page .main-frame {
+    background:radial-gradient(ellipse 65% 48% at 0% 0%,#222f504f,transparent 80%),
+      radial-gradient(ellipse 48% 60% at 100% 100%,#492e3b30,transparent 80%),#10131a;
+  }
+  .app-page .sidebar {
+    background:linear-gradient(165deg,#1b2642 0%,#141c2d 58%,#191a29 100%);
+    border-color:var(--night-line);
+  }
+  .app-page .main-frame>.topbar {background:#131b2beF;border-color:var(--night-line);box-shadow:0 5px 20px #080b121f}
+  .app-page :is(.brand,.workspace-label strong,.breadcrumb strong){color:var(--night-text)}
+  .app-page .brand-period{color:#b4a1ff}
+  .app-page .topbar .sync-label{color:var(--night-muted)}
+  .app-page :is(.workspace-label small,.nav-label,.plan-link,.signout,.breadcrumb,.sync-label){color:var(--night-muted)}
+  .app-page[data-edition="in"] .workspace-label small{color:var(--night-muted)}
+  .app-page :is(.workspace-monogram,.user-avatar,.edition-chip){background:#272f4d;color:#dbd6ff;border-color:#66709a;box-shadow:none}
+  .app-page .user-avatar{border-color:#222c43;box-shadow:0 0 0 1px #66709a}
+  .app-page .sidebar .nav-link{color:var(--night-secondary)}
+  .app-page .sidebar .nav-link:hover:not([aria-current="page"]){background:#29324b;color:#fff}
+  .app-page .sidebar .nav-link[aria-current="page"]{background:linear-gradient(100deg,#34375f,#2a2948);color:#e2dcff;box-shadow:inset 0 0 0 1px #5b5981}
+  .app-page :is(.nav-count,.panel-count){background:#343853;color:#e0dcff;border-color:#5d6687}
+  .app-page :is(.sidebar-bottom,.workspace.sidebar-collapsed nav[aria-label="Workspace settings"]){border-color:var(--night-line)}
+  .app-page .sidebar-collapse-toggle{background:#242d45;border-color:#687396;color:#d5d1ff}
+  .app-page .sidebar-collapse-toggle:hover{background:#343e5b;border-color:#9aa6cc;color:#fff}
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle{background:#242d45}
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle:is(:hover,:focus-visible){background:#343e5b;color:#fff}
+  .app-page .workspace.sidebar-collapsed .signout:hover{background:#29324b;color:#fff}
+  .app-page .plan-dot{background:#b0b7ff;box-shadow:0 0 0 2px #b0b7ff26}
+  .app-page .nav-backdrop:not([hidden]){background:#060a16a6}
+
+  /* Shared tabs and cards. The Overview's reference gradient remains intact. */
+  .app-page .workspace-category-heading .eyebrow{color:var(--night-muted)}
+  .app-page .workspace-feature-tab{background:#212b41;border-color:#53617e;color:#c8d2e7}
+  .app-page .workspace-feature-tab:hover{background:#2c3853;color:#fff}
+  .app-page .workspace-feature-tab[aria-selected="true"]{background:var(--night-surface);color:#e1dbff;box-shadow:inset 0 3px #a99aff}
+  .app-page .workspace-feature-panel{background:var(--night-surface);border-color:#53617e}
+  .app-page :is(.panel,.metrics-grid .metric,.jobs-stat,.jobs-panel,.quote-card,
+    .quotes-summary>div,.reminders-stats>div,.report-stat,.marketing-stat) {
+    background:linear-gradient(135deg,#1c273c,#191f2e 75%,#201e2f);
+    border-color:var(--night-line);
+    box-shadow:0 8px 24px -18px #0008,inset 0 1px 0 #ffffff04;
+  }
+  .app-page :is(.dashboard-grid>.panel,.jobs-bottom>.panel,.reminders-columns>.panel,.settings-grid .panel,
+    .quote-cards>.quote-card,.jobs-stats>.jobs-stat){background:linear-gradient(135deg,#1c273c,#191f2e 75%,#201e2f);border-color:var(--night-line)}
+  .app-page :is(.panel-header,.panel-footer,.toolbar,.result-footer,.task-row,.message-row,
+    .operation-job,.crew-directory-row,.jobs-tools,.jobs-section-head,.jobs-upcoming-row,
+    .jobs-crew-person,.jobs-crew-item,.reminders-heading,.reminder-row){border-color:var(--night-line)}
+  .app-page :is(.empty-state .empty-icon,.mini-avatar,.mini-avatar.lavender,.jobs-crew-avatar,
+    .jobs-upcoming-date,.marketing-customer-monogram,.marketing-empty-mark){background:#2a3450;color:#c8c2ff;border-color:#53617e}
+  .app-page :is(.notice,.marketing-empty,.marketing-relationship-summary,.quotes-convert-summary,
+    .invoice-billing-section,.job-billing-row,.jobs-billing-total,.ws-config-data-note) {
+    background:#202b43;color:var(--night-secondary);border-color:#52617f;
+  }
+  .app-page :is(.notice strong,.marketing-callout strong,.marketing-source strong){color:var(--night-text)}
+
+  /* Headings, values, labels and supporting copy share a readable hierarchy. */
+  .app-page :is(.page-heading h1,h2,h3,.row-title,.data-table .person,.amount,
+    .quote-card h3,.quote-card-bottom strong,.quotes-summary strong,.jobs-stats .jobs-stat strong,
+    .reminders-stats>div strong,.marketing-stat>strong,.marketing-relationship-summary strong,
+    .jobs-tools h2,.jobs-section-head h2,.marketing-feature-header .panel-title h2,
+    .marketing-composer-title h3,.marketing-next-moves h3,.marketing-list-heading h3,
+    .marketing-priority strong,.marketing-customer strong,.quotes-total-label strong,
+    .jobs-billing-header strong,.invoice-billing-section h3,.ws-launch-copy h2,.ws-config-hero h2){color:var(--night-text)}
+  .app-page .metrics-grid .metric .metric-value{color:var(--night-text)}
+  .app-page .metrics-grid .metric :is(.metric-top,.metric-foot){color:var(--night-muted)}
+  .app-page .metrics-grid .metric .metric-top .icon{color:#c4b8ff}
+  .app-page .dashboard-grid .task-row{border-bottom-color:var(--night-line)}
+  .app-page .stage-item{color:var(--night-muted)}
+  .app-page .stage-item strong{color:var(--night-text)}
+  .app-page .pipeline-strip{border-color:var(--night-line)}
+  .app-page .marketing-empty-action strong{color:var(--night-text)}
+  .app-page .metrics-grid .metric.warning .metric-value{color:#f5cf99}
+  .app-page :is(.eyebrow,.panel-subtitle,.row-meta,.page-description,.metric-top,.metric-foot,
+    .result-footer,.panel-footer,.empty-state,.empty-state p,.empty-state h3,.field small,
+    .data-table td,.data-table .subline,.report-stat>span,.report-stat>small,.operation-job span,
+    .operation-job small,.crew-directory-row span,.crew-directory-row small,.board-title,
+    .quote-number,.quote-short-id,.quote-card p,.quote-card-bottom>span,.quotes-summary span,
+    .quotes-empty p,.quotes-subtle,.quotes-convert-summary span,.quote-complete-label,
+    .quotes-modal-head p:not(.eyebrow),.quotes-items-head p,.quotes-total-label,
+    .jobs-stat>span,.jobs-stat small,.jobs-tools p,.jobs-section-head span,.jobs-upcoming-info span,
+    .jobs-upcoming-info small,.jobs-crew-person small,.jobs-crew-person span:not(.jobs-crew-avatar),
+    .jobs-crew-item small,.jobs-empty,.job-day-top>span,.job-day-empty,.jobs-modal-header p,
+    .jobs-billing-header span,.jobs-billing>.muted,.invoice-billing-section>.muted,
+    .reminders-heading p,.reminders-stats span,.reminders-info,.reminder-row span,.reminder-row small,
+    .marketing-feature-header .panel-subtitle,.marketing-composer-title p,.marketing-priority p,
+    .marketing-priority-index,.marketing-aside-foot,.marketing-fineprint,.marketing-stat>span,
+    .marketing-stat>small,.marketing-relationship-summary small,.marketing-relationship-summary>p,
+    .marketing-list-heading>span,.marketing-customer small,.marketing-source>div:first-child,
+    .marketing-callout p,.dialog-description,.workspace-config-dialog .ws-pick-copy small,
+    .ws-config-heading>p:last-child,.ws-launch-copy p:last-child,.workspace-config-dialog .ws-included-tools p,
+    .workspace-config-dialog .ws-module-fieldset legend span,.ws-module-group h4){color:var(--night-muted)}
+  .app-page .quote-next-step{color:var(--night-muted)!important;border-color:var(--night-line)}
+  .app-page :is(.field,.check-field,.quotes-form-grid label,.quote-item label,.quotes-share-label,
+    .jobs-modal-body label,.invoice-billing-row label,.reminders-form>label,.reminders-check,
+    .marketing-fields .field,.marketing-message-label,.workspace-config-dialog .ws-custom-field,
+    .workspace-customizer .ws-custom-field,.workspace-config-dialog .ws-module-fieldset legend,
+    .ws-recommend-title){color:var(--night-secondary)}
+  .app-page .ac{background-image:linear-gradient(100deg,#a9b9ff,#c3aafa 52%,#e0addf)}
+  .app-page :is(.text-button,.support-email,.marketing-link,.hidden-tool-notice a){color:#c6bcff}
+  .app-page :is(.text-button,.marketing-link):hover{color:#ece8ff}
+  .app-page .text-button{background:#b3a4ff16}
+  .app-page .text-button:is(:hover,:focus-visible){background:#b3a4ff2b}
+
+  /* Forms: paint only, retaining native pickers, caret, sizing and semantics. */
+  .app-page :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select),
+  .app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer,.marketing-fields,.marketing-message-label)
+    :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea):not(.dial-native-select) {
+    background-color:var(--night-input);color:var(--night-text);border-color:var(--night-control-border);
+    caret-color:#f1edff;box-shadow:none;
+  }
+  .app-page :is(input,textarea)::placeholder{color:#a6b3cc;opacity:1}
+  .app-page :is(.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog,.settings-content,.reminders-form,.workspace-customizer,.business-wizard)
+    :is(input:read-only,textarea:read-only,input:disabled,select:disabled,textarea:disabled):not([type=checkbox]):not([type=radio]):not([type=hidden]):not(.dial-native-select){background-color:#232c3e;color:#b7c1d5;border-color:#52617c}
+  .app-page input:is([type=checkbox],[type=radio]){accent-color:#8e91f4}
+  .app-page :is(input,select,textarea):focus-visible{outline:3px solid var(--night-focus);outline-offset:2px;border-color:#b5c4ff}
+  .app-page :is(input,select,textarea)[aria-invalid=true]{border-color:#f1a4ae}
+  .app-page select option,.app-page select optgroup{background-color:#182238;color:var(--night-text)}
+  .app-page select::picker(select){background:#182238;color:var(--night-text);border-color:#7684a4;box-shadow:0 18px 50px #0008}
+  .app-page select::picker-icon{color:#c4ccec}
+  .app-page select option:is(:hover,:focus-visible,:checked){background:#354268;color:#fff}
+  .app-page select option::checkmark{color:#c9c1ff}
+  .app-page input::file-selector-button{background:#303d5b;border:1px solid #7384a8;border-radius:6px;color:#f4f5ff;padding:7px 12px;margin-right:12px}
+  .app-page input:-webkit-autofill{-webkit-text-fill-color:var(--night-text);box-shadow:0 0 0 1000px var(--night-input) inset;caret-color:#fff}
+
+  /* Action hierarchy: blue primary, outlined secondary, explicit danger. */
+  .app-page :is(.button.secondary,.marketing-light-button,.btn.gh,.quote-action-group>.button.secondary){background:#27324b;border-color:#7481a0;color:#e7eaff;box-shadow:none}
+  .app-page :is(.button.secondary,.marketing-light-button,.btn.gh,.quote-action-group>.button.secondary):hover:not(:disabled){background:#34415e;border-color:#a0aed1;color:#fff}
+  .app-page .button.primary{background:#315cca;color:#fff;border-color:#6588e4}
+  .app-page .button.primary:hover:not(:disabled){background:#3d69d8}
+  .app-page :is(.icon-button,.quote-x,.quote-more summary,.ws-config-close,.jobs-modal-header>button,.close-x){color:#c6d0e6}
+  .app-page :is(.quote-x,.quote-more summary,.ws-config-close,.jobs-modal-header>button){background:#29344d;border-color:#6a7898}
+  .app-page :is(.icon-button,.quote-x,.quote-more summary,.ws-config-close,.jobs-modal-header>button):hover{background:#34415f;color:#fff}
+  .app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close,.guide-close){background:#29344d;color:#d6def1;border-color:#6a7898}
+  .app-page :is(.dialog-header .icon-button,.jobs-modal-header>button,.quotes-dialog .quote-x,.workspace-config-dialog .ws-config-close,.guide-close):hover{background:#34415f;color:#fff;border-color:#a0aed1}
+  .app-page .button:disabled{opacity:1;background:#303a50;color:#b6c1d5;border-color:#53617b;box-shadow:none}
+  .app-page :is(.danger-text,.quote-delete){color:#ffb6c0}
+  .app-page .button.danger{background:#903e51;border-color:#d78092;color:#fff}
+  .app-page .button.danger:hover:not(:disabled){background:#a84a5f}
+  .app-page .danger-panel{border-color:#976275}
+  .app-page .danger-panel .panel-header h2{color:#ffbdc7}
+  .app-page :is(.form-error,.quotes-error,.jobs-form-error,.reminders-error){background:#3d2530;border-color:#a3697b;color:#ffd0d7}
+  .app-page .reminders-error-text{color:#ffbdc7!important}
+  .app-page .quote-remove{background:#422a36;color:#ffc1cb;border-color:#a3697b}
+  .app-page :is(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline-color:var(--night-focus)}
+  .app-page .skip-link{background:#26344f;color:#fff;border-color:var(--night-focus)}
+
+  /* Tables, boards, calendars, summaries and semantic status markers. */
+  .app-page .data-table th{background:#202a40;color:#c2cee5;border-color:var(--night-line)}
+  .app-page .data-table td{border-color:var(--night-line)}
+  .app-page .data-table tbody tr:hover{background:#25314a}
+  .app-page :is(.board-column,.view-toggle){background:#121c2e;border-color:var(--night-line)}
+  .app-page .board-column>.lead-card{background:#202d46;border-color:#52617d}
+  .app-page .view-toggle button{color:#bcc9e2}
+  .app-page .view-toggle button[aria-pressed=true]{background:#39466a;color:#fff}
+  .app-page .task-check{background:#131d30;border-color:#8b9bbd}
+  .app-page .task-check:hover{background:#354268;border-color:#c0c9e5}
+  .app-page :is(.badge,.badge.blue,.badge.purple,.job-status,.quote-pill,.quote-sent,.marketing-draft-badge){background:#30324f;color:#ded8ff;border-color:#66648a}
+  .app-page :is(.badge.orange,.job-status.orange,.jobs-readonly){background:#3d3024;color:#f6d2a0;border-color:#9f7c50}
+  .app-page :is(.badge.red,.quote-declined){background:#432935;color:#ffc2cc;border-color:#a1697a}
+  .app-page .job-status.gray{background:#313b4f;color:#d0d9eb}
+  .app-page .reminder-status{background:#2b3453!important;color:#e2e6ff!important;border:1px solid #667394}
+  .app-page :is(.quote-actions,.quotes-modal-actions,.jobs-modal-actions){background:#141d2f;border-color:var(--night-line)}
+  .app-page :is(.quotes-progress>span,.quote-more-menu){background:#222b43;color:#d9d3f4;border-color:#56627f}
+  .app-page .quotes-progress b{background:#3b365b;color:#e3d9ff}
+  .app-page .quote-more-menu .quote-delete{background:#222b43;color:#ffc1cb}
+  .app-page .quote-more-menu .quote-delete:hover{background:#422a36;color:#ffdae1}
+  .app-page .quote-card-head-actions .quote-more:is(:hover,[open]) summary{background:#34415f;color:#fff;border-color:#a0aed1}
+  .app-page :is(.job-day,.job-day-top,.job-day-add){border-color:var(--night-line)}
+  .app-page .job-current{background:#222e4b}
+  .app-page .job-day-top strong{color:#e4e9fa}
+  .app-page .job-day-count{background:#354261;color:#dce3f6}
+  .app-page .job-day-add{color:#c3c8ff}
+  .app-page .job-day-add:hover{background:#334265}
+  .app-page :is(.job-tile,.job-tile.purple,.job-tile.orange,.job-tile.gray){background:#283958;border-color:#5e769f;border-left-color:#a2b6ff;color:#f0f3ff}
+  .app-page .job-tile.purple{background:#352e50;border-color:#7f6b9f;border-left-color:#c2a4f0}
+  .app-page .job-tile.orange{background:#3b302c;border-color:#9c7b57;border-left-color:#e3bb8a}
+  .app-page .job-tile.gray{background:#2a3345;border-color:#687894;border-left-color:#b5bfce}
+  .app-page .job-tile :is(strong,span,small){color:#e2e8f8}
+  .app-page :is(.jobs-billing,.jobs-add-crew,.marketing-priority,.marketing-customer,
+    .marketing-customer-list,.marketing-sources,.marketing-main,.marketing-feature-header,
+    .marketing-next-moves,.marketing-direct-links){border-color:var(--night-line)}
+  .app-page .workspace-feature-panel .marketing-main{background:transparent}
+  .app-page .marketing-bar{background:#34405b}
+  .app-page .marketing-callout-mark{background:#3c3a61;color:#e0d7ff}
+
+  /* Editors and tool customization share the same elevated surface. */
+  .app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){background:var(--night-surface);color:var(--night-text);border-color:#6a7897;box-shadow:0 32px 100px #0009}
+  .app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog)::backdrop{background:#050911b8}
+  .app-page .quotes-dialog .quotes-modal-actions,.app-page .jobs-dialog .jobs-modal-actions{background:#141d2f;border-color:var(--night-line)}
+  .app-page .dialog:not(.lead-import-dialog) .dialog-header{border-color:var(--night-line)}
+  .app-page :is(.dialog-header,.dialog-footer,.quotes-modal-head,.jobs-modal-header,.ws-config-footer){border-color:var(--night-line)}
+  .app-page :is(.workspace-customizer,.workspace-config-dialog .ws-recommender,.workspace-config-dialog .ws-included-tools){background:#1f2a40;color:var(--night-secondary);border-color:#52617f}
+  .app-page :is(.ws-launch,.ws-config-hero){background:radial-gradient(ellipse at top left,#303b64,transparent 80%),linear-gradient(115deg,#1c2843,#211f31);border-color:#546180}
+  .app-page .ws-eyebrow{color:#c2b8ff!important}
+  .app-page .ws-spark{background:#3d3b61;color:#ded7ff}
+  .app-page .workspace-config-dialog .ws-pick-module{background:#182338;color:#d6dfef;border-color:#617292}
+  .app-page .workspace-config-dialog .ws-pick-module:has(input:checked){background:#34385d;color:#f2ecff;border-color:#a298d2}
+  .app-page .ws-config-data-note{color:var(--night-muted)}
+  .app-page .overview-tool-link{background:#24314c;color:#d0c7ff;border-color:#5d6b8b}
+  .app-page .overview-tool-link:hover{background:#35405e;border-color:#a49acf}
+
+  /* Account-specific address cards and billing helpers. */
+  .app-page :is(.business-address-card,.edition-save-hint){background:#202b43;color:var(--night-secondary);border-color:#536481}
+  .app-page .business-address-icon{background:#343f5c;color:#d0c9ff}
+  .app-page :is(.business-address-details,.address-locality,.address-contact,.address-meta-label){color:var(--night-muted)}
+  .app-page .billing-verify-status:not(.is-verified){background:#3d3024;border-color:#9f7c50;color:#f6d2a0}
+  .app-page .invoice-share-toolbar{background:#1c263a;border-color:var(--night-line)}
+  .app-page .invoice-share-toolbar p{color:var(--night-muted)}
+  .app-page .invoice-share-toolbar p strong{color:var(--night-text)}
+
+  /* The offline workspace's required business-setup flow uses this skin too. */
+  .app-page :is(.business-setup-preview,.business-wizard .workspace-picker,.business-wizard .wizard-review){background:var(--night-surface);color:var(--night-text);border-color:#536481}
+  .app-page :is(.business-setup-preview h1,.business-wizard h2,.business-wizard .workspace-picker h3,.business-wizard .wizard-review dd,.workspace-module-grid .tool-choice-copy strong){color:var(--night-text)}
+  .app-page :is(.business-setup-preview>p,.business-wizard .hint,.business-wizard label small,.business-wizard .wizard-review dt,.workspace-module-grid .tool-choice-copy small){color:var(--night-muted)}
+  .app-page .business-wizard label{color:var(--night-secondary)}
+  .app-page .business-wizard :is(input:not([type=checkbox]),select,.workspace-picker textarea){background:var(--night-input);color:var(--night-text);border-color:var(--night-control-border)}
+  .app-page .business-wizard :is(.wizard-progress li,.verified-business-country,.workspace-module-grid label){background:#26324a;color:var(--night-secondary);border-color:#617292}
+  .app-page .business-wizard :is(.wizard-progress [aria-current=step],.workspace-module-grid label:has(input:checked)){background:#34385d;color:#eee8ff;border-color:#a298d2}
+  .app-page .business-wizard .wizard-progress [data-complete=true]{background:#26324a;color:#d4ddf3;border-color:#6b80ac}
+  .app-page .business-wizard .secondary{background:#27324b;color:#e7eaff;border-color:#7481a0}
+  .app-page .business-wizard .business-errors{background:#3d2530;color:#ffd0d7;border-color:#a3697b}
+
+  /* Ask Cerium: every message, menu, suggestion and input uses the same palette. */
+  .app-page .cerium-guide{color:var(--night-text)}
+  .app-page :is(.guide-panel,.guide-messages,.guide-footer-zone){background:#151f32;color:var(--night-text);border-color:#596b8b;box-shadow:none}
+  .app-page .guide-panel{box-shadow:0 24px 65px #0008}
+  .app-page :is(.guide-header,.guide-suggestions,.guide-welcome-card,.guide-workflow-card,
+    .guide-steps-box,.guide-recommendation,.guide-business-workflow){background:#202b43;border-color:#485a7a;color:var(--night-secondary)}
+  .app-page :is(.guide-header h2,.guide-welcome-header strong,.guide-suggestions-header strong,.guide-steps-label,
+    .guide-steps-header,.guide-plan-tag,.guide-recommendation strong,.guide-recommendations-header,
+    .guide-business-workflow strong,.guide-business-followup){color:var(--night-text)}
+  .app-page :is(.guide-eyebrow,.guide-welcome-sub,.guide-suggestions-header,.guide-steps,
+    .guide-recommendation span,.guide-recommendation-limit,.guide-business-workflow span,
+    .guide-privacy,.guide-privacy-icon,.guide-direct-links .guide-links-heading){color:var(--night-muted)}
+  .app-page :is(.guide-header-btn,.guide-close,.guide-context-badge,.guide-welcome-pill,.guide-plan-count,
+    .guide-action,.guide-actions .guide-workflow-link,.guide-direct-links .guide-page-link,
+    .guide-suggestions button,.guide-business-choice,.guide-recommendation-priority,
+    .guide-step-badge.guide-choice-badge){background:#283650;color:#e1e6f7;border-color:#667899;box-shadow:none}
+  .app-page :is(.guide-header-btn,.guide-close,.guide-action,.guide-direct-links .guide-page-link,
+    .guide-suggestions button,.guide-business-choice):hover{background:#394766;color:#fff;border-color:#a1afd0}
+  .app-page .guide-bubble{background:#202c45;color:#e4eafb;border-color:#4e6186}
+  .app-page .guide-bubble.user{background:#33345a;color:#f1ecff;border-color:#78729f}
+  .app-page .guide-bubble.guide-thinking{background:#202b43;color:var(--night-muted)}
+  .app-page :is(.guide-workflow-header,.guide-direct-links,.guide-footer-zone,.guide-suggestions){border-color:#485a7a}
+  .app-page :is(.guide-action-arrow,.guide-privacy-icon){color:#c2c9e0}
+  .app-page .guide-action:hover .guide-action-arrow{color:#fff}
+  .app-page .guide-answer-list li::marker{color:#c2b8ff}
+  .app-page .guide-response-controls button{color:#cfc6ff}
+  .app-page .guide-response-controls button:hover{color:#fff}
+  .app-page .guide-form input:focus{background:var(--night-input)}
+  .app-page :is(.guide-trigger,.guide-send,.guide-review-tools){border-color:#7e83ad}
+
+  /* Pointer, selection and scrollbars stay visible against midnight surfaces. */
+  .app-page .workspace-cursor{border-color:#c1baff;background:#a29cff0a;box-shadow:0 0 14px #a29cff45}
+  .app-page .workspace-cursor.over-control{background:#c1baff12;box-shadow:0 0 16px #a29cff66}
+  .app-page .workspace-cursor.pressed{background:#c1baff33}
+  .app-page ::selection{background:#5964a4;color:#fff}
+  .app-page :is(.content-scroll,.navigation-scroll,.table-scroll,.board,dialog,.workspace-tab-scroll,.guide-messages){scrollbar-color:#697b9c #121b2b}
+  .app-page ::-webkit-scrollbar-thumb{background-color:#697b9c}
+  .app-page ::-webkit-scrollbar-track{background-color:#121b2b}
+  .app-page .toast{background:#303d5b;color:#fff;border:1px solid #8190af}
+  .app-page .toast.error{background:#573041;border-color:#be8396}
+
+  /* Invoice paper remains a readable document inside its dark preview dialog. */
+  .app-page .invoice-document{color-scheme:light;background:#fff;color:#26344a;border-radius:8px;padding:25px}
+  .app-page .invoice-document :is(h2,h3,strong,.data-table .person){color:#26344a}
+  .app-page .invoice-document :is(p,small,span,.data-table td,.muted){color:#52617a}
+  .app-page .invoice-document .data-table th{background:#f4f6fa;color:#52617a;border-color:#d9e0eb}
+  .app-page .invoice-document .data-table td{border-color:#d9e0eb}
+  .app-page .invoice-document .data-table tbody tr:hover{background:#f4f6fa}
+}
+
+@media screen and (max-width:760px){
+  .app-page .sidebar{background:linear-gradient(165deg,#1b2642,#141c2d 58%,#191a29)}
+  .app-page .invoice-document{padding:16px 10px}
+}
+@media screen and (forced-colors:active){
+  .app-page .workspace-feature-tab[aria-selected="true"],
+  .app-page .sidebar .nav-link[aria-current="page"]{border:2px solid Highlight}
+  .app-page select{background-image:none}
+}
