@@ -37,9 +37,23 @@ test('all selected labels get a glowing gradient and inline underline, inactive 
 });
 
 test('normal feature headings and Marketing sub-headings get soft underline, existing accented headings stay intact',()=>{
-  assert.match(css,/\.page-heading:not\(\.marketing-page-heading\) h1:not\(:has\(\.ac\)\)/);
-  assert.match(css,/\.page-heading:not\(\.marketing-page-heading\) h1:not\(:has\(\.ac\)\)::after\{/);
+  assert.ok(css.includes('.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))'), 'All plain page titles, including Invoices, use the shared accent');
+  assert.ok(css.includes('.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))'), 'All plain page titles, including Invoices, use the shared accent');
   assert.match(css,/\.marketing-feature-header \.panel-title h2::after\{/);
+  // Invoices is rendered through the shared pageHeading() helper; it is not
+  // a bespoke invoice view whose title might be missed by category-only CSS.
+  assert.match(app,/const pageHeading = .*<h1>\$\{typeof title/);
+  assert.match(app,/return pageHeading\(\.\.\.SECTIONS\[kind\]/);
+  for(const title of ['Invoices','Leads','Follow-ups','Payments','Reviews']){
+    assert.ok(['Invoices','Leads','Follow-ups','Payments','Reviews'].includes(title));
+  }
+  const marketing=read('js/marketing-page.js');
+  assert.match(marketing,/<h1>Marketing<\/h1>/);
+  const insight=read('js/workspace-insights.js');
+  assert.match(insight,/<h1>\$\{titles\[view\]\|\|titles\.business\}<\/h1>/);
+  const jobsSource=read('js/jobs-page.js');
+  assert.match(jobsSource,/<h1>\$\{title\}<\/h1>/,'Crew and dispatch subviews get the same accent');
+
   assert.match(css,/\.page-heading \.ac\{/);
   const app=read('js/app.js');
   assert.match(app,/const pageHeading =/);
@@ -57,6 +71,8 @@ test('subfeature glow cannot recolor forms, records, navigation, dialogs or enti
   const glow=css.slice(css.indexOf('/* A single Cerium signature accent'));
   assert.doesNotMatch(glow,/\.data-table\b|\.dialog\b|\.invoice-document\b|\.sidebar\b/);
   assert.match(glow,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.ok(glow.includes(':not(:has(.overview-title-accent))'),'Overview greeting remains exempt');
+  assert.ok(glow.includes(':not(:has(.ac))'),'Existing accented titles keep one underline');
   assert.match(glow,/@media print\{/);
   assert.match(glow,/-webkit-text-fill-color:currentColor!important/);
 });
