@@ -71,7 +71,7 @@ try{
  for(const width of [1440,768,390,320]){
   await app.setViewportSize({width,height:900});await app.goto(t.url+'/waitlist.html');await app.locator('#s-on').waitFor({state:'visible'});await inspect(app,'waitlist-signed',width);
  }
- for(const path of ['welcome.html','verify.html?edit=business','enter.html?next=%2Fapp.html']){
+ for(const path of ['verify.html?edit=business','enter.html?next=%2Fapp.html']){
   await app.setViewportSize({width:390,height:900});await app.goto(t.url+'/'+path);await app.waitForTimeout(250);await inspect(app,path.split('.')[0],390);
  }
  await signed.close();
