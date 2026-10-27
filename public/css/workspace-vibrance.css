@@ -192,6 +192,46 @@
   }
 }
 
+/* Card elevation — a quiet graphite base with a restrained indigo falloff.
+   Distinct depth levels keep small working cards prominent without making the
+   large feature canvas look like another floating dashboard card. */
+.app-page{
+  --cerium-card-shadow:
+    inset 0 1px 0 rgba(255,255,255,.78),
+    0 2px 5px -3px rgba(24,36,76,.15),
+    0 15px 31px -17px rgba(42,61,111,.28),
+    0 28px 51px -36px rgba(102,81,176,.22);
+  --cerium-card-shadow-hover:
+    inset 0 1px 0 rgba(255,255,255,.88),
+    0 4px 11px -6px rgba(26,40,81,.18),
+    0 21px 40px -18px rgba(44,62,123,.29),
+    0 34px 55px -35px rgba(103,75,178,.25);
+}
+.app-page #page-body :is(
+  .metric,.panel,.quote-card,.jobs-stat,.jobs-panel,.lead-card,.marketing-stat
+),
+.app-page #page-body :is(.quotes-summary>div,.reminders-stats>div){
+  box-shadow:var(--cerium-card-shadow);
+}
+/* Larger work area gets a softer shadow than the individual cards inside it. */
+.app-page #page-body .workspace-feature-panel{
+  box-shadow:
+    0 4px 13px -10px rgba(33,48,92,.17),
+    0 22px 44px -32px rgba(85,72,148,.23);
+}
+/* Keep the KPI/panel motion rules from workspace-spark intact. */
+.app-page #page-body :is(
+  .quote-card,.jobs-stat,.lead-card,.marketing-stat,.quotes-summary>div,.reminders-stats>div
+){transition:box-shadow .24s ease}
+@media(hover:hover) and (pointer:fine){
+  .app-page #page-body :is(
+    .metric,.panel,.quote-card,.jobs-stat,.jobs-panel,.lead-card,.marketing-stat
+  ):hover,
+  .app-page #page-body :is(.quotes-summary>div,.reminders-stats>div):hover{
+    box-shadow:var(--cerium-card-shadow-hover);
+  }
+}
+
 /* Put the branded color emphasis on primary actions, not entire cards.
    Preserve clear contrast and keep red/green semantic controls untouched. */
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
@@ -234,9 +274,17 @@
     transition:none!important;
   }
 }
+@media(prefers-reduced-motion:reduce){
+  .app-page #page-body :is(
+    .quote-card,.jobs-stat,.lead-card,.marketing-stat,.quotes-summary>div,.reminders-stats>div
+  ){transition:none!important}
+}
 @media print{
   .app-page .main-frame,.app-page .sidebar,.app-page .overview-stage,.app-page .metrics-grid .metric,.app-page .dashboard-grid>.panel{
     background:#fff!important;box-shadow:none!important;
+  }
+  .app-page #page-body :is(.panel,.metric,.quote-card,.jobs-stat,.jobs-panel,.lead-card,.marketing-stat,.quotes-summary>div,.reminders-stats>div,.workspace-feature-panel){
+    box-shadow:none!important;
   }
   .app-page .main-frame>.topbar::after{display:none!important}
 }
