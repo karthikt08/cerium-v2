@@ -8,6 +8,7 @@ import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
+import { createPaymentDuesStore } from './payment-dues.js';
 import { createQuotesStore } from './quotes.js';
 import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
@@ -413,6 +414,7 @@ export function openDb(file) {
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
+  const paymentDues = createPaymentDuesStore(db);
   const quotesStore = createQuotesStore(db,{jobsStore});
   // One-time, non-destructive currency cleanup for empty legacy test workspaces.
   // Never touch an account containing financial history or priced work; those
@@ -1281,6 +1283,7 @@ export function openDb(file) {
         leads,
         followUps,
         invoices,
+        paymentDues:paymentDues.listPaymentDues(userId),
         bankTransactions,
         reviews,
         messages,
@@ -1295,6 +1298,7 @@ export function openDb(file) {
     ...jobsStore,
     ...reminders,
     ...quotesStore,
+    ...paymentDues,
 
     // Imported leads are deliberately created without historical reminders or review requests.
     // Preview and commit share the same validation and deduplication rules.
@@ -1693,6 +1697,7 @@ export function openDb(file) {
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
+        paymentDues.clearPaymentDues(userId);
         quotesStore.clearQuotes(userId);
         // Clear workspace was explicitly confirmed by the owner. After business
         // records are gone, a legacy INR test workspace can start fresh in USD.
@@ -1824,6 +1829,7 @@ export function openDb(file) {
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
+        paymentDues.clearPaymentDues(userId);
         quotesStore.clearQuotes(userId);
 
         const member = q.deleteMember.run(sub).changes;
