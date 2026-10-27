@@ -1,5 +1,6 @@
 // Manual custom payment dues: separate from invoice settlement and reminder dispatch.
 import {escapeHTML as esc,money,dateLabel} from './workspace-model.js';
+import {openPaymentDueImport} from './payment-due-import-ui.js';
 import {businessLocalDate} from './us-market.js';
 
 const renderStatus=(due,today)=>due.status==='Settled'?'Settled':due.dueDate<today?'Overdue':due.dueDate===today?'Due today':'Upcoming';
@@ -25,7 +26,8 @@ export function renderPaymentDuesPage(ws,readOnly=false){
   }).join('');
   return '<div class="payment-dues-page" data-payment-dues-page>'+
     '<div class="page-heading"><div><p class="eyebrow">BILLING & PAYMENTS</p><h1>Custom dues</h1>'+
-    '<p class="page-description">Record balances, advances or installments that do not fit a standard invoice schedule.</p></div></div>'+
+    '<p class="page-description">Record balances, advances or installments that do not fit a standard invoice schedule.</p></div>'+
+    (readOnly?'':'<div class="heading-actions"><button type="button" class="button secondary" data-open-dues-import>Import Excel / CSV</button></div>')+'</div>'+
     '<div class="due-summary">'+
       '<div class="due-summary-card"><span>Open dues</span><strong>'+outstanding.length+'</strong><small>'+esc(sum(outstanding))+' in '+esc(currency)+'</small></div>'+
       '<div class="due-summary-card"><span>Overdue dues</span><strong>'+overdue.length+'</strong><small>'+esc(sum(overdue))+' in '+esc(currency)+'</small></div>'+
@@ -88,6 +90,12 @@ export function initializePaymentDuesUI({root,api,getWorkspace,readOnly,refresh,
     finally{save.disabled=false;}
   });
   page.addEventListener('click',async event=>{
+    if(event.target.closest('[data-open-dues-import]')){
+      if(readOnly())return;
+      try{openPaymentDueImport({api,onComplete:refresh,readOnly:readOnly()});}
+      catch(error){toast(error.message||'Cannot open the importer.',true);}
+      return;
+    }
     if(event.target.closest('[data-due-cancel]')){reset();return;}
     const edit=event.target.closest('[data-due-edit]');
     if(edit&&form&&!readOnly()){
