@@ -18,7 +18,7 @@ import {verifyOptOut} from './reminders.js';
 import {createRegionGate} from './region-access.js';
 import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './trial-timing.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
-import {parseSpreadsheet,suggestedMapping,mappedLeads} from './spreadsheet-import.js';
+import {parseSpreadsheet,suggestedMapping,mappedLeads,suggestedDueMapping,mappedDues,unmappedColumns} from './spreadsheet-import.js';
 import {answerGuide,validateGuideQuestion} from './guide-assistant.js';
 import {GUIDE_SECTIONS} from '../public/js/guide-knowledge.js';
 import {
@@ -782,7 +782,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -877,11 +877,18 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // No user spreadsheet or preview data is stored on the server.
   const leadImport=(commit)=>(req,res,next)=>{
     try{
-      const parsed=parseSpreadsheet(req.body);
-      const mapping=req.body?.mapping===undefined?suggestedMapping(parsed.headers):req.body.mapping;
-      const rows=mappedLeads(parsed,mapping);
+      const body=req.body||{};
+      const parsed=parseSpreadsheet(body);
+      const mapping=body.mapping===undefined?suggestedMapping(parsed.headers):body.mapping;
+      const extras=unmappedColumns(parsed,mapping);
+      const extraAction=body.extraAction||'review';
+      if(commit&&extras.length&&extraAction==='review')
+        return res.status(400).json({error:'extra_columns_unreviewed',message:'Choose whether to preserve additional columns in Notes or explicitly skip them.'});
+      const rows=mappedLeads(parsed,mapping,{dateFormat:body.dateFormat||'ISO',extraAction});
       const summary=db.importLeadRows(req.session.userId,rows,commit);
-      res.set('Cache-Control','no-store').json({headers:parsed.headers,mapping,...summary});
+      res.set('Cache-Control','no-store').json({headers:parsed.headers,mapping,
+        sheets:parsed.sheets,sheetIndex:parsed.sheetIndex,headerRow:parsed.headerRow,
+        extraColumns:extras.map(x=>x.header||'Column '+(x.index+1)),...summary});
     }catch(err){
       if(err.status===400)return res.status(400).json({error:err.code||'invalid_spreadsheet',message:err.message});
       next(err);
@@ -889,6 +896,36 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   };
   api.post('/import/leads/preview',writeLimiter,sameOrigin,requireSession,requireCsrf,leadImport(false));
   api.post('/import/leads/commit',writeLimiter,sameOrigin,requireSession,requireCsrf,leadImport(true));
+
+  // Safe, preview-first import into the invoice-independent dues ledger.
+  const duesImport=commit=>(req,res,next)=>{
+    try{
+      const body=req.body||{};
+      const parsed=parseSpreadsheet(body);
+      const mapping=body.mapping===undefined?suggestedDueMapping(parsed.headers):body.mapping;
+      const extras=unmappedColumns(parsed,mapping);
+      const extraAction=body.extraAction||'review';
+      // Every financial import is denominated in the business's existing currency;
+      // the file never has authority to switch a workspace's currency.
+      if(commit&&body.currencyConfirmed!==true)
+        return res.status(400).json({error:'currency_confirmation_required',message:'Confirm amounts are in your Cerium business currency before importing.'});
+      if(commit&&extras.length&&extraAction==='review')
+        return res.status(400).json({error:'extra_columns_unreviewed',message:'Choose whether unmatched columns should be kept in Notes or deliberately skipped.'});
+      const rows=mappedDues(parsed,mapping,{dateFormat:body.dateFormat||'ISO',extraAction});
+      const result=db.importPaymentDueRows(req.session.userId,rows,commit);
+      const ws=db.getWorkspace(req.session.userId);
+      res.set('Cache-Control','no-store').json({
+        headers:parsed.headers,mapping,extraColumns:extras.map(x=>x.header||'Column '+(x.index+1)),
+        extraAction,headerRow:parsed.headerRow,sheets:parsed.sheets,sheetIndex:parsed.sheetIndex,
+        currency:ws.account.currency,...result
+      });
+    }catch(err){
+      if(err.status===400)return res.status(400).json({error:err.code||'invalid_spreadsheet',message:err.message});
+      next(err);
+    }
+  };
+  api.post('/import/dues/preview',writeLimiter,sameOrigin,requireSession,requireCsrf,duesImport(false));
+  api.post('/import/dues/commit',writeLimiter,sameOrigin,requireSession,requireCsrf,duesImport(true));
 
   // Leads API
   api.post('/leads', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
@@ -946,6 +983,25 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.delete('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     try { res.json(db.deleteInvoice(req.session.userId, req.params.id)); }
     catch(err) { scheduleError(res,err); }
+  });
+
+  // Owner-managed outstanding amounts that may not have a Cerium invoice.
+  // These are manual records: changing them never initiates money movement.
+  api.post('/dues', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.status(201).json(db.createPaymentDue(req.session.userId,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.patch('/dues/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.updatePaymentDue(req.session.userId,req.params.id,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.patch('/dues/:id/status', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.setPaymentDueStatus(req.session.userId,req.params.id,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.delete('/dues/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.deletePaymentDue(req.session.userId,req.params.id));}
+    catch(err){scheduleError(res,err);}
   });
 
   // Bank matching API

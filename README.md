@@ -39,6 +39,7 @@ It merges the marketing landing suite, authentication system, operations web app
    - Leads pipeline management with stage transitions (New, Quoted, Booked, Done, Lost).
    - Scheduled callback reminders.
    - Professional Invoices generator with Net 15/30 terms, custom items, and print-ready PDF styling.
+   - **Custom Payment Dues:** Manually track external balances, advances and installments, including amount, date, reference and settlement confirmation, without altering invoices or automatically moving funds. See [Custom Dues](docs/custom-payment-dues.md).
    - Read-only bank deposit matching and reconciliation.
    - Customer review tracking with Google review links.
    - Message the founders directly from the workspace.

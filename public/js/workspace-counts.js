@@ -13,6 +13,7 @@ export function featureRecordCount(feature,workspace){
     case 'invoices': records=rows('invoices');label='invoice';break;
     case 'payments': records=rows('invoices').filter(i=>i.status==='Paid');label='paid invoice';break;
     case 'reminders': records=rows('reminders');label='reminder';break;
+    case 'dues': records=rows('paymentDues');label='custom due';break;
     case 'bank': records=rows('bankTransactions').filter(t=>t.status==='pending_match');label='unmatched deposit';break;
     case 'reviews': records=rows('reviews');label='review request';break;
     case 'crew': records=rows('crew');label='crew member';break;

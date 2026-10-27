@@ -8,6 +8,7 @@ import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 import Database from 'better-sqlite3';
 import { createJobsStore } from './jobs.js';
 import { createReminderStore } from './reminders.js';
+import { createPaymentDuesStore } from './payment-dues.js';
 import { createQuotesStore } from './quotes.js';
 import { lineItemsTotal } from '../public/js/money.js';
 import { validUsState, validUsZip, validUsTimeZone, validBusinessTimeZone, businessLocalDate } from '../public/js/us-market.js';
@@ -413,6 +414,7 @@ export function openDb(file) {
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
+  const paymentDues = createPaymentDuesStore(db);
   const quotesStore = createQuotesStore(db,{jobsStore});
   // One-time, non-destructive currency cleanup for empty legacy test workspaces.
   // Never touch an account containing financial history or priced work; those
@@ -421,6 +423,7 @@ export function openDb(file) {
     UPDATE users SET currency='USD', updated_at=?
     WHERE currency='INR' AND COALESCE(country,'US')='US'
       AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.user_id=users.id)
+       AND NOT EXISTS (SELECT 1 FROM payment_dues WHERE payment_dues.user_id=users.id)
       AND NOT EXISTS (SELECT 1 FROM quotes WHERE quotes.user_id=users.id)
       AND NOT EXISTS (SELECT 1 FROM jobs WHERE jobs.user_id=users.id)
       AND NOT EXISTS (SELECT 1 FROM bank_transactions WHERE bank_transactions.user_id=users.id)
@@ -687,7 +690,7 @@ export function openDb(file) {
   // Business-facing days follow the US service location, not the Oracle VM clock.
   // Keep trial/billing timestamps in their existing UTC semantics.
   const userBusinessToday=userId=>{const u=q.getUserById.get(userId);return businessLocalDate(u?.country==='IN'?'Asia/Kolkata':u?.time_zone);};
-  const pricedHistory=userId=>['invoices','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
+  const pricedHistory=userId=>['invoices','payment_dues','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
     table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId))
   );
   const businessMoneyHistory=userId=>['invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
@@ -1281,6 +1284,7 @@ export function openDb(file) {
         leads,
         followUps,
         invoices,
+        paymentDues:paymentDues.listPaymentDues(userId),
         bankTransactions,
         reviews,
         messages,
@@ -1295,6 +1299,7 @@ export function openDb(file) {
     ...jobsStore,
     ...reminders,
     ...quotesStore,
+    ...paymentDues,
 
     // Imported leads are deliberately created without historical reminders or review requests.
     // Preview and commit share the same validation and deduplication rules.
@@ -1693,6 +1698,7 @@ export function openDb(file) {
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
+        paymentDues.clearPaymentDues(userId);
         quotesStore.clearQuotes(userId);
         // Clear workspace was explicitly confirmed by the owner. After business
         // records are gone, a legacy INR test workspace can start fresh in USD.
@@ -1824,6 +1830,7 @@ export function openDb(file) {
         q.clearMessages.run(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
+        paymentDues.clearPaymentDues(userId);
         quotesStore.clearQuotes(userId);
 
         const member = q.deleteMember.run(sub).changes;
