@@ -1,7 +1,7 @@
 import {INVOICE_CURRENCIES,invoiceCurrencyHint,invoiceCountry,invoiceMoney,invoiceDate} from './invoice-country.js';
 import API from './api.js';
 import {mountBusinessSetup} from './business-setup-ui.js';
-import {renderWorkspaceCustomizer,customizeBusinessNavigation,wireWorkspaceCustomizer,renderOverviewTools,customizeOverview} from './workspace-customizer.js';
+import {renderWorkspaceCustomizer,wireWorkspaceCustomizer,renderOverviewTools,customizeOverview} from './workspace-customizer.js';
 import {INDUSTRY_OPTIONS} from './industry-workspaces.js';
 import {lineItemsTotal,lineItemsRoundingAdjustment} from './money.js';
 import {US_STATE_OPTIONS,US_TIME_ZONE_OPTIONS,businessTimeZoneOptions,businessLocalDate,formatUSPhone,validUsZip} from './us-market.js';
@@ -16,11 +16,19 @@ import {openInvoicePrint} from './invoice-print.js';
 import {invoiceUpiUri,invoiceShareLinks,invoiceUpiQrSvg} from './invoice-sharing.js';
 import {mountGuideAssistant} from './guide-assistant.js';
 import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
+import {WORKSPACE_CATEGORIES,resolveWorkspaceRoute,categoryDestination} from './workspace-registry.js';
+import {renderCategoryNavigation,renderUtilityNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
+import {createWorkspaceDrafts} from './workspace-drafts.js';
+import {renderInsightsPage} from './workspace-insights.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
 const $ = (id) => document.getElementById(id);
 const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
-const state = { ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, printInvoice:null, pending:new Set() };
+const lastUsedTabs={};
+const state = { route:resolveWorkspaceRoute(location.hash), ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, printInvoice:null, pending:new Set() };
+$('category-navigation').innerHTML=renderCategoryNavigation();
+$('utility-navigation').innerHTML=renderUtilityNavigation();
+const drafts=createWorkspaceDrafts($('page-body'),()=>state.section);
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
 const singular = {leads:'lead',followups:'followup',invoices:'invoice',reviews:'review'};
 const createCalls = {lead:API.createLead,followup:API.createFollowUp,invoice:API.createInvoice,review:API.createReviewRequest};
@@ -70,12 +78,13 @@ async function perform(key,element,fn,errorTarget) {
 }
 async function refresh() {
   setSync('Updating…');
-  try { state.ws=await API.getWorkspace(); state.billingIdentity=await API.getBillingIdentity(); renderChrome(); renderPage(); setSync('Up to date'); }
+  try { state.ws=await API.getWorkspace(); state.billingIdentity=await API.getBillingIdentity();
+    if(WORKSPACE_CATEGORIES.some(c=>location.hash==='#'+c.id)){state.route=resolveWorkspaceRoute(location.hash,state.ws.account.workspacePreferences?.modules,lastUsedTabs);state.section=state.route.section;}
+    renderChrome(); renderPage(); setSync('Up to date'); }
   catch(err) { setSync('Could not refresh'); throw err; }
 }
 function renderChrome() {
   const a=state.ws.account,m=metrics(state.ws);
-  customizeBusinessNavigation(document,a.workspacePreferences?.modules);
   $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1); $('business-initial').title=a.businessName||'Your business';
   $('user-avatar').textContent=initials(a.name); $('user-avatar').setAttribute('aria-label',`Account settings for ${a.name || 'your account'}`);
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
@@ -83,18 +92,34 @@ function renderChrome() {
   $('edition-label').textContent=editionLabel(a.country);
   $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':countryName(a.country)+' · '+a.currency;
   document.body.dataset.edition=india?'in':a.country==='US'?'us':'global';
-  for(const [name,value] of Object.entries({leads:m.leads,followups:m.due,invoices:state.ws.invoices.filter(x=>x.status==='Overdue').length,reviews:m.reviews})) {
-    const el=$('count-'+name);el.textContent=value;el.hidden=!value;
-  }
+  updateCategoryNavigation(document,{modules:a.workspacePreferences?.modules,route:state.route,lastUsed:lastUsedTabs,counts:{customers:m.leads+m.due,billing:state.ws.invoices.filter(x=>x.status==='Overdue').length,marketing:m.reviews}});
 }
 function setNavigation() {
-  const title=SECTIONS[state.section][0]; $('current-section').textContent=title; document.title=`${title} — CERIUM`;
-  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===state.section)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  const route=state.route;
+  $('current-section').textContent=route.label;
+  $('current-category').textContent=WORKSPACE_CATEGORIES.find(c=>c.id===route.category&&c.id!=='overview')?.label||'Workspace';
+  document.title=`${featureTitle(route)} — CERIUM`;
+  document.querySelectorAll('[data-nav]').forEach(a=>{if(resolveWorkspaceRoute(a.dataset.nav).href===route.href)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  updateCategoryNavigation(document,{modules:state.ws?.account.workspacePreferences?.modules,route,lastUsed:lastUsedTabs});
 }
-function navigate(section,focus=false) {
-  state.section=SECTIONS[section]?section:'overview'; setNavigation();closeNavigation();if(state.ws)renderPage();$('workspace-main').scrollTop=0;
-  if(focus)$('workspace-main').focus({preventScroll:true});
+function navigate(target,focus=false) {
+  const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
+  const same=$('page-body').dataset.route===route.href;
+  state.route=route;state.section=route.section;
+  if(route.category)lastUsedTabs[route.category]=route.id;
+  setNavigation();closeNavigation();
+  window.dispatchEvent(new CustomEvent('cerium:navigation',{detail:{section:state.section,route:route.href}}));
+  if(state.ws&&!same){renderPage();$('workspace-main').scrollTop=0;}
+  else if(same&&route.id==='customize'&&!$('workspace-customizer-dialog')?.open)$('workspace-customizer-dialog')?.showModal();
+  if(focus&&!document.querySelector('dialog[open]'))$('workspace-main').focus({preventScroll:true});
 }
+function go(target,focusTab=false){
+  const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
+  if(location.hash!==route.href)history.pushState(null,'',route.href);
+  navigate(route.href,!focusTab);
+  if(focusTab){const tab=document.querySelector('.workspace-feature-tab[aria-selected="true"]');tab?.focus({preventScroll:true});tab?.scrollIntoView({block:'nearest',inline:'nearest'});}
+}
+
 function taskRow(f) {
   const today=businessLocalDate(state.ws?.account?.timeZone);
   const status=f.done?'Done':f.dueDate<today?'Overdue':f.dueDate===today?'Due':dateLabel(f.dueDate);
@@ -186,11 +211,12 @@ function renderResults() {
   }
   holder.insertAdjacentHTML('beforeend',`<div class="result-footer"><span>${rows.length} ${rows.length===1?'record':'records'}</span><span>Changes are saved to your workspace</span></div>`);
 }
-function paymentsPage() {
+function paymentsPage(view='paid') {
   const paid=state.ws.invoices.filter(i=>i.status==='Paid'),tx=state.ws.bankTransactions.filter(t=>t.status==='pending_match');
-  return pageHeading(...SECTIONS.payments,viewLink('invoices','View invoices'))+`<div class="notice">${icon('payments')}<div><strong>Payment records, in one place</strong>Mark an invoice as paid after you receive the payment. A live bank feed is not connected in this version.</div></div>`+
-  (tx.length?`<section class="panel" style="margin-bottom:22px">${panelHeader('payments','Recorded deposits','Review these before marking an invoice as paid')}<div class="panel-body">${tx.map(t=>`<div class="task-row"><div class="row-details"><span class="row-title">${esc(t.description)}</span><span class="row-meta">${dateLabel(t.date)} · ${cash(t.amount)}</span></div>${t.suggestedInvoiceId?button('Match #'+esc(t.suggestedInvoiceId),'match-payment',`data-id="${esc(t.id)}" data-invoice="${esc(t.suggestedInvoiceId)}"`,'secondary'):badge('No suggested match')}${button('Dismiss','dismiss-payment',`data-id="${esc(t.id)}"`,'secondary')}</div>`).join('')}</div></section>`:'')+
-  `<section class="panel">${panelHeader('payments','Paid invoices',`${paid.length} paid · ${cash(metrics(state.ws).paid)} total`)}${paid.length?table(['Invoice','Customer','Paid on','Amount'],paid.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button></td><td><div class="person">${esc(i.customerName)}</div></td><td>${dateLabel(i.paidAt)}</td><td class="amount">${cash(i.total)}</td></tr>`)):empty('No payments recorded yet','Your paid invoices will appear here.')}</section>`;
+  const note=`<div class="notice">${icon('payments')}<div><strong>Recorded payments and deposits</strong><p>Mark an invoice as paid only after verifying payment. A live bank feed is not connected.</p></div></div>`;
+  const deposits=tx.length?`<section class="panel">${panelHeader('payments','Recorded deposits','Review these before marking an invoice as paid')}<div class="panel-body">${tx.map(t=>`<div class="task-row"><div class="row-details"><span class="row-title">${esc(t.description)}</span><span class="row-meta">${dateLabel(t.date)} · ${cash(t.amount)}</span></div>${t.suggestedInvoiceId?button('Match #'+esc(t.suggestedInvoiceId),'match-payment',`data-id="${esc(t.id)}" data-invoice="${esc(t.suggestedInvoiceId)}"`,'secondary'):badge('No suggested match')}${button('Dismiss','dismiss-payment',`data-id="${esc(t.id)}"`,'secondary')}</div>`).join('')}</div></section>`:empty('No deposits awaiting review','Existing recorded deposits appear here when they need matching. No live bank connection is configured.');
+  if(view==='bank')return pageHeading('Bank matching','Review recorded deposits against invoices.',viewLink('billing/payments','Paid invoices'))+note+deposits;
+  return pageHeading(...SECTIONS.payments,viewLink('billing/bank','Bank matching'))+note+`<section class="panel">${panelHeader('payments','Paid invoices',`${paid.length} paid · ${cash(metrics(state.ws).paid)} total`)}${paid.length?table(['Invoice','Customer','Paid on','Amount'],paid.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button></td><td><div class="person">${esc(i.customerName)}</div></td><td>${dateLabel(i.paidAt)}</td><td class="amount">${cash(i.total)}</td></tr>`)):empty('No payments recorded yet','Your paid invoices will appear here.')}</section>`;
 }
 function field(name,label,value='',type='text',options={}) {
   const {required=false,full=false,choices=null,readOnly=false,placeholder='',max=200,min,step}=options;
@@ -291,12 +317,24 @@ function supportPage() {
   return pageHeading(...SECTIONS.support)+`<div class="settings-grid"><section class="panel">${panelHeader('support','Write to us','We’d like to hear what would make your work easier.')}<form class="settings-content" id="support-form"><div class="form-grid">${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}${field('subject','Subject','','text',{required:true,full:true,max:100})}${field('body','Message','','textarea',{required:true,full:true,max:700})}</div><p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p><p id="support-error" class="form-error" role="alert" hidden></p><div class="settings-actions"><button class="button primary" type="submit">Open email draft</button></div></form></section><section class="panel">${panelHeader('support','Keep in touch')}<div class="settings-content"><p class="muted">Questions, problems, or something you wish Cerium did better?</p><a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a><p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}</div></section></div>`;
 }
 function renderPage() {
+  if(state.route.category)lastUsedTabs[state.route.category]=state.route.id;
+  const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  $('page-body').innerHTML=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly()):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws):singular[s]?listPage(s):s==='payments'?paymentsPage():s==='settings'?settingsPage():supportPage());
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():supportPage());
+  for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
+  const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
+  for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
+  $('page-body').innerHTML=renderFeatureWorkspace(state.route,state.ws.account.workspacePreferences?.modules,content);
+  for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
+  $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
-  if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast});
+  if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
+  if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
   if(singular[s])renderResults();
+  drafts.restore(s);
+  requestAnimationFrame(()=>revealActiveFeature($('page-body')));
+  if(openTools)$('workspace-customizer-dialog')?.showModal();
   if(readOnly()) {
     $('page-body').querySelectorAll('[data-action="new"],[data-action="edit"],[data-action="delete"],[data-action="toggle-followup"],[data-action="mark-requested"],[data-action="review-received"],[data-action="match-payment"],[data-action="dismiss-payment"],[data-invoice-status]').forEach(control=>{
       control.disabled=true;
@@ -447,21 +485,30 @@ function initializeSidebarCollapse(){
 }
 initializeSidebarCollapse();
 $('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
-window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();});
-window.addEventListener('hashchange',()=>navigate(routeFromHash(location.hash),true));
+window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();revealActiveFeature($('page-body'));});
+window.addEventListener('hashchange',()=>navigate(location.hash,true));
+window.addEventListener('popstate',()=>navigate(location.hash,true));
+document.addEventListener('cerium:form-saved',e=>drafts.clear(e.detail?.section));
+document.addEventListener('keydown',e=>{
+  const tab=e.target.closest('.workspace-feature-tab');
+  if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+  e.preventDefault();const tabs=[...tab.closest('[role=tablist]').querySelectorAll('[role=tab]')],index=tabs.indexOf(tab);
+  const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+  go(tabs[next].getAttribute('href'),true);
+});
 document.addEventListener('cerium:open-invoice',e=>{
   if(!state.ws)return;
-  location.hash='#invoices';
-  navigate('invoices');
+  go('#billing/invoices');
   previewInvoice(e.detail?.id);
 });
 document.addEventListener('keydown',e=>{
   if(!$('sidebar').classList.contains('is-open'))return;
   if(e.key==='Escape'){e.preventDefault();closeNavigation();}
-  if(e.key==='Tab'){const items=[...$('sidebar').querySelectorAll('a,button')].filter(x=>!x.disabled),first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+  if(e.key==='Tab'){const items=[...$('sidebar').querySelectorAll('a,button')].filter(x=>!x.disabled&&!x.hidden&&x.getClientRects().length),first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
 });
 document.addEventListener('click',e=>{
-  const nav=e.target.closest('[data-nav]');if(nav){closeNavigation();if(nav.dataset.nav===state.section){e.preventDefault();$('workspace-main').scrollTop=0;}return;}
+  const category=e.target.closest('[data-category]'),nav=e.target.closest('[data-nav]');
+  if(category||nav){if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go(category?categoryDestination(category.dataset.category,state.ws?.account.workspacePreferences?.modules,lastUsedTabs).href:nav.getAttribute('href'),Boolean(nav?.dataset.feature));return;}
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
@@ -473,7 +520,7 @@ document.addEventListener('click',e=>{
     return;
   }
   if(action==='new-quote'){
-    location.hash='#quotes';navigate('quotes');
+    go('#customers/quotes');
     document.dispatchEvent(new CustomEvent('cerium:new-quote',{detail:{leadId:id}}));
     return;
   }
@@ -604,11 +651,11 @@ document.addEventListener('submit',e=>{
     if(data.country==='US'&&!validUsZip(data.usZip||'')){formError('profile-error','Enter a ZIP code (12345 or 12345-6789).');return;}
     if(data.country==='IN'&&(!validGSTIN(data.gstin||'')||!validIndianState(data.indiaState||'')||!validUpiVpa(data.upiVpa||''))){formError('profile-error','Check your GSTIN, state and UPI ID.');return;}
     if(data.googlePlaceUrl&&!safeReviewURL(data.googlePlaceUrl)){formError('profile-error','Use a valid HTTPS link for review requests.');return;}
-    perform('profile',e.submitter,async()=>{const previous=state.ws.account.country;await API.updateAccount(data);await refresh();toast(previous!==state.ws.account.country?(isIndia()?'India edition activated — INR and GST/UPI draft fields are now available.':countryName(state.ws.account.country)+' activated — USD workspace ready.'):'Business profile saved.');},'profile-error');
+    perform('profile',e.submitter,async()=>{const previous=state.ws.account.country;await API.updateAccount(data);drafts.clear('settings');await refresh();toast(previous!==state.ws.account.country?(isIndia()?'India edition activated — INR and GST/UPI draft fields are now available.':countryName(state.ws.account.country)+' activated — USD workspace ready.'):'Business profile saved.');},'profile-error');
   }
   if(e.target.id==='support-form'){
     e.preventDefault();const data=Object.fromEntries(new FormData(e.target));
-    perform('support',e.submitter,async()=>{await API.createMessage({...data,replyTo:state.ws.account.email,via:'Email draft'});const subject=`[Cerium · ${data.category}] ${data.subject}`;const body=`${data.body}\n\n${state.ws.account.name}\n${state.ws.account.email}`;await refresh();location.href='mailto:cerium.founders@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);toast('Draft opened in your email app. Send it there when ready.');},'support-error');
+    perform('support',e.submitter,async()=>{await API.createMessage({...data,replyTo:state.ws.account.email,via:'Email draft'});const subject=`[Cerium · ${data.category}] ${data.subject}`;const body=`${data.body}\n\n${state.ws.account.name}\n${state.ws.account.email}`;drafts.clear('support');await refresh();location.href='mailto:cerium.founders@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);toast('Draft opened in your email app. Send it there when ready.');},'support-error');
   }
 });
 function showLocalBusinessSetup(setup,editing=false){
@@ -658,7 +705,7 @@ async function initialize() {
 }
 document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();$('workspace-main').focus();});
 wireWorkspaceCustomizer({api:API,refresh,toast,getTrade:()=>state.ws?.account?.trade});
-mountGuideAssistant({api:API,getSection:()=>state.section,getBusiness:()=>({
+mountGuideAssistant({api:API,getSection:()=>state.route.id==='crew'?'crew':state.section,getBusiness:()=>({
   trade:state.ws?.account?.trade||'',
   category:state.ws?.account?.workspacePreferences?.category||'other',
   enabledModules:state.ws?.account?.workspacePreferences?.modules||[]

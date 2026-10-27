@@ -4,7 +4,7 @@ import {mkdirSync,writeFileSync,readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {startServer} from '../test/helpers.js';
 import {completeBusiness} from '../test/business-fixtures.js';
-import {SECTIONS} from '../public/js/workspace-model.js';
+import {WORKSPACE_FEATURES,WORKSPACE_UTILITIES} from '../public/js/workspace-registry.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright':'playwright');
 const out=process.env.UI_AUDIT_OUTPUT||'output/ui-audit';mkdirSync(out,{recursive:true});
@@ -62,9 +62,9 @@ try{
   await app.setViewportSize({width,height:900});
   await app.goto(t.url+'/app.html');await app.locator('#page-body').waitFor({state:'visible'});
   await app.locator('#cerium-entry-scene').waitFor({state:'hidden'});
-  for(const section of Object.keys(SECTIONS)){
-   await app.evaluate(s=>location.hash=s,section);await app.waitForTimeout(100);
-   await inspect(app,'workspace-'+section,width);
+  for(const feature of [...WORKSPACE_FEATURES,...WORKSPACE_UTILITIES.filter(x=>x.id!=='customize')]){
+   await app.evaluate(hash=>location.hash=hash,feature.href);await app.waitForTimeout(100);
+   await inspect(app,'workspace-'+(feature.category?feature.category+'-':'')+feature.id,width);
   }
  }
  const identity=await owner.me();const joined=await owner.req('/api/waitlist',{method:'POST',csrf:identity.csrfToken,json:{business:'UI audit'}});if(!joined.ok)throw new Error('Could not prepare signed-in waitlist fixture');

@@ -1,5 +1,6 @@
 // CERIUM workspace configuration. No data is deleted or access rights changed.
 import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules} from './industry-workspaces.js';
+import {WORKSPACE_CATEGORIES,workspaceDestination} from './workspace-registry.js';
 import {recommendBusinessTools} from './business-tool-advisor.js';
 import {escapeHTML as esc} from './workspace-model.js';
 
@@ -7,14 +8,15 @@ export function renderWorkspaceCustomizer(preferences={}) {
   const category=preferences.category||'other';
   const current=new Set(preferences.modules||defaultModules(category));
   const options=INDUSTRY_OPTIONS.map(i=>'<option value="'+esc(i.value)+'"'+(i.value===category?' selected':'')+'>'+esc(i.label)+'</option>').join('');
-  const choices=WORKSPACE_MODULES.map(m=>'<label class="ws-pick-module"><input type="checkbox" name="modules" value="'+esc(m.id)+'"'+(current.has(m.id)?' checked':'')+'><span class="ws-pick-copy"><strong>'+esc(m.label)+'</strong><small>'+esc(m.description)+'</small></span></label>').join('');
+  const choice=m=>'<label class="ws-pick-module"><input type="checkbox" name="modules" value="'+esc(m.id)+'"'+(current.has(m.id)?' checked':'')+'><span class="ws-pick-copy"><strong>'+esc(m.label)+'</strong><small>'+esc(m.description)+'</small></span></label>';
+  const choices=WORKSPACE_CATEGORIES.map(group=>{const modules=WORKSPACE_MODULES.filter(m=>workspaceDestination(m.id).category===group.id);return modules.length?'<section class="ws-module-group"><h4>'+esc(group.label)+'</h4><div class="ws-module-grid">'+modules.map(choice).join('')+'</div></section>':'';}).join('');
   return `<section class="panel workspace-customizer" aria-labelledby="ws-customizer-title">
     <div class="ws-launch">
       <div class="ws-launch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <div class="ws-launch-copy">
         <p class="ws-eyebrow">PERSONALIZED WORKSPACE</p>
         <h2 id="ws-customizer-title">A workspace built <span class="ac">around your work.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
-        <p>Choose your business tools. Overview, Marketing and Ask Cerium stay ready to help.</p>
+        <p>Choose your business tools. Overview, Marketing &amp; Reputation, Insights and Ask Cerium stay ready to help.</p>
       </div>
       <button type="button" class="button primary" id="workspace-open-customizer" aria-haspopup="dialog" aria-controls="workspace-customizer-dialog">Customize tools <span aria-hidden="true">→</span></button>
     </div>
@@ -41,8 +43,8 @@ export function renderWorkspaceCustomizer(preferences={}) {
         <button type="button" class="button secondary sm" id="workspace-reset-modules">Restore defaults</button></div>
         <p class="muted" id="workspace-recommendation-note" role="status">Instant rule-based suggestions. Your description stays in this browser.</p>
       </div>
-      <fieldset class="ws-module-fieldset"><legend>Business modules to display <span>(choose at least one)</span></legend><div class="ws-module-grid">${choices}</div></fieldset>
-      <div class="ws-included-tools" role="note"><strong>Included in every workspace</strong><p><b>Overview</b> for your daily snapshot · <b>Marketing</b> for drafts and customer insights · <b>Ask Cerium</b> for tool suggestions and direct page links.</p></div>
+      <fieldset class="ws-module-fieldset"><legend>Business modules to display <span>(choose at least one)</span></legend><div class="ws-module-groups">${choices}</div></fieldset>
+      <div class="ws-included-tools" role="note"><strong>Included in every workspace</strong><p><b>Overview</b> for your daily snapshot · <b>Marketing &amp; Reputation</b> for drafts and customer insights · <b>Insights &amp; Reports</b> for saved-record summaries · <b>Ask Cerium</b> for tool suggestions and direct page links.</p></div>
       <p class="ws-config-data-note">Hidden modules keep all their existing records and can be enabled again anytime.</p>
       <p class="form-error" id="workspace-preferences-error" role="alert" hidden></p>
       <div class="ws-config-footer">
@@ -117,7 +119,7 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     if(!Array.isArray(requested)||!requested.length||requested.length>allowed.size||
       requested.some(id=>!allowed.has(id))||new Set(requested).size!==requested.length)return;
     pendingAdvisorModules=[...requested];
-    if(location.hash==='#settings')showAdvisorReview();
+    if(location.hash==='#settings'||location.hash==='#settings/tools')showAdvisorReview();
     else location.hash='#settings';
   });
   window.addEventListener('hashchange',()=>{

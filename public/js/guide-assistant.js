@@ -1,24 +1,12 @@
 // In-app navigation assistant for Cerium: safe, read-only guidance.
 import {GUIDE_SECTIONS} from './guide-knowledge.js';
 import {guideNavigationLinks,trustedGuideLink} from './guide-links.js';
+import {workspaceDestination,workspacePathLabel} from './workspace-registry.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 import {isToolRecommendationRequest,recommendBusinessTools} from './business-tool-advisor.js';
 import {conversationReply,workflowReply,conciseGuideResponse,unknownGuideResponse} from './guide-dialogue.js';
 
-const SECTION_NAMES = {
-  overview: 'Overview',
-  invoices: 'Invoices',
-  quotes: 'Estimates & quotes',
-  jobs: 'Jobs & dispatch',
-  leads: 'Leads',
-  marketing: 'Marketing',
-  payments: 'Payments',
-  reminders: 'Payment reminders',
-  followups: 'Follow-ups',
-  reviews: 'Reviews',
-  settings: 'Settings',
-  support: 'Help & feedback'
-};
+const SECTION_NAMES=Object.fromEntries(GUIDE_SECTIONS.map(section=>[section,workspacePathLabel(workspaceDestination(section))]));
 
 const CONTEXT_SUGGESTIONS = {
   overview: [
@@ -280,7 +268,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       actionList.className='guide-actions guide-workflow-actions';
 
       links.forEach((link,i)=>{
-        const step=result.actions.find(action=>'#'+action?.section===link.href);
+        const step=result.actions.find(action=>trustedGuideLink('#'+action?.section)?.href===link.href);
         const sec=link.href.slice(1);
         if(!GUIDE_SECTIONS.includes(sec))return;
         const trusted=trustedGuideLink(link.href);
@@ -521,4 +509,5 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     if(event.key==='Escape'&&!panel.hidden){event.preventDefault();closeGuide();}
   });
   window.addEventListener('hashchange',()=>updateSuggestions(getSection?.()));
+  window.addEventListener('cerium:navigation',()=>updateSuggestions(getSection?.()));
 }

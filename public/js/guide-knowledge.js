@@ -1,3 +1,4 @@
+import {workspaceDestination,workspacePathLabel} from './workspace-registry.js';
 // Shared, safe knowledge base for navigation. No customer or invoice data is needed.
 export const GUIDE_TOPICS = Object.freeze([
   {section:'invoices', title:'Invoices',
@@ -36,6 +37,14 @@ export const GUIDE_TOPICS = Object.freeze([
    keywords:['marketing','promotion','rebook','re-book','get more reviews','social media','business profile','customer retention','lead sources'],
    answer:'Marketing helps plan customer outreach, draft messages for review before sharing, follow up with past paid customers, and inspect real lead and review activity. It does not automatically publish or send messages.',
    steps:'Open Marketing → Choose Get found and chosen, Re-book and re-engage, or Track performance.'},
+  {section:'crew',title:'Crew',
+   keywords:['team resources','team members','crew members','manage crew','add crew member','workforce'],
+   answer:'Manage crew records in Team & Resources → Crew. Use Assignments to review scheduled work and open a job to change the assigned person. Active-job counts do not prove availability.',
+   steps:'Open Team & Resources → Crew → Manage crew. For job assignments, choose Assignments → Details.'},
+  {section:'insights',title:'Insights & reports',
+   keywords:['business reports','sales insights','revenue insights','business insights','financial summary','invoice summary','business analytics','booking share'],
+   answer:'Insights & Reports summarizes current leads, jobs, follow-ups, reviews and invoices. Sales Insights shows recorded stages and sources. Revenue Insights keeps currencies separate and summarizes paid, outstanding, overdue and draft invoices.',
+   steps:'Open Insights & Reports → Choose Business Overview, Sales Insights or Revenue Insights. Use Settings for a record export.'},
   {section:'settings', title:'Settings',
    keywords:['setting','settings','profile','business address','subscription','plan','country','currency','customize','customise','tools','export','privacy','data','gst declaration','tax settings','data export','accounting export','backup','business details','gstin','tax id'],
    answer:'Settings contains business details, subscriptions, workspace customization and data controls. Hiding a tool does not delete its records.',
@@ -46,9 +55,9 @@ export const GUIDE_TOPICS = Object.freeze([
    steps:'Open Help & feedback → Write your message → Review the email draft.'},
   {section:'overview', title:'Overview',
    keywords:['overview','dashboard','home','getting started','start','navigate','where can i go','what can i do','daily summary','workspace stats','agenda','daily briefing','today summary','what is pending','what needs attention'],
-   answer:'Overview summarizes your business day. Use the left navigation to move between leads, jobs, quotes, invoices, payments and other tools.',
-   steps:'Open Overview → Review the summary → Select a tool in the sidebar.'}
-]);
+   answer:'Overview summarizes your business day. Choose a business category in the sidebar, then a feature tab. Existing feature links still open the corresponding tab.',
+   steps:'Open Overview → Review the summary → Choose a category → Select a feature tab.'}
+].map(topic=>Object.freeze({...topic,location:workspacePathLabel(workspaceDestination(topic.section))})));
 export const GUIDE_SECTIONS = Object.freeze(GUIDE_TOPICS.map(topic=>topic.section));
 const matchText=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 export function pickGuide(question, currentSection='overview') {

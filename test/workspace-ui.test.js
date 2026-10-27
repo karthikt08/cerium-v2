@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {renderCategoryNavigation,renderUtilityNavigation} from '../public/js/workspace-navigation.js';
+import {WORKSPACE_CATEGORIES} from '../public/js/workspace-registry.js';
 const read = p => fs.readFileSync(new URL('../public/' + p, import.meta.url), 'utf8');
 test('rebuilt app has one visual system and loads its real controller',()=>{
  const html=read('app.html');
@@ -11,7 +13,10 @@ test('rebuilt app has one visual system and loads its real controller',()=>{
 });
 test('every navigation destination has an accessible named link',()=>{
  const html=read('app.html');
- for(const name of ['overview','leads','followups','invoices','payments','reviews','settings','support'])assert.match(html,new RegExp(`data-nav="${name}"`));
+ const navigation=renderCategoryNavigation()+renderUtilityNavigation();
+ for(const category of WORKSPACE_CATEGORIES){assert.ok(navigation.includes('data-category="'+category.id+'"'));assert.ok(navigation.includes('aria-label="'));}
+ for(const utility of ['settings','settings/tools','support'])assert.ok(navigation.includes('data-nav="'+utility+'"'));
+ assert.match(html,/id="category-navigation"/);
  assert.match(html,/aria-controls="sidebar"/);
  assert.match(html,/id="workspace-main" tabindex="-1"/);
 });
