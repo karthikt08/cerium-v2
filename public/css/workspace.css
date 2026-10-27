@@ -90,42 +90,89 @@ body[data-edition="in"] .workspace-label small{color:#233f89}
 @media print{.invoice-share-toolbar{display:none!important}.invoice-upi-payment{background:#fff;border:1px solid #dce5f5}.invoice-upi-qr{width:106px;height:106px}}
 
 
-/* Compact desktop navigation. The mobile slide-out drawer remains independent. */
-.sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
-.sidebar-top .brand{min-width:0;padding-left:6px;padding-right:0}
+/* Keep the sidebar scrollable, but don't put a thick scrollbar next to the
+   navigation labels. Main-content and table scrollbars retain their styling. */
+.app-page .sidebar .navigation-scroll{
+  overflow-x:hidden;overflow-y:auto;min-height:0;
+  scrollbar-width:none;-ms-overflow-style:none;
+  overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;
+}
+.app-page .sidebar .navigation-scroll::-webkit-scrollbar{
+  display:none!important;width:0!important;height:0!important;
+}
+
+/* ChatGPT-like single header slot: the brand shrinks into the logo, while the
+   reopen button glides into that SAME location. Hover/focus reveals the button.
+   Never stack logo and toggle into two rows in the collapsed rail. */
+.sidebar-top{
+  position:relative;display:flex;align-items:center;justify-content:flex-start;
+  gap:6px;min-height:40px;min-width:0;padding-right:42px;
+  transition:padding-right .25s cubic-bezier(.2,.8,.2,1);
+}
+.sidebar-top .brand{
+  min-width:0;padding-left:6px;padding-right:0;flex:0 1 auto;
+  transition:gap .24s ease,opacity .2s ease;
+}
+.sidebar-top .brand img{
+  flex:none;width:30px;height:30px;
+  transition:opacity .18s ease,transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.sidebar-top .brand>span{
+  overflow:hidden;white-space:nowrap;max-width:130px;
+  transition:max-width .23s cubic-bezier(.2,.8,.2,1),opacity .16s ease,transform .23s ease,visibility 0s;
+}
+.sidebar-top .brand>.brand-period{max-width:13px;overflow:visible}
 .sidebar-collapse-toggle{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
   flex:none;display:inline-flex;align-items:center;justify-content:center;
   width:34px;height:34px;padding:0;border:1px solid #d8d9e9;border-radius:9px;
   background:rgba(255,255,255,.85);color:#615489;
-  transition:background .18s,border-color .18s,color .18s;
+  transition:right .25s cubic-bezier(.2,.8,.2,1),width .25s ease,height .25s ease,
+    opacity .18s ease,background .18s,border-color .18s,color .18s;
 }
-.sidebar-collapse-toggle .icon{width:19px;height:19px;stroke-width:1.8}
+.sidebar-collapse-toggle .icon{
+  width:19px;height:19px;stroke-width:1.8;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1);
+}
 .sidebar-collapse-toggle:hover{background:#eeebfa;border-color:#b5a8dd;color:#44318d}
 .sidebar-collapse-toggle:focus-visible{outline:3px solid #9586e7;outline-offset:2px}
 @media(min-width:761px){
-  .app-page .workspace{transition:grid-template-columns .22s cubic-bezier(.2,.8,.2,1)}
+  .app-page .workspace{transition:grid-template-columns .25s cubic-bezier(.2,.8,.2,1)}
   .app-page .workspace.sidebar-collapsed{grid-template-columns:76px minmax(0,1fr)}
   .app-page .workspace.sidebar-collapsed .sidebar{padding:23px 10px 13px}
-  .app-page .workspace.sidebar-collapsed .sidebar-top{flex-direction:column;gap:13px}
-  .app-page .workspace.sidebar-collapsed .sidebar-top .brand{
-    padding:0;justify-content:center;min-height:32px;width:100%;
+  .app-page .workspace.sidebar-collapsed .sidebar-top{
+    justify-content:center;padding-right:0;min-height:40px;
   }
-  .app-page .workspace.sidebar-collapsed .sidebar-top .brand>span{display:none}
-  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle{width:42px;height:36px}
-  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle .icon{transform:rotate(180deg)}
+  .app-page .workspace.sidebar-collapsed .sidebar-top .brand{
+    padding:0;flex:0 0 40px;width:40px;min-height:40px;
+    justify-content:center;gap:0;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-top .brand>span{
+    max-width:0;opacity:0;visibility:hidden;
+    transform:translateX(-7px);
+    transition: max-width .23s cubic-bezier(.2,.8,.2,1),opacity .16s ease,
+      transform .23s ease,visibility 0s linear .23s;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-top .brand>.brand-period{
+    margin-left:0;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle{
+    right:calc(50% - 20px);width:40px;height:40px;
+    opacity:0;background:transparent;border-color:transparent;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle .icon{
+    transform:rotate(180deg);
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-collapse-toggle:is(:hover,:focus-visible){
+    opacity:1;background:#eeebfa;border-color:#b5a8dd;color:#44318d;
+  }
+  .app-page .workspace.sidebar-collapsed .sidebar-top:has(.sidebar-collapse-toggle:is(:hover,:focus-visible)) .brand img{
+    opacity:0;transform:scale(.85);
+  }
   .app-page .workspace.sidebar-collapsed .workspace-label{
     margin:22px 0 17px;justify-content:center;
   }
   .app-page .workspace.sidebar-collapsed .workspace-label>div{display:none}
-  /* Keep the icon rail scrollable without the native scrollbar and arrow buttons. */
-  .app-page .workspace.sidebar-collapsed .navigation-scroll{
-    overflow-x:hidden;overflow-y:auto;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-  }
-  .app-page .workspace.sidebar-collapsed .navigation-scroll::-webkit-scrollbar{
-    display:none;width:0;height:0;
-  }
   .app-page .workspace.sidebar-collapsed .nav-label{display:none}
   .app-page .workspace.sidebar-collapsed .nav-list{gap:5px}
   .app-page .workspace.sidebar-collapsed .nav-link{
@@ -153,5 +200,5 @@ body[data-edition="in"] .workspace-label small{color:#233f89}
   .sidebar-top .brand{padding:0 14px}
 }
 @media(prefers-reduced-motion:reduce){
-  .app-page .workspace,.sidebar-collapse-toggle{transition:none!important}
+  .app-page .workspace,.sidebar-collapse-toggle,.sidebar-top,.sidebar-top .brand,.sidebar-top .brand img,.sidebar-top .brand>span{transition:none!important}
 }
