@@ -10,6 +10,7 @@ import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVp
 import {indiaInvoiceMode,prepareIndiaInvoicePayload} from './india-invoice-mode.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
+import {renderPaymentDuesPage,initializePaymentDuesUI} from './payment-dues-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
 import {openLeadImport} from './spreadsheet-import-ui.js';
 import {openInvoicePrint} from './invoice-print.js';
@@ -329,7 +330,7 @@ function renderPage() {
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():supportPage());
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():supportPage());
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
@@ -337,6 +338,7 @@ function renderPage() {
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
+  if(s==='dues')initializePaymentDuesUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,refresh,toast});
   if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
   if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
   if(singular[s])renderResults();
@@ -574,7 +576,7 @@ document.addEventListener('click',e=>{
     const r=getRecord(kind,id);if(!r)return;requestConfirmation('Delete '+(kind==='followup'?'follow-up':kind)+'?',`This permanently removes ${r.name||r.contactName||r.customerName||'this record'}. This cannot be undone.`,async()=>{await deleteCalls[kind](id);await refresh();toast('Record deleted.');});return;
   }
   if(action==='clear-data'||action==='delete-account'){
-    requestConfirmation(action==='clear-data'?'Clear your workspace?':'Delete your account?',action==='clear-data'?'This permanently deletes leads, quotes, scheduled jobs, invoices, reminders, reviews, and other workspace records. Your account and payment history remain. If safe, an older INR demo workspace will start fresh in USD. Export anything you need first.':'This permanently deletes your account and all its records. Export your data first if you need a copy.',async()=>{if(action==='clear-data'){await API.deleteWorkspaceData();await refresh();toast('Workspace cleared.');}else{await API.deleteAccount();location.href='/';}},true);return;
+    requestConfirmation(action==='clear-data'?'Clear your workspace?':'Delete your account?',action==='clear-data'?'This permanently deletes leads, quotes, scheduled jobs, invoices, custom payment dues, reminders, reviews, and other workspace records. Your account and payment history remain. If safe, an older INR demo workspace will start fresh in USD. Export anything you need first.':'This permanently deletes your account and all its records. Export your data first if you need a copy.',async()=>{if(action==='clear-data'){await API.deleteWorkspaceData();await refresh();toast('Workspace cleared.');}else{await API.deleteAccount();location.href='/';}},true);return;
   }
   perform(action+':'+(id||''),el,async()=>{
     if(action==='toggle-followup'){await API.toggleFollowUp(id);await refresh();toast('Follow-up updated.');}
