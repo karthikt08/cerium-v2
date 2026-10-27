@@ -47,7 +47,7 @@ test('desktop sidebar collapses to an accessible icon rail without changing mobi
  assert.match(css,/@media\(min-width:761px\)/,'compact rail only on desktop');
  assert.match(css,/\.app-page \.workspace\.sidebar-collapsed\{grid-template-columns:76px minmax\(0,1fr\)\}/);
  assert.match(css,/\.workspace\.sidebar-collapsed \.nav-link>span\{display:none\}/);
- assert.match(css,/\.workspace\.sidebar-collapsed \.sidebar-top \.brand>span\{display:none\}/);
+ assert.match(css,/\.workspace\.sidebar-collapsed \.sidebar-top \.brand>span\{[^}]*max-width:0;opacity:0;visibility:hidden/,'brand text smoothly shrinks instead of snapping out');
  assert.match(css,/\.workspace\.sidebar-collapsed \.signout-label\{display:none\}/);
  assert.match(css,/@media\(max-width:760px\)\{\s*\.sidebar-collapse-toggle\{display:none\}/,'mobile uses existing drawer');
  assert.match(js,/const SIDEBAR_COLLAPSE_KEY='cerium\.sidebar\.collapsed'/);
@@ -64,11 +64,11 @@ test('desktop sidebar collapses to an accessible icon rail without changing mobi
 
 test('collapsed desktop sidebar hides scrollbar chrome but remains scrollable',()=>{
  const css=read('css/workspace.css');
- const collapsedRule=/\.app-page \.workspace\.sidebar-collapsed \.navigation-scroll\{([^}]*)\}/.exec(css);
- assert.ok(collapsedRule,'collapsed sidebar must have a scoped scroll rule');
- assert.match(collapsedRule[1],/overflow-y:auto/,'wheel, touch, and keyboard scrolling remain available');
- assert.match(collapsedRule[1],/scrollbar-width:none/,'hide Firefox and modern browser scrollbar');
- assert.match(collapsedRule[1],/-ms-overflow-style:none/,'hide legacy Edge scrollbar');
- assert.match(css,/\.app-page \.workspace\.sidebar-collapsed \.navigation-scroll::-webkit-scrollbar\{[^}]*display:none/,'hide Chromium scrollbar and arrow buttons');
- assert.match(css,/\.navigation-scroll\{overflow:auto/,'expanded sidebar retains scrolling');
+ const bothModesRule=/\.app-page \.sidebar \.navigation-scroll\{([^}]*)\}/.exec(css);
+ assert.ok(bothModesRule,'expanded and collapsed nav share the hidden scrollbar rule');
+ assert.match(bothModesRule[1],/overflow-y:auto/,'wheel, touch and keyboard scroll still work');
+ assert.match(bothModesRule[1],/scrollbar-width:none/,'hide the Firefox scrollbar');
+ assert.match(bothModesRule[1],/-ms-overflow-style:none/,'hide the legacy scrollbar');
+ assert.match(css,/\.app-page \.sidebar \.navigation-scroll::-webkit-scrollbar\{[^}]*display:none/,'hide WebKit/Chromium scrollbar chrome');
+ assert.match(css,/\.navigation-scroll\{overflow:auto/,'base sidebar remains scrollable');
 });

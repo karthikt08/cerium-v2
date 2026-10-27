@@ -466,6 +466,14 @@ function setSidebarCollapsed(collapsed,persist=false){
   toggle.setAttribute('aria-expanded',String(!value));
   toggle.setAttribute('aria-label',label);
   toggle.title=label;
+  // In the compact desktop rail the brand is decorative beneath the expand
+  // button. Remove the hidden link from keyboard/screen-reader navigation,
+  // but restore it immediately for the full sidebar and mobile drawer.
+  const brand=$('sidebar').querySelector('.sidebar-top .brand');
+  const compactDesktop=value&&window.innerWidth>760;
+  brand.tabIndex=compactDesktop?-1:0;
+  if(compactDesktop)brand.setAttribute('aria-hidden','true');
+  else brand.removeAttribute('aria-hidden');
   if(persist){
     try{localStorage.setItem(SIDEBAR_COLLAPSE_KEY,value?'1':'0');}catch{}
   }
@@ -485,7 +493,7 @@ function initializeSidebarCollapse(){
 }
 initializeSidebarCollapse();
 $('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
-window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();revealActiveFeature($('page-body'));});
+window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();setSidebarCollapsed($('workspace').classList.contains('sidebar-collapsed'));revealActiveFeature($('page-body'));});
 window.addEventListener('hashchange',()=>navigate(location.hash,true));
 window.addEventListener('popstate',()=>navigate(location.hash,true));
 document.addEventListener('cerium:form-saved',e=>drafts.clear(e.detail?.section));
