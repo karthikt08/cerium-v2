@@ -782,7 +782,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -946,6 +946,25 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   api.delete('/invoices/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req, res) => {
     try { res.json(db.deleteInvoice(req.session.userId, req.params.id)); }
     catch(err) { scheduleError(res,err); }
+  });
+
+  // Owner-managed outstanding amounts that may not have a Cerium invoice.
+  // These are manual records: changing them never initiates money movement.
+  api.post('/dues', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.status(201).json(db.createPaymentDue(req.session.userId,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.patch('/dues/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.updatePaymentDue(req.session.userId,req.params.id,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.patch('/dues/:id/status', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.setPaymentDueStatus(req.session.userId,req.params.id,req.body));}
+    catch(err){scheduleError(res,err);}
+  });
+  api.delete('/dues/:id', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res)=>{
+    try {res.json(db.deletePaymentDue(req.session.userId,req.params.id));}
+    catch(err){scheduleError(res,err);}
   });
 
   // Bank matching API
