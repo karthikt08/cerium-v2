@@ -1,0 +1,49 @@
+/* Custom dues use native Cerium panels/fields/actions and the light UI. */
+.payment-dues-page{min-width:0}
+.payment-dues-page .page-heading{margin-bottom:21px}
+.due-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:19px}
+.due-summary-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:15px 17px;border:1px solid #e2e6ee;border-radius:12px;background:#fff}
+.due-summary-card span{font-size:11px;color:#738095}
+.due-summary-card strong{font-size:27px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums;color:#303c59}
+.due-summary-card small{font-size:10.5px;color:#75849a;overflow-wrap:anywhere}
+.due-layout{display:grid;grid-template-columns:minmax(310px,.78fr) minmax(400px,1.22fr);align-items:start;gap:18px}
+.due-editor,.due-register{min-width:0}
+.due-editor .panel-body,.due-register .panel-body{padding:21px}
+.due-form .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.due-form .field{min-width:0}
+.due-form .field.full{grid-column:1/-1}
+.due-form .field :is(input,textarea){width:100%;max-width:100%;font:inherit;font-size:12.5px;border:1px solid #dfe4ed;border-radius:9px;padding:10px 12px;color:#293c55;background:#fff}
+.due-form .field textarea{resize:vertical;min-height:74px}
+.due-form .field :is(input,textarea):focus-visible{outline:3px solid #aab4f5;outline-offset:1px;border-color:#8697e9}
+.due-note,.due-footer{font-size:11px;line-height:1.6;color:#7a8498}
+.due-note{margin:14px 0}
+.due-footer{margin:16px 0 0}
+.due-form-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:13px}
+.due-form-actions button:disabled{opacity:.6;cursor:wait}
+.due-count{font-size:11px;color:#7d879b;padding-bottom:10px;border-bottom:1px solid #edf0f5}
+.due-row{display:grid;grid-template-columns:minmax(155px,1fr) minmax(110px,.5fr) auto;align-items:center;column-gap:12px;row-gap:10px;min-width:0;padding:15px 0;border-bottom:1px solid #edf0f5}
+.due-row-main{display:grid;gap:5px;min-width:0}
+.due-row-main strong{font-size:12px;font-weight:700;color:#35415b;overflow-wrap:anywhere}
+.due-row-main span{font-size:11px;color:#56627a;overflow-wrap:anywhere}
+.due-row-main small{color:#8992a3;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+.due-row-amount{display:grid;justify-items:start;gap:5px}
+.due-row-amount strong{font-size:13px;font-variant-numeric:tabular-nums;color:#303957}
+.due-row-amount span{font-size:10.5px;color:#7f8b9f}
+.due-status{padding:5px 8px;border-radius:7px;border:1px solid #e1e2f2;background:#f5f3fd;color:#5b5199;font-size:10px;font-weight:700;white-space:nowrap}
+.due-status.overdue{background:#fff4f1;border-color:#f4d9d2;color:#a64e3e}
+.due-row-actions{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.due-row-actions .button{padding:7px 10px;min-height:32px;font-size:10.5px}
+.due-delete{font-size:10.5px;color:#9a5364}
+.due-empty{border:1px dashed #dce1ea;border-radius:10px;padding:23px;background:#fafbfe;color:#78869c;font-size:12px;line-height:1.6}
+@media(max-width:1000px){.due-layout{grid-template-columns:1fr}}
+@media(max-width:620px){
+ .due-summary{grid-template-columns:1fr 1fr}
+ .due-summary-card:last-child{grid-column:1/-1}
+ .due-layout{grid-template-columns:minmax(0,1fr)}
+ .due-form .form-grid{grid-template-columns:1fr}
+ .due-row{grid-template-columns:minmax(0,1fr) auto}
+ .due-row-amount{grid-column:2;grid-row:1}
+ .due-row .due-status{grid-column:1;justify-self:start}
+ .due-row-actions{grid-column:1/-1}
+ .due-editor .panel-body,.due-register .panel-body{padding:17px}
+}
