@@ -53,7 +53,9 @@ try{
     for(const [category,labels] of Object.entries(groups)){
       await page.locator('[data-category="'+category+'"]').click();
       await settled(page.url().split('#')[1]);
-      assert.deepEqual(await page.locator('.workspace-feature-tab:visible').allTextContents(),labels);
+      const visibleLabels=await page.locator('.workspace-feature-tab:visible').evaluateAll(tabs=>tabs.map(tab=>
+        [...tab.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join('').trim()));
+      assert.deepEqual(visibleLabels,labels);
     }
     await open('#field/schedule');
     assert.equal((await page.locator('#page-body h1').textContent()).trim(),'Job schedule');
