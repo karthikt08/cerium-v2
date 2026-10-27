@@ -47,7 +47,7 @@ try{
   await page.goto(t.url+'/forgot-password.html');await page.locator('#email').fill('registration@example.com');await page.locator('#forgot-form button').click();await page.locator('#dev-reset-link a').click();
   await page.locator('#password').fill('ChangedTest123!');await page.locator('#confirm-password').fill('WrongTest123!');await page.locator('#reset-form button').click();assert.match(await page.locator('#msg').textContent(),/do not match/);
   await page.locator('#confirm-password').fill('ChangedTest123!');await page.locator('#reset-form button').click();await page.waitForURL('**/login.html?reset=1');
-  await page.locator('#email').fill('registration@example.com');await page.locator('#password').fill('ChangedTest123!');await page.locator('#login-form button[type=submit]').click();await page.waitForURL('**/welcome.html**');
+  await page.locator('#email').fill('registration@example.com');await page.locator('#password').fill('ChangedTest123!');await page.locator('#login-form button[type=submit]').click();await page.waitForURL('**/verify.html**');
  });
  await createOwner();
  await check('Record defaults follow the business date across device time zones',async()=>{
