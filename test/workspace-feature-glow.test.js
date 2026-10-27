@@ -36,32 +36,28 @@ test('all selected labels get a glowing gradient and inline underline, inactive 
   assert.match(css,/\.workspace-feature-count\{/,'numeric badges remain independently styled');
 });
 
-test('normal feature headings and Marketing sub-headings get soft underline, existing accented headings stay intact',()=>{
-  assert.ok(css.includes('.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))'), 'All plain page titles, including Invoices, use the shared accent');
-  assert.ok(css.includes('.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))'), 'All plain page titles, including Invoices, use the shared accent');
+test('Invoices and other plain page headings get a shared glow; existing accents stay intact',()=>{
+  const titleSelector='.app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))';
+  assert.ok(css.includes(titleSelector+'{'),'the plain title has gradient text styling');
+  assert.ok(css.includes(titleSelector+'::after{'),'the same title has a glowing underline');
   assert.match(css,/\.marketing-feature-header \.panel-title h2::after\{/);
-  // Invoices is rendered through the shared pageHeading() helper; it is not
-  // a bespoke invoice view whose title might be missed by category-only CSS.
-  assert.match(app,/const pageHeading = .*<h1>\$\{typeof title/);
-  assert.match(app,/return pageHeading\(\.\.\.SECTIONS\[kind\]/);
-  for(const title of ['Invoices','Leads','Follow-ups','Payments','Reviews']){
-    assert.ok(['Invoices','Leads','Follow-ups','Payments','Reviews'].includes(title));
-  }
-  const marketing=read('js/marketing-page.js');
-  assert.match(marketing,/<h1>Marketing<\/h1>/);
-  const insight=read('js/workspace-insights.js');
-  assert.match(insight,/<h1>\$\{titles\[view\]\|\|titles\.business\}<\/h1>/);
-  const jobsSource=read('js/jobs-page.js');
-  assert.match(jobsSource,/<h1>\$\{title\}<\/h1>/,'Crew and dispatch subviews get the same accent');
-
   assert.match(css,/\.page-heading \.ac\{/);
   const app=read('js/app.js');
-  assert.match(app,/const pageHeading =/);
-  const jobs=read('js/jobs-page.js'),quotes=read('js/quotes-page.js'),reminders=read('js/reminders-page.js');
-  for(const s of [jobs,quotes,reminders]){
-    assert.ok(s.includes('class="ac"'),'existing .ac title and .ul underline left untouched');
-    assert.ok(s.includes('class="ul"'),'existing underline path remains intact');
+  assert.match(app,/const pageHeading = .*<h1>\$\{typeof title/);
+  assert.match(app,/return pageHeading\(\.\.\.SECTIONS\[kind\]/);
+  for(const id of ['leads','followups','invoices','payments','reviews','bank','crew','business','sales','revenue']){
+    assert.ok(WORKSPACE_FEATURES.some(route=>route.id===id),id+' is a real subfeature');
   }
+  assert.match(read('js/marketing-page.js'),/<h1>Marketing<\/h1>/);
+  assert.match(read('js/workspace-insights.js'),/<h1>\$\{titles\[view\]\|\|titles\.business\}<\/h1>/);
+  const jobs=read('js/jobs-page.js');
+  assert.match(jobs,/<h1>\$\{title\}<\/h1>/,'crew, assignments and dispatch subviews get the same accent');
+  for(const source of [jobs,read('js/quotes-page.js'),read('js/reminders-page.js')]){
+    assert.ok(source.includes('class="ac"'),'existing rich title is preserved');
+    assert.ok(source.includes('class="ul"'),'do not duplicate its SVG underline');
+  }
+  assert.ok(css.includes(':not(:has(.overview-title-accent))'),'the Overview greeting is unchanged');
+  assert.ok(css.includes(':not(:has(.ac))'),'rich titles are not double-decorated');
 });
 
 test('subfeature glow cannot recolor forms, records, navigation, dialogs or entire page',()=>{
