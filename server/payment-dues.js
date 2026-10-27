@@ -86,6 +86,51 @@ export function createPaymentDuesStore(db){
       del.run(userId,String(id));
       return {ok:true};
     },
+    importPaymentDueRows(userId,rows,commit=false){
+      if(!Array.isArray(rows)||rows.length>2000)throw invalid('Import at most 2,000 payment dues at a time.');
+      return db.transaction(()=>{
+        const account=owner.get(userId);
+        if(!account)throw Object.assign(new Error('Workspace not found.'),{code:'workspace_not_found',status:404});
+        const currency=account.currency||'USD';
+        const fingerprint=p=>[
+          p.customerName.trim().toLocaleLowerCase().replace(/\s+/g,' '),
+          p.description.trim().toLocaleLowerCase().replace(/\s+/g,' '),
+          p.amountCents,p.dueDate,p.reference.trim().toLocaleLowerCase()
+        ].join('\u001f');
+        const known=new Set(list.all(userId).map(x=>fingerprint({
+          customerName:x.customer_name,description:x.description,
+          amountCents:x.amount_cents,dueDate:x.due_date,reference:x.reference||''
+        })));
+        let ready=0,duplicates=0,invalid=0,imported=0;
+        const samples=[],errors=[];
+        for(const row of rows){
+          const number=Number(row?.number)||0;
+          const messages=Array.isArray(row?.errors)?[...row.errors]:[];
+          let p;
+          if(!messages.length)try{p=validate(row.data);}catch(e){messages.push(e.message);}
+          let status='ready',reason='';
+          if(messages.length){
+            invalid++;status='invalid';reason=messages.join(' ');
+            if(errors.length<100)errors.push({row:number,reason});
+          }else{
+            const key=fingerprint(p);
+            if(known.has(key)){duplicates++;status='duplicate';reason='This due already exists or repeats a row in this file.';}
+            else{
+              ready++;known.add(key);
+              if(commit){
+                const id=randomUUID(),at=stamp();
+                create.run(id,userId,p.customerName,p.description,p.amountCents,currency,p.dueDate,p.reference,p.notes,at,at);
+                imported++;
+              }
+            }
+          }
+          if(samples.length<20)samples.push({row:number,customerName:String(row?.data?.customerName||''),
+            description:String(row?.data?.description||''),amount:String(row?.data?.amount||''),
+            dueDate:String(row?.data?.dueDate||''),status,reason});
+        }
+        return {total:rows.length,ready,duplicates,invalid,imported,samples,errors};
+      })();
+    },
     clearPaymentDues(userId){clear.run(userId);}
   };
 }

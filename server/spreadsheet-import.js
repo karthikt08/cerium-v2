@@ -12,17 +12,19 @@ const xmlText=s=>String(s).replace(/&#(x[0-9a-f]+|\d+);|&(amp|lt|gt|quot|apos);/
   const n=num[0].toLowerCase()==='x'?parseInt(num.slice(1),16):Number(num);
   return n>0&&n<=0x10ffff&&!(n>=0xd800&&n<=0xdfff)?String.fromCodePoint(n):'';
 });
-function table(rows){
+function table(rows,headerRow=1){
+  if(!Number.isInteger(headerRow)||headerRow<1||headerRow>10)throw bad('Choose a header row between 1 and 10.');
   const populated=rows.filter(r=>r.some(v=>String(v??'').trim()));
-  if(populated.length<2)throw bad('The spreadsheet needs a header row and at least one data row.');
-  if(populated.length-1>MAX_ROWS)throw bad('Import at most 2,000 rows at a time. Split larger files.');
-  const headers=Array.from({length:Math.min(populated[0].length,MAX_COLS)},(_,i)=>String(populated[0][i]??'').trim());
+  if(populated.length<=headerRow)throw bad('The selected header row needs at least one data row beneath it.');
+  if(populated.length-headerRow>MAX_ROWS)throw bad('Import at most 2,000 rows at a time. Split larger files.');
+  const heading=populated[headerRow-1];
+  const headers=Array.from({length:Math.min(heading.length,MAX_COLS)},(_,i)=>String(heading[i]??'').trim());
   if(!headers.some(Boolean))throw bad('The first row must contain column headers.');
   if(headers.length>MAX_COLS||populated.some(r=>r.length>MAX_COLS&&r.slice(MAX_COLS).some(x=>String(x).trim())))
     throw bad('Use a spreadsheet with at most 40 populated columns.');
-  return {headers,rows:populated.slice(1).map(r=>headers.map((_,i)=>String(r[i]??'').trim()))};
+  return {headers,headerRow,rows:populated.slice(headerRow).map(r=>headers.map((_,i)=>String(r[i]??'').trim()))};
 }
-function csvRows(input){
+function csvRows(input,headerRow=1){
   const first=input.replace(/^\uFEFF/,'');
   const sample=first.split(/\r?\n/,1)[0];
   const countSep=c=>{let quoted=false,n=0;for(let i=0;i<sample.length;i++){if(sample[i]==='"'){if(quoted&&sample[i+1]==='"')i++;else quoted=!quoted;}else if(!quoted&&sample[i]===c)n++;}return n;};
@@ -32,13 +34,13 @@ function csvRows(input){
     const c=first[i];
     if(c==='"'){if(quoted&&first[i+1]==='"'){cell+='"';i++;}else if(!quoted&&cell===''){quoted=true;}else if(quoted){quoted=false;}else throw bad('CSV contains a misplaced quote.');}
     else if(c===delim&&!quoted){row.push(cell);cell='';}
-    else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&first[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';if(rows.length>MAX_ROWS+3)throw bad('Import at most 2,000 rows at a time.');}
+    else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&first[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';if(rows.length>MAX_ROWS+12)throw bad('Import at most 2,000 rows at a time.');}
     else cell+=c;
     if(cell.length>10000)throw bad('A spreadsheet cell is too large.');
   }
   if(quoted)throw bad('CSV contains an unfinished quoted value.');
   if(row.length||cell){row.push(cell);rows.push(row);}
-  return table(rows);
+  return table(rows,headerRow);
 }
 function zipFiles(buffer){
   const endMin=Math.max(0,buffer.length-65557);let e=-1;
@@ -70,22 +72,25 @@ function zipFiles(buffer){
   }
   return out;
 }
-function xlsxRows(buffer){
+function xlsxRows(buffer,{sheetIndex=0,headerRow=1}={}){
   const files=zipFiles(buffer);
   const workbook=files.get('xl/workbook.xml')||'';
   const relationships=files.get('xl/_rels/workbook.xml.rels')||'';
   const date1904=/<(?:[\w.-]+:)?workbookPr\b[^>]*\bdate1904="(?:1|true)"/.test(workbook);
   const listed=[...files.keys()].filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>Number(a.match(/sheet(\d+)/)[1])-Number(b.match(/sheet(\d+)/)[1]));
-  let sheet=listed[0];
-  const firstSheet=/<(?:[\w.-]+:)?sheet\b[^>]*\/?\s*>/.exec(workbook)?.[0]||'';
-  const sheetRelation=/\br:id="([^"]+)"/.exec(firstSheet)?.[1];
-  if(sheetRelation){
-    const relation=[...relationships.matchAll(/<Relationship\b[^>]*\/?\s*>/g)]
-      .map(m=>m[0]).find(tag=>/\bId="([^"]+)"/.exec(tag)?.[1]===sheetRelation);
-    const target=/\bTarget="([^"]+)"/.exec(relation||'')?.[1]||'';
-    const path='xl/'+target.replace(/^\/?xl\//,'').replace(/^\//,'');
-    if(listed.includes(path))sheet=path;
-  }
+  const relationshipTags=[...relationships.matchAll(/<Relationship\b[^>]*\/?\s*>/g)].map(m=>m[0]);
+  const sheetsByName=[...workbook.matchAll(/<(?:[\w.-]+:)?sheet\b[^>]*\/?\s*>/g)].map((match,i)=>{
+    const tag=match[0],name=xmlText(/\bname="([^"]+)"/.exec(tag)?.[1]||'Sheet '+(i+1));
+    const relationId=/\br:id="([^"]+)"/.exec(tag)?.[1];
+    const linked=relationshipTags.find(rel=>/\bId="([^"]+)"/.exec(rel)?.[1]===relationId);
+    const target=/\bTarget="([^"]+)"/.exec(linked||'')?.[1]||'';
+    const linkedPath='xl/'+target.replace(/^\/?xl\//,'').replace(/^\//,'');
+    const path=listed.includes(linkedPath)?linkedPath:listed[i];
+    return {name,path};
+  }).filter(item=>listed.includes(item.path));
+  const available=sheetsByName.length?sheetsByName:listed.map((path,i)=>({name:'Sheet '+(i+1),path}));
+  if(!Number.isInteger(sheetIndex)||sheetIndex<0||sheetIndex>=available.length)throw bad('Choose a valid worksheet.');
+  const sheet=available[sheetIndex]?.path;
   if(!sheet)throw bad('No usable worksheet was found in the .xlsx file.');
   const shared=[];
   const sharedXml=files.get('xl/sharedStrings.xml')||'';
@@ -113,21 +118,106 @@ function xlsxRows(buffer){
       row[col]=value;
     }
     if(row.some(v=>String(v??'').trim()))rows.push(row);
-    if(rows.length>MAX_ROWS+2)throw bad('Import at most 2,000 rows at a time.');
+    if(rows.length>MAX_ROWS+12)throw bad('Import at most 2,000 rows at a time.');
   }
-  return {...table(rows),date1904};
+  return {...table(rows,headerRow),date1904,sheets:available.map(item=>item.name),sheetIndex};
 }
 export function parseSpreadsheet(upload){
+  const sheetIndex=upload?.sheetIndex===undefined?0:upload.sheetIndex;
+  const headerRow=upload?.headerRow===undefined?1:upload.headerRow;
   const filename=upload?.filename,content=upload?.content;
   if(typeof filename!=='string'||!/\.(csv|xlsx)$/i.test(filename))throw bad('Choose a .csv or .xlsx file. Legacy .xls files must be saved as .xlsx or CSV.');
   if(typeof content!=='string'||content.length>Math.ceil(MAX_FILE*4/3)+8||!/^[A-Za-z0-9+/]*={0,2}$/.test(content))
     throw bad('Invalid file data. Files must be at most 2 MB.');
   const buffer=Buffer.from(content,'base64');
   if(!buffer.length||buffer.length>MAX_FILE)throw bad('Choose a nonempty file of at most 2 MB.');
-  if(/\.csv$/i.test(filename))return csvRows(text(buffer));
+  if(/\.csv$/i.test(filename)){
+    if(sheetIndex!==0)throw bad('CSV files contain one sheet.');
+    return {...csvRows(text(buffer),headerRow),sheets:['CSV'],sheetIndex:0};
+  }
   if(buffer.subarray(0,2).toString()!=='PK')throw bad('Choose a valid .xlsx workbook, not a renamed file.');
-  return xlsxRows(buffer);
+  return xlsxRows(buffer,{sheetIndex,headerRow});
 }
+export const DUE_FIELDS=['customerName','description','amount','dueDate','reference','notes'];
+const DUE_ALIASES={
+  customerName:['customer','customer name','client','clientname','party','party name','name','debtor','accountname','businessname'],
+  description:['description','details','reason','purpose','particulars','payment for','item','installment','instalment','paymentstage'],
+  amount:['amount','due','amount due','pending','pending amount','outstanding','outstanding amount','balance','balance due','receivable','total due','paymentdue','dues'],
+  dueDate:['due date','due on','payment date','pay by','deadline','due','date due','due_date','duedate','instalmentdate','installmentdate'],
+  reference:['reference','ref','invoice number','invoice no','bill number','order no','order number','external reference','document no'],
+  notes:['notes','remarks','comment','comments','memo']
+};
+export function suggestedDueMapping(headers){
+  const taken=new Set(),mapping={};
+  const tidy=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+  for(const field of DUE_FIELDS){
+    const index=headers.findIndex((v,i)=>!taken.has(i)&&DUE_ALIASES[field].some(a=>tidy(a)===tidy(v)));
+    mapping[field]=index>=0?index:null;
+    if(index>=0)taken.add(index);
+  }
+  return mapping;
+}
+export function unmappedColumns(parsed,mapping){
+  const mapped=new Set(Object.values(mapping||{}).filter(Number.isInteger));
+  return parsed.headers.map((header,i)=>({header,index:i})).filter(col=>!mapped.has(col.index)&&parsed.rows.some(row=>String(row[col.index]??'').trim()));
+}
+export function normalizeImportDate(value,{date1904=false,dateFormat='ISO'}={}){
+  const s=String(value??'').trim();
+  if(!s)return '';
+  if(/^\d+(?:\.\d+)?$/.test(s)&&Number(s)>=20000&&Number(s)<=90000){
+    return new Date((date1904?Date.UTC(1904,0,1):Date.UTC(1899,11,30))+Math.floor(Number(s))*86400000).toISOString().slice(0,10);
+  }
+  let iso=s;
+  if(/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/.test(s)){
+    if(!['DMY','MDY'].includes(dateFormat))throw bad('Choose DD/MM/YYYY or MM/DD/YYYY for this spreadsheet.');
+    const [a,b,y]=s.split(/[\/-]/).map(Number);
+    iso=String(y)+'-'+String(dateFormat==='DMY'?b:a).padStart(2,'0')+'-'+String(dateFormat==='DMY'?a:b).padStart(2,'0');
+  }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(iso))throw bad('Use YYYY-MM-DD, Excel date cells or choose a date format.');
+  const date=new Date(iso+'T00:00:00Z');
+  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==iso)throw bad('Invalid due date.');
+  return iso;
+}
+export function mappedDues(parsed,mapping,{dateFormat='ISO',extraAction='review'}={}){
+  if(!mapping||typeof mapping!=='object'||Array.isArray(mapping))throw bad('Choose spreadsheet columns for dues.');
+  const used=new Set();
+  for(const key of DUE_FIELDS){
+    const i=mapping[key];
+    if(i===null||i===undefined||i==='')continue;
+    if(!Number.isInteger(i)||i<0||i>=parsed.headers.length||used.has(i))throw bad('A column cannot be mapped twice.');
+    used.add(i);
+  }
+  for(const key of ['customerName','amount','dueDate']){
+    if(!Number.isInteger(mapping[key]))throw bad('Map customer, amount and due date columns.');
+  }
+  if(!['ISO','DMY','MDY'].includes(dateFormat))throw bad('Choose a supported date format.');
+  if(!['review','notes','skip'].includes(extraAction))throw bad('Choose what happens to unmatched columns.');
+  const extras=unmappedColumns(parsed,mapping);
+  return parsed.rows.map((row,i)=>{
+    const data={},errors=[];
+    for(const key of DUE_FIELDS)data[key]=Number.isInteger(mapping[key])?String(row[mapping[key]]??'').trim():'';
+    if(!data.customerName)errors.push('Customer is required.');
+    if(!data.description)data.description='Imported payment due';
+    try{data.dueDate=normalizeImportDate(data.dueDate,{date1904:parsed.date1904,dateFormat});}
+    catch(e){errors.push(e.message);}
+    let amount=data.amount.replace(/[, ]/g,'').trim();
+    if(/[$€£₹]/.test(amount))errors.push('Remove currency symbols and confirm the file uses the business currency.');
+    else if(!/^\d+(?:\.\d{1,2})?$/.test(amount)||Number(amount)<=0||Number(amount)>100_000_000)
+      errors.push('Amount must be positive with up to 2 decimal places.');
+    else data.amount=amount;
+    const extrasOnRow=extras.map(col=>[col.header||'Column '+(col.index+1),String(row[col.index]??'').trim()]).filter(([,value])=>value);
+    if(extrasOnRow.length){
+      if(extraAction==='review')errors.push('Review '+extrasOnRow.length+' unmatched column values before importing.');
+      if(extraAction==='notes'){
+        const appendix='\nOriginal spreadsheet fields:\n'+extrasOnRow.map(([key,val])=>key+': '+val).join('\n');
+        if(data.notes.length+appendix.length>1200)errors.push('Unmatched columns exceed the available Notes length.');
+        else data.notes=(data.notes+appendix).trim();
+      }
+    }
+    return {number:(parsed.headerRow||1)+i+1,data,errors};
+  });
+}
+
 export const LEAD_FIELDS=['name','phone','email','address','source','stage','value','nextFollowUp','notes'];
 const ALIASES={
   name:['name','customer','customername','client','clientname','contact','contactname','fullname','leadname'],
@@ -161,7 +251,9 @@ function normalizeDate(value,date1904=false){
   if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==s)throw bad('Invalid follow-up date.');
   return s;
 }
-export function mappedLeads(parsed,mapping){
+export function mappedLeads(parsed,mapping,{dateFormat='ISO',extraAction='skip'}={}){
+  if(!['skip','notes','review'].includes(extraAction))throw bad('Choose how to handle unknown spreadsheet columns.');
+  const extras=unmappedColumns(parsed,mapping);
   if(!mapping||typeof mapping!=='object'||Array.isArray(mapping))throw bad('Choose spreadsheet columns for the fields.');
   const used=new Set();
   for(const field of LEAD_FIELDS){
@@ -182,12 +274,21 @@ export function mappedLeads(parsed,mapping){
       if(!/^\d+(?:\.\d{1,2})?$/.test(num)||Number(num)>1_000_000_000)errors.push('Invalid amount. Use a nonnegative number with up to 2 decimal places.');
       else data.value=num;
     }
-    try{data.nextFollowUp=normalizeDate(data.nextFollowUp,parsed.date1904);}catch(err){errors.push(err.message);}
+    try{data.nextFollowUp=normalizeImportDate(data.nextFollowUp,{date1904:parsed.date1904,dateFormat});}catch(err){errors.push(err.message);}
     if(data.stage){
       const match=['New','Quoted','Booked','Done'].find(x=>x.toLowerCase()===data.stage.toLowerCase());
       if(!match)errors.push('Stage must be New, Quoted, Booked or Done.');
       else data.stage=match;
     }else data.stage='New';
-    return {number:i+2,data,errors};
+    const extraValues=extras.map(col=>[col.header||'Column '+(col.index+1),String(values[col.index]??'').trim()]).filter(([,v])=>v);
+    if(extraValues.length){
+      if(extraAction==='review')errors.push('Choose whether to preserve '+extraValues.length+' unmatched values in Notes or explicitly skip them.');
+      if(extraAction==='notes'){
+        const addition='\nOriginal spreadsheet fields:\n'+extraValues.map(([k,v])=>k+': '+v).join('\n');
+        if((data.notes||'').length+addition.length>1500)errors.push('Extra columns exceed the Notes length; review this row.');
+        else data.notes=((data.notes||'')+addition).trim();
+      }
+    }
+    return {number:(parsed.headerRow||1)+i+1,data,errors};
   });
 }
