@@ -26,3 +26,12 @@ Limits: 2 MiB uploaded file, at most 2,000 data rows and 40 populated columns pe
 ### Regression tests
 
 Run npm test -- test/spreadsheet-import.test.js for focused import tests, and npm test for the complete suite. Test coverage includes CSV quoting, XLSX shared/inline strings and sparse cells, auto mapping, bad files, invalid mappings, preview non-mutation, owner isolation, idempotence, unintended reminder/review side effects, CSRF, cross-origin requests and trial expiry.
+
+
+## Smart Import updates (branch `feat/smart-spreadsheet-dues-import`)
+
+- Customers & Sales → Leads and Billing & Payments → Custom Dues support CSV and XLSX, selecting an Excel worksheet, and choosing a header row (1–10 among populated rows).
+- Unknown headers are not silently discarded. Map them to a supported field, explicitly preserve their values in Notes with the original column label, or choose to skip them. Searchable custom field definitions are **not yet implemented**.
+- Date convention can be selected as ISO/Excel, DD/MM/YYYY or MM/DD/YYYY. Ambiguous dates are not guessed. Currency symbols in financial due amounts require cleanup; the due importer requires the user to attest to the saved business currency before commit.
+- Both targets show an import preview with row errors and duplicate counts. The server parses and validates again during commit, stores records transactionally and leaves existing records untouched. Importing dues does not create invoices, send reminders or confirm actual payments.
+- Limits remain 2 MB, 2,000 rows and 40 columns. Only the first 10 populated header positions can be selected; merged cells, multi-row item groups, separate master-detail sheets and arbitrary formula-derived values are not automatically reconstructed. Such files require manual preparation or a future advanced transform step.
