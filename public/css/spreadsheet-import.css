@@ -24,3 +24,25 @@
   .lead-import-dialog .dialog-description{padding:0 16px}
   .lead-import-dialog .import-content{padding:0 16px 12px;max-height:55vh}
 }
+
+/* Same secure import flow for Leads and Custom Dues: make unmatched-data and
+   currency confirmation impossible to miss while respecting Cerium's light UI. */
+.lead-import-dialog .due-import-extra{
+  padding:12px 14px;margin:14px 0;border:1px solid #e3dcf3;
+  background:#f7f5fc;border-radius:9px;color:#4e5272;
+  font-size:12px;line-height:1.6;overflow-wrap:anywhere;
+}
+.lead-import-dialog .due-import-currency{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:17px 0 13px;padding:13px 14px;border:1px solid #e1e6ee;
+  background:#f9fafe;border-radius:9px;font-size:12px;line-height:1.5;
+  color:#414d67;
+}
+.lead-import-dialog .due-import-currency input{
+  flex:none;margin-top:3px;accent-color:#6155bd;
+}
+.lead-import-dialog .due-import-currency:focus-within{outline:2px solid #8b8ae4;outline-offset:2px}
+.lead-import-dialog #lead-import-layout{padding:12px 0;border-bottom:1px solid #ececf3;margin-bottom:14px}
+.lead-import-dialog #lead-import-header-row{width:100%;min-height:39px;padding:8px 12px}
+.lead-import-dialog #lead-import-sheet,.lead-import-dialog #lead-import-extra-action,
+.lead-import-dialog #lead-import-date-format{min-width:0;max-width:100%}
