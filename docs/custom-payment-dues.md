@@ -46,3 +46,18 @@ never infer that a payment has already settled.
    not change; no reminder or payment is sent.
 4. Try bad dates, negative amounts, huge values and unconfirmed settlement.
 5. Check mobile width, keyboard controls, read-only mode and full export/clear.
+
+## CSV / Excel import
+
+Use **Billing & Payments → Custom Dues → Import Excel / CSV** for historical
+balances and installment dates. Each row represents **one due**, not an
+entire multi-line invoice. Match customer, amount and due date columns; add a
+description or use the fallback "Imported payment due". Choose the worksheet,
+header row and the correct local date convention. Unmatched columns must be
+preserved in Notes or explicitly skipped, and all amounts are confirmed against
+the business's saved invoice currency. The preview lists duplicates and invalid
+rows; imports do not mark any due as paid.
+
+For other layouts (multiple item rows per order, separate customer master sheets,
+complex installment schedules) do not flatten or guess relationships. Those
+remain a future structured migration workflow with explicit owner mapping.
