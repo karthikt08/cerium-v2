@@ -41,6 +41,26 @@ try{
   assert.equal(seed.status,201);
   await context.addCookies([...owner.jar].map(([name,value])=>({name,value,url:t.url})));
   await open('#overview');
+  await check('Feature groups expose the requested implemented tools',async()=>{
+    const groups={
+      customers:['Leads','Follow-ups','Estimates & Quotes'],
+      field:['Job Schedule','Dispatch','Crew Assignments'],
+      billing:['Invoices','Payments','Payment Reminders','Bank Matching'],
+      marketing:['Get Found','Re-engage','Reviews','Performance'],
+      team:['Crew','Assignments'],
+      insights:['Business Overview','Sales Insights','Revenue Insights'],
+    };
+    for(const [category,labels] of Object.entries(groups)){
+      await page.locator('[data-category="'+category+'"]').click();
+      await settled(page.url().split('#')[1]);
+      const visibleLabels=await page.locator('.workspace-feature-tab:visible').evaluateAll(tabs=>tabs.map(tab=>
+        [...tab.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join('').trim()));
+      assert.deepEqual(visibleLabels,labels);
+    }
+    await open('#field/schedule');
+    assert.equal((await page.locator('#page-body h1').textContent()).trim(),'Job schedule');
+    assert.equal(await page.getByRole('region',{name:'Weekly schedule',exact:true}).count(),1);
+  });
   for(const category of WORKSPACE_CATEGORIES){
     await check(category.label+' category and every visible feature tab',async()=>{
       await page.locator('[data-category="'+category.id+'"]').click();
@@ -100,7 +120,9 @@ try{
     await open('#settings/tools');
     for(const input of await page.locator('input[name=modules]').all())await input.setChecked(await input.getAttribute('value')==='invoices');
     await page.locator('#workspace-save-modules').click();await page.locator('#workspace-customizer-dialog').waitFor({state:'hidden'});
-    for(const category of ['customers','field','team'])assert.equal(await page.locator('[data-category='+category+']').isVisible(),false);
+    // Closing the editor precedes the async workspace refresh. Wait for its
+    // visible result before checking navigation or using the next feature.
+    for(const category of ['customers','field','team'])await page.locator('[data-category='+category+']').waitFor({state:'hidden'});
     await page.locator('[data-category=billing]').click();await settled('#billing/invoices');assert.equal(await page.locator('.workspace-feature-tab').count(),1);
     const before=(await workspace()).leads;
     await page.evaluate(()=>location.hash='#leads');await settled('#customers/leads');await page.getByText('Preserved Customer',{exact:true}).waitFor();assert.equal(await page.locator('.hidden-tool-notice').count(),1);
@@ -109,7 +131,7 @@ try{
     await page.locator('#utility-navigation [data-nav="settings/tools"]').click();
     for(const input of await page.locator('input[name=modules]').all())await input.check();
     await page.locator('#workspace-save-modules').click();await page.locator('#workspace-customizer-dialog').waitFor({state:'hidden'});
-    assert.equal(await page.locator('[data-category=team]').isVisible(),true);
+    await page.locator('[data-category=team]').waitFor({state:'visible'});
   });
   await check('Ask Cerium opens canonical feature links inside their category',async()=>{
     await open('#overview');await page.locator('#guide-trigger').click();await page.locator('#guide-question').fill('Where do I manage leads?');await page.locator('#guide-send').click();
@@ -133,6 +155,34 @@ try{
     await page.locator('[data-action=dismiss-payment][data-id=nav-dismiss]').click();await page.waitForFunction(()=>!document.querySelector('[data-action=dismiss-payment][data-id=nav-dismiss]'));
     const data=await workspace();assert.equal(data.invoices.find(i=>i.id===invoice.id).status,'Paid');assert.equal(data.bankTransactions.find(x=>x.id==='nav-dismiss').status,'dismissed');
     await tab('payments');await page.getByText('Deposit Customer',{exact:true}).waitFor();
+  });
+  await check('Billing preserves historical invoice currencies and groups only recorded paid totals',async()=>{
+    // Seed historical denominations directly in this isolated fixture. Normal
+    // account validation correctly prevents relabeling existing financial data.
+    for(const [customerName,amount,status,currency] of [
+      ['Euro historical customer',21.5,'Paid','EUR'],
+      ['Rupee historical customer',890.12,'Paid','INR'],
+      ['Unpaid customer',99,'Sent','EUR'],
+    ]){
+      const invoice=t.db.createInvoice(user.id,{customerName,jobTitle:'Recorded service',amount,status,terms:'Net 15'});
+      t.db.rawDb.prepare('UPDATE invoices SET invoice_currency=? WHERE id=? AND user_id=?').run(currency,invoice.id,user.id);
+    }
+    const before=(await workspace()).invoices;
+    await open('#billing/invoices');
+    for(const [name,amount] of [['Euro historical customer','EUR 21.50'],['Rupee historical customer','INR 890.12']]){
+      assert.equal(await page.locator('tr').filter({hasText:name}).locator('.amount').textContent(),amount);
+    }
+    await tab('payments');
+    const summary=await page.locator('.panel-subtitle').textContent();
+    for(const amount of ['USD 10.00','EUR 21.50','INR 890.12'])assert.ok(summary.includes(amount),summary);
+    assert.match(summary,/3 paid/);
+    assert.equal(await page.locator('tbody tr').count(),3);
+    assert.equal(await page.getByText('Unpaid customer',{exact:true}).count(),0);
+    assert.equal(await page.locator('tr').filter({hasText:'Euro historical customer'}).locator('.amount').textContent(),'EUR 21.50');
+    assert.equal(await page.locator('tr').filter({hasText:'Rupee historical customer'}).locator('.amount').textContent(),'INR 890.12');
+    await open('#insights/revenue');
+    assert.equal(await page.locator('tbody tr').count(),3);
+    assert.deepEqual((await workspace()).invoices,before,'Viewing groups must not alter financial records');
   });
   await check('Mobile drawer, scrollable feature tabs and keyboard focus work at 320px',async()=>{
     await page.setViewportSize({width:320,height:800});await open('#overview');await page.locator('#menu-toggle').click();await page.locator('[data-category=billing]').click();
