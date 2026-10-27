@@ -55,7 +55,7 @@ test('short follow-ups retain the specific prior task and multi-page workflow',a
   }
   const workflow='How do I convert an accepted quote into a scheduled job and invoice?';
   const followup=await answerGuide('Walk me through it','settings',{provider:'guide',lastQuestion:workflow});
-  assert.deepEqual(followup.links.map(link=>link.href),['#quotes','#jobs','#invoices']);
+  assert.deepEqual(followup.links.map(link=>link.href),['#customers/quotes','#field/schedule','#billing/invoices']);
   const numbered=guideReplyBlocks(followup,'Walk me through it').at(-1);
   assert.equal(numbered.items.length,3);
   assert.match(numbered.items[0],/approval/i);
@@ -136,7 +136,7 @@ test('HTTP endpoint validates the prior task and resolves multi-page follow-ups'
       assert.equal(res.status,200);return res.json();
     };
     const followup=await post('How do I convert an accepted quote into a scheduled job and invoice?');
-    assert.deepEqual(followup.links.map(link=>link.href),['#quotes','#jobs','#invoices']);
+    assert.deepEqual(followup.links.map(link=>link.href),['#customers/quotes','#field/schedule','#billing/invoices']);
     for(const invalid of ['x'.repeat(421),{section:'invoices'},'\u0000Invoices']){
       const result=await post(invalid);assert.equal(result.section,null);assert.equal(result.kind,'clarify');
     }
