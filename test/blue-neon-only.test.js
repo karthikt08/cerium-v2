@@ -24,18 +24,18 @@ function greenPaint(source){
   }
   return [...new Set(found)];
 }
-test('the original light Cerium workspace remains unchanged',()=>{
+test('the original workspace layers precede the requested midnight theme',()=>{
   const html=read('app.html');
   const css=read('css/workspace-vibrance.css');
   const styles=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(x=>x[1]);
-  assert.deepEqual(styles.slice(-7),[
+  assert.deepEqual(styles.slice(-8),[
     'css/workspace-spark.css','css/workspace-vibrance.css',
     'css/status-pricing-night.css','css/ui-consistency.css',
-    'css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/typography.css'
+    'css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/workspace-midnight.css','css/typography.css'
   ]);
-  assert.doesNotMatch(html,/workspace-pricing-dark\.css/,'never switch the full software into dark mode');
+  assert.doesNotMatch(html,/workspace-pricing-dark\.css/,'retired pricing-dark stylesheet stays unused');
   assert.match(read('css/workspace.css'),/:root\{color-scheme:light;/);
-  assert.match(css,/background:#f6f7fc/,'original workspace background is light');
+  assert.match(css,/background:#f6f7fc/,'light foundation remains available beneath the midnight layer');
   assert.match(css,/\.app-page \.sidebar\{/,'original sidebar remains');
   assert.match(css,/\.app-page \.metrics-grid \.metric\{/,'original cards remain');
   assert.match(html,/src="js\/workspace-card-motion\.js"/,'card animations remain');
