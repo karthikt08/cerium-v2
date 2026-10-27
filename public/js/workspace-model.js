@@ -10,6 +10,7 @@ export const SECTIONS = {
   followups: ['Follow-ups', 'A clear list of who to contact and when.'],
   invoices: ['Invoices', 'Create invoices and keep track of what is owed.'],
   payments: ['Payments', 'Review paid invoices and match recorded deposits.'],
+  dues: ['Custom dues', 'Record outstanding balances and custom payment dates.'],
   reviews: ['Reviews', 'Follow through with customers after the job is done.'],
   marketing: ['Marketing', 'Plan outreach, re-engage customers and track real workspace activity.'],
   insights: ['Insights & Reports', 'Summaries based on saved business records.'],
