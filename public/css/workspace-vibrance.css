@@ -3,17 +3,17 @@
    retain their function, and semantic success/warning/error colors stay intact.
    Exact accent family matches landing: #3b5bff → #7c3aed → #d946ef. */
 .app-page{
-  --accent:#5542c8;
-  --accent-soft:#f0effb;
-  --ac:#5542c8;
+  --accent:#3b5bff;
+  --accent-soft:#edf2fe;
+  --ac:#3b5bff;
   --cerium-ui-primary:#5542c8;
   --cerium-ui-primary-hover:#4534ae;
-  --cerium-ui-focus:#8d78df;
+  --cerium-ui-focus:#7289ef;
   --workspace-blue:#3b5bff;
   --workspace-violet:#7c3aed;
   --workspace-magenta:#d946ef;
-  --workspace-glow:rgba(113,89,202,.16);
-  --cerium-vibrant-gradient:linear-gradient(112deg,#4563e2 0%,#7650d4 55%,#b05fd4 100%);
+  --workspace-glow:rgba(59,91,255,.16);
+  --cerium-vibrant-gradient:linear-gradient(112deg,#2563eb 0%,#3b5bff 55%,#60a5fa 100%);
   background:#f6f7fc;
 }
 
@@ -30,40 +30,40 @@
   border-right-color:#e2e0ed;
 }
 .app-page .brand-period{
-  color:#7c3aed;
-  text-shadow:0 0 12px rgba(124,58,237,.16);
+  color:#3b5bff;
+  text-shadow:0 0 12px rgba(59,91,255,.24);
 }
 .app-page .workspace-monogram{
-  background:linear-gradient(135deg,#f0f0ff,#f4effa);
-  border-color:#ddd8f1;color:#5b529c;
+  background:linear-gradient(135deg,#f0f4ff,#ebf1ff);
+  border-color:#d5e1f7;color:#315cca;
 }
-.app-page .workspace-label strong{color:#28214c}
-.app-page .nav-label{color:#786e94;font-weight:700}
+.app-page .workspace-label strong{color:#1e293b}
+.app-page .nav-label{color:#64748b;font-weight:700}
 .app-page .sidebar .nav-link{
   color:#62647c;
 }
 .app-page .sidebar .nav-link:hover:not([aria-current="page"]){
-  background:rgba(233,229,249,.56);color:#504694;
+  background:rgba(224,235,255,.56);color:#244eb4;
 }
 .app-page .sidebar .nav-link[aria-current="page"]{
-  background:linear-gradient(100deg,#e6e3fb 0%,#f3effc 100%);
-  color:#44318d;
+  background:linear-gradient(100deg,#e8efff 0%,#f0f4ff 100%);
+  color:#244eb4;
   font-weight:700;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 16px -12px rgba(93,42,205,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 16px -12px rgba(36,78,180,.18);
 }
 .app-page .sidebar .nav-link[aria-current="page"]::before{
-  background:linear-gradient(180deg,#3b5bff,#7c3aed,#d946ef);
-  box-shadow:0 0 10px rgba(124,58,237,.31);
+  background:linear-gradient(180deg,#2563eb,#3b5bff,#60a5fa);
+  box-shadow:0 0 10px rgba(59,91,255,.35);
   width:3px;
 }
 .app-page .nav-count{display:none!important}
 .app-page .sidebar-bottom{border-top-color:#e6e3ed}
 .app-page .plan-dot{background:#3b5bff}
 .app-page .user-avatar{
-  background:linear-gradient(140deg,#eeecfa,#f3e9f5);
+  background:linear-gradient(140deg,#edf2ff,#e5edff);
   border-color:#fff;
-  box-shadow:0 0 0 1px #ddd3ef,0 0 12px rgba(142,81,228,.08);
-  color:#514782;
+  box-shadow:0 0 0 1px #cddcfa,0 0 12px rgba(59,91,255,.08);
+  color:#244eb4;
 }
 .app-page .main-frame>.topbar{
   background:rgba(255,255,255,.9);
@@ -71,7 +71,7 @@
   box-shadow:0 5px 22px -18px rgba(100,71,160,.12);
 }
 .app-page .main-frame>.topbar::after{
-  background:linear-gradient(90deg,transparent,rgba(59,91,255,.3),rgba(124,58,237,.34),rgba(217,70,239,.24),transparent);
+  background:linear-gradient(90deg,transparent,rgba(37,99,235,.2),rgba(59,91,255,.34),rgba(96,165,250,.24),transparent);
 }
 .app-page .breadcrumb strong{color:#504b74;font-weight:650}
 .app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#7565a2}
@@ -94,20 +94,20 @@
 .app-page .overview-stage .eyebrow{color:#66589c}
 .app-page .overview-stage .eyebrow::before{background:var(--cerium-vibrant-gradient)}
 .app-page .overview-stage .overview-title-accent{
-  background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);
-  filter:drop-shadow(0 5px 12px rgba(124,58,237,.12));
+  background-image:linear-gradient(100deg,#1d4ed8 0%,#2563eb 35%,#3b82f6 65%,#60a5fa 100%);
+  filter:drop-shadow(0 5px 12px rgba(37,99,235,.14));
 }
 .app-page .overview-stage .page-description{color:#334155}
 .app-page .overview-shortcut{
   background:rgba(255,255,255,.88);
-  border-color:#ded6f0;color:#5b5090;
-  box-shadow:0 2px 12px rgba(108,59,214,.05);
+  border-color:#d5e1f7;color:#315cca;
+  box-shadow:0 2px 12px rgba(37,99,235,.05);
 }
-.app-page .overview-shortcut .icon{color:#7046ce}
+.app-page .overview-shortcut .icon{color:#3b82f6}
 .app-page .overview-shortcut:hover{
-  background:#f4f0fb;border-color:#b29bdd;
-  color:#51418b;
-  box-shadow:0 9px 20px -13px rgba(111,50,219,.2);
+  background:#f0f4ff;border-color:#93c5fd;
+  color:#1d4ed8;
+  box-shadow:0 9px 20px -13px rgba(37,99,235,.2);
 }
 
 /* Dashboard: brighten actual card bodies and accents, not the data tables. */
@@ -124,30 +124,30 @@
   background:linear-gradient(90deg,#e2a04f,#c66cd6);
 }
 .app-page .metric-top{color:#334155;font-weight:650}
-.app-page .metrics-grid .metric .metric-top .icon{color:#6e50bd}
+.app-page .metrics-grid .metric .metric-top .icon{color:#3b82f6}
 .app-page .metrics-grid .metric .metric-value{color:#0f172a;font-weight:700}
 .app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
 .app-page .metric-foot{color:#334155;font-weight:550}
-.app-page .metric-foot .dot{background:#9473d4}
+.app-page .metric-foot .dot{background:#60a5fa}
 .app-page .dashboard-grid>.panel{
   border-color:#cbd5e1;
   background:linear-gradient(160deg,#fff 0%,#fbf9ff 100%);
   box-shadow:inset 0 1px 0 #fff,0 11px 30px -26px rgba(109,54,214,.11);
 }
-.app-page .dashboard-grid>.panel .panel-title .icon{color:#7b69ad}
+.app-page .dashboard-grid>.panel .panel-title .icon{color:#3b82f6}
 .app-page .dashboard-grid>.panel .panel-title h2::after{
   background:var(--cerium-vibrant-gradient);
-  box-shadow:0 3px 12px rgba(124,58,237,.18);
+  box-shadow:0 3px 12px rgba(37,99,235,.18);
 }
 .app-page :is(.panel-count,.badge.blue,.badge.purple){
-  background:#eee7fb;border-color:#e2d7f4;color:#5d4296;
+  background:#eaf0ff;border-color:#d4e2fc;color:#2554bd;
 }
 .app-page .stage-item:nth-child(1) .stage-line{background:#7186e5}
 .app-page .stage-item:nth-child(2) .stage-line{background:#9e7ada}
 .app-page .stage-item:nth-child(3) .stage-line{background:#bf89d5}
 .app-page .stage-item:nth-child(4) .stage-line{background:#83c4c7}
-.app-page .text-button{color:#5743b0}
-.app-page .text-button:hover{color:#4128a3}
+.app-page .text-button{color:#2554bd}
+.app-page .text-button:hover{color:#1d3c93}
 
 /* Operational summaries stay mostly white; lavender is reserved for a small
    amount of depth and accent, rather than tinting every work surface. */
@@ -164,31 +164,31 @@
   color:#0f172a;
 }
 .app-page .quotes-progress>span{
-  border-color:#e0dbeb;
-  background:linear-gradient(120deg,#fff,#f9f7fd);
-  color:#666083;
+  border-color:#d5e1f7;
+  background:linear-gradient(120deg,#fff,#f8faff);
+  color:#475569;
 }
 .app-page .quotes-progress b{
-  background:#eee9fa;color:#615497;
+  background:#eaf0ff;color:#2554bd;
 }
 .app-page .quote-sent,.app-page .job-status.purple{
-  background:#f0eafa;color:#62509e;
+  background:#eaf0ff;color:#2554bd;
 }
 .app-page .jobs-upcoming-date{
-  background:linear-gradient(138deg,#edf0fc,#f4effa);
-  color:#5b5297;
+  background:linear-gradient(138deg,#edf2ff,#e5edff);
+  color:#2554bd;
 }
 .app-page .jobs-crew-avatar{
-  background:#edeafb;color:#5e5395;
+  background:#eaf0ff;color:#2554bd;
 }
 .app-page .task-check:hover{
-  border-color:#9c82d5;background:#f5f1fb;
+  border-color:#7289ef;background:#edf2fc;
 }
 @media(hover:hover) and (pointer:fine){
   .app-page :is(.quotes-summary>div,.quote-cards>.quote-card,
     .jobs-stats>.jobs-stat,.board-column>.lead-card,.reminders-stats>div):hover{
-    border-color:#c8b5e5;
-    box-shadow:0 16px 35px -25px rgba(118,49,219,.16);
+    border-color:#b4c6fc;
+    box-shadow:0 16px 35px -25px rgba(37,99,235,.16);
   }
 }
 
@@ -243,27 +243,27 @@
    Preserve clear contrast and keep red/green semantic controls untouched. */
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:not(:disabled){
   color:#fff;
-  background:linear-gradient(112deg,#4661df,#6948cc 72%,#8153c6);
-  border-color:rgba(80,69,156,.33);
-  box-shadow:0 7px 17px -10px rgba(88,61,164,.38);
+  background:linear-gradient(112deg,#2563eb,#315cca 72%,#3b5bff);
+  border-color:rgba(37,99,235,.33);
+  box-shadow:0 7px 17px -10px rgba(37,99,235,.38);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:hover:not(:disabled){
-  background:linear-gradient(112deg,#3d55cd,#5938b8 72%,#7043ae);
-  border-color:#6250b2;
-  box-shadow:0 9px 21px -11px rgba(95,67,173,.4);
+  background:linear-gradient(112deg,#1d4ed8,#2563eb 72%,#315cca);
+  border-color:#1e40af;
+  box-shadow:0 9px 21px -11px rgba(30,64,175,.4);
 }
 .app-page :is(.main-frame,.dialog,.c-modal,.jobs-dialog,.quotes-dialog,.workspace-config-dialog) .button.primary:focus-visible{
-  outline:3px solid #aaa0e0;outline-offset:3px;
+  outline:3px solid #9bb5ff;outline-offset:3px;
 }
 .app-page .button.secondary:hover:not(:disabled){
-  background:#f5f2fb;border-color:#d1c5e7;color:#51478a;
+  background:#f0f4ff;border-color:#c7d7f7;color:#244eb4;
 }
 .app-page :is(.icon-button,.view-toggle button):hover:not(:disabled){
-  background:#f1eef8;color:#60519c;
+  background:#edf2fc;color:#244eb4;
 }
 .app-page :is(input,select,textarea):focus-visible{
-  border-color:#9889d6;
-  outline-color:#a69ae0;
+  border-color:#7289ef;
+  outline-color:#9bb5ff;
 }
 
 /* Marketing visuals are owned by marketing.css, with the Cerium violet palette.
