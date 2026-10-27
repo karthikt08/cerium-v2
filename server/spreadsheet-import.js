@@ -251,7 +251,9 @@ function normalizeDate(value,date1904=false){
   if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==s)throw bad('Invalid follow-up date.');
   return s;
 }
-export function mappedLeads(parsed,mapping){
+export function mappedLeads(parsed,mapping,{dateFormat='ISO',extraAction='skip'}={}){
+  if(!['skip','notes','review'].includes(extraAction))throw bad('Choose how to handle unknown spreadsheet columns.');
+  const extras=unmappedColumns(parsed,mapping);
   if(!mapping||typeof mapping!=='object'||Array.isArray(mapping))throw bad('Choose spreadsheet columns for the fields.');
   const used=new Set();
   for(const field of LEAD_FIELDS){
@@ -272,12 +274,21 @@ export function mappedLeads(parsed,mapping){
       if(!/^\d+(?:\.\d{1,2})?$/.test(num)||Number(num)>1_000_000_000)errors.push('Invalid amount. Use a nonnegative number with up to 2 decimal places.');
       else data.value=num;
     }
-    try{data.nextFollowUp=normalizeDate(data.nextFollowUp,parsed.date1904);}catch(err){errors.push(err.message);}
+    try{data.nextFollowUp=normalizeImportDate(data.nextFollowUp,{date1904:parsed.date1904,dateFormat});}catch(err){errors.push(err.message);}
     if(data.stage){
       const match=['New','Quoted','Booked','Done'].find(x=>x.toLowerCase()===data.stage.toLowerCase());
       if(!match)errors.push('Stage must be New, Quoted, Booked or Done.');
       else data.stage=match;
     }else data.stage='New';
+    const extraValues=extras.map(col=>[col.header||'Column '+(col.index+1),String(values[col.index]??'').trim()]).filter(([,v])=>v);
+    if(extraValues.length){
+      if(extraAction==='review')errors.push('Choose whether to preserve '+extraValues.length+' unmatched values in Notes or explicitly skip them.');
+      if(extraAction==='notes'){
+        const addition='\nOriginal spreadsheet fields:\n'+extraValues.map(([k,v])=>k+': '+v).join('\n');
+        if((data.notes||'').length+addition.length>1500)errors.push('Extra columns exceed the Notes length; review this row.');
+        else data.notes=((data.notes||'')+addition).trim();
+      }
+    }
     return {number:(parsed.headerRow||1)+i+1,data,errors};
   });
 }
