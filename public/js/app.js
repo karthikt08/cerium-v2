@@ -84,7 +84,7 @@ async function refresh() {
   catch(err) { setSync('Could not refresh'); throw err; }
 }
 function renderChrome() {
-  const a=state.ws.account,m=metrics(state.ws);
+  const a=state.ws.account;
   $('business-name').textContent=a.businessName||'Your business'; $('business-initial').textContent=initials(a.businessName||a.name).slice(0,1); $('business-initial').title=a.businessName||'Your business';
   $('user-avatar').textContent=initials(a.name); $('user-avatar').setAttribute('aria-label',`Account settings for ${a.name || 'your account'}`);
   $('plan-label').textContent=a.planStatus==='active'?'Cerium Pro':a.planStatus==='expired'?'Trial ended':`${a.trialDaysRemaining} days left in trial`;
@@ -92,7 +92,8 @@ function renderChrome() {
   $('edition-label').textContent=editionLabel(a.country);
   $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':countryName(a.country)+' · '+a.currency;
   document.body.dataset.edition=india?'in':a.country==='US'?'us':'global';
-  updateCategoryNavigation(document,{modules:a.workspacePreferences?.modules,route:state.route,lastUsed:lastUsedTabs,counts:{customers:m.leads+m.due,billing:state.ws.invoices.filter(x=>x.status==='Overdue').length,marketing:m.reviews}});
+  // Per-feature badge totals are refreshed by setNavigation() from the same
+  // workspace records displayed by the destination, not dashboard action KPIs.
 }
 function setNavigation() {
   const route=state.route;
@@ -100,7 +101,7 @@ function setNavigation() {
   $('current-category').textContent=WORKSPACE_CATEGORIES.find(c=>c.id===route.category&&c.id!=='overview')?.label||'Workspace';
   document.title=`${featureTitle(route)} — CERIUM`;
   document.querySelectorAll('[data-nav]').forEach(a=>{if(resolveWorkspaceRoute(a.dataset.nav).href===route.href)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  updateCategoryNavigation(document,{modules:state.ws?.account.workspacePreferences?.modules,route,lastUsed:lastUsedTabs});
+  updateCategoryNavigation(document,{modules:state.ws?.account.workspacePreferences?.modules,route,lastUsed:lastUsedTabs,workspace:state.ws});
 }
 function navigate(target,focus=false) {
   const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
@@ -197,7 +198,12 @@ function table(head,rows) {return `<div class="table-scroll" tabindex="0" aria-l
 function renderResults() {
   const kind=state.section,holder=$('results');if(!holder)return;
   const rows=filteredRows(kind,state.ws,state.filters[kind]);
-  if(!rows.length) {holder.innerHTML=empty('No '+SECTIONS[kind][0].toLowerCase()+' to show','Try a different filter or add your first record.');return;}
+  const total=state.ws[kindKey[singular[kind]]]?.length||0;
+  const recordLabel=rows.length===total?`${total} ${total===1?'record':'records'}`:`${rows.length} of ${total} records shown`;
+  if(!rows.length) {
+    holder.innerHTML=empty('No '+SECTIONS[kind][0].toLowerCase()+' to show','Try a different filter or add your first record.')+`<div class="result-footer"><span>${recordLabel}</span><span>Filters never delete saved records</span></div>`;
+    return;
+  }
   if(kind==='leads'&&state.view==='board') {
     holder.innerHTML=`<div class="board" tabindex="0" aria-label="Scrollable lead board">${STAGES.map(stage=>`<div class="board-column"><div class="board-title">${stage}<span>${rows.filter(l=>l.stage===stage).length}</span></div>${rows.filter(l=>l.stage===stage).map(l=>`<article class="lead-card"><span class="row-title">${esc(l.name)}</span><span class="row-meta">${esc(l.source)}</span><div class="lead-card-bottom"><strong class="amount">${cash(l.value)}</strong><div class="lead-card-actions"><button class="icon-button" data-action="edit" data-kind="lead" data-id="${esc(l.id)}" aria-label="Edit ${esc(l.name)}">${icon('edit')}</button><button class="icon-button" data-action="delete" data-kind="lead" data-id="${esc(l.id)}" aria-label="Delete ${esc(l.name)}">${icon('close')}</button></div></div></article>`).join('')}</div>`).join('')}</div>`;
   } else if(kind==='leads') {
@@ -209,7 +215,7 @@ function renderResults() {
   } else if(kind==='reviews') {
     holder.innerHTML=table(['Customer','Job','Status','Request','Actions'],rows.map(r=>`<tr><td><div class="person">${esc(r.customerName)}</div><div class="subline">${esc(r.customerEmail||r.customerPhone)}</div></td><td>${esc(r.jobTitle)}</td><td>${badge(r.status==='Sent'?'Requested':r.status)}</td><td><div class="table-actions">${button('Copy request','copy-review',`data-id="${esc(r.id)}"`,'secondary')}${r.status==='Not Asked'?button('Mark requested','mark-requested',`data-id="${esc(r.id)}"`,'secondary'):r.status!=='Reviewed'?button('Mark received','review-received',`data-id="${esc(r.id)}"`,'secondary'):''}</div></td><td>${rowActions('review',r.id,r.customerName)}</td></tr>`));
   }
-  holder.insertAdjacentHTML('beforeend',`<div class="result-footer"><span>${rows.length} ${rows.length===1?'record':'records'}</span><span>Changes are saved to your workspace</span></div>`);
+  holder.insertAdjacentHTML('beforeend',`<div class="result-footer"><span>${recordLabel}</span><span>Changes are saved to your workspace</span></div>`);
 }
 function paymentsPage(view='paid') {
   const paid=state.ws.invoices.filter(i=>i.status==='Paid'),tx=state.ws.bankTransactions.filter(t=>t.status==='pending_match');
@@ -327,7 +333,7 @@ function renderPage() {
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
-  $('page-body').innerHTML=renderFeatureWorkspace(state.route,state.ws.account.workspacePreferences?.modules,content);
+  $('page-body').innerHTML=renderFeatureWorkspace(state.route,state.ws.account.workspacePreferences?.modules,content,state.ws);
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);

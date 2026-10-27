@@ -43,6 +43,19 @@
 .app-page .workspace-feature-tab:hover{background:#f5f7fc;color:#263b72}
 .app-page .workspace-feature-tab[aria-selected="true"]{background:#fff;color:#304ac4;box-shadow:inset 0 3px #4263e8;z-index:1}
 .app-page .workspace-feature-tab:focus-visible{outline:3px solid #6483ff;outline-offset:-4px}
+
+/* Counts are attached to specific feature tabs, never implied to be totals
+   of unrelated business modules. Use the same restrained style as nav badges. */
+.app-page .workspace-feature-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;min-height:20px;margin-inline-start:9px;padding:1px 6px;
+  border-radius:6px;background:#dbe2f2;color:#5f6c8b;
+  font-size:10px;font-weight:650;font-variant-numeric:tabular-nums;
+}
+.app-page .workspace-feature-tab[aria-selected="true"] .workspace-feature-count{
+  background:#edf0ff;color:#3e54ad;
+}
+
 .app-page .workspace-feature-panel{min-width:0;min-height:calc(100vh - 210px);padding:32px var(--workspace-panel-inset);border:1px solid #cbd1e2;border-radius:0 0 8px 8px;background:#fff;margin-top:-1px;container:workspace-feature / inline-size}
 .app-page .workspace-feature-panel:focus-visible{outline:3px solid #6483ff;outline-offset:2px}
 .app-page .workspace-feature-panel>.page-heading,.app-page .workspace-feature-panel>div>.page-heading{margin-top:0}
