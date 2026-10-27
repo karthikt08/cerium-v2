@@ -32,9 +32,11 @@ Existing bookmarks such as `#leads`, `#jobs`, `#quotes`, `#invoices`, `#payments
 
 ## Existing capabilities, reorganized
 
-Scheduling, job/crew editing, estimates, approvals, imports, invoices, country/tax rules, UPI, sharing drafts, reminders and review actions retain their existing implementations. Dispatch and assignment tabs provide views of existing scheduled jobs and open the existing job editor. Crew workload counts mean active recorded jobs, not actual availability.
+Scheduling, job/crew editing, estimates, approvals, imports, invoices, country/tax rules, UPI, sharing drafts, reminders and review actions retain their existing implementations. Job Schedule opens the weekly calendar with a matching page heading. Dispatch and assignment tabs provide views of existing scheduled jobs and open the existing job editor. Crew workload counts mean active recorded jobs, not actual availability.
 
 Bank Matching is for existing recorded deposits and the existing equal-amount matching/dismissal actions. There is no live bank feed, partial-payment allocation or Undo match control. Payments still shows invoices marked Paid. A separate customer master, availability, attendance, timesheets and advanced dispatch are not presented as working features.
+
+The Invoices and Payments tables format each invoice in its saved currency, falling back to the business currency only for records without one. Payments totals group paid invoices by currency, using the same recorded-data summary as Revenue Insights. Unpaid invoices do not contribute to those paid totals. Viewing these groups does not update invoice records, tax calculations or payment status.
 
 Reports summarize saved records. Booking share is the current proportion of leads marked Booked or Done, not a historical conversion rate. Invoice totals remain separated by currency; drafts are excluded from debt. Reports do not claim bank balances, profit, recognized revenue, ad attribution or marketing ROI. Data export uses the existing Settings workflow.
 
@@ -68,4 +70,4 @@ node scripts/check-secrets.js
 
 Browser scripts require Playwright in the QA environment and Chromium. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can select an installed browser; `UI_AUDIT_OUTPUT` chooses the JSON/screenshot destination. They use isolated databases and synthetic accounts. Real OAuth, SMS, SMTP and payment-provider transactions are not executed. Chromium desktop/mobile emulation does not substitute for Safari/Firefox or physical-device testing.
 
-Validation for this change: 718 Node tests; 19 browser navigation checks; 23 existing browser workflow checks; 147 public/workspace viewport inspections, with the final 95 workspace/entry inspections repeated after refinement; and all 12 existing onboarding checks. No unexpected overflow, unnamed inspected controls, missing local assets or uncaught browser errors were found in the layout sweep. Desktop/mobile screenshots, the offline preview build, JavaScript syntax and the secret scanner were also checked. Cross-platform GitHub CI is required before merge.
+Latest feature-group validation: all 733 Node tests and all 21 browser navigation checks passed. The latter check the requested tab sets, the weekly calendar, existing crew/dispatch editors, bank matching, historical invoice currencies, preservation of records, mobile navigation and hidden-tool preferences. The broader browser workflow suite passed 22 of 23 checks; the contact email handoff was blocked by the managed browser's external-protocol policy. Its screenshot showed an organization-blocked page after opening `mailto:`. No uncaught browser errors were reported. The offline preview build, JavaScript syntax and secret scanner passed. Cross-platform GitHub CI is required before merge.
