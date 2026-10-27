@@ -877,11 +877,18 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // No user spreadsheet or preview data is stored on the server.
   const leadImport=(commit)=>(req,res,next)=>{
     try{
-      const parsed=parseSpreadsheet(req.body);
-      const mapping=req.body?.mapping===undefined?suggestedMapping(parsed.headers):req.body.mapping;
-      const rows=mappedLeads(parsed,mapping);
+      const body=req.body||{};
+      const parsed=parseSpreadsheet(body);
+      const mapping=body.mapping===undefined?suggestedMapping(parsed.headers):body.mapping;
+      const extras=unmappedColumns(parsed,mapping);
+      const extraAction=body.extraAction||'review';
+      if(commit&&extras.length&&extraAction==='review')
+        return res.status(400).json({error:'extra_columns_unreviewed',message:'Choose whether to preserve additional columns in Notes or explicitly skip them.'});
+      const rows=mappedLeads(parsed,mapping,{dateFormat:body.dateFormat||'ISO',extraAction});
       const summary=db.importLeadRows(req.session.userId,rows,commit);
-      res.set('Cache-Control','no-store').json({headers:parsed.headers,mapping,...summary});
+      res.set('Cache-Control','no-store').json({headers:parsed.headers,mapping,
+        sheets:parsed.sheets,sheetIndex:parsed.sheetIndex,headerRow:parsed.headerRow,
+        extraColumns:extras.map(x=>x.header||'Column '+(x.index+1)),...summary});
     }catch(err){
       if(err.status===400)return res.status(400).json({error:err.code||'invalid_spreadsheet',message:err.message});
       next(err);
