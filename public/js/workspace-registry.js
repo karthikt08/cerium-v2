@@ -22,6 +22,7 @@ export const WORKSPACE_FEATURES=Object.freeze([
   feature('invoices','billing','Invoices','invoices','',['invoices']),
   feature('payments','billing','Payments','payments','paid',['payments']),
   feature('reminders','billing','Payment Reminders','reminders','',['reminders']),
+  feature('dues','billing','Custom Dues','dues','',['payments']),
   feature('bank','billing','Bank Matching','payments','bank',['payments']),
   feature('visibility','marketing','Get Found','marketing','visibility'),
   feature('reengage','marketing','Re-engage','marketing','reengage'),
