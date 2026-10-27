@@ -72,3 +72,12 @@ test('subfeature glow cannot recolor forms, records, navigation, dialogs or enti
   assert.match(glow,/@media print\{/);
   assert.match(glow,/-webkit-text-fill-color:currentColor!important/);
 });
+
+test('animated underlinings match landing hand-drawn SVG curve with motion safeguards',()=>{
+  assert.match(css,/animation:ac-ul-in 1\.1s \.25s cubic-bezier\(\.6,0,\.2,1\) both/);
+  assert.match(css,/@keyframes ac-ul-in\{/);
+  assert.match(css,/@keyframes cerium-tab-ul-in\{/);
+  const uiConsistency=read('css/ui-consistency.css');
+  assert.match(uiConsistency,/@keyframes dr\s*\{/);
+  assert.match(uiConsistency,/animation:\s*dr\s+1\.1s\s+0\.3s\s+cubic-bezier\(0\.6,\s*0,\s*0\.2,\s*1\)\s+both/);
+});
