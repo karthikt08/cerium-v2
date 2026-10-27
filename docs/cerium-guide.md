@@ -40,8 +40,8 @@ Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknow
 - Natural descriptions of businesses ("I run a bakery") can trigger the existing local business tool advisor. Business follow-ups continue until a suitable description is available.
 - **Advanced multi-step operations:** The assistant guides users through complex contractor workflows with step-by-step numbered plans and verified direct-action buttons:
   - **Accepted quote conversion:** Confirm approval in Estimates & quotes, book appointments in Jobs & dispatch, then bill completed work in Invoices (`quotes` → `jobs` → `invoices`).
-  - **Partial payments & bank reconciliation:** Inspect remaining invoice balance, match incoming deposits in Payments, and verify automatic balance updates (`invoices` → `payments`).
-  - **GST & tax invoice preparation:** Review business tax declarations in Settings, apply line-item tax rates, and inspect the preview breakdown before saving PDFs (`settings` → `invoices`).
+  - **Bank reconciliation:** Review invoices and matched deposits in Bank Matching. Matching requires a deposit equal to the invoice total; partial payments are not currently supported (`invoices` → `payments`).
+  - **GST & tax invoice preparation:** Review business registration details in Settings and supported tax fields in the invoice preview. Mixed per-item rates and statutory tax filing are not supported (`settings` → `invoices`).
   - **Bulk contact import & scheduling:** Upload spreadsheets in Leads, inspect duplicate flags, and book work in Jobs & dispatch (`leads` → `jobs`).
   - **Crew dispatch & conflict resolution:** Identify overlapping technician slots in Jobs & dispatch and record briefing notes in Follow-ups (`jobs` → `followups`).
   - **Customer review requests:** Mark completed jobs as Done and send feedback requests in Reviews (`jobs` → `reviews`).
@@ -49,7 +49,7 @@ Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknow
 - **Domain intelligence & contractor operational expertise:**
   - **Contractor best practices & policies:** Guides users on payment terms (Due on receipt vs Net 15/30), upfront customer deposits (20–50% retainers before dispatch), change orders (revised estimates for out-of-scope work), delinquent client escalation protocols, job costing and markup formulas (overhead allocation + 30–50% markup), and intrastate vs. interstate GST tax rules.
   - **Estimate vs. invoice comparative clarification:** Distinguishes pre-work proposals from post-work payment requests and surfaces dual direct-action buttons (`quotes` and `invoices`).
-  - **Intelligent multi-turn follow-ups:** Subsequent questions leverage the verified prior section context (e.g. handling amount mismatches or undoing bank matches in Payments; setting terms and previewing tax subtotals in Invoices).
+  - **Intelligent multi-turn follow-ups:** Subsequent questions leverage the verified prior section context (e.g. handling amount mismatches or checking an incorrect bank match in Payments (there is no Undo match control); setting terms and previewing tax subtotals in Invoices).
   - **Context-adaptive suggestion chips:** Suggestion chips dynamically update to match the active workspace module on navigation (`overview`, `invoices`, `quotes`, `jobs`, `leads`, `payments`, `reminders`, `followups`, `reviews`, `settings`).
   - **Smart intent disambiguation:** Broad queries (`pricing`, `billing`, `scheduling`, `taxes`) offer structured disambiguation with dual destination buttons rather than generic fallbacks.
 - Unsupported or vague requests return a clarification with **no guessed destination**, regardless of the currently open section.
@@ -61,7 +61,7 @@ The zero-API-cost NavLM classifier still specializes in identifying Cerium tasks
 
 - Answers use real bullet lists, numbered steps and optional bold labels. Provider output is rendered as text, never HTML; navigation still comes from the verified link allowlist.
 - OpenAI and Ollama receive instructions to answer the actual task in 2–5 points, with numbered steps when order matters. Task-specific verified guidance is included with the general product guide.
-- PDF instructions work on the existing invoice; import, rescheduling and undo-match instructions prioritize the specific task. Verified sharing, UPI and no-GST invoice guidance also works without an AI provider.
+- PDF instructions work on the existing invoice; import, rescheduling and incorrect-bank-match guidance prioritize the specific task. Verified sharing, UPI and no-GST invoice guidance also works without an AI provider.
 - New replies appear at about 250 visible characters per second, with a five-second target maximum for long answers. This is a browser typing effect after the response arrives, not provider token streaming. The typing cursor, steps and lists appear progressively; page links appear when the answer finishes.
 - **Show full answer** skips the animation. Closing finishes the answer; resetting cancels it and discards any delayed response. Users can compose the next question while a reply types, and scrolling upward is respected.
 - Reduced-motion users receive the completed answer immediately. Screen readers receive one completed-answer announcement instead of every character. Emoji and multilingual text use grapheme boundaries.
