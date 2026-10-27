@@ -73,7 +73,7 @@ test('all custom setup and dropdown controls use Figtree rather than independent
   assert.match(setup,/--cerium-typeface/);
   assert.match(type,/body, body \*, body \*::before, body \*::after/);
   assert.match(read('verify.html'),/class="onboarding-page"/);
-  assert.match(read('welcome.html'),/class="welcome-page"/);
+  assert.match(read('welcome.html'),/class="workspace-redirect-page"/);
 });
 
 test('pricing FAQ reveal style and live public spatial effects remain valid',()=>{
