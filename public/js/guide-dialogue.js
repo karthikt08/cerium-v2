@@ -121,9 +121,9 @@ const WORKFLOWS=[
   // 7. Partial payments, bank deposit matching & reconciliation
   {
     matches:/\b(?:partial payment|split payment|deposit match|bank match|reconcil\w*)\b.{0,90}\b(?:deposit|payment|invoice|transaction|balance|bank)s?\b/i,
-    reply:'Check the unpaid balance in Invoices, review incoming bank transactions in Payments, and confirm the match. Cerium records partial payments and updates the remaining balance automatically.',
+    reply:'Check the unpaid balance in Invoices, review incoming bank transactions in Payments, and confirm the match. Bank Matching currently confirms deposits equal to an invoice total; partial payments are not currently supported.',
     actions:['invoices','payments'],
-    steps:'Open Invoices → Check invoice balance → Open Payments → Review bank deposit → Match to invoice → Remaining balance updates.'
+    steps:'Open Invoices → Check the total → Open Bank Matching → Review the deposit → Confirm only an equal-amount match.'
   },
   // 8. Overdue invoices & payment reminder escalation
   {
@@ -149,16 +149,16 @@ const WORKFLOWS=[
   // 11. Customer review request after completed job
   {
     matches:/\b(?:complet\w*|finish\w*|done)\b.{0,70}\b(?:job|work|appointment)s?\b.{0,70}\b(?:review|rating|testimonial|feedback)s?\b/i,
-    reply:'Mark the completed appointment Done in Jobs & dispatch, then open Reviews to select the customer, verify the review link, and send the feedback request.',
+    reply:'Mark the appointment Completed in Jobs & dispatch, then open Reviews to copy a request for your own messaging app and record its status.',
     actions:['jobs','reviews'],
-    steps:'Open Jobs & dispatch → Mark job Done → Open Reviews → Select customer/job → Verify review link → Send request.'
+    steps:'Open Jobs & dispatch → Mark job Completed → Open Reviews → Copy request → Send it in your own app → Mark requested.'
   },
   // 12. Reverse review order match: review request after job
   {
     matches:/\b(?:review|rating|testimonial|feedback)s?\b.{0,70}\b(?:after|once|when)\b.{0,70}\b(?:job|work|complet\w*|finish\w*)s?\b/i,
-    reply:'Mark the completed appointment Done in Jobs & dispatch, then open Reviews to select the customer, verify the review link, and send the feedback request.',
+    reply:'Mark the appointment Completed in Jobs & dispatch, then open Reviews to copy a request for your own messaging app and record its status.',
     actions:['jobs','reviews'],
-    steps:'Open Jobs & dispatch → Mark job Done → Open Reviews → Select customer/job → Verify review link → Send request.'
+    steps:'Open Jobs & dispatch → Mark job Completed → Open Reviews → Copy request → Send it in your own app → Mark requested.'
   },
   // 13. End-of-month reconciliation & tax data export
   {
@@ -259,7 +259,7 @@ const TASKS=[
     answer:'To save an invoice as a PDF, open Invoices, preview the invoice, then choose Print / save PDF.',
     steps:'Open Invoices → Preview the invoice you want → Choose Print / save PDF → Choose Save as PDF in the print dialog.'},
   {section:'invoices',match:/\b(?:gst|tax rate|tax declaration|tax breakdown|hsn|sac|cgst|sgst|igst)\b/i,
-    answer:'In Invoices, set tax rate percentages per line item and check the tax summary in invoice preview.'},
+    answer:'In Invoices, review the available tax fields and the invoice preview. Mixed per-item rates and statutory tax filing are not supported.'},
   {section:'invoices',match:/\b(?:payment terms?|net 15|net 30|due on receipt|terms of payment)\b/i,
     answer:'Choose Due on receipt for service visits to speed up cash flow, or Net 15/Net 30 for commercial contracts. Set your terms under Invoices when drafting a bill.'},
   {section:'invoices',match:/\b(?:past due|delinquent|overdue invoice|unpaid client|won't pay|refuses to pay)\b/i,
@@ -299,7 +299,7 @@ const TASKS=[
   {section:'settings',match:/\b(?:customiz|customis|hide tool|show tool|which modules)\b/i,
     answer:'Open Settings → Customize tools to choose the modules shown in your workspace. Your records remain safe when you hide a tool.'},
   {section:'settings',match:/\b(?:export|backup|download data|csv export|accountant)\b/i,
-    answer:'Open Settings → Data & export to download your complete verified records in CSV and JSON formats.'},
+    answer:'Open Settings → Data & export to download your saved records as JSON.'},
   {section:'settings',match:/\b(?:gst setup|gst declaration|gstin|interstate|intrastate)\b/i,
     answer:'Under Settings → Business profile, enter your GSTIN and home state. In Invoices, tax rates on line items will calculate CGST/SGST or IGST automatically.'},
 
@@ -316,13 +316,13 @@ const TASKS=[
   // Payments
   {section:'payments',match:/\b(?:bank match|reconcil|deposit|paid)\b/i,
     answer:'Open Payments to review incoming deposits and match them to the correct invoice.'},
-  {section:'payments',match:/\b(?:partial|split payment|undo match|unmatched)\b/i,
-    answer:'Payments handles partial and full deposit matching. If a deposit is partially paid, Cerium updates the invoice balance automatically.'},
+  {section:'payments',match:/\b(?:partial|split payment|unmatched)\b/i,
+    answer:'Bank Matching supports a recorded deposit equal to the invoice total. Partial payments are not currently supported.'},
   {section:'payments',match:/\b(?:upfront deposit|down payment|retainer|deposit before work)\b/i,
     answer:'Specify deposit terms on your quote, issue an initial invoice in Invoices, and record the incoming deposit in Payments to track the remaining balance.'},
   {section:'payments',match:/\b(?:undo match|wrong invoice matched|unmatch)\b/i,
-    priority:2,answer:'If a bank transaction was matched to the wrong invoice, open Payments, select the transaction, and choose Undo match to restore the open balance.',
-    steps:'Open Payments → Find the incorrectly matched transaction → Choose Undo match → Recheck the invoice balance before matching again.'}
+    priority:2,answer:'There is no Undo match control currently. Review the linked invoice and contact Help & Support before correcting an incorrect match.',
+    steps:'Open Bank Matching → Review the matched deposit and linked invoice → Contact Help & Support before correcting an incorrect match.'}
 ];
 
 export function conciseGuideResponse(question,topic,source='guide'){
@@ -331,7 +331,7 @@ export function conciseGuideResponse(question,topic,source='guide'){
     .sort((a,b)=>(b.priority||0)-(a.priority||0)||
       (String(question).match(b.match)?.[0].length||0)-(String(question).match(a.match)?.[0].length||0))[0];
   const brief=task?.answer||topic.answer;
-  return {reply:brief,steps:task?.steps||topic.steps,section:topic.section,title:topic.title,source,matched:true};
+  return {reply:brief,location:topic.location,steps:task?.steps||(topic.location+' → '+topic.steps.replace(/^Open [^→]+→\s*/,'')),section:topic.section,title:topic.title,source,matched:true};
 }
 
 export function verifiedGuideTask(question){

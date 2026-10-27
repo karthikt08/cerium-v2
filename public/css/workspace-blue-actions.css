@@ -1,0 +1,70 @@
+/* Cerium primary action hierarchy.
+   Blue is reserved for high-intent create/save/continue controls; purple remains
+   in navigation, typography accents and decorative workspace elements.
+   Only the application loads this stylesheet. */
+.app-page {
+  --cerium-action-blue:#315cca;
+  --cerium-action-blue-hover:#244eb4;
+  --cerium-action-blue-focus:#9bb5ff;
+}
+
+/* Page-level create actions, workspace Settings save, accepted quote actions,
+   and record editors have a consistent, calm blue. Neutral and destructive
+   buttons deliberately keep their own existing palettes. */
+.app-page :is(
+  .main-frame .page-heading .heading-actions,
+  .main-frame .settings-actions,
+  .main-frame .jobs-tools-actions,
+  .main-frame .quote-action-group,
+  .dialog .dialog-footer,
+  .jobs-dialog .jobs-modal-actions,
+  .quotes-dialog .quotes-modal-actions
+) .button.primary:not(:disabled),
+.app-page .overview-stage-unified .overview-india-actions .button.primary:not(:disabled) {
+  background:var(--cerium-action-blue);
+  border-color:#294eae;
+  color:#fff;
+  box-shadow:0 4px 12px -7px rgba(34,73,170,.42);
+}
+
+.app-page :is(
+  .main-frame .page-heading .heading-actions,
+  .main-frame .settings-actions,
+  .main-frame .jobs-tools-actions,
+  .main-frame .quote-action-group,
+  .dialog .dialog-footer,
+  .jobs-dialog .jobs-modal-actions,
+  .quotes-dialog .quotes-modal-actions
+) .button.primary:hover:not(:disabled),
+.app-page .overview-stage-unified .overview-india-actions .button.primary:hover:not(:disabled) {
+  background:var(--cerium-action-blue-hover);
+  border-color:#1f438e;
+  box-shadow:0 6px 15px -7px rgba(30,62,139,.47);
+}
+
+.app-page :is(
+  .main-frame .page-heading .heading-actions,
+  .main-frame .settings-actions,
+  .main-frame .jobs-tools-actions,
+  .main-frame .quote-action-group,
+  .dialog .dialog-footer,
+  .jobs-dialog .jobs-modal-actions,
+  .quotes-dialog .quotes-modal-actions
+) .button.primary:focus-visible,
+.app-page .overview-stage-unified .overview-india-actions .button.primary:focus-visible {
+  outline:3px solid var(--cerium-action-blue-focus);
+  outline-offset:3px;
+}
+
+@media (forced-colors:active) {
+  .app-page :is(
+    .main-frame .page-heading .heading-actions,
+    .main-frame .settings-actions,
+    .main-frame .quote-action-group,
+    .dialog .dialog-footer,
+    .jobs-dialog .jobs-modal-actions,
+    .quotes-dialog .quotes-modal-actions
+  ) .button.primary {
+    border:1px solid ButtonText;
+  }
+}

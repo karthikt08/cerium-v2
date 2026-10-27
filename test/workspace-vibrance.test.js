@@ -19,10 +19,10 @@ function contrast(a,b){
 
 test('only workspace loads vibrant palette, after spatial effects and before shared controls/font',()=>{
   const styles=[...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(styles.slice(-6),[
+  assert.deepEqual(styles.slice(-7),[
     'css/workspace-spark.css','css/workspace-vibrance.css',
     'css/status-pricing-night.css','css/ui-consistency.css',
-    'css/workspace-overview-unified.css','css/typography.css'
+    'css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/typography.css'
   ]);
   assert.equal(styles.filter(x=>x==='css/workspace-vibrance.css').length,1);
   assert.match(page,/<body class="app-page">/);

@@ -47,7 +47,8 @@ function card(job,ws,ro=false) {
     <strong>${esc(job.title)}</strong><span>${esc(job.customerName)}</span>
     <small>${esc(workerName(ws,job.workerId))}</small></button>`;
 }
-export function renderJobsPage(ws,readOnly=false) {
+export function renderJobsPage(ws,readOnly=false,view='schedule') {
+  if(view!=='schedule')return renderOperationsPage(ws,readOnly,view);
   const jobs=ws.jobs||[],crew=ws.crew||[],start=monday(),end=new Date(start);end.setDate(start.getDate()+6);
   const week=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);week.push(d);}
   const selected=jobs.filter(j=>filter==='all'?true:filter==='unassigned'?!j.workerId:filter==='active'?active(j):j.status===filter);
@@ -63,7 +64,7 @@ export function renderJobsPage(ws,readOnly=false) {
       <div class="jobs-stat"><span>Jobs today</span><strong>${count}</strong><small>Active appointments</small></div>
       <div class="jobs-stat"><span>Assigned this week</span><strong>${assigned}</strong><small>${weekJobs.length} jobs on the board</small></div>
       <div class="jobs-stat"><span>Awaiting assignment</span><strong>${open}</strong><small>Active jobs without crew</small></div>
-      <div class="jobs-stat"><span>Available crew</span><strong>${crew.filter(c=>c.active).length}</strong><small>Active crew members</small></div>
+      <div class="jobs-stat"><span>Active crew</span><strong>${crew.filter(c=>c.active).length}</strong><small>Active crew members</small></div>
     </div>
     <section class="panel jobs-panel">
       <div class="jobs-tools">
@@ -97,6 +98,22 @@ export function renderJobsPage(ws,readOnly=false) {
     </div>
     ${readOnly?'<p class="jobs-readonly">Trial ended — you can view schedules, but changes require an active plan.</p>':''}
   </div>`;
+}
+function renderOperationsPage(ws,readOnly,view){
+  const jobs=ws.jobs||[],crew=ws.crew||[];
+  const selected=jobs.filter(j=>filter==='all'?true:filter==='unassigned'?!j.workerId:filter==='active'?active(j):j.status===filter);
+  const sorted=[...selected].sort((a,b)=>a.startAt.localeCompare(b.startAt));
+  const title=view==='crew'?'Crew':view==='assignments'?'Crew assignments':'Dispatch';
+  const description=view==='crew'?'Manage team records and review their recorded workload.':'Review scheduled work, statuses and assigned crew. Open a job to update its assignment.';
+  const row=j=>`<div class="operation-job"><div><strong>${esc(j.title)}</strong><span>${esc(j.customerName)} · ${dateTime(j.startAt)}</span><small>${esc(workerName(ws,j.workerId))}${j.address?' · '+esc(j.address):''}</small></div><span class="job-status ${statusClass(j.status)}">${esc(j.status)}</span><button class="button secondary" data-job-action="edit" data-job-id="${esc(j.id)}" ${readOnly?'disabled':''}>Details</button></div>`;
+  let body='';
+  if(view==='crew')body=`<section class="panel"><div class="panel-header"><div><h2>Team members</h2><p class="panel-subtitle">Workload counts use active jobs; they do not imply availability.</p></div></div><div class="crew-directory">${crew.map(c=>`<div class="crew-directory-row"><span class="jobs-crew-avatar">${esc(c.name.slice(0,1).toUpperCase())}</span><div><strong>${esc(c.name)}</strong><span>${esc(c.role||'Team member')}${c.active?'':' · Archived'}</span>${c.phone?'<small>'+esc(c.phone)+'</small>':''}</div><span>${jobs.filter(j=>j.workerId===c.id&&active(j)).length} active jobs</span><a class="text-button" href="#team/assignments" data-nav="team/assignments">Assignments →</a></div>`).join('')||'<p class="jobs-empty">No crew members yet. Choose Manage crew to add your team.</p>'}</div></section>`;
+  else {
+    const controls=`<label class="operation-filter">Show jobs <select data-jobs-filter>${selectOptions([{value:'all',label:'All jobs'},{value:'active',label:'Active jobs'},{value:'unassigned',label:'Unassigned'},...statuses.map(x=>({value:x,label:x}))],filter)}</select></label>`;
+    const groups=view==='assignments'?[{id:'',name:'Unassigned'},...crew]:[{id:null,name:'Scheduled work'}];
+    body=controls+groups.map(c=>{const items=sorted.filter(j=>c.id===null||String(j.workerId||'')===String(c.id));return `<section class="panel assignment-group"><div class="panel-header"><h2>${esc(c.name)}</h2><span class="muted">${items.length} job${items.length===1?'':'s'}</span></div>${items.map(row).join('')||'<p class="jobs-empty">No jobs in this view.</p>'}</section>`;}).join('');
+  }
+  return `<div class="jobs operations-page"><div class="page-heading"><div><h1>${title}</h1><p class="page-description">${description}</p></div><div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''}>+ Schedule a job</button></div></div>${body}</div>`;
 }
 function openDialog(markup) {
   let d=document.querySelector('#cerium-job-dialog');
