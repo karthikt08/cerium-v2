@@ -104,9 +104,9 @@ test('browser handles conversation and unknown answers without bogus navigation'
   assert.match(code,/lastSection/);
   assert.match(code,/conversationReply/);
   assert.match(code,/const conversational=result\.type==='conversation'/);
-  assert.match(code,/progress\.textContent=safe\.reply/);
+  assert.match(code,/typeGuideReply\(progress,blocks/);
   assert.match(code,/suggestions\.hidden=/);
-  assert.match(code,/renderGuideLinks\(safe,clean\)/);
+  assert.match(code,/renderGuideLinks\(safe,resolved\)/);
   assert.match(code,/trustedGuideLink/);
   assert.match(code,/guide-step-badge/,'advanced workflow action badges remain in the assistant');
   assert.doesNotMatch(code,/createInvoice|deleteInvoice|matchPayment/);

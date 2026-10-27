@@ -3,7 +3,7 @@ import {workspaceDestination,workspacePathLabel} from './workspace-registry.js';
 export const GUIDE_TOPICS = Object.freeze([
   {section:'invoices', title:'Invoices',
    keywords:['invoice','invoices','billing a customer','bill a customer','print pdf','download pdf','pdf','due date','net 15','net 30','payment terms','terms of payment','gst invoice','tax breakdown','tax rate','line item','invoice terms','tax declaration','receipt','billing','bill','statement','receivables','accounts receivable','sales tax','balance due','unpaid balance','cgst','sgst','igst','past due invoice','delinquent client'],
-   answer:'Open Invoices to create a customer invoice, enter the job and line items, and use the invoice preview to print or save a PDF. Verify the amount and tax details before sending.',
+   answer:'Open Invoices to create a customer invoice, enter the job and line items, and use the invoice preview to print or save a PDF. WhatsApp, SMS and email buttons open message drafts for you to review and send. Indian INR invoices support a saved UPI payment link and QR code. Unregistered businesses can issue commercial invoices without a GSTIN or GST charges.',
    steps:'Open Invoices → New invoice → Complete the details → Preview → Print / save PDF.'},
   {section:'leads', title:'Leads',
    keywords:['import','spreadsheet','csv','excel','xlsx','leads','lead','prospect','pipeline','customer enquiry','customer inquiry','column mapping','deduplication','contact import','bulk import','crm','contacts','client list','inquiries','prospects','customer database','sales pipeline'],
@@ -62,6 +62,11 @@ export const GUIDE_SECTIONS = Object.freeze(GUIDE_TOPICS.map(topic=>topic.sectio
 const matchText=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 export function pickGuide(question, currentSection='overview') {
   const text=matchText(question);
+  // These shipped invoice tasks can otherwise be mistaken for Settings or
+  // Payments, or missed by the older navigation classifier altogether.
+  if(/\b(?:whatsapp|sms|upi|qr code|payment qr|scan to pay|without (?:a )?gstin|no gstin|not gst registered|unregistered business)\b/.test(text)&&
+    !/\b(?:quotes?|estimates?|marketing|reviews?|leads?|reminders?)\b/.test(text))
+    return {...GUIDE_TOPICS.find(topic=>topic.section==='invoices'),matched:true};
   let best=null,score=0;
   for(const topic of GUIDE_TOPICS){
     let points=0;

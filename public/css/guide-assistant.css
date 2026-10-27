@@ -46,6 +46,23 @@
 .guide-bubble{align-self:flex-start;max-width:95%;padding:11px 14px;border:1px solid #e2e8f0;border-radius:14px 14px 14px 4px;background:#ffffff;color:#1e293b;font-size:13px;line-height:1.52;box-shadow:0 2px 6px rgba(15,23,42,.04);white-space:pre-wrap;overflow-wrap:anywhere}
 .guide-bubble.user{align-self:flex-end;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border-color:rgba(255,255,255,.08);color:#ffffff;border-radius:14px 14px 4px 14px;box-shadow:0 4px 14px rgba(15,23,42,.22);font-weight:500}
 .guide-bubble.guide-thinking{color:#64748b;font-style:italic;background:#f8fafc;border-color:#e2e8f0;animation:guidePulse 1.6s ease-in-out infinite}
+.guide-messages>*{flex-shrink:0}
+.guide-bubble.guide-formatted{white-space:normal}
+.guide-answer-block+ .guide-answer-block{margin-top:10px}
+.guide-answer-block p{margin:0 0 7px}
+.guide-answer-block p:last-child{margin-bottom:0}
+.guide-answer-list{margin:0;padding-left:19px;display:grid;gap:7px}
+.guide-answer-list li{padding-left:2px}
+.guide-answer-list li::marker{color:#475569;font-weight:700}
+.guide-answer-list strong{font-weight:700;color:inherit}
+.guide-steps-label{display:block;margin-bottom:7px;font-size:11px;color:#475569}
+.guide-typing .guide-typing-cursor::after{content:'';display:inline-block;width:2px;height:1em;margin-left:3px;background:currentColor;vertical-align:-.12em;animation:guideCaret .8s steps(1) infinite}
+@keyframes guideCaret{0%,55%{opacity:1}56%,100%{opacity:0}}
+.guide-response-controls{padding:7px 16px 0;text-align:right}
+.guide-response-controls[hidden],.guide-answer-block[hidden],.guide-answer-list li[hidden]{display:none}
+.guide-response-controls button{border:0;background:transparent;padding:3px 0;color:#334155;font-family:inherit;font-size:11px;font-weight:600;line-height:1.5;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.guide-response-controls button:hover{color:#1d4ed8}
+.guide-announcer{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 @keyframes guidePulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* Framed Execution Sequence Callout */
