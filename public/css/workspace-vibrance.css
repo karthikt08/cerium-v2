@@ -197,15 +197,20 @@
    large feature canvas look like another floating dashboard card. */
 .app-page{
   --cerium-card-shadow:
-    inset 0 1px 0 rgba(255,255,255,.78),
-    0 2px 5px -3px rgba(24,36,76,.15),
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(15,23,42,.02),
+    0 1px 3px -1px rgba(15,23,42,.08),
     0 15px 31px -17px rgba(42,61,111,.28),
-    0 28px 51px -36px rgba(102,81,176,.22);
+    0 28px 51px -36px rgba(102,81,176,.22),
+    0 0 0 1px rgba(99,102,241,.03);
   --cerium-card-shadow-hover:
-    inset 0 1px 0 rgba(255,255,255,.88),
-    0 4px 11px -6px rgba(26,40,81,.18),
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgba(15,23,42,.04),
+    0 3px 8px -2px rgba(15,23,42,.12),
+    0 12px 28px -10px rgba(32,45,85,.20),
     0 21px 40px -18px rgba(44,62,123,.29),
-    0 34px 55px -35px rgba(103,75,178,.25);
+    0 34px 55px -35px rgba(103,75,178,.25),
+    0 0 0 1px rgba(118,74,211,.15);
 }
 .app-page #page-body :is(
   .metric,.panel,.quote-card,.jobs-stat,.jobs-panel,.lead-card,.marketing-stat
@@ -216,6 +221,8 @@
 /* Larger work area gets a softer shadow than the individual cards inside it. */
 .app-page #page-body .workspace-feature-panel{
   box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 1px 3px rgba(15,23,42,.04),
     0 4px 13px -10px rgba(33,48,92,.17),
     0 22px 44px -32px rgba(85,72,148,.23);
 }
