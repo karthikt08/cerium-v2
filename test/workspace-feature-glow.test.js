@@ -27,7 +27,7 @@ test('every real subfeature tab contains a glowable label without altering badge
 });
 
 test('all selected labels get a glowing gradient and inline underline, inactive labels retain contrast',()=>{
-  assert.match(css,/\.workspace-feature-tab \ .workspace-feature-label/);
+  assert.ok(css.includes('.app-page .workspace-feature-tab .workspace-feature-label{'));
   assert.match(css,/\.workspace-feature-tab\[aria-selected="true"\] \.workspace-feature-label\{/);
   assert.match(css,/background:linear-gradient\(100deg,#3047ad,#6341b4 54%,#8c4b9a\)/);
   assert.match(css,/\.workspace-feature-label::after\{/);
