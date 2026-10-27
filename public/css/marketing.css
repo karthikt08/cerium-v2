@@ -60,6 +60,7 @@
   background:#fff;box-shadow:0 4px 14px #25355303;overflow:hidden;
 }
 .marketing-feature-header{min-height:89px;gap:18px;align-items:center}
+.marketing-feature-header .panel-title .icon{width:16px;height:16px;flex-shrink:0;color:#765ba8}
 .marketing-feature-header .panel-title h2{font-size:15px;font-weight:600;color:#30394e}
 .marketing-feature-header .panel-subtitle{font-size:11px;line-height:1.55;max-width:600px}
 .marketing-panel-links{display:flex;align-items:center;gap:15px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
