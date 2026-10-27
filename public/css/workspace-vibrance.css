@@ -75,7 +75,7 @@
 }
 .app-page .breadcrumb strong{color:#504b74;font-weight:650}
 .app-page .page-heading>.eyebrow,.app-page .eyebrow{color:#7565a2}
-.app-page .page-heading h1{color:#292b43}
+.app-page .page-heading h1{color:#0f172a}
 
 /* A visible but contained brand halo on the Overview, not a full color wash. */
 .app-page .overview-stage{
@@ -97,7 +97,7 @@
   background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%);
   filter:drop-shadow(0 5px 12px rgba(124,58,237,.12));
 }
-.app-page .overview-stage .page-description{color:#66667d}
+.app-page .overview-stage .page-description{color:#334155}
 .app-page .overview-shortcut{
   background:rgba(255,255,255,.88);
   border-color:#ded6f0;color:#5b5090;
@@ -123,11 +123,11 @@
 .app-page .metrics-grid .metric.warning::before{
   background:linear-gradient(90deg,#e2a04f,#c66cd6);
 }
-.app-page .metric-top{color:#6b6d82}
+.app-page .metric-top{color:#334155;font-weight:650}
 .app-page .metrics-grid .metric .metric-top .icon{color:#6e50bd}
-.app-page .metrics-grid .metric .metric-value{color:#2d304b;font-weight:700}
+.app-page .metrics-grid .metric .metric-value{color:#0f172a;font-weight:700}
 .app-page .metrics-grid .metric.warning .metric-value{color:#9b541b}
-.app-page .metric-foot{color:#77798d}
+.app-page .metric-foot{color:#334155;font-weight:550}
 .app-page .metric-foot .dot{background:#9473d4}
 .app-page .dashboard-grid>.panel{
   border-color:#ded5ed;
@@ -161,7 +161,7 @@
 }
 .app-page :is(.quotes-summary strong,.jobs-stats .jobs-stat strong,
   .reminders-stats>div strong){
-  color:#32344f;
+  color:#0f172a;
 }
 .app-page .quotes-progress>span{
   border-color:#e0dbeb;

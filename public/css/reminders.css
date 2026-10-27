@@ -1,7 +1,7 @@
 /* CERIUM payment reminders */
 .reminders-view{display:grid;gap:20px}.reminders-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .reminders-stats>div{border:1px solid #e3e8f1;border-radius:14px;background:#fff;padding:16px 19px;display:grid;gap:3px}
-.reminders-stats strong{font-size:29px;letter-spacing:-1px;color:#233a5c}.reminders-stats span{color:#8190a4;font-size:12px;font-weight:700}
+.reminders-stats strong{font-size:29px;letter-spacing:-1px;color:#0f172a}.reminders-stats span{color:#475569;font-size:12px;font-weight:700}
 .reminders-columns{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(340px,1.1fr);gap:20px;align-items:start}
 .reminders-heading{padding:20px 23px;border-bottom:1px solid #e6eaf1}.reminders-heading h2{margin:0 0 5px;font-size:17px;letter-spacing:-.4px}
 .reminders-heading p{color:#7e8da3;font-size:12px;line-height:1.5}
