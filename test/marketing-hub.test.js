@@ -38,7 +38,7 @@ test('Marketing is navigable through Cerium and supports three deep links',()=>{
     assert.equal(routeFromHash(segment),'marketing');
   assert.ok(SECTIONS.marketing);
   const html=fs.readFileSync(new URL('../public/app.html',import.meta.url),'utf8');
-  assert.match(html,/data-nav="marketing"/);
+  assert.match(fs.readFileSync(new URL('../public/js/workspace-registry.js',import.meta.url),'utf8'),/id:'marketing',label:'Marketing & Reputation'/);
   assert.match(html,/css\/marketing.css/);
   const customizer=fs.readFileSync(new URL('../public/js/workspace-customizer.js',import.meta.url),'utf8');
   assert.match(customizer,/key==='marketing'/);
@@ -112,8 +112,8 @@ test('Assistant supplies verified clickable Marketing deep links and ordinary pa
     ['Where can I re-book my old customers?','#marketing/reengage'],
     ['Show marketing performance and lead sources','#marketing/performance'],
     ['Where can I draft a social media post?','#marketing/visibility'],
-    ['Where do I import Excel customers?','#leads'],
-    ['How do I save an invoice PDF?','#invoices']
+    ['Where do I import Excel customers?','#customers/leads'],
+    ['How do I save an invoice PDF?','#billing/invoices']
   ]){
     const answer=await answerGuide(question,'overview',{provider:'guide'});
     assert.ok(answer.links.some(l=>l.href===expected),question+' '+JSON.stringify(answer.links));
@@ -122,7 +122,7 @@ test('Assistant supplies verified clickable Marketing deep links and ordinary pa
 test('Cross-tool workflows include several verified page links',async()=>{
   const answer=await answerGuide('How do I turn a lead into an invoice?','overview',{provider:'navlm'});
   assert.equal(answer.type,'workflow');
-  assert.deepEqual(answer.links.map(x=>x.href),['#leads','#quotes','#jobs','#invoices','#payments']);
+  assert.deepEqual(answer.links.map(x=>x.href),['#customers/leads','#customers/quotes','#field/schedule','#billing/invoices','#billing/payments']);
 });
 test('AI output, malformed links and unsupported prompts cannot create external URLs',async()=>{
   for(const href of ['javascript:alert(1)','https://evil.example','#admin','#marketing/../../admin','#marketing/unknown','//evil.example']){
@@ -132,7 +132,7 @@ test('AI output, malformed links and unsupported prompts cannot create external 
     {section:'../../admin',href:'https://evil.example'},
     {section:'invoices',href:'javascript:alert(1)'}
   ]};
-  assert.deepEqual(guideNavigationLinks(malicious,'test'),[{href:'#invoices',label:'Invoices'}]);
+  assert.deepEqual(guideNavigationLinks(malicious,'test'),[{href:'#billing/invoices',label:'Billing & Payments → Invoices'}]);
   const greeting=await answerGuide('hi','settings',{provider:'navlm'});
   assert.deepEqual(greeting.links,[]);
   const unknown=await answerGuide('frobnicate the platypus','settings',{provider:'guide'});

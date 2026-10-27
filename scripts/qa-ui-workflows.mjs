@@ -5,7 +5,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {startServer} from '../test/helpers.js';
 import {completeBusiness} from '../test/business-fixtures.js';
-import {SECTIONS} from '../public/js/workspace-model.js';
+import {resolveWorkspaceRoute} from '../public/js/workspace-registry.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright':'playwright');
 const out=process.env.UI_AUDIT_OUTPUT||'output/ui-workflows';mkdirSync(out,{recursive:true});
@@ -19,7 +19,7 @@ async function check(name,fn){
  try{await fn();results.push({name,pass:true});console.log('PASS',name);}
  catch(e){results.push({name,pass:false,error:e.message});console.log('FAIL',name,e.message);await page.screenshot({path:join(out,'failure-'+results.length+'.png')});await page.keyboard.press('Escape').catch(()=>{});}
 }
-async function nav(section){await page.goto(t.url+'/app.html#'+section);await page.locator('#page-body').waitFor({state:'visible'});await page.waitForFunction(title=>document.querySelector('#current-section')?.textContent===title,SECTIONS[section][0]);await page.locator('#cerium-entry-scene').waitFor({state:'hidden'});}
+async function nav(section){await page.goto(t.url+'/app.html'+resolveWorkspaceRoute(section).href);await page.locator('#page-body').waitFor({state:'visible'});await page.waitForFunction(title=>document.querySelector('#current-section')?.textContent===title,resolveWorkspaceRoute(section).label);await page.locator('#cerium-entry-scene').waitFor({state:'hidden'});}
 async function record(kind,values){await page.locator('[data-action="new"][data-kind="'+kind+'"]').first().click();for(const [name,value] of Object.entries(values))await page.locator('#record-form [name="'+name+'"]').fill(value);await page.locator('#record-submit').click();await page.locator('#record-dialog').waitFor({state:'hidden'});}
 async function ws(){return (await context.request.get(t.url+'/api/workspace')).json();}
 async function createOwner(country='US'){
@@ -121,11 +121,11 @@ try{
   await page.locator('[data-action=review-received]').first().waitFor();await page.locator('[data-action=review-received]').first().click();await page.getByText('Review marked as received.',{exact:true}).waitFor();assert.ok((await ws()).reviews.some(r=>r.customerName==='Review Customer'&&r.status==='Reviewed'));
  });
  await check('Marketing tabs, keyboard navigation and edited draft retention',async()=>{
-  await nav('marketing');await page.locator('[data-marketing-draft]').fill('My reviewed draft');await page.locator('#marketing-tab-visibility').focus();await page.keyboard.press('End');assert.equal(await page.locator('#marketing-tab-performance').getAttribute('aria-selected'),'true');await page.keyboard.press('Home');assert.equal(await page.locator('[data-marketing-draft]').inputValue(),'My reviewed draft');
+  await nav('marketing');await page.locator('[data-marketing-draft]').fill('My reviewed draft');await page.locator('#workspace-tab-visibility').focus();await page.keyboard.press('End');assert.equal(await page.locator('#workspace-tab-performance').getAttribute('aria-selected'),'true');await page.keyboard.press('Home');assert.equal(await page.locator('[data-marketing-draft]').inputValue(),'My reviewed draft');
   await page.locator('[data-marketing-service]').fill('repair work');await page.locator('[data-marketing-generate]').click();assert.match(await page.locator('[data-marketing-draft]').inputValue(),/repair work/);
  });
  await check('Assistant answer, page link and close control',async()=>{
-  await nav('overview');await page.locator('#guide-trigger').click();await page.locator('#guide-question').fill('How do I import an Excel spreadsheet?');await page.locator('#guide-send').click();await page.locator('#guide-messages a[href*="leads"]').first().waitFor();await page.locator('#guide-messages a[href*="leads"]').first().click();assert.match(page.url(),/#leads/);if(await page.locator('#guide-close').isVisible())await page.locator('#guide-close').click();assert.equal(await page.locator('#guide-trigger').getAttribute('aria-expanded'),'false');
+  await nav('overview');await page.locator('#guide-trigger').click();await page.locator('#guide-question').fill('How do I import an Excel spreadsheet?');await page.locator('#guide-send').click();await page.locator('#guide-messages a[href*="leads"]').first().waitFor();await page.locator('#guide-messages a[href*="leads"]').first().click();assert.equal(resolveWorkspaceRoute(new URL(page.url()).hash).section,'leads');if(await page.locator('#guide-close').isVisible())await page.locator('#guide-close').click();assert.equal(await page.locator('#guide-trigger').getAttribute('aria-expanded'),'false');
  });
  await check('Settings save, tool customization, export and delete cancellation',async()=>{
   await nav('settings');await page.locator('#profile-form [name=businessName]').fill('Browser Tested Services');await page.locator('#profile-form [type=submit]').click();await page.getByText('Browser Tested Services',{exact:true}).first().waitFor();

@@ -3,23 +3,12 @@
 import {GUIDE_SECTIONS} from './guide-knowledge.js';
 import {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
-const PAGES={
-  overview:{href:'#overview',label:'Overview'},
-  jobs:{href:'#jobs',label:'Jobs & dispatch'},
-  leads:{href:'#leads',label:'Leads'},
-  quotes:{href:'#quotes',label:'Estimates & quotes'},
-  followups:{href:'#followups',label:'Customer follow-ups'},
-  reminders:{href:'#reminders',label:'Payment reminders'},
-  invoices:{href:'#invoices',label:'Invoices'},
-  payments:{href:'#payments',label:'Payments'},
-  reviews:{href:'#reviews',label:'Customer reviews'},
-  settings:{href:'#settings',label:'Settings'},
-  support:{href:'#support',label:'Help & feedback'},
-  marketing:{href:'#marketing',label:'Marketing'}
-};
-const MARKETING_AREAS=Object.fromEntries(MARKETING_FEATURE_TABS.map(tab=>[tab.key,{href:'#marketing/'+tab.key,label:tab.label}]));
-const ALL=[...Object.values(PAGES),...Object.values(MARKETING_AREAS)];
-const HASHES=new Map(ALL.map(item=>[item.href,item]));
+import {WORKSPACE_FEATURES,WORKSPACE_UTILITIES,LEGACY_WORKSPACE_ROUTES,workspaceDestination,workspacePathLabel} from './workspace-registry.js';
+const asLink=route=>({href:route.href,label:workspacePathLabel(route)});
+const PAGES=Object.fromEntries(GUIDE_SECTIONS.map(section=>[section,asLink(workspaceDestination(section))]));
+const HASHES=new Map([...WORKSPACE_FEATURES,...WORKSPACE_UTILITIES].map(route=>[route.href,asLink(route)]));
+for(const alias of Object.keys(LEGACY_WORKSPACE_ROUTES))HASHES.set('#'+alias,asLink(workspaceDestination(alias)));
+for(const section of GUIDE_SECTIONS)HASHES.set('#'+section,PAGES[section]);
 export function trustedGuideLink(href){
   return HASHES.get(String(href||''))||null;
 }
@@ -64,7 +53,13 @@ export function guideNavigationLinks(result,question=''){
     }
     return links;
   }
-  add(PAGES[result.section].href);
+  if(result.section==='payments'&&/\b(?:bank|match|deposit|reconcil)/.test(query))add('#billing/bank');
+  else if(result.section==='jobs'&&/\b(?:crew|team|staff|technician)\b/.test(query)&&!/\b(?:schedule|assign|dispatch|job|appointment)\b/.test(query))add('#team/crew');
+  else if(result.section==='jobs'&&/\bdispatch\b/.test(query))add('#field/dispatch');
+  else if(result.section==='insights'&&/\b(?:sales|leads?|conversion|sources?)\b/.test(query))add('#insights/sales');
+  else if(result.section==='insights'&&/\b(?:revenue|payment|invoice|overdue|financial)\b/.test(query))add('#insights/revenue');
+  else if(result.section==='settings'&&/customi[sz]|hide tool|show tool/.test(query))add('#settings/tools');
+  else add(PAGES[result.section].href);
   if(result.section==='reviews'&&/\b(?:marketing|promot|get found)\b/.test(query))add('#marketing/visibility');
   if(result.section==='followups'&&/\b(?:re.?book|re.?engag|former|past customers?|marketing)\b/.test(query))
     add('#marketing/reengage');

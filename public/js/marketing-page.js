@@ -9,7 +9,7 @@ export {MARKETING_FEATURE_TABS} from './marketing-features.js';
 const arrow='<span aria-hidden="true">→</span>';
 const navLink=(hash,label)=>'<a href="#'+hash+'" data-nav="'+hash+'" class="text-button marketing-link">'+esc(label)+' '+arrow+'</a>';
 const tabs=MARKETING_FEATURE_TABS;
-export function renderMarketingPage(ws){
+export function renderMarketingPage(ws,{embedded=false}={}){
   const today=businessLocalDate(ws?.account?.timeZone);
   const data=marketingInsights(ws,today);
   const business=ws?.account?.businessName||ws?.account?.name||'Your business';
@@ -36,7 +36,7 @@ export function renderMarketingPage(ws){
       '<button type="button" class="button primary" data-marketing-jump="visibility">Create a message</button>'+
       '</div></div>'+
     '<div class="marketing-layout">'+
-      '<nav class="marketing-switcher" role="tablist" aria-label="Marketing features">'+
+      '<nav class="marketing-switcher" role="tablist" aria-label="Marketing features"'+(embedded?' hidden':'')+'>'+
         tabs.map((item,index)=>'<button type="button" role="tab" id="marketing-tab-'+item.key+'" class="marketing-tab'+(index===0?' active':'')+'" data-marketing-tab="'+item.key+'" aria-controls="marketing-panel-'+item.key+'" aria-selected="'+(index===0?'true':'false')+'" tabindex="'+(index===0?'0':'-1')+'" title="'+esc(item.label)+'">'+
           '<span class="marketing-tab-number">'+String(index+1).padStart(2,'0')+'</span><span class="marketing-tab-copy"><strong>'+esc(item.label)+'</strong></span>'+
         '</button>').join('')+
@@ -92,7 +92,7 @@ export function renderMarketingPage(ws){
   '</section>';
 }
 
-export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,onCreated=()=>{},toast=()=>{}}={}){
+export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,onCreated=()=>{},toast=()=>{},onNavigate=null}={}){
   const page=root?.querySelector('[data-marketing-page]');
   if(!page)return;
   const choose=key=>{
@@ -110,6 +110,7 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
   choose(deepLink());
   const navigateTo=key=>{
     if(!tabs.some(t=>t.key===key))return;
+    if(onNavigate){onNavigate('#marketing/'+key);return;}
     choose(key);
     // A shareable deep link without remounting the page or erasing an edited draft.
     const hash='#marketing/'+key;
@@ -145,6 +146,7 @@ export function initializeMarketingUI({root,api,getWorkspace,readOnly=()=>false,
       page.querySelector('[data-marketing-draft]').value=draftMarketingCopy({
         kind,businessName:business.businessName||business.name||'Your business',service
       });
+      page.querySelector('[data-marketing-draft]').dispatchEvent(new Event('input',{bubbles:true}));
       return;
     }
     const copy=event.target.closest('[data-marketing-copy]');

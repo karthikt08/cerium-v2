@@ -5,7 +5,7 @@ const read=p=>fs.readFileSync(new URL('../public/'+p,import.meta.url),'utf8');
 
 test('quotes navigation and premium quote builder are connected to the workspace',()=>{
   const html=read('app.html'),app=read('js/app.js'),ui=read('js/quotes-page.js');
-  assert.match(html,/data-nav="quotes"/);
+  assert.match(read('js/workspace-registry.js'),/feature\('quotes','customers'/);
   assert.match(html,/css\/quotes\.css/);
   assert.match(app,/renderQuotesPage/);
   assert.match(app,/initializeQuotesUI/);

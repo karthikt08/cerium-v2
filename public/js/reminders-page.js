@@ -70,6 +70,7 @@ export function initializeRemindersUI({API,refresh,getWorkspace,toast,isReadOnly
         approved:form.elements.approved.checked,
       };
       await API.createReminder(payload);
+      document.dispatchEvent(new CustomEvent('cerium:form-saved',{detail:{section:'reminders'}}));
       await refresh();
       toast('Reminder scheduled and awaiting delivery.');
     })().catch(err=>{error.textContent=err.message;error.hidden=false;})

@@ -1,6 +1,6 @@
 // Shared, side-effect-free workspace rules.
 import {businessLocalDate} from './us-market.js';
-import {marketingFeatureFromHash} from './marketing-features.js';
+import {resolveWorkspaceRoute} from './workspace-registry.js';
 export const SECTIONS = {
   overview: ['Overview', 'Your day at a glance.'],
   reminders: ['Payment reminders', 'Schedule approved customer reminders.'],
@@ -12,6 +12,7 @@ export const SECTIONS = {
   payments: ['Payments', 'Review paid invoices and match recorded deposits.'],
   reviews: ['Reviews', 'Follow through with customers after the job is done.'],
   marketing: ['Marketing', 'Plan outreach, re-engage customers and track real workspace activity.'],
+  insights: ['Insights & Reports', 'Summaries based on saved business records.'],
   settings: ['Settings', 'Manage your business profile, plan, and data.'],
   support: ['Help & feedback', 'Get in touch with the people building Cerium.'],
 };
@@ -76,8 +77,5 @@ export function safeReviewURL(value) {
   try { const u=new URL(value); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
 }
 export function routeFromHash(hash) {
-  const path = String(hash || '').replace(/^#/, '');
-  const name = marketingFeatureFromHash(hash)?'marketing':path;
-  const alias = {today:'overview',bank:'payments',account:'settings',messages:'support'};
-  return SECTIONS[alias[name] || name] ? (alias[name] || name) : 'overview';
+  return resolveWorkspaceRoute(hash).section;
 }
