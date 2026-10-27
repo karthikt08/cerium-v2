@@ -228,6 +228,11 @@ export const CeriumAPI = {
     return request('/api/followups/' + encodeURIComponent(id), { method: 'DELETE' });
   },
 
+  async createPaymentDue(payload) {return request('/api/dues',{method:'POST',body:JSON.stringify(payload)});},
+  async updatePaymentDue(id,payload) {return request('/api/dues/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(payload)});},
+  async setPaymentDueStatus(id,payload) {return request('/api/dues/'+encodeURIComponent(id)+'/status',{method:'PATCH',body:JSON.stringify(payload)});},
+  async deletePaymentDue(id) {return request('/api/dues/'+encodeURIComponent(id),{method:'DELETE'});},
+
   async createInvoice(payload) {
     return request('/api/invoices', { method: 'POST', body: JSON.stringify(payload) });
   },
