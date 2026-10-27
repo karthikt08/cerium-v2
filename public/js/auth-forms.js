@@ -136,11 +136,10 @@
           return showMessage(data.message || 'Incorrect email or password.', 'err');
         }
 
-        showMessage('Welcome back! Preparing your greeting…', 'ok');
-        setTimeout(() => {
-          // Hand off to wishing page (entrance route: /enter.html?next=)
-          window.location.href = '/welcome.html?next=' + encodeURIComponent(returnTo);
-        }, 300);
+        // Sign in directly to the requested workspace page, preserving deep links.
+        // The workspace still performs its own session and setup checks.
+        showMessage('Signed in. Opening your workspace…', 'ok');
+        window.location.replace(returnTo);
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
         showMessage('Unable to reach server. Please try again.', 'err');
