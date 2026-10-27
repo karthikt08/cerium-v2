@@ -16,8 +16,9 @@ test('every page uses one Cerium UI system before the final Figtree typography l
     const refs=[...head.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*href="([^"]+)"/g)].map(m=>m[1].replace(/^\//,''));
     assert.equal(refs.filter(x=>x==='css/ui-consistency.css').length,1,page+' must load one shared UI layer');
     if(page==='app.html'){
-      assert.equal(refs.at(-3),'css/ui-consistency.css',page+' keeps controls before the Overview skin');
-      assert.equal(refs.at(-2),'css/workspace-overview-unified.css',page+' has the Overview-only skin');
+      assert.equal(refs.at(-4),'css/ui-consistency.css',page+' keeps controls before the Overview skin');
+      assert.equal(refs.at(-3),'css/workspace-overview-unified.css',page+' has the Overview-only skin');
+      assert.equal(refs.at(-2),'css/workspace-blue-actions.css',page+' applies scoped blue button styling after the Overview skin');
     }else assert.equal(refs.at(-2),'css/ui-consistency.css',page+' should apply the shared layer after page-specific styles');
     assert.equal(refs.at(-1),'css/typography.css',page+' must keep Figtree as the final cascade');
   }

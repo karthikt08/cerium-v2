@@ -93,7 +93,7 @@ test('night header is confined to Overview; preserve responsive, readable and pr
   const css=read('css/workspace-overview-unified.css');
   const app=read('app.html');
   const styles=[...app.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(m=>m[1]);
-  assert.deepEqual(styles.slice(-3),['css/ui-consistency.css','css/workspace-overview-unified.css','css/typography.css']);
+  assert.deepEqual(styles.slice(-4),['css/ui-consistency.css','css/workspace-overview-unified.css','css/workspace-blue-actions.css','css/typography.css']);
   for(const marker of ['.overview-stage.overview-stage-unified','.overview-stage-main',
     '.overview-workspace-row','.overview-india-row','.overview-shortcut:hover',
     '.overview-customize-link:focus-visible','@media(max-width:1080px)',
