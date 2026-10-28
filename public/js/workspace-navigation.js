@@ -3,6 +3,8 @@ import {escapeHTML as esc} from './workspace-model.js';
 import {featureRecordCount} from './workspace-counts.js';
 const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"></use></svg>';
 
+export const SIDEBAR_CATEGORIES=Object.freeze(WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id)));
+
 export {FEATURE_SUBFEATURES} from './workspace-subviews.js';
 import {selectedSubview,subviewHref,subviewCount,FEATURE_SUBFEATURES} from './workspace-subviews.js';
 
@@ -19,7 +21,7 @@ export function renderSubfeaturesBar(route, ws, currentSubfeature=selectedSubvie
 }
 
 export function renderCategoryNavigation(){
-  return WORKSPACE_CATEGORIES.map(c=>`<a class="nav-link" href="#${c.id}" data-category="${c.id}" aria-label="${esc(c.label)}" title="${esc(c.label)}">${icon(c.icon)}<span>${esc(c.label)}</span><span class="nav-count" data-category-count="${c.id}" hidden></span></a>`).join('');
+  return SIDEBAR_CATEGORIES.map(c=>`<a class="nav-link" href="#${c.id}" data-category="${c.id}" aria-label="${esc(c.label)}" title="${esc(c.label)}">${icon(c.icon)}<span>${esc(c.label)}</span><span class="nav-count" data-category-count="${c.id}" hidden></span></a>`).join('');
 }
 export function renderUtilityNavigation(){
   return WORKSPACE_UTILITIES.map(u=>`<a class="nav-link" href="${u.href}" data-nav="${u.href.slice(1)}" aria-label="${esc(u.label)}" title="${esc(u.label)}">${icon(u.id==='support'?'support':'settings')}<span>${esc(u.label)}</span></a>`).join('');
@@ -46,7 +48,8 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
   }
 }
 export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=selectedSubview(route)){
-  if(!route.category)return content;
+  // The original Overview, Settings and Help pages are standalone, not nested tab panels.
+  if(!route.category||['overview','settings','assistant','support'].includes(route.category))return content;
   const tabs=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
   const hidden=!featureEnabled(route,modules);
@@ -56,10 +59,6 @@ export function renderFeatureWorkspace(route,modules,content,workspace,currentSu
       ${tabs.map(f=>`<a role="tab" id="workspace-tab-${f.id}" class="workspace-feature-tab" href="${f.href}" data-feature="${f.id}" data-nav="${f.href.slice(1)}" aria-selected="${f.id===route.id}" aria-controls="workspace-feature-panel" tabindex="${f.id===route.id?'0':'-1'}" aria-label="${esc(f.label)}${featureRecordCount(f,workspace)?.count?' · '+esc(featureRecordCount(f,workspace).label):''}"><span class="workspace-feature-label">${esc(f.label)}</span>${featureRecordCount(f,workspace)?.count?'<span class="workspace-feature-count" aria-hidden="true">'+featureRecordCount(f,workspace).count+'</span>':''}</a>`).join('')}
     </div></div>
     <section id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel" aria-labelledby="workspace-tab-${route.id}" tabindex="0">
-      <div class="workspace-panel-chrome">
-        <div class="workspace-chrome-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="workspace-chrome-status"><span>${esc(category.label)} · <b class="workspace-chrome-feature">${esc(route.label)}</b></span></div>
-      </div>
       ${renderSubfeaturesBar(route,workspace,currentSubfeature)}
       <div class="workspace-feature-content">
         ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
