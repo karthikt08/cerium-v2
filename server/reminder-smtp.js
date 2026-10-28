@@ -117,6 +117,7 @@ export function buildReminderEmail({businessName,invoice,recipient,unsubscribeUr
     body:'Hello '+customer+',\n\n'+
       'This is a friendly payment reminder from '+name+' regarding invoice #'+invoice.id+
       ' ('+invoice.job_title+'), due '+invoice.due_date+'.\n\n'+
+      'Remaining balance: '+new Intl.NumberFormat('en',{style:'currency',currency:invoice.invoice_currency||'USD'}).format(invoice.total)+'.\n\n'+
       'If you have already paid, please disregard this message. For invoice questions, reply to your service provider.\n\n'+
       'To stop automated CERIUM payment reminders from this business, visit:\n'+unsubscribeUrl+
       '\n\n'+name,

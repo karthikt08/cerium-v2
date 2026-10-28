@@ -42,9 +42,9 @@ export function metrics(ws, today = businessLocalDate(ws.account?.timeZone)) {
   return {
     leads: ws.leads.filter(x => ['New','Quoted'].includes(x.stage)).length,
     due: ws.followUps.filter(x => !x.done && x.dueDate <= today).length,
-    outstanding: openInvoices.reduce((n,x) => n + Number(x.total || 0),0),
-    overdue: openInvoices.filter(x => x.status === 'Overdue' || x.dueDate < today).reduce((n,x) => n + Number(x.total || 0),0),
-    paid: ws.invoices.filter(x => x.status === 'Paid').reduce((n,x) => n + Number(x.total || 0),0),
+    outstanding: openInvoices.reduce((n,x) => n + Number(x.balance ?? x.total ?? 0),0),
+    overdue: openInvoices.filter(x => x.status === 'Overdue' || x.dueDate < today).reduce((n,x) => n + Number(x.balance ?? x.total ?? 0),0),
+    paid: ws.invoices.reduce((n,x) => n + Number(x.status==='Paid'?x.total:x.allocatedAmount||0),0),
     reviews: ws.reviews.filter(x => x.status === 'Not Asked').length,
   };
 }

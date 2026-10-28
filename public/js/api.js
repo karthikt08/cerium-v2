@@ -193,6 +193,8 @@ export const CeriumAPI = {
   async createJobInvoice(id) { return request('/api/jobs/'+encodeURIComponent(id)+'/invoice', { method:'POST' }); },
   async addCrew(payload) { return request('/api/crew', { method:'POST', body:JSON.stringify(payload) }); },
   async updateCrew(id,data){return request('/api/crew/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(data)});},
+  async recordCustomerPayment(data){return request('/api/customer-payments',{method:'POST',body:JSON.stringify(data)});},
+  async customerPaymentAction(id,action,data){return request('/api/customer-payments/'+encodeURIComponent(id)+'/'+action,{method:'POST',body:JSON.stringify(data)});},
   async migration(mode,data){return request('/api/migration/'+mode,{method:'POST',body:JSON.stringify(data)});},
   async saveMigrationMapping(data){return request('/api/migration/mappings',{method:'POST',body:JSON.stringify(data)});},
   async deleteMigrationMapping(id){return request('/api/migration/mappings/'+encodeURIComponent(id),{method:'DELETE'});},

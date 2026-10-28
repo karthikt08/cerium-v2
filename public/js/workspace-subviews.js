@@ -52,6 +52,7 @@ export const FEATURE_SUBFEATURES = Object.freeze({
   ]),
   payments: Object.freeze([
     { id: 'paid', label: 'Recorded Payments' },
+    { id: 'ledger', label: 'Payment Ledger & Allocation' },
     { id: 'bank', label: 'Bank Matching' }
   ]),
   reminders: Object.freeze([
