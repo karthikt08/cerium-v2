@@ -697,6 +697,19 @@ document.addEventListener('click',e=>{
       else if(subfeature==='sources'){$('page-body').querySelector('.marketing-source')?.scrollIntoView({behavior:'smooth',block:'start'});}
       return;
     }
+    if(kind==='business'||kind==='sales'||kind==='revenue'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='summary'||subfeature==='pipeline'||subfeature==='paid'){
+        $('page-body').querySelector('.report-stats')?.scrollIntoView({behavior:'smooth',block:'start'});
+      } else {
+        $('page-body').querySelector('.report-note, .report-section:last-child')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
   }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
