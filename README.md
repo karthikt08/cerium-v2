@@ -29,7 +29,7 @@ It merges the marketing landing suite, authentication system, operations web app
 
 **Marketing hub:** Get found and chosen, re-book and re-engage, and track performance with real leads, reviews, paid-invoice histories, and saved follow-up tasks. It offers editable draft templates and explicit review before sharing; Cerium does not auto-send messages, publish to platforms, track ad spend, or claim campaign ROI. Marketing is reached from the sidebar and supports direct links to each area.
 
-**Cerium Copilot (MVP):** The upgraded Ask Cerium assistant retains verified navigation, workflows, and optional provider support, and now gives read-only answers grounded in the signed-in business's records: today's priorities, overdue invoices, due follow-ups, older open leads, and current-month activity. The business calculations run locally on the Cerium server without sending workspace records to an AI provider or taking actions. See [Copilot MVP](docs/cerium-copilot-mvp.md) and [Cerium Guide](docs/cerium-guide.md).
+**Cerium Copilot (basic LLM):** Cerium retains its safe, server-calculated business summaries and verified workflows, and can now answer broader business questions with a real multi-turn LLM when Ollama (local) or OpenAI (cloud) is configured. The model never receives raw customer records or executes writes. When no model is available the existing local guide remains functional. See [LLM setup and privacy](docs/cerium-copilot-llm.md), [business awareness MVP](docs/cerium-copilot-mvp.md), and [Cerium Guide](docs/cerium-guide.md).
 
 ## Key Features
 

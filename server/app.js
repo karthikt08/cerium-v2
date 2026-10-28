@@ -21,6 +21,8 @@ import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js'
 import {parseSpreadsheet,suggestedMapping,mappedLeads,suggestedDueMapping,mappedDues,unmappedColumns} from './spreadsheet-import.js';
 import {answerGuide,validateGuideQuestion} from './guide-assistant.js';
 import {copilotIntent,answerCopilot} from './copilot.js';
+import {answerCopilotWithLLM,copilotModelStatus} from './copilot-llm.js';
+import {isToolRecommendationRequest} from '../public/js/business-tool-advisor.js';
 import {GUIDE_SECTIONS} from '../public/js/guide-knowledge.js';
 import {
   sign, unsign, cleanText, csvCell,
@@ -757,6 +759,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Cerium Copilot's live business summaries stay on this authenticated server.
   // They do not invoke an AI provider, expose records to another account, or write business data.
   const guideLimiter=makeLimiter({windowMs:60*1000,limit:12});
+  // Describes configuration, not a live connection test. Never returns API keys.
+  api.get('/assistant/status',requireSession,(_req,res)=>{
+    const status=copilotModelStatus();
+    res.json({mode:status.mode,provider:status.provider,ready:status.mode==='llm'?'configured':'local_only'});
+  });
   api.post('/assistant/message',guideLimiter,writeLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
     if(!validateGuideQuestion(req.body?.question))return res.status(400).json({error:'invalid_question',message:'Enter a question of up to 420 characters.'});
     const intent=copilotIntent(req.body.question);
@@ -765,11 +772,29 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
       if(!workspace)return res.status(404).json({error:'workspace_not_found'});
       return res.json(answerCopilot(intent,workspace));
     }
-    // All other questions keep the existing navigation and workflow guide.
-    // Never send account identity, customer lists, invoices or billing records to AI providers.
+    // Only explicit business-data queries receive direct deterministic answers.
+    // A configured LLM can handle open-ended conversation. Its business context
+    // contains aggregate counts only (local Ollama by default; cloud opt-in).
+    let modelAttempted=false;
+    if(req.body?.recommendTools!==true&&!isToolRecommendationRequest(req.body.question)){
+      const status=copilotModelStatus();
+      if(status.mode==='llm'){
+        modelAttempted=true;
+        const allowAggregates=status.provider==='ollama'||process.env.CERIUM_COPILOT_SHARE_AGGREGATES==='true';
+        const workspace=allowAggregates?db.getWorkspace(req.session.userId):null;
+        const generated=await answerCopilotWithLLM(req.body.question,req.body?.currentSection,{
+          workspace,history:req.body?.history
+        });
+        if(generated)return res.json(generated);
+      }
+    }
+    // If no model is configured or available, keep the old safe navigation
+    // and workflow guide. No account identity or customer records leave Cerium.
     const businessUser=db.getUserById(req.session.userId);
     const preferences=db.getWorkspacePreferences(req.session.userId);
     const answer=await answerGuide(req.body.question,req.body?.currentSection,{
+      // Never retry the same unavailable provider in the legacy guide path.
+      ...(modelAttempted?{provider:'guide'}:{}),
       businessContext:{trade:businessUser?.trade||'',category:preferences?.category||'other',enabledModules:preferences?.modules||[]},
       recommendTools:req.body?.recommendTools===true,
       businessDescription:typeof req.body?.businessDescription==='string'&&req.body.businessDescription.length<=600?req.body.businessDescription:null,
