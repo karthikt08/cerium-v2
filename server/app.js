@@ -208,12 +208,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   app.use(cookieParser());
   // Business documents support 20 line items plus notes, including UTF-8 text.
   // Keep the smaller cap on authentication and simple public forms.
-  app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me','/api/dues'], express.json({ limit: '64kb' }));
+  app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me','/api/dues','/api/operations','/api/customer-payments'], express.json({ limit: '64kb' }));
   // Copilot sends up to eight conversation turns plus the current question.
   // Allow the bounded browser payload, including multi-byte text, before the
   // small default parser runs. Model history still has its own stricter budget.
   app.use('/api/assistant/message', express.json({ limit: '32kb' }));
-  app.use('/api/import', express.json({ limit: '3mb' }));
+  app.use(['/api/import','/api/migration'], express.json({ limit: '3mb' }));
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
