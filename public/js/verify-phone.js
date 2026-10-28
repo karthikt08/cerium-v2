@@ -146,7 +146,20 @@ check.addEventListener('submit',async e=>{
     const out=await API.verifyBillingPhone(el('code').value.trim());
     setMessage('Verified: '+countryName(out.country)+' · '+out.currency+'.');
     await view();
-  }catch(err){setMessage(err.message||'Unable to verify the code.',true)}
+  }catch(err){
+    // A provider-approved code can still be rejected if this phone belongs to
+    // another account. Return to the phone field instead of leaving users
+    // trapped in a code entry form that cannot succeed.
+    const reason=err.data?.error;
+    if(reason==='phone_in_use'){
+      check.hidden=true;
+      el('code').value='';
+      phone.focus();
+    }else if(['expired','verification_changed','attempt_limit'].includes(reason)){
+      el('code').value='';
+    }
+    setMessage(err.message||'Unable to verify the code.',true);
+  }
   finally{setBusy(false)}
 });
 el('setup-export').addEventListener('click',async()=>{
