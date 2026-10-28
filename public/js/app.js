@@ -21,7 +21,7 @@ import {invoiceUpiUri,invoiceShareLinks,invoiceUpiQrSvg} from './invoice-sharing
 import {mountGuideAssistant} from './guide-assistant.js';
 import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import {WORKSPACE_CATEGORIES,resolveWorkspaceRoute,categoryDestination} from './workspace-registry.js';
-import {renderCategoryNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
+import {renderCategoryNavigation,renderUtilityNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
 import {createWorkspaceDrafts} from './workspace-drafts.js';
 import {selectedSubview,subviewWorkspace,subviewHref} from './workspace-subviews.js';
 import {applySubviewLayout,renderGuidancePage,renderReminderDrafts} from './workspace-view-panels.js';
@@ -33,6 +33,7 @@ const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${nam
 const lastUsedTabs={};
 const state = { route:resolveWorkspaceRoute(location.hash), ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, printInvoice:null, pending:new Set() };
 $('category-navigation').innerHTML=renderCategoryNavigation();
+$('utility-navigation').innerHTML=renderUtilityNavigation();
 
 const drafts=createWorkspaceDrafts($('page-body'),()=>state.section);
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
@@ -434,7 +435,8 @@ function renderPage() {
   if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
   if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
   if(singular[s])renderResults();
-  applySubviewLayout($('page-body'),state.route,state.ws);
+  // Pre-PR99 Overview renders without a feature wrapper; preserve its full dashboard.
+  if(state.route.category!=='overview')applySubviewLayout($('page-body'),state.route,state.ws);
   initializeOperations({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   initializeCustomerPayments({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   initializeMigration({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
