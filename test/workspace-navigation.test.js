@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {WORKSPACE_CATEGORIES,WORKSPACE_FEATURES,WORKSPACE_UTILITIES,resolveWorkspaceRoute,categoryFeatures,categoryDestination,workspaceRouteKnown,workspacePathLabel} from '../public/js/workspace-registry.js';
 import {WORKSPACE_MODULES} from '../public/js/industry-workspaces.js';
-import {renderCategoryNavigation,renderFeatureWorkspace} from '../public/js/workspace-navigation.js';
+import {SIDEBAR_CATEGORIES,renderCategoryNavigation,renderUtilityNavigation,renderFeatureWorkspace} from '../public/js/workspace-navigation.js';
 import {renderWorkspaceCustomizer} from '../public/js/workspace-customizer.js';
 import {businessInsights,renderInsightsPage} from '../public/js/workspace-insights.js';
 import {trustedGuideLink,guideNavigationLinks} from '../public/js/guide-links.js';
@@ -17,13 +17,13 @@ test('every category feature resolves, has a trusted AI destination and an acces
     assert.ok(WORKSPACE_CATEGORIES.some(c=>c.id===f.category));
     const html=renderFeatureWorkspace(f,undefined,'<p>Actual feature content</p>');
     assert.ok(html.includes('Actual feature content'));
-    if(f.category!=='overview'){
+    if(!['overview','settings','assistant','support'].includes(f.category)){
       assert.match(html,/role="tablist"/);assert.match(html,/role="tabpanel"/);
       assert.ok(html.includes('aria-labelledby="workspace-tab-'+f.id+'"'));
       assert.equal((html.match(/aria-selected="true"/g)||[]).length,1);
     }
   }
-  assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,10);
+  assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
 });
 test('all saved module combinations hide empty categories and preserve valid last-used destinations',()=>{
   const ids=WORKSPACE_MODULES.map(x=>x.id);
@@ -84,7 +84,7 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
-test('2-tier tabbed layout provides feature tabs and subfeatures under active feature matching wireframe',()=>{
+test('pre-PR99 compact feature and subfeature tabs preserve deep links',()=>{
   const leadsRoute=resolveWorkspaceRoute('#customers/leads');
   const html=renderFeatureWorkspace(leadsRoute,['leads','followups','quotes'],'<div>Leads Content</div>');
   
@@ -116,53 +116,43 @@ test('2-tier tabbed layout provides feature tabs and subfeatures under active fe
 });
 
 
-test('CERIUM provides 10 top-level categories and full subfeature taxonomies across all modules',()=>{
-  const expectedCats = [
-    'overview', 'customers', 'field', 'billing', 'marketing',
-    'team', 'insights', 'settings', 'assistant', 'support'
-  ];
-  assert.deepEqual(WORKSPACE_CATEGORIES.map(c=>c.id), expectedCats);
-  assert.equal(WORKSPACE_CATEGORIES.length, 10);
-
-  // Settings & Customization
-  const settingsRoute = resolveWorkspaceRoute('#settings');
-  assert.equal(settingsRoute.category, 'settings');
-  const settingsHtml = renderFeatureWorkspace(settingsRoute, undefined, '<div>Settings Body</div>');
-  assert.match(settingsHtml, /Business Settings/);
-  assert.match(settingsHtml, /Customize Tools/);
-  assert.match(settingsHtml, /Data Management/);
-  assert.match(settingsHtml, /Account &amp; Subscription/);
-  assert.match(settingsHtml, /Business Profile/);
-  assert.match(settingsHtml, /Currency &amp; Country/);
-
-  // Ask Cerium (AI Assistant)
-  const assistantRoute = resolveWorkspaceRoute('#assistant');
-  assert.equal(assistantRoute.category, 'assistant');
-  const assistantHtml = renderFeatureWorkspace(assistantRoute, undefined, '<div>Assistant Body</div>');
-  assert.match(assistantHtml, /Feature Discovery/);
-  assert.match(assistantHtml, /Workflow Guidance/);
-  assert.match(assistantHtml, /Response Experience/);
-  assert.match(assistantHtml, /Find Modules/);
-  assert.match(assistantHtml, /Section Navigation/);
-
-  // Help & Support
-  const supportRoute = resolveWorkspaceRoute('#support');
-  assert.equal(supportRoute.category, 'support');
-  const supportHtml = renderFeatureWorkspace(supportRoute, undefined, '<div>Support Body</div>');
-  assert.match(supportHtml, /Product Help/);
-  assert.match(supportHtml, /Support Requests/);
-  assert.match(supportHtml, /Help &amp; Feedback/);
-  assert.match(supportHtml, /Workflow Explanations/);
+test('seven pre-PR99 sidebar sections and standalone utility pages retain modern routes',()=>{
+  assert.deepEqual(SIDEBAR_CATEGORIES.map(c=>c.id),[
+    'overview','customers','field','billing','marketing','team','insights'
+  ]);
+  assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
+  assert.deepEqual(WORKSPACE_CATEGORIES.map(c=>c.id),[
+    'overview','customers','field','billing','marketing','team','insights',
+    'settings','assistant','support'
+  ],'newer deep links stay registered without crowding the original sidebar');
+  const utility=renderUtilityNavigation();
+  for(const href of ['settings','settings/tools','support'])assert.ok(utility.includes('data-nav="'+href+'"'));
+  for(const href of ['#settings','#settings/tools','#assistant/feature-discovery','#support']){
+    const route=resolveWorkspaceRoute(href),content='<div>Standalone page</div>';
+    assert.equal(renderFeatureWorkspace(route,undefined,content),content,href);
+  }
+  assert.equal(resolveWorkspaceRoute('#overview').label,'Overview');
+  assert.equal(resolveWorkspaceRoute('#settings/data-management').section,'settings');
+  assert.equal(resolveWorkspaceRoute('#assistant/workflow-guidance').section,'assistant');
+  assert.equal(resolveWorkspaceRoute('#support/support-requests').section,'support');
+  const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
+  assert.match(css,/border-radius:5px 5px 0 0;background:#e9edf6/);
+  assert.match(css,/border-radius:0 0 8px 8px;background:#fff/);
+  assert.match(css,/border-radius:7px;padding:3px;gap:0/);
+  assert.doesNotMatch(css,/workspace-panel-chrome|workspace-chrome-dots|border-top:3\.5px solid #2f5bff/);
+  const ordinary=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Leads');
+  assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status/);
 });
 
-
-test('Overview uses the same hierarchy as other sidebar features',()=>{
-  const html=renderFeatureWorkspace(resolveWorkspaceRoute('#overview'),undefined,'<div>Dashboard</div>');
-  assert.match(html,/Daily Dashboard/);
-  assert.match(html,/Business KPIs/);
-  assert.match(html,/workspace-feature-content/);
-  assert.match(html,/Dashboard/);
+test('Overview restores its exact standalone pre-PR99 layout',()=>{
+  const content='<div>Dashboard</div>';
+  for(const href of ['#overview','#overview/kpis','#overview/actions','#overview/workspace']){
+    const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,content);
+    assert.equal(html,content);
+    assert.doesNotMatch(html,/workspace-feature-content|workspace-subfeature-strip|workspace-panel-chrome/);
+  }
 });
+
 
 test('assistant subviews provide distinct user-triggered guidance',async()=>{
   const {renderGuidancePage}=await import('../public/js/workspace-view-panels.js');
