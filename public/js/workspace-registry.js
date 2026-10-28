@@ -58,7 +58,7 @@ export const LEGACY_WORKSPACE_ROUTES=Object.freeze({
   invoices:'billing/invoices',payments:'billing/payments',bank:'billing/bank',reminders:'billing/reminders',reviews:'marketing/reviews',
   account:'settings',messages:'support',
   'settings/business':'settings','settings/data':'settings/data-management','settings/account':'settings/account-subscription',
-  'assistant':'assistant/feature-discovery','support/help':'support','support/requests':'support/support-requests'
+  'assistant':'assistant/feature-discovery','support/product-help':'support','support/help':'support','support/requests':'support/support-requests'
 });
 const allModules=WORKSPACE_MODULES.map(x=>x.id);
 export function featureEnabled(feature,modules){

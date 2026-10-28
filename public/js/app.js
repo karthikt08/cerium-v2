@@ -233,7 +233,7 @@ function field(name,label,value='',type='text',options={}) {
   let input=choices?`<select ${attrs}>${choices.map(x=>{const option=typeof x==='string'?{value:x,label:x}:x;return `<option value="${esc(option.value)}" ${String(value)===String(option.value)?'selected':''}>${esc(option.label)}</option>`;}).join('')}</select>`:type==='textarea'?`<textarea ${attrs} rows="3">${esc(value)}</textarea>`:`<input type="${type}" ${attrs} value="${esc(value)}" ${min!==undefined?`min="${min}"`:''} ${step?`step="${step}"`:''}>`;
   return `<label class="field ${full?'full-width':''}" for="field-${name}">${label}${required?' <span class="sr-only">(required)</span>':''}${input}</label>`;
 }
-function settingsPage() {
+function settingsPage(view='profile') {
   const a=state.ws.account,ind=isIndia(),us=a.country==='US',countryLabel=countryName(a.country);
   const legacy=currencyMismatch()?'<p class="muted" role="alert">Existing amounts are stored in '+esc(a.currency)+'. We will not relabel them. Export valuable history and ask support about migration. Disposable demos may be cleared with confirmation.</p>':'';
   const tzHelp=a.timeZone?'Appointments use '+(US_TIME_ZONE_OPTIONS.find(x=>x.value===a.timeZone)?.label||a.timeZone)+'.':'Set your business time zone so crews see the correct local appointment times.';
@@ -266,7 +266,7 @@ function settingsPage() {
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
 
-  return pageHeading(...SECTIONS.settings)+renderWorkspaceCustomizer(a.workspacePreferences)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
+  return pageHeading(...SECTIONS.settings)+renderWorkspaceCustomizer(a.workspacePreferences)+`<div class="settings-grid"><section class="panel" id="settings-profile-panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <div class="settings-content settings-section-border">
     <div class="business-profile-summary">
       <div class="business-summary-header">
@@ -302,7 +302,7 @@ function settingsPage() {
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
   <div class="settings-actions"><button type="submit" class="button primary">Save changes</button></div></form>
-  </section><div class="settings-stack"><section class="panel">
+  </section><div class="settings-stack"><section class="panel" id="settings-plan-panel">
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / ${currentAnnual?'year':'month'}</small></p>
@@ -312,7 +312,7 @@ function settingsPage() {
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
     ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${proof.checkoutConfigured?button('Authorize monthly billing','upgrade'):''}${proof.annualCheckoutConfigured?button('Authorize annual billing · '+annualNewPrice+'/year · 1 month free','upgrade-annual'):''}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
-  </div></section><section class="panel">
+  </div></section><section class="panel" id="settings-data-panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
     <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON, or bring existing customers and leads from a CSV or Excel spreadsheet. Imports never overwrite existing records.</p>
     <div class="settings-actions">${button(icon('download')+'Export data','export','','secondary')}${button('Import customers / leads','import-leads','','secondary')}</div></div></section>
@@ -355,15 +355,95 @@ function assistantPage(view='discovery') {
       </div>
     </div></section></div>`;
 }
-function supportPage() {
-  return pageHeading(...SECTIONS.support)+`<div class="settings-grid"><section class="panel">${panelHeader('support','Write to us','We’d like to hear what would make your work easier.')}<form class="settings-content" id="support-form"><div class="form-grid">${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}${field('subject','Subject','','text',{required:true,full:true,max:100})}${field('body','Message','','textarea',{required:true,full:true,max:700})}</div><p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p><p id="support-error" class="form-error" role="alert" hidden></p><div class="settings-actions"><button class="button primary" type="submit">Open email draft</button></div></form></section><section class="panel">${panelHeader('support','Keep in touch')}<div class="settings-content"><p class="muted">Questions, problems, or something you wish Cerium did better?</p><a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a><p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}</div></section></div>`;
-}
+function supportPage(view='help') {
+  if (view === 'requests') {
+    return pageHeading(...SECTIONS.support)+`<div class="settings-grid">
+      <section class="panel" id="support-requests-panel">
+        ${panelHeader('support','Support Requests','Direct assistance from the Cerium team')}
+        <form class="settings-content" id="support-form">
+          <div class="form-grid">
+            ${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}
+            ${field('subject','Subject','','text',{required:true,full:true,max:100})}
+            ${field('body','Message','','textarea',{required:true,full:true,max:700})}
+          </div>
+          <p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p>
+          <p id="support-error" class="form-error" role="alert" hidden></p>
+          <div class="settings-actions">
+            <button class="button primary" type="submit">Open email draft</button>
+          </div>
+        </form>
+      </section>
+      <section class="panel">
+        ${panelHeader('support','Keep in touch')}
+        <div class="settings-content">
+          <p class="muted">Questions, problems, or something you wish Cerium did better?</p>
+          <a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>
+          <p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>
+          ${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}
+        </div>
+      </section>
+    </div>`;
+  }
+  return pageHeading(...SECTIONS.support)+`<div class="settings-grid">
+    <section class="panel" id="product-help-workflows">
+      ${panelHeader('support','Workflow Explanations','Learn how Cerium unifies daily trade operations')}
+      <div class="settings-content">
+        <div class="guide-suggestions" style="margin-top:0">
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">1. Customers &amp; Sales (CRM)</span>
+              <span class="row-meta">Enquiries &rarr; Pipeline Board &rarr; Follow-ups &rarr; Quotes &amp; Estimates</span>
+              <p class="muted" style="margin:4px 0 0">Capture incoming customer leads, move them across your pipeline board, schedule callbacks, and send itemized quotes.</p>
+            </div>
+            <a class="button secondary" href="#customers/leads" data-nav="customers/leads">Open CRM</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">2. Field Service (FSM)</span>
+              <span class="row-meta">Weekly Calendar &rarr; Dispatch &rarr; Crew Assignments</span>
+              <p class="muted" style="margin:4px 0 0">Schedule work appointments on the weekly calendar, dispatch crew members, and monitor active jobs without external calendars.</p>
+            </div>
+            <a class="button secondary" href="#field/schedule" data-nav="field/schedule">Open Schedule</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">3. Billing &amp; Payments</span>
+              <span class="row-meta">Invoices &rarr; WhatsApp/SMS &rarr; Payments &rarr; Bank Matching</span>
+              <p class="muted" style="margin:4px 0 0">Convert completed jobs to itemized invoices, share payment links/QR, record customer payments, and review deposit matching.</p>
+            </div>
+            <a class="button secondary" href="#billing/invoices" data-nav="billing/invoices">Open Billing</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">4. Marketing &amp; Reputation</span>
+              <span class="row-meta">Get Found &rarr; Re-engage &rarr; Reviews &rarr; Lead Sources</span>
+              <p class="muted" style="margin:4px 0 0">Draft local business updates, send Google review requests to satisfied customers, and analyze top enquiry channels.</p>
+            </div>
+            <a class="button secondary" href="#marketing/visibility" data-nav="marketing/visibility">Open Marketing</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel" id="product-help-feedback">
+      ${panelHeader('support','Help &amp; Feedback','Need a hand or want to report an issue?')}
+      <div class="settings-content">
+        <p class="muted">Cerium is crafted for independent trades and services. We read every message and respond directly.</p>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
+          <a class="button primary" href="#support/support-requests" data-nav="support/support-requests">Contact Support</a>
+          <button class="button secondary" data-action="ask-guide" data-prompt="How do I get started with Cerium?">Ask Cerium AI</button>
+        </div>
+        <p class="eyebrow" style="margin-top:22px">DIRECT CONTACT</p>
+        <a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>
+      </div>
+    </section>
+  </div>`;
+}
 function renderPage() {
   if(state.route.category)lastUsedTabs[state.route.category]=state.route.id;
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():s==='assistant'?assistantPage(state.route.view):supportPage());
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage(state.route.view):s==='assistant'?assistantPage(state.route.view):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
@@ -379,6 +459,12 @@ function renderPage() {
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
+  if(s==='settings'&&state.route.view){
+    if(state.route.view==='tools')$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='data')$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='account')$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='profile')$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
   if(s==='dues')initializePaymentDuesUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,refresh,toast});
   if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
   if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
@@ -624,6 +710,210 @@ document.addEventListener('click',e=>{
     if(kind==='payments'){
       if(subfeature==='paid'){go('#billing/payments');}
       else if(subfeature==='bank'){go('#billing/bank');}
+      return;
+    }
+    if(kind==='schedule'||kind==='dispatch'||kind==='crew-assignments'||kind==='assignments'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='calendar'){
+        $('page-body').querySelector('.job-calendar')?.scrollIntoView({behavior:'smooth',block:'start'});
+        return;
+      }
+      const filterSelect=$('page-body').querySelector('[data-jobs-filter]');
+      if(filterSelect){
+        filterSelect.value = subfeature==='unassigned'?'unassigned':subfeature==='active'?'active':'all';
+        filterSelect.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      return;
+    }
+    if(kind==='crew'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      $('page-body').querySelectorAll('.crew-directory-row').forEach(r=>{
+        r.hidden = (subfeature==='active' && r.textContent.includes('Archived'));
+      });
+      return;
+    }
+    if(kind==='visibility'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='reviews'){go('#marketing/reviews');return;}
+      const sel=$('page-body').querySelector('[data-marketing-composer-type]');
+      if(sel){sel.value=subfeature==='profile'?'post':'promo';sel.dispatchEvent(new Event('change',{bubbles:true}));}
+      $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    if(kind==='reengage'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='campaign'){
+        const sel=$('page-body').querySelector('[data-marketing-composer-type]');
+        if(sel){sel.value='rebook';sel.dispatchEvent(new Event('change',{bubbles:true}));}
+        $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      } else if(subfeature==='history'){
+        $('page-body').querySelector('.marketing-customer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
+    if(kind==='performance'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='summary'){$('page-body').querySelector('.marketing-stat')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='sources'){$('page-body').querySelector('.marketing-source')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='business'||kind==='sales'||kind==='revenue'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='summary'||subfeature==='pipeline'||subfeature==='paid'){
+        $('page-body').querySelector('.report-stats')?.scrollIntoView({behavior:'smooth',block:'start'});
+      } else {
+        $('page-body').querySelector('.report-note, .report-section:last-child')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
+    if(kind==='bank'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='unmatched'){$('page-body').querySelector('.task-row')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='matched'){$('page-body').querySelector('.notice')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='reminders'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='rules'){$('page-body').querySelector('.reminders-rules, .panel:first-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='templates'){$('page-body').querySelector('.reminders-template, .panel:last-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='dues'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-dues"]')?.click();}
+      else {$('page-body').querySelector('.panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='business-settings'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='profile'){$('field-name')?.focus();}
+      else if(subfeature==='currency'){$('field-country')?.focus();}
+      else if(subfeature==='tax'){($('field-gstin')||$('field-usState')||$('field-location'))?.focus();}
+      else if(subfeature==='upi'){($('field-upiVpa')||$('field-location'))?.focus();}
+      return;
+    }
+    if(kind==='customize-tools'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='modules'){$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='presets'){$('page-body').querySelector('.industry-chips, #field-trade')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='reflow'){$('page-body').querySelector('.workspace-customizer-actions')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='data-management'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-leads"]')?.click();}
+      else if(subfeature==='mapping'){$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='export'){$('page-body').querySelector('[data-action="export"]')?.click();}
+      return;
+    }
+    if(kind==='account-subscription'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='profile'){$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='pricing'){$('page-body').querySelector('.plan-price')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='plan'){$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='feature-discovery'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='modules'){$('page-body').querySelector('#assistant-modules-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='navigate'){$('page-body').querySelector('#assistant-quick-nav')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='workflow-guidance'||kind==='response-experience'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const prompt=subfeature==='step-by-step'?'Walk me through standard customer workflow from lead to payment.'
+        :subfeature==='multi-feature'?'How do CRM, FSM, and Invoices connect with each other?'
+        :subfeature==='point-wise'?'Explain how Ask Cerium structures its point-wise answers.'
+        :subfeature==='progressive'?'How does progressive typing assist during long answers?'
+        :subfeature==='verified-links'?'What verified navigation links can Cerium generate?'
+        :'What are the core capabilities of Cerium?';
+      const drawer=document.getElementById('guide-drawer');
+      if(drawer){
+        drawer.hidden=false;
+        const input=drawer.querySelector('#guide-prompt');
+        if(input){input.value=prompt;input.focus();}
+      }
+      return;
+    }
+    if(kind==='product-help'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='workflows'){$('page-body').querySelector('#product-help-workflows')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='help'){$('page-body').querySelector('#product-help-feedback')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='support-requests'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const catSelect=$('field-category');
+      if(catSelect){catSelect.value=subfeature==='issues'?'Bug report':'Product question';}
+      $('field-subject')?.focus();
       return;
     }
   }
