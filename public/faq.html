@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — CERIUM</title>
+<meta name="description" content="Answers about Cerium: invoicing, follow-ups, estimates, privacy, pricing and the 15-day free trial.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth;scroll-padding-top:96px}
+.pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
+.pg *{box-sizing:border-box}.pg a{color:inherit;text-decoration:none}
+.pg [hidden]{display:none!important}
+.pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
+.pg :focus-visible{outline:3px solid var(--ac);outline-offset:3px}
+.w{max-width:1160px;margin:0 auto;padding:0 24px}
+.hd{display:flex;align-items:center;gap:32px;padding-top:22px;padding-bottom:22px}
+.lg{display:flex;align-items:center;gap:10px;font-size:23px}
+.hd nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--mut)}.hd nav a:hover{color:var(--ink)}
+.pg .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 22px;border-radius:8px;background:var(--ac);color:#fff;font:600 15px var(--bf);border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -10px var(--ac)}
+.pg .btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--ac)}
+.pg .btn.sm{min-height:38px;padding:0 16px;font-size:13.5px;border-radius:7px}
+.pg .btn.gh{background:#fff;color:var(--ink);border:1px solid var(--ln);box-shadow:0 1px 2px rgba(16,24,40,.04)}.pg .btn.gh:hover{background:#f8fafc;border-color:#c8d3e2;color:var(--ink)}
+.hw{position:relative}
+.ey{display:flex;align-items:center;gap:10px;margin:0;font:600 13px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.ey::before{content:"";width:28px;height:2px;background:var(--ac)}
+.ac{position:relative;color:var(--ac);white-space:nowrap}
+.hero{padding:48px 0 56px;text-align:center}
+.hero h1{font-size:clamp(2.5rem,5.5vw,4.2rem);margin:18px auto 0;max-width:14em}
+.hero p.ld{margin:18px auto 28px;color:var(--mut);font-size:clamp(1.1rem,1.8vw,1.3rem);max-width:32em}
+.search-wrap{position:relative;display:inline-block;width:min(520px,100%)}
+#q{width:100%;height:52px;padding:0 20px 0 48px;border-radius:14px;border:1.5px solid var(--ln);background:var(--wh) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23566178' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 18px center;font:400 16px var(--bf);color:var(--ink);box-shadow:0 1px 3px rgba(16,24,40,.04),0 8px 24px -12px rgba(12,23,41,.08);transition:border-color .2s,box-shadow .2s}
+#q:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 20%,transparent),0 12px 28px -12px rgba(47,91,255,.25)}
+.fw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;align-items:start;padding-bottom:96px}
+.fs{position:sticky;top:96px;display:grid;gap:3px;font-size:14px;padding:14px 10px;background:linear-gradient(168deg,rgba(255,255,255,.94) 0%,rgba(246,249,255,.88) 100%);border:1px solid rgba(222,230,242,.95);border-radius:20px;box-shadow:inset 0 1px 0 #fff,0 2px 4px rgba(12,23,41,.02),0 14px 34px -14px rgba(47,91,255,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.fs-title{font:700 11px/1 var(--bf);letter-spacing:.12em;text-transform:uppercase;color:#1e3a8a;padding:6px 12px 10px;border-bottom:1px solid rgba(222,230,242,.85);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.fs-title::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);box-shadow:0 0 0 3px rgba(47,91,255,.16),0 0 8px rgba(47,91,255,.45)}
+.fs a{padding:8px 12px;border-radius:8px;border-left:2.5px solid transparent;color:var(--mut);font-weight:500;transition:all .16s ease;text-decoration:none;line-height:1.35}
+.fs a:hover{color:var(--ink);background:rgba(47,91,255,.06);border-left-color:var(--ac);transform:translateX(2px)}
+.fs a.active,.fs a[aria-current="true"]{color:#1d4ed8;font-weight:600;background:linear-gradient(90deg,rgba(47,91,255,.10) 0%,rgba(47,91,255,.02) 100%);border-left-color:var(--ac)}
+.fq{margin:0 0 44px;scroll-margin-top:96px}
+.fq h2{font-size:clamp(1.6rem,2.8vw,2.1rem);margin:0 0 16px;letter-spacing:-.025em}
+.fl{background:var(--wh);border:1px solid var(--ln);border-radius:24px;padding:6px 28px;box-shadow:0 1px 3px rgba(12,23,41,.03),0 12px 32px -16px rgba(15,23,42,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+details{border-bottom:1px solid var(--ln);transition:background-color .15s ease}
+details:last-of-type{border-bottom:0}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0;font:600 17px/1.4 var(--bf);color:var(--ink);user-select:none;transition:color .2s ease}
+summary::-webkit-details-marker{display:none}
+summary:hover{color:var(--ac)}
+summary::after{content:"+";flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#e8efff 0%,#d8e4ff 100%);color:#285bc9;border:1px solid rgba(59,91,255,.28);font:700 17px/1 var(--bf);transition:transform .25s ease,background .25s ease,color .25s ease;box-shadow:0 2px 5px -1px rgba(59,91,255,.15),inset 0 1px 0 #fff}
+details[open] summary{color:var(--ac)}
+details[open] summary::after{transform:rotate(45deg);background:linear-gradient(135deg,#d8e4ff 0%,#c4d7ff 100%);color:#1a42b0}
+.a{color:var(--mut);font-size:15.5px;line-height:1.6;padding:0 32px 22px 0;max-width:68ch}
+.a a{color:var(--ac);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.a a:hover{color:#173fc4}
+.a table{border-collapse:collapse;margin-top:16px;width:100%;max-width:440px;background:rgba(244,246,250,.6);border-radius:12px;overflow:hidden;border:1px solid var(--ln)}
+.a td{padding:10px 16px;border-bottom:1px solid var(--ln);font-size:14.5px}
+.a tr:last-child td{border-bottom:0}
+.a td:last-child{text-align:right;color:var(--ink);font-weight:700}
+#none{display:none;color:var(--mut);margin:0 0 24px;font-size:15.5px;padding:18px 24px;border:1px solid var(--ln);border-radius:16px;background:var(--wh)}#none a{color:var(--ac);font-weight:600}
+.note{margin:0 0 24px;padding:18px 24px;border:1px solid rgba(143,116,238,.25);border-radius:18px;background:rgba(255,255,255,.82);box-shadow:0 12px 34px -23px rgba(109,65,213,.3),inset 0 1px 0 #fff;font-size:14.5px;line-height:1.6;color:var(--mut);backdrop-filter:blur(10px)}
+.note strong{color:var(--ink);font-size:16px;display:block;margin-bottom:6px}
+.cta{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:28px 32px;border:1px solid var(--ln);border-radius:24px;background:var(--wh);box-shadow:0 1px 3px rgba(12,23,41,.03),0 20px 40px -20px rgba(12,23,41,.12)}
+.cta h3{font-size:1.5rem;letter-spacing:-.02em}.cta p{margin:6px 0 0;color:var(--mut);font-size:15px}
+.cta div:last-child{display:flex;gap:12px;flex-wrap:wrap}
+.ft{max-width:1160px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;font-size:15px}
+.ft h5{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.ft a{display:block;padding:4px 0;color:var(--mut)}.ft a:hover{color:var(--ink)}.ft a.lg{display:flex;padding:0;color:var(--ink)}
+.ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
+@media(max-width:900px){.fw{grid-template-columns:minmax(0,1fr);gap:24px}.fs{position:sticky;top:80px;z-index:20;display:flex;overflow-x:auto;white-space:nowrap;padding:10px 14px;border-radius:14px;gap:8px}.fs-title{display:none}.fs a{border-left:0;border-bottom:2.5px solid transparent;padding:7px 14px;font-size:13.5px}.fs a:hover,.fs a.active{border-left-color:transparent;border-bottom-color:var(--ac);transform:none}}
+@media(max-width:720px){.hd nav{display:none}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.fl{padding:4px 18px}.a{padding-right:0}.cta{flex-direction:column;align-items:flex-start}}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dr{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.u{animation:none}summary::after{transition:none}}
+</style>
+<link rel="stylesheet" href="css/spatial.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/landing-workspace-cursor.css">
+<link rel="stylesheet" href="css/brand-motion.css">
+<link rel="stylesheet" href="css/controls.css">
+<link rel="stylesheet" href="css/status-pricing-night.css">
+<link rel="stylesheet" href="css/ui-consistency.css">
+<link rel="stylesheet" href="css/typography.css">
+</head>
+<body>
+<div class="pg home" id="pg" style="--ac:#2f5bff">
+<div class="sp-grid" aria-hidden="true"></div>
+
+<header class="w hd">
+  <a class="lg" href="index.html">
+    <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
+    CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
+  <nav aria-label="Main">
+    <a href="benefits.html">Benefits</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="faq.html" aria-current="page" style="color:var(--ink);font-weight:600">FAQ</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a class="btn sm gh" href="login.html" data-auth="guest">Log In</a>
+    <a class="btn sm btn-auth-action" href="signup.html">Start Free Trial</a>
+  </div>
+</header>
+
+<main class="hw" id="main">
+  <section class="w hero">
+    <p class="ey u" style="justify-content:center">Frequently asked questions</p>
+    <h1 class="u" style="animation-delay:.08s">Questions, <span class="ac">answered.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+    <p class="ld u" style="animation-delay:.18s">How Cerium works, what it costs, and where its limits are.</p>
+    <div class="search-wrap u" style="animation-delay:.26s">
+      <input id="q" type="search" placeholder="Search the FAQ" aria-label="Search the FAQ" autocomplete="off">
+    </div>
+  </section>
+
+  <div class="w fw">
+    <aside class="fs" aria-label="FAQ sections">
+      <span class="fs-title">Sections</span>
+      <a href="#s1" class="active">About Cerium</a>
+      <a href="#s2">Account registration and getting started</a>
+      <a href="#s3">Workspace and business management</a>
+      <a href="#s4">Invoices, payments and accounting</a>
+      <a href="#s5">Marketing and customer reputation</a>
+      <a href="#s6">Cerium Copilot and AI</a>
+      <a href="#s7">Data import, export and privacy</a>
+      <a href="#s8">Pricing, free trial and subscriptions</a>
+      <a href="#s9">Technical requirements and support</a>
+    </aside>
+    <div class="faq-content">
+<section class="fq" id="s1"><h2>About Cerium</h2><div class="fl"><details><summary>What is Cerium?</summary><div class="a">A business operations platform for small businesses. It puts leads, follow-ups, estimates, scheduled jobs, invoices, payment records, reviews, reports and AI guidance in one place, so you switch between fewer tools.</div></details><details><summary>Who is Cerium designed for?</summary><div class="a">Independent professionals, contractors, field service teams and growing service businesses. Presets cover construction, plumbing, electrical, HVAC, cleaning, landscaping, roofing, painting, handyman work and consulting. Other businesses can set up the tools their own way, though not every industry need is supported.</div></details><details><summary>Is Cerium suitable for a business with only one employee?</summary><div class="a">Yes. A solo operator can organize leads, track customer commitments, send invoices and watch outstanding work. You do not need a big team.</div></details><details><summary>How is Cerium different from ordinary spreadsheets?</summary><div class="a">Cerium connects the steps: an enquiry becomes an estimate, an approved estimate becomes a scheduled job, and a finished job creates a draft invoice. You can still use spreadsheets to prepare and move your data in.</div></details><details><summary>Do I need technical or programming knowledge?</summary><div class="a">No. You use Cerium in a browser with forms, dashboards and menus. No Python, JavaScript or SQL needed.</div></details><details><summary>Can I customize Cerium for my type of business?</summary><div class="a">Yes. Customize Tools lets you show or hide modules: jobs, leads, estimates, follow-ups, invoices, payments, reminders and reviews. This only changes what you see. It does not create new modules or industry-specific integrations.</div></details></div></section>
+
+<section class="fq" id="s2"><h2>Account registration and getting started</h2><div class="fl"><details><summary>How do I create a Cerium account?</summary><div class="a">Sign up with email and password, or with Google. Before you enter the workspace, you verify your phone, give your business details and authorize the subscription payment method. The 15-day trial starts only after that authorization succeeds.</div></details><details><summary>Why does Cerium require my business information?</summary><div class="a">It sets up your workspace and keeps your documents consistent. We ask for your contact name, business name, email, main service, address and time zone. Some countries need more: Indian businesses say whether they are GST registered.</div></details><details><summary>Can I use Cerium without a registered company?</summary><div class="a">Yes. Independent operators are supported, including those without GST registration, and you can use your own name as the business name. You are still responsible for your country’s registration, invoicing and business rules.</div></details><details><summary>Is phone verification mandatory?</summary><div class="a">Yes, for normal production onboarding. Cerium accepts national and international formats and checks that you hold the phone with a one-time code. It does not prove legal residence, business registration or tax status.</div></details><details><summary>Can I use Cerium outside India or the United States?</summary><div class="a">Cerium has an international country and phone catalog with country-based prices. Whether sign-up and checkout work in your country still depends on SMS coverage, payment methods and the payment provider. You see your offer during onboarding.</div></details><details><summary>What happens if I close the browser during business setup?</summary><div class="a">Your saved steps resume when you sign in again, and you can go back to fix earlier steps before the final confirmation.</div></details><details><summary>Can I update my business information later?</summary><div class="a">Yes, in Settings. Some changes, mainly your country or currency after financial records or a subscription exist, need extra review and are not applied automatically.</div></details></div></section>
+
+<section class="fq" id="s3"><h2>Workspace and business management</h2><div class="fl"><details><summary>What can I see on the Overview dashboard?</summary><div class="a">A summary of follow-ups, invoices, jobs and shortcuts, so you can spot work that needs attention. What you see depends on the modules you enable and the records you save.</div></details><details><summary>Does Cerium include a CRM?</summary><div class="a">Yes, an operational one: Leads, Follow-ups, and Estimates and Quotes. Record enquiries, add notes, organize pipeline stages and schedule follow-up tasks. It is not a full enterprise CRM suite.</div></details><details><summary>Can I track the progress of a potential customer?</summary><div class="a">Yes. Leads move through New, Quoted, Booked, Done and Lost, and you can review your pipeline to find open opportunities.</div></details><details><summary>Can I schedule customer follow-ups?</summary><div class="a">Yes, with dates, customer details and notes. Unfinished, completed and overdue tasks are shown separately. Creating a follow-up does not send a WhatsApp or SMS message.</div></details><details><summary>Can I prepare estimates before beginning a job?</summary><div class="a">Yes. Estimates hold customer details, descriptions, quantities, rates and calculated totals. Each one starts as a draft and can be prepared for customer approval.</div></details><details><summary>Can customers approve estimates online?</summary><div class="a">Yes. Cerium makes a private link. The customer opens it without an account and accepts or declines. Links usually expire after 30 days. Approval records a response; it is not an e-signature or payment collection.</div></details><details><summary>What happens after a customer accepts an estimate?</summary><div class="a">You can convert it to a scheduled job by choosing the appointment and assignment details. Scheduling is not automatic. When an eligible job is completed, Cerium can create a draft invoice from its billable items.</div></details><details><summary>Does Cerium support job scheduling and crew assignment?</summary><div class="a">Yes. Field Service and Team cover job scheduling, job status, crew records and assignments, and show unassigned jobs. Cerium does not offer GPS tracking, route optimization, payroll or an employee self-service portal.</div></details><details><summary>Can I hide tools I do not need?</summary><div class="a">Yes. Open Customize Tools in Settings. Hiding a module keeps its records, and you can show it again any time.</div></details></div></section>
+
+<section class="fq" id="s4"><h2>Invoices, payments and accounting</h2><div class="fl"><details><summary>Can Cerium generate professional invoices?</summary><div class="a">Yes. The editor supports customer details, itemized services or products, quantities, prices, payment terms, due dates and tax details. Preview the invoice, then print it or save it as a PDF from your browser.</div></details><details><summary>Can I issue an invoice without a GSTIN?</summary><div class="a">Yes. Indian businesses without GST can make ordinary non-GST invoices, and GST-registered businesses can add their GST details. Cerium does not check your registration with the government, so make sure your invoices follow the law.</div></details><details><summary>Does Cerium support taxes in other countries?</summary><div class="a">It has configurable tax fields, common labels (VAT, GST, sales tax) and some country invoice formats. Cerium is not a certified tax-filing system or a statutory e-invoicing provider.</div></details><details><summary>Can I choose my invoice currency?</summary><div class="a">Your business currency is separate from your subscription billing currency, subject to country and account limits. India uses INR and US businesses use USD; other countries choose during setup. Existing history is not converted if you change currency later.</div></details><details><summary>How do I send an invoice to a customer?</summary><div class="a">From the invoice preview, Cerium opens a prefilled WhatsApp, SMS or email draft. You review it and send it from your own app. For the full document, save a PDF and attach it yourself.</div></details><details><summary>Does Cerium automatically send invoices?</summary><div class="a">No. Sharing is always started by you. Creating, previewing or saving an invoice never sends a message or charges the customer.</div></details><details><summary>Can customers pay through UPI?</summary><div class="a">Eligible Indian INR invoices can show a UPI link and QR code from the UPI ID saved with the invoice. Cerium does not check whether the payment worked, so confirm the money arrived before you mark the invoice paid.</div></details><details><summary>Does Cerium automatically collect customer payments?</summary><div class="a">No. Invoice features help you show payment instructions and keep records. Cerium’s own subscription checkout (through Razorpay) is separate from collecting payments on your invoices.</div></details><details><summary>Can I track unpaid or overdue invoices?</summary><div class="a">Yes. Invoices have statuses such as Draft, Sent, Overdue and Paid, and the workspace shows outstanding amounts and due dates from your records. Check them against real proof of payment.</div></details><details><summary>Does Cerium support installment payments and custom dues?</summary><div class="a">Yes. Custom Dues tracks manual balances, advances, installment commitments and payment dates, with a separate record for each installment. They stay apart from invoice totals so nothing is counted twice.</div></details><details><summary>Can Cerium import historical payment dues?</summary><div class="a">Yes. Import from CSV or Excel with column mapping, preview and validation. Imported entries are manual dues, not issued invoices or verified transactions.</div></details><details><summary>Can Cerium connect directly to my bank?</summary><div class="a">Not at the moment. There is no live bank feed. Cerium supports payment records and matching where transaction records exist, but bank matching alone is not proof that a customer has paid.</div></details><details><summary>Does Cerium support partial bank-deposit matching?</summary><div class="a">Not fully. Bank matching does not handle partial payments on a single invoice, so keep accurate outside records of partial payments for now.</div></details><details><summary>Can Cerium send payment reminders?</summary><div class="a">There is a controlled reminder workflow: you prepare and approve each reminder. Actual email delivery needs a separately configured mail service, and you must respect recipient consent and opt-out rules. Reminders are not switched on automatically.</div></details></div></section>
+
+<section class="fq" id="s5"><h2>Marketing and customer reputation</h2><div class="fl"><details><summary>What marketing features are available?</summary><div class="a">Marketing and Reputation tools help you prepare customer-facing drafts, review recorded activity, plan re-engagement follow-ups and track review requests, using the customer relationships and records you already have.</div></details><details><summary>Can Cerium automatically post to social media?</summary><div class="a">No. Drafts need your review and manual posting. Cerium is not an automatic social-posting or ad-campaign platform.</div></details><details><summary>Can I reconnect with previous customers?</summary><div class="a">Yes. Cerium can point out re-engagement chances from your records, and you can create an approved follow-up task. It never contacts the customer for you.</div></details><details><summary>Can I collect and track customer reviews?</summary><div class="a">Yes. Cerium supports review-request tracking and Google review links. Record when you asked, and update the status when the customer replies. Cerium does not write reviews for customers or promise good ratings.</div></details><details><summary>Does Cerium measure marketing return on investment?</summary><div class="a">Performance views summarize recorded data such as lead sources, reviews and customer activity. Cerium does not provide verified ad attribution, ad-spend tracking or full campaign ROI.</div></details></div></section>
+
+<section class="fq" id="s6"><h2>Cerium Copilot and AI</h2><div class="fl"><details><summary>What is Cerium Copilot?</summary><div class="a">An in-app assistant that helps you find features, understand workflows and read selected business information. It combines verified navigation help, rule-based summaries and, when a compatible model is set up, optional generative AI.</div></details><details><summary>What can I ask Cerium Copilot?</summary><div class="a">Questions like: “Which invoices are overdue?” “Which customers need follow-ups?” “What should I focus on today?” “How is my business performing this month?” “How do I turn an accepted estimate into a scheduled job?” Some answers use your records; broader chat depends on the AI mode.</div></details><details><summary>Does Cerium Copilot understand my business data?</summary><div class="a">For supported questions it calculates from your own account’s records: overdue invoices, due follow-ups, older open leads and some monthly activity. These numbers are not verified profits, forecasts or audits.</div></details><details><summary>Can Copilot answer general business questions?</summary><div class="a">Yes, when a compatible generative AI model is set up. It can explain workflows, discuss ideas and answer follow-ups. Without one, you still get local guidance and supported summaries.</div></details><details><summary>Do I need to install an AI model on my computer?</summary><div class="a">No. You only need a browser. The Cerium operator sets up and manages the AI provider on the server.</div></details><details><summary>Does Cerium have its own AI model?</summary><div class="a">Cerium has an experimental in-house language-model project called TinyLM. It is for research and development, not a guaranteed replacement for mature commercial models, and it is separate from today’s guided-assistant features.</div></details><details><summary>Can Copilot edit my records or act autonomously?</summary><div class="a">No. Copilot is read-only. It does not send invoices, change customer data, move money, create transactions or decide for you, and its links go only to known Cerium pages.</div></details><details><summary>Does Copilot search the live internet?</summary><div class="a">No. The basic AI integration has no live web browsing. That would need separate tools that are built and authorized.</div></details></div></section>
+
+<section class="fq" id="s7"><h2>Data import, export and privacy</h2><div class="fl"><details><summary>Can I migrate my existing Excel or CSV records?</summary><div class="a">Yes. You can import customer leads and custom payment dues from CSV and .xlsx files. Review the suggested field mapping and validate the data before saving. Convert older .xls files to .xlsx or CSV first.</div></details><details><summary>What if my spreadsheet uses different column names?</summary><div class="a">Use column mapping to match your headings to Cerium fields. Extra values can go to Notes or be skipped. Complex relationships, formulas and custom database structures are not rebuilt automatically.</div></details><details><summary>Will importing data overwrite my existing information?</summary><div class="a">The import previews records before saving and skips duplicates instead of overwriting leads or dues. Check the preview carefully and keep a backup of your original file.</div></details><details><summary>Can I export my Cerium data?</summary><div class="a">Yes. Settings has a JSON export of your workspace, useful for personal backups. It may not be ready to use in every accounting or CRM product.</div></details><details><summary>Who controls the business records I enter?</summary><div class="a">You keep your rights in the content you submit, under Cerium’s Terms and Privacy Policy. Cerium processes it to run the service. You must have permission to upload personal information about your customers and staff.</div></details><details><summary>How does Cerium protect accounts and records?</summary><div class="a">Password hashing, authenticated sessions, request validation and CSRF protection, rate limits, and per-account separation of records. Account deletion and data export are supported. No software is perfectly secure, so keep your own backups of important records.</div></details><details><summary>Is my customer database automatically shared with an external AI provider?</summary><div class="a">The supported Copilot design does not automatically send raw customer records to outside models. A cloud AI provider may receive your typed questions and bounded chat text. Sharing summary metrics needs extra operator setup and privacy disclosure. Avoid putting sensitive customer details in AI chat.</div></details><details><summary>Can I delete my account and data?</summary><div class="a">Yes, in Settings. An active subscription may need confirmation from the payment provider before deletion can finish. Some information may stay for legal or backup-retention reasons described in the Privacy Policy.</div></details></div></section>
+
+<section class="fq" id="s8"><h2>Pricing, free trial and subscriptions</h2><div class="fl"><details><summary>How much does Cerium cost?</summary><div class="a">Pricing depends on your business country, and every tier has the same Pro features. Monthly prices exclude taxes. Your tier is set under Cerium’s published pricing policy and confirmed during onboarding.<table><tr><td>India</td><td>₹500</td></tr><tr><td>High-income economies</td><td>$20</td></tr><tr><td>Upper-middle-income economies</td><td>$16</td></tr><tr><td>Lower-middle-income economies</td><td>$12</td></tr><tr><td>Low-income economies</td><td>$8</td></tr><tr><td>Unclassified economies</td><td>$20</td></tr></table></div></details><details><summary>Is annual billing available?</summary><div class="a">Where the yearly plan is set up with the payment provider. A year costs 11 monthly payments, which saves one month. For example, a $20 tier costs $220 a year before taxes. Availability depends on your country tier and checkout.</div></details><details><summary>Does Cerium have a free trial?</summary><div class="a">Yes. Eligible new accounts get a 15-day trial after verification, business setup and payment-method authorization. Trial limits include up to five invoices.</div></details><details><summary>Do I need to authorize a payment method before the trial?</summary><div class="a">Yes. A production workspace needs the payment method authorized through the subscription provider before the trial starts. Creating an account alone does not authorize recurring charges. Checkout shows your first regular charge and price.</div></details><details><summary>What happens when the trial expires?</summary><div class="a">To keep creating or editing records, you need an eligible authorized subscription. Existing records stay available to review and export under the account and retention rules.</div></details><details><summary>Can I cancel my subscription?</summary><div class="a">Yes, in your billing Settings. Check that the payment provider has accepted the cancellation. Cancelling an annual plan stops future renewals but does not refund the unused part of a year you already paid.</div></details><details><summary>Are different tools locked behind higher regional prices?</summary><div class="a">No. All country tiers have the same Pro feature set. Regional pricing makes the same software easier to afford in more economies; it does not change which tools you get.</div></details></div></section>
+
+<section class="fq" id="s9"><h2>Technical requirements and support</h2><div class="fl"><details><summary>Do I need to download or install Cerium?</summary><div class="a">Not for the normal hosted service. It runs in a modern web browser. Running a local server needs extra technical setup, but that is for developers, not customers.</div></details><details><summary>Can I use Cerium on my phone or tablet?</summary><div class="a">Yes. Cerium has responsive layouts, mobile navigation and touch-friendly controls. The experience can vary by device and browser. Printing, SMS handoff and payment-app links depend on the apps you have installed.</div></details><details><summary>Does Cerium work without an internet connection?</summary><div class="a">No. The connected service needs internet. A separate offline demo preview exists, but it behaves differently and is not a full offline version of Cerium.</div></details><details><summary>How do I contact Cerium support?</summary><div class="a">Use Help and Support inside the workspace, the Contact page, or email <a href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>. Include the feature, what happened and any non-sensitive error message. Do not send passwords, OTPs, payment credentials or private customer data.</div></details><details><summary>What if I encounter a bug?</summary><div class="a">Report it through Help and Support: what you tried, what happened and whether it repeats. Add your device and browser and a redacted screenshot. If a save or payment seems to fail, check whether it actually completed before you try again.</div></details><details><summary>Will Cerium receive new features?</summary><div class="a">Cerium is actively developed. More AI, integrations and workflow improvements may come, but experimental or planned features are not available until they are built, tested and released.</div></details></div></section>
+
+      <p id="none" role="status">No match found. Try another word, or email <a href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>.</p>
+      <div class="note"><strong>Good to know</strong>Cerium helps you organize work and make better decisions. It is not a bank, accounting firm, tax adviser, payment processor or legal compliance service. Always check payment records, AI suggestions, invoice templates and marketing summaries against your real situation.</div>
+      <div class="cta">
+        <div><h3>Still have a question?</h3><p>Write to the founders. We read every message.</p></div>
+        <div><a class="btn gh" href="contact.html">Contact us</a><a class="btn" href="signup.html">Start Free Trial</a></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="ft">
+  <div>
+    <a class="lg" href="index.html">
+      <img src="img/cerium-logo-30.png" width="30" height="30" alt="" aria-hidden="true">
+      CERIUM<span class="cerium-blinker brand-beacon" aria-hidden="true"></span></a>
+    <p>A simpler workday for independent contractors and service teams.</p>
+  </div>
+  <div>
+    <h5>Product</h5>
+    <a href="benefits.html">Benefits</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="faq.html" aria-current="page" style="color:var(--ink);font-weight:600">FAQ</a>
+    <a href="signup.html">Free trial</a>
+    <a href="login.html">Log in</a>
+    <a href="app.html">Workspace</a>
+  </div>
+  <div>
+    <h5>Company</h5>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div>
+    <h5>Legal</h5>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </div>
+  <p class="ff">© 2026 Cerium. Cerium is a business operations tool. It is not a bank, an accounting firm, or a payment processor. Payment authorisation uses a third-party provider. Live bank data sync is not yet available.</p><p class="ff">Founder : Karthik Thyagarajulu<br>LinkedIn : https://www.linkedin.com/in/karthiktiitk/<br>Email : cerium.founders@gmail.com</p>
+</footer>
+</div>
+
+<script src="js/workspace-cursor.js" defer></script>
+<script src="js/local-check.js"></script>
+<script src="js/home.js" defer></script>
+<script src="js/nav-auth.js"></script>
+<script src="js/faq.js" defer></script>
+</body>
+</html>
