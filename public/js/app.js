@@ -660,6 +660,43 @@ document.addEventListener('click',e=>{
       });
       return;
     }
+    if(kind==='visibility'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='reviews'){go('#marketing/reviews');return;}
+      const sel=$('page-body').querySelector('[data-marketing-composer-type]');
+      if(sel){sel.value=subfeature==='profile'?'post':'promo';sel.dispatchEvent(new Event('change',{bubbles:true}));}
+      $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    if(kind==='reengage'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='campaign'){
+        const sel=$('page-body').querySelector('[data-marketing-composer-type]');
+        if(sel){sel.value='rebook';sel.dispatchEvent(new Event('change',{bubbles:true}));}
+        $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      } else if(subfeature==='history'){
+        $('page-body').querySelector('.marketing-customer')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
+    if(kind==='performance'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='summary'){$('page-body').querySelector('.marketing-stat')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='sources'){$('page-body').querySelector('.marketing-source')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
   }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
