@@ -156,6 +156,7 @@ export async function send(method, url, body) {
 
 export const CeriumAPI = {
   async askGuide(payload){return request('/api/assistant/message',{method:'POST',body:JSON.stringify(payload)});},
+  async getCopilotStatus(){return request('/api/assistant/status');},
   async saveWorkspacePreferences(payload){return request('/api/workspace/preferences',{method:'PATCH',body:JSON.stringify(payload)});},
   async getBusinessSetup(){return request('/api/business/setup');},
   async saveBusinessSetupStep(step,fields){return request('/api/business/setup',{method:'POST',body:JSON.stringify({step,fields})});},
