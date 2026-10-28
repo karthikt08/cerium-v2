@@ -42,7 +42,7 @@ export const CERIUM_INDUSTRY_PLAYBOOKS=Object.freeze({
     workflow:'Customer call → job or estimate → service visit → invoice → review payment.',
     followUp:'Do you mostly handle emergency call-outs, planned installations, or maintenance visits?',
     followUpOptions:['Emergency call-outs','Planned installations','Maintenance visits'],
-    limitations:['Cerium does not manage plumbing parts inventory or issue regulatory inspection certificates.']
+    limitations:['Inventory supports basic parts quantities; Cerium does not automatically consume parts per job or issue regulatory inspection certificates.']
   },
   electrical:{
     title:'electrical services business',
@@ -76,7 +76,7 @@ export const CERIUM_INDUSTRY_PLAYBOOKS=Object.freeze({
     workflow:'Service enquiry → appointment or estimate → technician visit → invoice → payment review.',
     followUp:'Do you focus on installation projects, breakdown repairs, or maintenance servicing?',
     followUpOptions:['Installations','Breakdown repairs','Maintenance servicing'],
-    limitations:['Cerium does not monitor HVAC equipment remotely or manage spare-parts inventory.']
+    limitations:['Inventory supports basic spare-parts quantities; Cerium does not monitor HVAC equipment remotely or automate parts replenishment.']
   },
   cleaning:{
     title:'cleaning & maintenance business',
@@ -110,7 +110,7 @@ export const CERIUM_INDUSTRY_PLAYBOOKS=Object.freeze({
     workflow:'Garden enquiry → estimate → schedule outdoor work → invoice → feedback.',
     followUp:'Is most of your work recurring lawn maintenance, garden redesigns, or irrigation installs?',
     followUpOptions:['Lawn maintenance','Garden redesigns','Irrigation installs'],
-    limitations:['Cerium does not provide route optimization, garden-design CAD or plant stock management.']
+    limitations:['Inventory supports basic stock quantities; Cerium does not provide route optimization, garden-design CAD or plant lifecycle management.']
   },
   roofing:{
     title:'roofing business',
@@ -144,7 +144,7 @@ export const CERIUM_INDUSTRY_PLAYBOOKS=Object.freeze({
     workflow:'Request → site estimate → schedule painting → invoice → customer feedback.',
     followUp:'Do you mainly paint residential interiors, commercial premises, or exteriors?',
     followUpOptions:['Interiors','Commercial sites','Exteriors'],
-    limitations:['Cerium does not calculate paint quantities or manage color and materials inventory.']
+    limitations:['Inventory supports basic material quantities; Cerium does not calculate paint requirements or manage color mixing.']
   },
   handyman:{
     title:'handyman & home repair business',
@@ -161,7 +161,7 @@ export const CERIUM_INDUSTRY_PLAYBOOKS=Object.freeze({
     workflow:'Customer request → quote if needed → repair appointment → invoice → review.',
     followUp:'Do you mostly take same-day small fixes, renovation jobs, or repeat property maintenance?',
     followUpOptions:['Small fixes','Renovations','Property maintenance'],
-    limitations:['Cerium does not manage a hardware stockroom, tool inventory or employee payroll.']
+    limitations:['Inventory supports basic tool and stock quantities; Cerium does not automate stockroom checkout or employee payroll.']
   },
   consulting:{
     title:'consulting & freelance business',

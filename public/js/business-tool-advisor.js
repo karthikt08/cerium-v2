@@ -44,7 +44,7 @@ const TEXTILE_TAILOR=/\b(?:tailor(?:ing)?|stitch(?:ing|es)?|alterations?|custom.
 const TEXTILE_MANUFACTURING=/\b(?:manufactur(?:e|er|ing)|factories|factory|mill|weav(?:e|ing)|spin(?:ning)?|production plant)\b/i;
 const COMMON_BIZ=/\b(?:shop|store|business|company|studio|agency|workshop|service|firm|practice|factory|boutique|retail|wholesale|merchant|trading|trader|seller|salon|restaurant|cafe|bakery)\b/i;
 const BIZ_INTRO=/\b(?:i|we|my|our)\b.{0,35}\b(?:run|own|operate|sell|selling|make|manufacture|business|shop|store|studio|factory|workshop|company|supply)\b/i;
-const TEXTILE_LIMIT='Cerium does not track textile stock, sizes, SKUs or barcode/point-of-sale (POS) transactions; use dedicated inventory and POS software for those tasks.';
+const TEXTILE_LIMIT='Team & Resources → Inventory records item names, SKUs and quantities. Textile size/colour variants, barcode transactions and point-of-sale (POS) checkout need dedicated software.';
 const textileQuestion='Do you mostly serve walk-in retail customers, wholesale buyers, or custom tailoring orders? I can refine this setup.';
 const textileModes={
   retail:{
@@ -110,7 +110,7 @@ function recommendTextileTools(input,enabledModules,category){
     }));
   const followUp=mode==='retail'?textileQuestion:null;
   const note=mode==='retail'?'This covers billing and customer relationships, not a retail checkout.':
-    'These cover the customer-facing workflow, not production, inventory or accounting.';
+    'These cover the customer-facing workflow, not production planning or accounting.';
   return {
     type:'tool_recommendations',source:'advisor',needsMoreInfo:false,category,
     modules:recommendations.map(x=>x.id),recommendations,
@@ -122,7 +122,7 @@ function recommendTextileTools(input,enabledModules,category){
 
 const LIMITATIONS=[
   {regex:/retail|boutique|store|shop|restaurant|cafe|bakery|grocery|e.?commerce|stock|inventory|pos\b|point of sale/i,
-    text:'Cerium is not a point-of-sale, inventory or online-ordering system.'},
+    text:'Inventory supports basic item/SKU quantities. Cerium does not provide point-of-sale or online-ordering transactions.'},
   {regex:/doctor|clinic|patient|hospital|therapy|medical|dental|healthcare/i,
     text:'Cerium is not a clinical record, medical scheduling compliance or patient-management system.'},
   {regex:/payroll|salary|wage|employee attendance|hr system/i,

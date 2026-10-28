@@ -45,7 +45,7 @@ export function conversationReply(question,{lastSection=null}={}){
   const explicit=pickGuide(text);
   if(prior&&(!explicit.matched||explicit.section===prior.section)){
     if(prior.section==='payments'&&/\b(?:partial|different amount|mismatch|(?:not|doesn'?t) match|undo|wrong (?:invoice|match|amount))\b/i.test(text)){
-      return {...response('followup',"In Payments, you can match a deposit as a partial payment to update the remaining balance, or select Undo match if a deposit was linked to the wrong invoice."),section:'payments',title:prior.title};
+      return {...response('followup',"Use Payments → Payment Ledger & Allocation to record partial payments or split allocations. Void a ledger receipt with a reason to reverse it. Bank Matching has no Undo match control; review the linked invoice and contact Help & Support for an incorrect bank match."),section:'payments',title:prior.title};
     }
     if(prior.section==='invoices'&&/\b(?:terms?|net 15|net 30|due on receipt|tax rate|cgst|sgst|igst)\b/i.test(text)){
       return {...response('followup',"In Invoices, you can choose payment terms (Due on receipt, Net 15, Net 30) and apply line-item tax rates. Use Preview to inspect the computed tax subtotals."),section:'invoices',title:prior.title};
