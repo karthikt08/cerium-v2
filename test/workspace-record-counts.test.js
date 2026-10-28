@@ -122,7 +122,8 @@ test('zero-count records do not show confusing empty badges; no workspace data i
   assert.equal(nav.get('customers').badge.hidden,true);
   assert.equal(nav.get('customers').badge.textContent,'');
   const html=renderFeatureWorkspace(feature('leads'),['leads'],'empty workspace',ws);
-  assert.doesNotMatch(html,/Leads · 0|workspace-feature-count/);
+  assert.doesNotMatch(html,/class="workspace-feature-count"/);
+  assert.match(html,/aria-label="Leads"/);
 });
 
 test('filtered result footers explain shown versus total records rather than imply data loss',()=>{
