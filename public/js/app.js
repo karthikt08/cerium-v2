@@ -632,6 +632,34 @@ document.addEventListener('click',e=>{
       else if(subfeature==='bank'){go('#billing/bank');}
       return;
     }
+    if(kind==='schedule'||kind==='dispatch'||kind==='crew-assignments'||kind==='assignments'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='calendar'){
+        $('page-body').querySelector('.job-calendar')?.scrollIntoView({behavior:'smooth',block:'start'});
+        return;
+      }
+      const filterSelect=$('page-body').querySelector('[data-jobs-filter]');
+      if(filterSelect){
+        filterSelect.value = subfeature==='unassigned'?'unassigned':subfeature==='active'?'active':'all';
+        filterSelect.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      return;
+    }
+    if(kind==='crew'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      $('page-body').querySelectorAll('.crew-directory-row').forEach(r=>{
+        r.hidden = (subfeature==='active' && r.textContent.includes('Archived'));
+      });
+      return;
+    }
   }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
