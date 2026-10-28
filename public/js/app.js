@@ -125,7 +125,7 @@ function go(target,focusTab=false){
   const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
   if(location.hash!==route.href)history.pushState(null,'',route.href);
   navigate(route.href,!focusTab);
-  if(focusTab){const tab=document.querySelector(focusTab==='subview'?'.workspace-subfeature-tab[aria-current="page"]':'.workspace-feature-tab[aria-selected="true"]');tab?.focus({preventScroll:true});revealActiveFeature($('page-body'));}
+  if(focusTab)document.querySelector('[data-workspace-destination]')?.focus({preventScroll:true});
 }
 
 function taskRow(f) {
@@ -606,13 +606,6 @@ window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList
 window.addEventListener('hashchange',()=>navigate(location.hash,true));
 window.addEventListener('popstate',()=>navigate(location.hash,true));
 document.addEventListener('cerium:form-saved',e=>drafts.clear(e.detail?.section));
-document.addEventListener('keydown',e=>{
-  const tab=e.target.closest('.workspace-feature-tab,.workspace-subfeature-tab');
-  if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-  e.preventDefault();const sub=tab.matches('.workspace-subfeature-tab'),tabs=[...tab.closest(sub?'.workspace-subfeature-bar':'[role=tablist]').querySelectorAll(sub?'.workspace-subfeature-tab':'[role=tab]')],index=tabs.indexOf(tab);
-  const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
-  go(tabs[next].getAttribute('href'),sub?'subview':true);
-});
 document.addEventListener('cerium:open-invoice',e=>{
   if(!state.ws)return;
   go('#billing/invoices');
@@ -702,6 +695,10 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});
 document.addEventListener('change',e=>{
+  if(e.target.matches('[data-workspace-destination]')){
+    if(e.target.value)go(e.target.value,true);
+    return;
+  }
   if(e.target.name==='taxTreatment'&&$('invoice-tax-fields'))$('invoice-tax-fields').hidden=e.target.value!=='tax';
   if(e.target.id==='field-country'&&!state.ws.account.regionLocked){
     const saved=state.ws.account.country;
