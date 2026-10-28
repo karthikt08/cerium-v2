@@ -341,8 +341,10 @@
   color:#1e50cb;background:#fff;font-weight:750;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::before{
-  content:"";position:absolute;z-index:1;top:0;left:11px;right:11px;height:3px;
-  background:#4263eb;border-radius:3px;
+  content:"";position:absolute;z-index:2;top:0;left:0;right:0;bottom:0;pointer-events:none;
+  background:
+    linear-gradient(101.5deg,#2563eb 0%,#2563eb 2.5px,transparent 2.5px),
+    linear-gradient(to bottom,#2563eb 0%,#2563eb 3px,transparent 3px);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-label{
   display:inline-block;position:relative;max-width:100%;padding:0;line-height:1.3;
