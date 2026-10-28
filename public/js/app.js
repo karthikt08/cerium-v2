@@ -710,6 +710,132 @@ document.addEventListener('click',e=>{
       }
       return;
     }
+    if(kind==='bank'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='unmatched'){$('page-body').querySelector('.task-row')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='matched'){$('page-body').querySelector('.notice')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='reminders'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='rules'){$('page-body').querySelector('.reminders-rules, .panel:first-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='templates'){$('page-body').querySelector('.reminders-template, .panel:last-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='dues'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-dues"]')?.click();}
+      else {$('page-body').querySelector('.panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='business-settings'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='profile'){$('field-name')?.focus();}
+      else if(subfeature==='currency'){$('field-country')?.focus();}
+      else if(subfeature==='tax'){($('field-gstin')||$('field-usState')||$('field-location'))?.focus();}
+      else if(subfeature==='upi'){($('field-upiVpa')||$('field-location'))?.focus();}
+      return;
+    }
+    if(kind==='customize-tools'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='modules'){$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='presets'){$('page-body').querySelector('.industry-chips, #field-trade')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='reflow'){$('page-body').querySelector('.workspace-customizer-actions')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='data-management'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-leads"]')?.click();}
+      else if(subfeature==='mapping'){$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='export'){$('page-body').querySelector('[data-action="export"]')?.click();}
+      return;
+    }
+    if(kind==='account-subscription'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='profile'){$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='pricing'){$('page-body').querySelector('.plan-price')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='plan'){$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='feature-discovery'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='modules'){$('page-body').querySelector('#assistant-modules-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='navigate'){$('page-body').querySelector('#assistant-quick-nav')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='workflow-guidance'||kind==='response-experience'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const prompt=subfeature==='step-by-step'?'Walk me through standard customer workflow from lead to payment.'
+        :subfeature==='multi-feature'?'How do CRM, FSM, and Invoices connect with each other?'
+        :subfeature==='point-wise'?'Explain how Ask Cerium structures its point-wise answers.'
+        :subfeature==='progressive'?'How does progressive typing assist during long answers?'
+        :subfeature==='verified-links'?'What verified navigation links can Cerium generate?'
+        :'What are the core capabilities of Cerium?';
+      const drawer=document.getElementById('guide-drawer');
+      if(drawer){
+        drawer.hidden=false;
+        const input=drawer.querySelector('#guide-prompt');
+        if(input){input.value=prompt;input.focus();}
+      }
+      return;
+    }
+    if(kind==='product-help'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='workflows'){$('page-body').querySelector('#product-help-workflows')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='help'){$('page-body').querySelector('#product-help-feedback')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
+    if(kind==='support-requests'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const catSelect=$('field-category');
+      if(catSelect){catSelect.value=subfeature==='issues'?'Bug report':'Product question';}
+      $('field-subject')?.focus();
+      return;
+    }
   }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
