@@ -1,4 +1,6 @@
 /* Cerium spatial skin. Link AFTER each page's inline <style>. */
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fixed}
 .pg{--ac:#4263eb;--ink:#14171c;--mut:#5d6573;--ln:rgba(20,23,28,.1);--hf:"Figtree",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;--gl:rgba(255,255,255,.62);--ge:rgba(255,255,255,.75);background:transparent;font-size:17px}
 .pg::before{content:"";position:fixed;inset:-12%;z-index:0;pointer-events:none;background:radial-gradient(38% 42% at 20% 16%,rgba(117,83,255,.38),transparent 70%),radial-gradient(42% 40% at 84% 60%,rgba(237,124,255,.24),transparent 70%),radial-gradient(32% 32% at 40% 95%,rgba(89,203,219,.20),transparent 70%);transform:translate3d(calc(var(--px,0)*-24px),calc(var(--py,0)*-24px),0);will-change:transform}
@@ -235,6 +237,8 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:linear-gradient(135deg,rgba(237,242,255,.95) 0%,rgba(216,228,255,.85) 100%);color:#1d3c93;border:1px solid rgba(59,91,255,.28);box-shadow:0 1px 3px rgba(59,91,255,.1),inset 0 1px 0 rgba(255,255,255,.8)}
 
 /* ---- privacy and terms ---- */
+.pg .toc{position:sticky;top:96px;max-height:calc(100vh - 116px);overflow-y:auto;scrollbar-width:thin}
+.pg .doc h2,.pg .doc [id]{scroll-margin-top:96px}
 .pg .th,.pg .sh{font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;color:var(--mut)}
 .pg .toc a{border-left-color:var(--ln)}.pg .toc a:hover{border-color:var(--ink)}
 .pg .doc{opacity:1!important;visibility:visible!important}

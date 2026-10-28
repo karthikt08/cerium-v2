@@ -33,3 +33,15 @@ test('privacy and terms never depend on the landing page reveal animation to dis
     assert.doesNotMatch(read(page),/<article\s+class="doc"\s+data-rv\s*>/);
   }
 });
+
+test('table of contents index and section headings clear the floating title bar',()=>{
+  const styles=read('css/spatial.css');
+  assert.match(styles,/\.pg \.toc\s*\{[^}]*top:\s*(?:9[0-9]|1[0-9]{2})px/,'toc sticky top must clear floating header');
+  assert.match(styles,/\.pg \.doc h2[^{]*\{[^}]*scroll-margin-top:\s*(?:9[0-9]|1[0-9]{2})px/,'h2 scroll-margin-top must clear floating header');
+  assert.match(styles,/scroll-padding-top:\s*(?:9[0-9]|1[0-9]{2})px/,'scroll-padding-top must provide clearance');
+  for(const page of ['privacy.html','terms.html']){
+    const html=read(page);
+    assert.match(html,/\.toc\s*\{[^}]*top:\s*(?:9[0-9]|1[0-9]{2})px/);
+    assert.match(html,/\.doc h2\s*\{[^}]*scroll-margin-top:\s*(?:9[0-9]|1[0-9]{2})px/);
+  }
+});
