@@ -9,19 +9,22 @@ const css=read('css/workspace-navigation.css');
 const shell=read('css/workspace.css');
 const midnight=read('css/workspace-midnight.css');
 
-test('every feature renders a single destination selector without changing record totals',()=>{
+test('all feature pages render the requested angular navigation without changing records',()=>{
   for(const route of WORKSPACE_FEATURES.filter(f=>!['overview','settings','assistant','support'].includes(f.category))){
     const html=renderFeatureWorkspace(route,undefined,'<p>Feature content</p>');
-    assert.match(html,/data-workspace-destination/);
-    assert.match(html,/class="workspace-feature-content"/);
-    assert.ok(html.includes('value="'+route.href+'"'));
-    assert.doesNotMatch(html,/workspace-feature-tab|workspace-subfeature-tab|role="tablist"/);
+    assert.match(html,/workspace-angular-navigation/);
+    assert.match(html,/workspace-feature-tab/);
+    assert.match(html,/workspace-subfeature-tab/);
+    assert.ok(html.includes('href="'+route.href+'"'));
+    assert.doesNotMatch(html,/data-workspace-destination|<select\b|workspace-panel-chrome/);
     assert.ok(html.includes('Feature content'));
   }
   const leads=renderFeatureWorkspace(WORKSPACE_FEATURES.find(x=>x.id==='leads'),undefined,
     '<div class="page-heading"><h1>Leads</h1></div>',
-    {leads:[{id:1}],followUps:[]});
-  assert.match(leads,/Leads · 1<\/option>/,'record count appears as selector text rather than a decorative tab badge');
+    {account:{country:'IN',timeZone:'Asia/Kolkata'},leads:[{id:1}],followUps:[]});
+  assert.match(leads,/aria-label="Leads · 1 leads"/,'real counts are accessible without bulky visual badges');
+  assert.match(css,/CERIUM SIDE-BRACKET NAV/);
+  assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{content:none!important/,'decorative double-glow stays off the navigation');
 });
 
 test('all selected labels get a glowing gradient and inline underline, inactive labels retain contrast',()=>{
