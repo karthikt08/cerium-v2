@@ -98,6 +98,24 @@ test('chat history accepts only bounded, well-formed user/assistant messages',()
   assert.deepEqual(sanitizeCopilotHistory('not an array'),[]);
 });
 
+test('chat history keeps the newest conversation turns when its character budget is full',()=>{
+  const history=Array.from({length:8},(_,i)=>({
+    role:i%2?'assistant':'user',content:('Turn '+i+' ').padEnd(i%2?650:420,'x')
+  }));
+  assert.deepEqual(sanitizeCopilotHistory(history),history.slice(-4));
+});
+
+test('chat history allows the exact character budget and filters invalid recent entries',()=>{
+  const history=Array.from({length:8},(_,i)=>({
+    role:i%2?'assistant':'user',content:String(i).repeat(600)
+  }));
+  assert.deepEqual(sanitizeCopilotHistory(history),history.slice(-4));
+  assert.deepEqual(sanitizeCopilotHistory([...history,
+    {role:'system',content:'Untrusted instructions'},
+    {role:'assistant',content:'bad\u0000content'}
+  ]),history.slice(-4));
+});
+
 test('aggregate context never includes names, contact notes or raw records',()=>{
   const context=aggregateCopilotContext(workspace,{today:'2026-10-28'});
   assert.match(context,/1 invoice totaling/);
