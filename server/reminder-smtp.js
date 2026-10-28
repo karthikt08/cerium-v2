@@ -103,9 +103,14 @@ export async function sendSmtp({host,port=465,user,password,from,to,subject,body
   }finally{socket.destroy();}
 }
 
-export function buildReminderEmail({businessName,invoice,recipient,unsubscribeUrl}){
+export function buildReminderEmail({businessName,invoice,recipient,unsubscribeUrl,template=null}){
   const name=String(businessName||'Your service provider').replace(/[\r\n]+/g,' ').slice(0,90);
   const customer=String(invoice.customer_name||'customer').replace(/[\r\n]+/g,' ').slice(0,90);
+  if(template){
+    const values={customer,invoice:String(invoice.id),amount:new Intl.NumberFormat('en',{style:'currency',currency:invoice.invoice_currency||'USD'}).format(invoice.total),dueDate:invoice.due_date};
+    const fill=text=>String(text).replace(/\{(customer|invoice|amount|dueDate)\}/g,(_,key)=>values[key]);
+    return {to:recipient,subject:fill(template.subject).replace(/[\r\n]/g,' '),body:fill(template.body)+'\n\nTo stop automated CERIUM reminders: '+unsubscribeUrl+'\n\n'+name};
+  }
   return {
     to:recipient,
     subject:'Payment reminder for invoice #'+invoice.id,

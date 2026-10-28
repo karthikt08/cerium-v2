@@ -44,6 +44,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
         <p class="muted" id="workspace-recommendation-note" role="status">Instant rule-based suggestions. Your description stays in this browser.</p>
       </div>
       <fieldset class="ws-module-fieldset"><legend>Business modules to display <span>(choose at least one)</span></legend><div class="ws-module-groups">${choices}</div></fieldset>
+      <section class="ws-module-order"><h3>Dashboard card order</h3><p class="muted">Move tools up or down, then save. Only selected tools appear on Overview.</p><div data-module-order>${[...(preferences.modules||[]),...WORKSPACE_MODULES.map(m=>m.id).filter(id=>!(preferences.modules||[]).includes(id))].map(id=>`<div class="task-row" data-order-module="${id}"><span class="row-details">${esc(WORKSPACE_MODULES.find(m=>m.id===id)?.label||id)}</span><button type="button" class="button secondary" data-module-move="up" aria-label="Move ${esc(id)} up">↑</button><button type="button" class="button secondary" data-module-move="down" aria-label="Move ${esc(id)} down">↓</button></div>`).join('')}</div></section>
       <div class="ws-included-tools" role="note"><strong>Included in every workspace</strong><p><b>Overview</b> for your daily snapshot · <b>Marketing &amp; Reputation</b> for drafts and customer insights · <b>Insights &amp; Reports</b> for saved-record summaries · <b>Ask Cerium</b> for tool suggestions and direct page links.</p></div>
       <p class="ws-config-data-note">Hidden modules keep all their existing records and can be enabled again anytime.</p>
       <p class="form-error" id="workspace-preferences-error" role="alert" hidden></p>
@@ -86,6 +87,8 @@ export function customizeOverview(root,modules){
     element.style.display=element.hidden?'none':'';
   });
   for(const grid of root.querySelectorAll('.metrics-grid,.dashboard-grid')){
+    const order=Array.isArray(modules)?modules:WORKSPACE_MODULES.map(m=>m.id);
+    [...grid.children].sort((a,b)=>order.indexOf(a.dataset.workspaceModule)-order.indexOf(b.dataset.workspaceModule)).forEach(card=>grid.append(card));
     grid.hidden=![...grid.children].some(card=>!card.hidden);
   }
   const tools=root.querySelector('[data-overview-tools]');
@@ -149,6 +152,8 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     }
   });
   document.addEventListener('click',e=>{
+    const move=e.target.closest('[data-module-move]');
+    if(move){const row=move.closest('[data-order-module]'),sibling=move.dataset.moduleMove==='up'?row.previousElementSibling:row.nextElementSibling;if(sibling){if(move.dataset.moduleMove==='up')sibling.before(row);else sibling.after(row);move.focus();}return;}
     if(e.target.closest('#workspace-reset-modules')){
       const f=form();if(f)apply(defaultModules(f.elements.category.value),'Industry defaults restored. Save to keep this selection.');
     }
@@ -170,7 +175,8 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
     if(e.target.id!=='workspace-preferences-form')return;
     e.preventDefault();
     const f=e.target,button=f.querySelector('#workspace-save-modules');
-    const selected=[...f.querySelectorAll('input[name="modules"]:checked')].map(i=>i.value);
+    const checked=new Set([...f.querySelectorAll('input[name="modules"]:checked')].map(i=>i.value));
+    const selected=[...f.querySelectorAll('[data-order-module]')].map(el=>el.dataset.orderModule).filter(id=>checked.has(id));
     const error=f.querySelector('#workspace-preferences-error');
     error.hidden=true;
     if(!selected.length){error.hidden=false;error.textContent='Choose at least one tool to show.';return;}

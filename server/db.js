@@ -1,3 +1,4 @@
+import {createOperationStore} from './operation-records.js';
 import {makeInvoiceDetails,readInvoiceDetails} from './invoice-details.js';
 import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 // server/db.js
@@ -412,6 +413,7 @@ export function openDb(file) {
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
   if (!invoiceColumns.has('job_id')) db.exec('ALTER TABLE invoices ADD COLUMN job_id TEXT');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
+  const operationRecords = createOperationStore(db);
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
   const paymentDues = createPaymentDuesStore(db);
@@ -1290,12 +1292,14 @@ export function openDb(file) {
         messages,
         jobs: jobsStore.listJobs(userId).map(j => ({...j, invoiceId: invoices.find(i => i.jobId === j.id)?.id || null})),
         crew: jobsStore.listCrew(userId),
+        operations:operationRecords.allOperationRecords(userId),
         reminders: reminders.listReminders(userId),
         quotes: quotesStore.listQuotes(userId),
         reminderOptouts: reminders.listEmailOptouts(userId),
       };
     },
 
+    ...operationRecords,
     ...jobsStore,
     ...reminders,
     ...quotesStore,
@@ -1696,6 +1700,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         paymentDues.clearPaymentDues(userId);
@@ -1828,6 +1833,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         paymentDues.clearPaymentDues(userId);
