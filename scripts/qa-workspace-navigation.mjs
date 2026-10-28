@@ -27,7 +27,13 @@ async function settled(hash){
   await page.locator('#cerium-entry-scene').waitFor({state:'hidden'});
 }
 async function open(hash){await page.goto(t.url+'/app.html'+hash);await page.reload();await settled(hash);}
-async function tab(id){await page.locator('#workspace-tab-'+id).click();await settled(page.url().split('#')[1]);}
+async function tab(id){
+  const current=resolveWorkspaceRoute(page.url().split('#')[1]);
+  const feature=WORKSPACE_FEATURES.find(f=>f.id===id&&f.category===current.category);
+  assert.ok(feature,'Missing feature in category: '+id);
+  await page.locator('[data-workspace-destination]').selectOption(feature.href);
+  await settled(feature.href);
+}
 async function workspace(){return (await context.request.get(t.url+'/api/workspace')).json();}
 try{
   const owner=t.browser();
@@ -53,8 +59,7 @@ try{
     for(const [category,labels] of Object.entries(groups)){
       await page.locator('[data-category="'+category+'"]').click();
       await settled(page.url().split('#')[1]);
-      const visibleLabels=await page.locator('.workspace-feature-tab:visible').evaluateAll(tabs=>tabs.map(tab=>
-        tab.querySelector('.workspace-feature-label').textContent.trim()));
+      const visibleLabels=await page.locator('[data-workspace-destination] optgroup').evaluateAll(groups=>groups.map(group=>group.label));
       assert.deepEqual(visibleLabels,labels);
     }
     await open('#field/schedule');
@@ -62,24 +67,24 @@ try{
     assert.equal(await page.getByRole('region',{name:'Weekly schedule',exact:true}).count(),1);
   });
   for(const category of WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id))){
-    await check(category.label+' category and every visible feature tab',async()=>{
+    await check(category.label+' category and each picker destination',async()=>{
       await page.locator('[data-category="'+category.id+'"]').click();
       const features=WORKSPACE_FEATURES.filter(f=>f.category===category.id);
       for(const feature of features){
-        if(category.id!=='overview')await page.locator('#workspace-tab-'+feature.id).click();
+        if(category.id!=='overview')await page.locator('[data-workspace-destination]').selectOption(feature.href);
         await settled(feature.href);
         if(await page.locator('#workspace-customizer-dialog[open]').count())await page.locator('#workspace-cancel-customizer').click();
         assert.equal(await page.locator('[data-category="'+category.id+'"]').getAttribute('aria-current'),'page');
         assert.ok(await page.locator('#page-body h1').count());
         if(category.id!=='overview'){
-          assert.equal(await page.locator('[role=tab][aria-selected=true]:visible').count(),1);
-          assert.equal(await page.locator('#workspace-feature-panel').getAttribute('aria-labelledby'),'workspace-tab-'+feature.id);
-          assert.equal(await page.locator('#workspace-tab-'+feature.id).getAttribute('tabindex'),'0');
+          assert.equal(await page.locator('[data-workspace-destination]').inputValue(),feature.href);
+          assert.equal(await page.locator('#workspace-feature-panel').getAttribute('role'),'region');
+          assert.equal(await page.locator('.workspace-feature-tab,.workspace-subfeature-tab').count(),0);
         }
       }
     });
   }
-  await check('Back and forward restore feature tabs; categories remember the last tab',async()=>{
+  await check('Back and forward restore feature selection; categories remember the last destination',async()=>{
     await open('#customers/leads');await tab('followups');await tab('quotes');
     await page.goBack();await settled('#customers/followups');
     await page.goBack();await settled('#customers/leads');
@@ -124,7 +129,7 @@ try{
     // Closing the editor precedes the async workspace refresh. Wait for its
     // visible result before checking navigation or using the next feature.
     for(const category of ['customers','field','team'])await page.locator('[data-category='+category+']').waitFor({state:'hidden'});
-    await page.locator('[data-category=billing]').click();await settled('#billing/invoices');assert.equal(await page.locator('.workspace-feature-tab').count(),1);
+    await page.locator('[data-category=billing]').click();await settled('#billing/invoices');assert.equal(await page.locator('[data-workspace-destination] optgroup').count(),1);
     const before=(await workspace()).leads;
     await page.evaluate(()=>location.hash='#leads');await settled('#customers/leads');await page.getByText('Preserved Customer',{exact:true}).waitFor();assert.equal(await page.locator('.hidden-tool-notice').count(),1);
     const data=await workspace();assert.deepEqual(data.leads,before);assert.deepEqual(data.account.workspacePreferences.modules,['invoices']);
@@ -185,16 +190,21 @@ try{
     assert.equal(await page.locator('tbody tr').count(),3);
     assert.deepEqual((await workspace()).invoices,before,'Viewing groups must not alter financial records');
   });
-  await check('Mobile drawer, scrollable feature tabs and keyboard focus work at 320px',async()=>{
-    await page.setViewportSize({width:320,height:800});await open('#overview');await page.locator('#menu-toggle').click();await page.locator('[data-category=billing]').click();
+  await check('Mobile drawer and single feature picker work within 320px',async()=>{
+    await page.setViewportSize({width:320,height:800});await open('#overview');
+    await page.locator('#menu-toggle').click();await page.locator('[data-category=billing]').click();
     assert.equal(await page.locator('#menu-toggle').getAttribute('aria-expanded'),'false');
-    await page.locator('.workspace-feature-tab[aria-selected=true]').focus();await page.keyboard.press('End');await settled('#billing/expenses');
-    assert.equal(await page.locator('#workspace-tab-expenses').evaluate(e=>document.activeElement===e),true);
-    const bounds=await page.locator('#workspace-tab-expenses').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=321);
-    await page.keyboard.press('Home');await settled('#billing/invoices');await page.keyboard.press('ArrowRight');await settled('#billing/payments');
+    const picker=page.locator('[data-workspace-destination]');
+    await picker.selectOption('#billing/expenses');await settled('#billing/expenses');
+    assert.equal(await page.locator('[data-workspace-destination]').inputValue(),'#billing/expenses');
+    await page.locator('[data-workspace-destination]').selectOption('#billing/invoices');await settled('#billing/invoices');
+    await page.locator('[data-workspace-destination]').selectOption('#billing/payments');await settled('#billing/payments');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+    const bounds=await page.locator('[data-workspace-destination]').boundingBox();
+    assert.ok(bounds.x>=0&&bounds.x+bounds.width<=321);
     await page.screenshot({path:join(out,'billing-mobile.png')});
-    await open('#insights/revenue');await page.waitForTimeout(80);const active=await page.locator('#workspace-tab-revenue').boundingBox();assert.ok(active.x>=0&&active.x+active.width<=321,'direct-linked active tab stays visible');
+    await open('#insights/revenue');const selected=page.locator('[data-workspace-destination]');
+    assert.equal(await selected.inputValue(),'#insights/revenue');
     await page.screenshot({path:join(out,'revenue-mobile.png')});
   });
   await check('Read-only plans retain category navigation and lock mutation controls',async()=>{

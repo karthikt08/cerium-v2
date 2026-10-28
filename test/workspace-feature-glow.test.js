@@ -9,21 +9,19 @@ const css=read('css/workspace-navigation.css');
 const shell=read('css/workspace.css');
 const midnight=read('css/workspace-midnight.css');
 
-test('every real subfeature tab contains a glowable label without altering badge text',()=>{
+test('every feature renders a single destination selector without changing record totals',()=>{
   for(const route of WORKSPACE_FEATURES.filter(f=>!['overview','settings','assistant','support'].includes(f.category))){
     const html=renderFeatureWorkspace(route,undefined,'<p>Feature content</p>');
-    assert.match(html,/class="workspace-feature-label"/);
-    assert.match(html,new RegExp('<span class="workspace-feature-label">'+
-      route.label.replace(/&/g,'&amp;').replace(/[.*+?^$\{\}()|[\]\\]/g,'\\$&')+'</span>'));
-    assert.match(html,/aria-selected="true"/);
-    assert.ok(html.includes('aria-labelledby="workspace-tab-'+route.id+'"'));
+    assert.match(html,/data-workspace-destination/);
+    assert.match(html,/class="workspace-feature-content"/);
+    assert.ok(html.includes('value="'+route.href+'"'));
+    assert.doesNotMatch(html,/workspace-feature-tab|workspace-subfeature-tab|role="tablist"/);
     assert.ok(html.includes('Feature content'));
   }
   const leads=renderFeatureWorkspace(WORKSPACE_FEATURES.find(x=>x.id==='leads'),undefined,
     '<div class="page-heading"><h1>Leads</h1></div>',
     {leads:[{id:1}],followUps:[]});
-  assert.match(leads,/workspace-feature-label">Leads<\/span><span class="workspace-feature-count"/,
-    'count badge follows label rather than being part of its gradient treatment');
+  assert.match(leads,/Leads · 1<\/option>/,'record count appears as selector text rather than a decorative tab badge');
 });
 
 test('all selected labels get a glowing gradient and inline underline, inactive labels retain contrast',()=>{

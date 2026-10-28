@@ -9,7 +9,7 @@ import {businessInsights,renderInsightsPage} from '../public/js/workspace-insigh
 import {trustedGuideLink,guideNavigationLinks} from '../public/js/guide-links.js';
 import {answerGuide} from '../server/guide-assistant.js';
 
-test('every category feature resolves, has a trusted AI destination and an accessible connected tab',()=>{
+test('every feature has a trusted AI destination and is reachable without nested tab rows',()=>{
   assert.equal(new Set(WORKSPACE_FEATURES.map(f=>f.href)).size,WORKSPACE_FEATURES.length);
   for(const f of WORKSPACE_FEATURES){
     assert.equal(resolveWorkspaceRoute(f.href),f);
@@ -18,9 +18,10 @@ test('every category feature resolves, has a trusted AI destination and an acces
     const html=renderFeatureWorkspace(f,undefined,'<p>Actual feature content</p>');
     assert.ok(html.includes('Actual feature content'));
     if(!['overview','settings','assistant','support'].includes(f.category)){
-      assert.match(html,/role="tablist"/);assert.match(html,/role="tabpanel"/);
-      assert.ok(html.includes('aria-labelledby="workspace-tab-'+f.id+'"'));
-      assert.equal((html.match(/aria-selected="true"/g)||[]).length,1);
+      assert.match(html,/data-workspace-destination/);
+      assert.match(html,/role="region"/);
+      assert.ok(html.includes('value="'+f.href+'"'));
+      assert.doesNotMatch(html,/role="tablist"|role="tabpanel"|workspace-subfeature-strip|workspace-feature-tab/);
     }
   }
   assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
@@ -84,37 +85,24 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
-test('pre-PR99 compact feature and subfeature tabs preserve deep links',()=>{
-  const leadsRoute=resolveWorkspaceRoute('#customers/leads');
-  const html=renderFeatureWorkspace(leadsRoute,['leads','followups','quotes'],'<div>Leads Content</div>');
-  
-  // Tier 1: Feature Tabs sitting above the container (Leads | Follow-ups | Estimates & Quotes)
-  assert.match(html,/class="workspace-category-heading"/);
-  assert.match(html,/class="workspace-feature-tabs" role="tablist"/);
-  assert.match(html,/id="workspace-tab-leads"[^>]*aria-selected="true"/);
-  assert.match(html,/id="workspace-tab-followups"[^>]*aria-selected="false"/);
-  assert.match(html,/id="workspace-tab-quotes"[^>]*aria-selected="false"/);
-  
-  // Tier 2: Subfeature Bar nested inside top of container under active feature
-  assert.match(html,/class="workspace-subfeature-strip"/);
-  assert.match(html,/class="workspace-subfeature-bar"/);
-  assert.match(html,/data-subfeature="list"[^>]*aria-current="page"[^>]*>[\s\S]*?All Leads/);
-  assert.match(html,/data-subfeature="board"[^>]*>[\s\S]*?Pipeline Board/);
-  assert.match(html,/data-subfeature="active"[^>]*>[\s\S]*?Active Leads/);
-  
-  // Tier 3: Main content panel
-  assert.match(html,/id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel"/);
-  assert.ok(html.includes('Leads Content'));
-
-  // Switching feature route to Billing
-  const invoicesRoute=resolveWorkspaceRoute('#billing/invoices');
-  const billingHtml=renderFeatureWorkspace(invoicesRoute,['invoices','payments','reminders','bank'],'<div>Invoices Content</div>');
-  assert.match(billingHtml,/id="workspace-tab-invoices"[^>]*aria-selected="true"/);
-  assert.match(billingHtml,/data-subfeature="All"[^>]*>[\s\S]*?All Invoices/);
-  assert.match(billingHtml,/data-subfeature="Sent"[^>]*>[\s\S]*?Unpaid &amp; Due/);
-  assert.match(billingHtml,/data-subfeature="Paid"[^>]*>[\s\S]*?Paid Invoices/);
+test('a single workspace picker replaces the two horizontal tab rows on every category',()=>{
+  for(const [href,expected] of [
+    ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes','#customers/leads/board','#customers/leads/active']],
+    ['#billing/invoices',['#billing/invoices','#billing/payments','#billing/reminders','#billing/invoices/Paid']],
+    ['#team/crew',['#team/crew','#team/assignments','#team/inventory']]
+  ]){
+    const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,'<div>Actual content</div>');
+    assert.match(html,/class="workspace-view-picker"/);
+    assert.match(html,/id="workspace-destination" data-workspace-destination/);
+    for(const target of expected)assert.ok(html.includes('value="'+target+'"'),target);
+    assert.match(html,/Actual content/);
+    assert.doesNotMatch(html,/workspace-feature-tabs|workspace-subfeature-strip|workspace-feature-tab|workspace-subfeature-tab|role="tablist"|role="tabpanel"/);
+  }
+  const href='#customers/leads/board';
+  const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,'Board content');
+  assert.match(html,/value="#customers\/leads\/board" selected/);
+  assert.equal((html.match(/<select\b/g)||[]).length,1);
 });
-
 
 test('seven pre-PR99 sidebar sections and standalone utility pages retain modern routes',()=>{
   assert.deepEqual(SIDEBAR_CATEGORIES.map(c=>c.id),[
@@ -137,11 +125,11 @@ test('seven pre-PR99 sidebar sections and standalone utility pages retain modern
   assert.equal(resolveWorkspaceRoute('#support/support-requests').section,'support');
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
   assert.match(css,/border-radius:5px 5px 0 0;background:#e9edf6/);
-  assert.match(css,/border-radius:0 0 8px 8px;background:#fff/);
+  assert.match(css,/\.app-page #page-body \.workspace-feature-panel\{[^}]*box-shadow:none!important/);
   assert.match(css,/border-radius:7px;padding:3px;gap:0/);
   assert.doesNotMatch(css,/workspace-panel-chrome|workspace-chrome-dots|border-top:3\.5px solid #2f5bff/);
   const ordinary=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Leads');
-  assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status/);
+  assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status|workspace-subfeature-strip/);
 });
 
 test('Overview restores its exact standalone pre-PR99 layout',()=>{
