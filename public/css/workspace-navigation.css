@@ -153,23 +153,46 @@
    already uses .overview-title-accent), to avoid duplicate decoration. */
 .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)){
   display:table;position:relative;max-width:100%;
-  padding-bottom:10px;overflow-wrap:anywhere;
-  color:#1e3a8a;
+  padding-bottom:12px;overflow-wrap:anywhere;
+  color:#1e40af;
   background:linear-gradient(100deg,#1e3a8a 4%,#2563eb 54%,#3b82f6 100%);
+  background-size:200% 100%;
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 3px 9px rgba(37,99,235,.18));
+  filter:drop-shadow(0 4px 16px rgba(47,91,255,.45)) drop-shadow(0 1px 3px rgba(37,99,235,.3));
+  animation:cerium-blue-glow 8s ease-in-out infinite alternate;
 }
 .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after{
   content:"";position:absolute;pointer-events:none;
-  left:0;bottom:-4px;height:12px;width:100%;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%231d4ed8'/%3E%3Cstop offset='.55' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
-  filter:drop-shadow(0 3px 8px rgba(37,99,235,.28));
+  left:0;bottom:-4px;height:14px;width:100%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ug' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%231d4ed8'/%3E%3Cstop offset='.35' stop-color='%232563eb'/%3E%3Cstop offset='.7' stop-color='%233b5bff'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ug)' stroke-width='5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E") no-repeat left bottom / 100% 100%;
+  filter:drop-shadow(0 4px 12px rgba(47,91,255,.65)) drop-shadow(0 2px 4px rgba(37,99,235,.45));
   clip-path:inset(0 0 0 0);
   animation:ac-ul-in 1.1s .25s cubic-bezier(.6,0,.2,1) both;
 }
+.app-page .page-heading .ac{
+  position:relative;display:inline-block;white-space:nowrap;
+  color:transparent!important;-webkit-text-fill-color:transparent!important;
+  background-image:linear-gradient(100deg,#1d4ed8 0%,#2563eb 30%,#3b82f6 60%,#60a5fa 90%,#2563eb 100%)!important;
+  background-size:220% 100%;
+  -webkit-background-clip:text!important;background-clip:text!important;
+  filter:drop-shadow(0 4px 16px rgba(47,91,255,.45)) drop-shadow(0 1px 3px rgba(37,99,235,.3))!important;
+  animation:ac-shift 8s ease-in-out infinite alternate;
+}
+.app-page .page-heading .ul{
+  filter:drop-shadow(0 4px 12px rgba(47,91,255,.65)) drop-shadow(0 2px 4px rgba(37,99,235,.45))!important;
+}
+.app-page .page-heading .ul path{
+  stroke:url(#ug)!important;
+  stroke:#2563eb!important;
+  stroke-width:5;
+}
 .app-page .workspace-feature-panel .page-heading .ac{
-  filter:drop-shadow(0 4px 14px rgba(37,99,235,.24));
+  filter:drop-shadow(0 4px 16px rgba(47,91,255,.45)) drop-shadow(0 1px 3px rgba(37,99,235,.3));
+}
+@keyframes cerium-blue-glow{
+  0%{filter:drop-shadow(0 4px 14px rgba(47,91,255,.38)) drop-shadow(0 1px 3px rgba(37,99,235,.24));background-position:0% 50%}
+  100%{filter:drop-shadow(0 6px 20px rgba(59,130,246,.52)) drop-shadow(0 2px 5px rgba(37,99,235,.35));background-position:100% 50%}
 }
 
 /* Marketing's selected internal subfeature also keeps a small matching accent.
@@ -210,6 +233,10 @@
     animation:none!important;
     clip-path:none!important;
   }
+  .app-page #page-body .page-heading h1,
+  .app-page .page-heading .ac{
+    animation:none!important;
+  }
 }
 @media print{
   .app-page #page-body :is(
@@ -223,6 +250,11 @@
     .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
     .marketing-feature-header .panel-title h2
   )::after{display:none!important}
+  .app-page .page-heading .ac{
+    background:none!important;color:#202635!important;
+    -webkit-text-fill-color:currentColor!important;filter:none!important;
+  }
+  .app-page .page-heading .ul{display:none!important}
 }
 
 /* Respond to the actual panel width, not only the device width: the sidebar
