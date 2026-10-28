@@ -1,3 +1,4 @@
+import {renderMigration,initializeMigration} from './migration-page.js';
 import {renderOperations,renderDispatchPlanner,initializeOperations} from './operations-page.js';
 import {INVOICE_CURRENCIES,invoiceCurrencyHint,invoiceCountry,invoiceMoney,invoiceDate} from './invoice-country.js';
 import API from './api.js';
@@ -419,7 +420,7 @@ function renderPage() {
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section,sub=selectedSubview(state.route),scoped=subviewWorkspace(state.route,state.ws);
   if(s==='leads'&&state.route.subview)state.view=sub==='board'?'board':'list';
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(scoped,readOnly(),state.route.id==='schedule'&&sub!=='calendar'?'dispatch':state.route.view,Boolean(state.route.subview)):s==='quotes'?renderQuotesPage(scoped,readOnly()):s==='reminders'?(sub==='templates'?renderOperations(state.ws,'templates',readOnly())+renderReminderDrafts(state.ws):renderRemindersPage(state.ws,readOnly())):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.id==='payments'&&sub==='bank'?'bank':state.route.view,sub):s==='insights'?renderInsightsPage(state.ws,state.route.view,state.route.subview):s==='settings'?settingsPage(state.route.view):s==='operations'?renderOperations(state.ws,state.route.view,readOnly(),state.route.id==='attendance'?'attendance':''):s==='planning'?renderDispatchPlanner(state.ws,readOnly()):s==='assistant'?renderGuidancePage(state.route):supportPage(state.route.view));
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(scoped,readOnly(),state.route.id==='schedule'&&sub!=='calendar'?'dispatch':state.route.view,Boolean(state.route.subview)):s==='quotes'?renderQuotesPage(scoped,readOnly()):s==='reminders'?(sub==='templates'?renderOperations(state.ws,'templates',readOnly())+renderReminderDrafts(state.ws):renderRemindersPage(state.ws,readOnly())):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.id==='payments'&&sub==='bank'?'bank':state.route.view,sub):s==='insights'?renderInsightsPage(state.ws,state.route.view,state.route.subview):s==='settings'?settingsPage(state.route.view):s==='migration'?renderMigration(state.ws,selectedSubview(state.route),readOnly()):s==='operations'?renderOperations(state.ws,state.route.view,readOnly(),state.route.id==='attendance'?'attendance':''):s==='planning'?renderDispatchPlanner(state.ws,readOnly()):s==='assistant'?renderGuidancePage(state.route):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
@@ -433,6 +434,7 @@ function renderPage() {
   if(singular[s])renderResults();
   applySubviewLayout($('page-body'),state.route,state.ws);
   initializeOperations({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
+  initializeMigration({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   drafts.restore(s);
   requestAnimationFrame(()=>revealActiveFeature($('page-body')));
   if(openTools)$('workspace-customizer-dialog')?.showModal();

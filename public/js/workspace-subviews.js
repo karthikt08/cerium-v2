@@ -2,6 +2,7 @@
 import {businessLocalDate} from './us-market.js';
 
 export const FEATURE_SUBFEATURES = Object.freeze({
+  migration: Object.freeze([{id:'import',label:'Preview & Import'},{id:'mappings',label:'Saved Mappings'},{id:'fields',label:'Preserved Custom Fields'}]),
   availability: Object.freeze([{id:'windows',label:'Working Windows & Absences'}]),
   attendance: Object.freeze([{id:'open',label:'Open Shifts'}]),
   timesheets: Object.freeze([{id:'records',label:'Recorded Hours'}]),
