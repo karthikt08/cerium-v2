@@ -29,7 +29,7 @@ It merges the marketing landing suite, authentication system, operations web app
 
 **Marketing hub:** Get found and chosen, re-book and re-engage, and track performance with real leads, reviews, paid-invoice histories, and saved follow-up tasks. It offers editable draft templates and explicit review before sharing; Cerium does not auto-send messages, publish to platforms, track ad spend, or claim campaign ROI. Marketing is reached from the sidebar and supports direct links to each area.
 
-**Ask Cerium:** The assistant now supplies clickable links to verified Cerium pages and Marketing areas for faster navigation. The built-in NavLM assistant now recommends relevant Cerium modules for custom businesses, explains why each may help, and lets users review suggested choices in Settings without changing anything until they save. This uses a local rule-based recommendation engine with no paid AI API calls. See [Cerium Guide](docs/cerium-guide.md).
+**Cerium Copilot (MVP):** The upgraded Ask Cerium assistant retains verified navigation, workflows, and optional provider support, and now gives read-only answers grounded in the signed-in business's records: today's priorities, overdue invoices, due follow-ups, older open leads, and current-month activity. The business calculations run locally on the Cerium server without sending workspace records to an AI provider or taking actions. See [Copilot MVP](docs/cerium-copilot-mvp.md) and [Cerium Guide](docs/cerium-guide.md).
 
 ## Key Features
 
