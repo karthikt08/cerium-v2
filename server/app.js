@@ -775,9 +775,11 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     // Only explicit business-data queries receive direct deterministic answers.
     // A configured LLM can handle open-ended conversation. Its business context
     // contains aggregate counts only (local Ollama by default; cloud opt-in).
+    let modelAttempted=false;
     if(req.body?.recommendTools!==true&&!isToolRecommendationRequest(req.body.question)){
       const status=copilotModelStatus();
       if(status.mode==='llm'){
+        modelAttempted=true;
         const allowAggregates=status.provider==='ollama'||process.env.CERIUM_COPILOT_SHARE_AGGREGATES==='true';
         const workspace=allowAggregates?db.getWorkspace(req.session.userId):null;
         const generated=await answerCopilotWithLLM(req.body.question,req.body?.currentSection,{
@@ -791,6 +793,8 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     const businessUser=db.getUserById(req.session.userId);
     const preferences=db.getWorkspacePreferences(req.session.userId);
     const answer=await answerGuide(req.body.question,req.body?.currentSection,{
+      // Never retry the same unavailable provider in the legacy guide path.
+      ...(modelAttempted?{provider:'guide'}:{}),
       businessContext:{trade:businessUser?.trade||'',category:preferences?.category||'other',enabledModules:preferences?.modules||[]},
       recommendTools:req.body?.recommendTools===true,
       businessDescription:typeof req.body?.businessDescription==='string'&&req.body.businessDescription.length<=600?req.body.businessDescription:null,
