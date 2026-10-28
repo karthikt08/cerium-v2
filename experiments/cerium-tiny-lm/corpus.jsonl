@@ -22,7 +22,7 @@
 {"prompt":"Can you change my invoice?","completion":"I can explain the steps, but I cannot change records without an explicit approved action."}
 {"prompt":"Can you send messages automatically?","completion":"No. Customer communication must be reviewed and authorized before it is sent."}
 {"prompt":"What if data is missing?","completion":"Say which records are unavailable instead of guessing counts or amounts."}
-{"prompt":"Should I use marketing tools?","completion":"Choose tools based on your business goals, available time and the channels your customers use."}
+{"prompt":"Should I use marketing tools?","completion":"Choose tools based on your business goals, available time and the channels your channels use."}
 {"prompt":"How can a bakery use Cerium?","completion":"A bakery can track enquiries, customer callbacks, quotes, invoices and repeat orders where relevant."}
 {"prompt":"How can a service contractor use Cerium?","completion":"A contractor can organize leads, quotes, scheduled jobs, crew assignments and invoices in one workspace."}
 {"prompt":"How can I improve operations?","completion":"Start by listing repeated tasks, defining owners and reviewing overdue work every day."}
@@ -34,3 +34,63 @@
 {"prompt":"Where does this answer come from?","completion":"A model learns patterns from its training examples. Verify important details against actual records."}
 {"prompt":"What is an LLM?","completion":"A language model predicts token sequences based on training examples. A tiny model is not a capable general assistant."}
 {"prompt":"How can I stay organized?","completion":"Create clear next actions, assign due dates, and review what remains open each day."}
+{"prompt":"How do I convert an approved quote into an invoice?","completion":"Open Estimates, find the approved quote, and select Convert to Invoice. Line items, quantities, and totals transfer automatically."}
+{"prompt":"What is the difference between a quote and an estimate?","completion":"An estimate is an educated guess of expected costs, while a quote is a firm agreed price offer before beginning work."}
+{"prompt":"How do I mark an estimate as approved?","completion":"Open the estimate record, verify customer acceptance, and click Approve Quote to update its status."}
+{"prompt":"Can I edit an estimate after sending?","completion":"Yes, you can revise draft or sent estimates. If the customer already accepted, communicate any price adjustments clearly."}
+{"prompt":"How do I record a partial payment on an invoice?","completion":"Open the invoice, choose Record Payment, enter the partial amount received, and the remaining balance will be updated automatically."}
+{"prompt":"What happens when an invoice is fully paid?","completion":"The balance becomes zero and its status changes to Paid. It moves out of your active receivables."}
+{"prompt":"How do I reconcile bank deposits with invoices?","completion":"Match each imported bank transaction with its corresponding open invoice number and verify that amounts match exactly."}
+{"prompt":"Can I undo a bank payment match?","completion":"Yes. Open the matched invoice, choose Undo Payment Match, and the transaction detaches while restoring the outstanding balance."}
+{"prompt":"How do I issue an invoice with GST in India?","completion":"Ensure your GSTIN is configured in business settings, enter the buyer's GSTIN if registered, and apply the correct CGST/SGST or IGST tax slab."}
+{"prompt":"What is the difference between CGST, SGST and IGST?","completion":"CGST and SGST apply equally to intra-state sales within the same state. IGST applies to inter-state transactions across state borders."}
+{"prompt":"How do HSN and SAC codes work in invoices?","completion":"HSN codes classify physical goods, while SAC codes classify service items. Both ensure correct tax categorization on tax invoices."}
+{"prompt":"Can an unregistered business issue a tax invoice?","completion":"No. Unregistered businesses issue a commercial bill of supply or bill of sale without charging or collecting GST."}
+{"prompt":"How do I share an invoice with UPI QR?","completion":"Generate the invoice share link or PDF with your configured UPI ID. Customers can scan the QR code to pay directly to your account."}
+{"prompt":"How do I track payment dues and aging?","completion":"Visit Invoices and check the Payment Dues view. Invoices are categorized into Current, 1-30 days overdue, 31-60 days, and 60+ days."}
+{"prompt":"How do I schedule a job for my field crew?","completion":"Navigate to Jobs, click New Job, select the customer, assign a team member, set start and end times, and save."}
+{"prompt":"How do I convert a finished job into an invoice?","completion":"Once a job is marked Complete, click Create Invoice from Job to pull in recorded materials, labour hours, and customer details."}
+{"prompt":"What should I do if two jobs overlap?","completion":"Check the Jobs calendar for conflicting crew assignments and reschedule one of the jobs to avoid double booking."}
+{"prompt":"How do I create a custom pipeline stage in CRM?","completion":"Open Leads settings, review default stages, and add or reorder stages to match your team's sales pipeline."}
+{"prompt":"How do I import customer contacts from Excel?","completion":"Go to Leads, choose Import Spreadsheet, upload your XLSX or CSV file, map the columns to Cerium fields, and click Import."}
+{"prompt":"What happens to duplicate leads during import?","completion":"Cerium checks for matching email addresses or phone numbers and prompts you to merge or skip duplicates."}
+{"prompt":"How do I schedule a callback follow-up?","completion":"Open the lead or customer card, click Add Follow-up, choose Callback as the channel, set the due date and time, and assign an owner."}
+{"prompt":"How do I collect Google reviews from happy clients?","completion":"Go to Reviews, copy your verified Google review link, and send a polite review request after job completion."}
+{"prompt":"Can I delete a customer record safely?","completion":"Deleting a customer preserves historical financial records but detaches them from the active CRM address book."}
+{"prompt":"How do I change the default workspace currency?","completion":"Open Settings, select Business Profile, change Currency to your desired code (e.g., USD, EUR, INR), and save."}
+{"prompt":"Does changing currency change past invoice amounts?","completion":"No. Historical invoices retain the original currency in which they were issued to maintain accounting integrity."}
+{"prompt":"How does 15-day trial billing work?","completion":"New workspaces receive a 15-day trial. Payment mandate authorization occurs upfront, but billing only begins when the trial concludes."}
+{"prompt":"How do I cancel a recurring subscription?","completion":"Go to Settings > Billing, click Manage Subscription, and choose Cancel Mandate before the next renewal date."}
+{"prompt":"What is the difference between draft and issued invoices?","completion":"Draft invoices are uncommitted work-in-progress and do not affect receivables. Issued invoices are finalized and sent for collection."}
+{"prompt":"How do I add line items with discounts?","completion":"In the invoice editor, add each line item rate and quantity, then enter a percentage or fixed discount in the discount field."}
+{"prompt":"How do I send automated payment reminders?","completion":"Configure your reminder schedule in Invoices > Reminders. Verified SMTP or Oracle delivery sends polite notices on scheduled intervals."}
+{"prompt":"Can Cerium Copilot perform actions on its own?","completion":"No. Cerium Copilot is strictly read-only. It provides advice, analysis, and step-by-step guidance without mutating records."}
+{"prompt":"Does Cerium send private customer records to cloud AI?","completion":"No. By default, customer names, contact info, notes, and individual transactions never leave your secure local backend."}
+{"prompt":"How does Cerium TinyLM differ from cloud LLMs?","completion":"TinyLM is a lightweight, zero-API-cost model running locally without cloud subscriptions, designed specifically for Cerium workflows."}
+{"prompt":"How do I export my company data for tax filing?","completion":"Navigate to Reports > Exports, choose your date range, and export Invoices, Payments, or Leads as CSV or JSON."}
+{"prompt":"What is the quick way to search for an invoice?","completion":"Press the search shortcut or use the search bar in the Invoices view to search by customer name, invoice number, or amount."}
+{"prompt":"How do I record cash payments?","completion":"Open the invoice, select Record Payment, pick Cash as the payment method, enter reference notes, and save."}
+{"prompt":"What is Cerium NavLM?","completion":"NavLM is a local, fast intent classifier that routes user questions directly to relevant Cerium features with zero API latency."}
+{"prompt":"How do I configure my business profile?","completion":"Go to Settings > Business Profile, enter your legal entity name, address, tax registration number, logo, and contact info."}
+{"prompt":"Can multiple staff members share a workspace?","completion":"Yes. You can invite team members under Settings > Team, assigning appropriate roles and permissions."}
+{"prompt":"How do I track technician hours on a job?","completion":"Open the job card, log work sessions with start and end times, and mark billable vs non-billable hours."}
+{"prompt":"What is accounts receivable aging?","completion":"Accounts receivable aging groups unpaid invoices by how long they have been outstanding: 0-30 days, 31-60 days, 61-90 days, and 90+ days."}
+{"prompt":"How do I handle customer disputes over an invoice?","completion":"Review the original signed quote or job scope, discuss discrepancies with the customer, and issue a credit note or revision if needed."}
+{"prompt":"What is a credit note?","completion":"A credit note is a legal document issued to reduce the amount owed on an already issued tax invoice due to returns or adjustments."}
+{"prompt":"How do I print a physical packing slip or job sheet?","completion":"Open the job, click the Print menu, and select Job Sheet or Packing Slip to generate a printer-friendly layout."}
+{"prompt":"How do I track materials used on a job?","completion":"In the job record, add materials under Line Items with quantities and unit costs, ensuring they are accounted for upon billing."}
+{"prompt":"Can I customize the payment terms on an invoice?","completion":"Yes. Choose from Due on Receipt, Net 15, Net 30, Net 60, or enter a custom due date in the invoice header."}
+{"prompt":"How do I archive completed leads?","completion":"Move qualified leads that turned into paying customers to the Won stage, or close uninterested enquiries as Lost."}
+{"prompt":"What should I do if a bank transaction cannot be matched?","completion":"Record it as an unallocated deposit or create a corresponding invoice or refund record to balance the statement."}
+{"prompt":"How do I view my monthly revenue summary?","completion":"Open the Overview dashboard or Reports to view total invoiced amounts, collected payments, and outstanding balances."}
+{"prompt":"What is TinyLM KV-cache?","completion":"KV-cache stores Key and Value attention representations from previous tokens so autoregressive generation runs in O(1) time per token."}
+{"prompt":"What is nucleus sampling in TinyLM?","completion":"Nucleus or top-p sampling dynamically restricts token choices to the smallest set whose cumulative probability reaches threshold p."}
+{"prompt":"How does repetition penalty improve model output?","completion":"Repetition penalty lowers the logits of previously generated tokens, preventing the language model from repeating identical phrases."}
+{"prompt":"How do AI agents collaborate on Cerium?","completion":"Agents read shared specs in AI_COLLABORATION.md, exchange structured messages, verify test suites, and coordinate pull requests."}
+{"prompt":"Can TinyLM run without a GPU?","completion":"Yes. TinyLM is engineered with lightweight PyTorch kernels and KV caching to run efficiently on standard CPU laptops and servers."}
+{"prompt":"How do I start the TinyLM inference server?","completion":"Run python experiments/cerium-tiny-lm/tiny_lm.py serve --checkpoint output/cerium-tiny.pt --port 5005 from the terminal."}
+{"prompt":"What API endpoint does TinyLM serve?","completion":"TinyLM serves an OpenAI-compatible POST /v1/chat/completions endpoint for streaming and non-streaming responses."}
+{"prompt":"How do I connect Cerium Copilot to TinyLM?","completion":"Set CERIUM_AI_PROVIDER=tinylm and CERIUM_TINYLM_BASE_URL=http://127.0.0.1:5005 in your server .env file."}
+{"prompt":"What is the purpose of test_tiny_lm.py?","completion":"It validates tokenization, causal attention masking, backward gradients, checkpoint persistence, and text generation."}
+{"prompt":"How do I train a 100x TinyLM model?","completion":"Use python experiments/cerium-tiny-lm/tiny_lm.py train --profile power100x --steps 1000 --out output/cerium-100x.pt."}
+{"prompt":"What is the parameter size of the power100x profile?","completion":"The power100x profile uses width 384, 8 layers, 6 heads, and 512 context, containing approximately 14.5 million parameters."}

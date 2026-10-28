@@ -30,3 +30,8 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.class

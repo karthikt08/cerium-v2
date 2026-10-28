@@ -12,15 +12,28 @@ const MAX_HISTORY=8;
 const MAX_HISTORY_CHARS=2400;
 let localRequests=0;
 
+export function validateTinyLMBaseURL(value='http://127.0.0.1:5005'){
+  try{
+    const url=new URL(value);
+    if(url.protocol!=='http:'||!['localhost','127.0.0.1','[::1]'].includes(url.hostname)||
+      url.username||url.password||(url.pathname!=='/'&&url.pathname!=='')||url.search||url.hash)return null;
+    return url.origin;
+  }catch{
+    return null;
+  }
+}
+
 export function copilotModelStatus({
   provider=process.env.CERIUM_AI_PROVIDER||'navlm',
   apiKey=process.env.CERIUM_AI_API_KEY||'',
   openrouterApiKey=process.env.CERIUM_OPENROUTER_API_KEY||'',
-  ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434'
+  ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
+  tinylmBaseURL=process.env.CERIUM_TINYLM_BASE_URL||'http://127.0.0.1:5005'
 }={}){
   if(provider==='openai'&&typeof apiKey==='string'&&apiKey.trim())return {mode:'llm',provider:'openai'};
   if(provider==='openrouter'&&typeof openrouterApiKey==='string'&&openrouterApiKey.trim())return {mode:'llm',provider:'openrouter'};
   if(provider==='ollama'&&validateOllamaBaseURL(ollamaBaseURL))return {mode:'llm',provider:'ollama'};
+  if(provider==='tinylm'&&validateTinyLMBaseURL(tinylmBaseURL))return {mode:'llm',provider:'tinylm'};
   return {mode:'local',provider:null};
 }
 
@@ -65,7 +78,7 @@ function fromOpenAI(body){
     .map(item=>item.text).join('\n'));
 }
 function fromOpenRouter(body){
-  // OpenRouter follows the Chat Completions response shape.
+  // OpenRouter and TinyLM follow the Chat Completions response shape.
   const message=body?.choices?.[0]?.message;
   return replyText(typeof message?.content==='string'?message.content:'');
 }
@@ -79,15 +92,16 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   apiKey=process.env.CERIUM_AI_API_KEY||'',
   openrouterApiKey=process.env.CERIUM_OPENROUTER_API_KEY||'',
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
+  tinylmBaseURL=process.env.CERIUM_TINYLM_BASE_URL||'http://127.0.0.1:5005',
   shareCloudAggregates=process.env.CERIUM_COPILOT_SHARE_AGGREGATES==='true',
   workspace=null,
   history=[],
   fetcher=fetch
 }={}){
   if(typeof question!=='string'||!question.trim()||question.length>420)return null;
-  const status=copilotModelStatus({provider,apiKey,openrouterApiKey,ollamaBaseURL});
+  const status=copilotModelStatus({provider,apiKey,openrouterApiKey,ollamaBaseURL,tinylmBaseURL});
   if(status.mode!=='llm')return null;
-  const selected=model||(provider==='ollama'?'qwen3.5:4b':provider==='openrouter'?'qwen/qwen3.5-9b':'gpt-4.1-mini');
+  const selected=model||(provider==='ollama'?'qwen3.5:4b':provider==='openrouter'?'qwen/qwen3.5-9b':provider==='tinylm'?'cerium-tiny-lm-100x':'gpt-4.1-mini');
   if(!/^[a-zA-Z0-9_][\w./:-]{1,79}$/.test(selected)||selected.includes('..'))return null;
 
   const topic=pickGuide(question,currentSection);
@@ -97,7 +111,7 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   // Static documentation is authoritative for product capabilities; model answers
   // must not synthesize unsupported navigation or claims of completed actions.
   const capabilities=GUIDE_TOPICS.slice(0,35).map(item=>item.location).join('; ').slice(0,1500);
-  const includeAggregate=provider==='ollama'||shareCloudAggregates===true;
+  const includeAggregate=provider==='ollama'||provider==='tinylm'||shareCloudAggregates===true;
   const snapshot=includeAggregate?aggregateCopilotContext(workspace):'';
   const instructions=[
     'You are Cerium Copilot, a useful conversational assistant for small-business operations.',
@@ -144,6 +158,24 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
       });
       if(!response.ok)return null;
       answer=fromOpenRouter(await response.json());
+    }else if(provider==='tinylm'){
+      const base=validateTinyLMBaseURL(tinylmBaseURL);
+      if(!base||localRequests>=4)return null;
+      localRequests++;
+      try{
+        const response=await fetcher(base+'/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          signal:AbortSignal.timeout(30000),
+          body:JSON.stringify({
+            model:selected,
+            messages:[{role:'system',content:instructions},...turns],
+            max_tokens:650,temperature:0.35,stream:false
+          })
+        });
+        if(!response.ok)return null;
+        answer=fromOpenRouter(await response.json());
+      }finally{localRequests--;}
     }else if(provider==='ollama'){
       const base=validateOllamaBaseURL(ollamaBaseURL);
       if(!base||localRequests>=2)return null;
