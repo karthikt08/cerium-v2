@@ -153,3 +153,19 @@ test('CERIUM provides 10 top-level categories and full subfeature taxonomies acr
   assert.match(supportHtml, /Help &amp; Feedback/);
   assert.match(supportHtml, /Workflow Explanations/);
 });
+
+
+test('Overview renders with two-tier layout including Daily Dashboard and KPI subfeatures',()=>{
+  const overviewRoute = resolveWorkspaceRoute('#overview');
+  assert.equal(overviewRoute.category, 'overview');
+  assert.equal(overviewRoute.label, 'Daily Dashboard');
+  const html = renderFeatureWorkspace(overviewRoute, undefined, '<div>Overview Hero</div>');
+  assert.match(html, /class="workspace-category-heading"/);
+  assert.match(html, /id="workspace-tab-overview"[^>]*aria-selected="true"/);
+  assert.match(html, /Daily Dashboard/);
+  assert.match(html, /class="workspace-subfeature-strip"/);
+  assert.match(html, /data-subfeature="kpis"[^>]*>[\s\S]*?Business KPIs/);
+  assert.match(html, /data-subfeature="actions"[^>]*>[\s\S]*?Quick Actions/);
+  assert.match(html, /data-subfeature="workspace"[^>]*>[\s\S]*?Personalized Workspace/);
+  assert.ok(html.includes('Overview Hero'));
+});
