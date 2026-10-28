@@ -9,7 +9,7 @@ import {businessInsights,renderInsightsPage} from '../public/js/workspace-insigh
 import {trustedGuideLink,guideNavigationLinks} from '../public/js/guide-links.js';
 import {answerGuide} from '../server/guide-assistant.js';
 
-test('every feature has a trusted AI destination and is reachable without nested tab rows',()=>{
+test('every feature has a trusted AI destination and accessible side-bracket navigation',()=>{
   assert.equal(new Set(WORKSPACE_FEATURES.map(f=>f.href)).size,WORKSPACE_FEATURES.length);
   for(const f of WORKSPACE_FEATURES){
     assert.equal(resolveWorkspaceRoute(f.href),f);
@@ -18,10 +18,12 @@ test('every feature has a trusted AI destination and is reachable without nested
     const html=renderFeatureWorkspace(f,undefined,'<p>Actual feature content</p>');
     assert.ok(html.includes('Actual feature content'));
     if(!['overview','settings','assistant','support'].includes(f.category)){
-      assert.match(html,/data-workspace-destination/);
+      assert.match(html,/class="workspace-angular-navigation"/);
       assert.match(html,/role="region"/);
-      assert.ok(html.includes('value="'+f.href+'"'));
-      assert.doesNotMatch(html,/role="tablist"|role="tabpanel"|workspace-subfeature-strip|workspace-feature-tab/);
+      assert.ok(html.includes('href="'+f.href+'" data-nav="'+f.href.slice(1)+'" data-feature="'+f.id+'"'));
+      assert.match(html,/class="workspace-feature-tabs"/);
+      assert.match(html,/class="workspace-subfeature-bar"/);
+      assert.doesNotMatch(html,/<select|role="tabpanel"|workspace-panel-chrome/);
     }
   }
   assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
@@ -85,23 +87,32 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
-test('a single workspace picker replaces the two horizontal tab rows on every category',()=>{
-  for(const [href,expected] of [
-    ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes','#customers/leads/board','#customers/leads/active']],
-    ['#billing/invoices',['#billing/invoices','#billing/payments','#billing/reminders','#billing/invoices/Paid']],
-    ['#team/crew',['#team/crew','#team/assignments','#team/inventory']]
+test('side-bracketed feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
+  for(const [href,featureLinks,subLinks] of [
+    ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes'],['#customers/leads/list','#customers/leads/board','#customers/leads/active']],
+    ['#billing/invoices',['#billing/invoices','#billing/payments','#billing/reminders'],['#billing/invoices/All','#billing/invoices/Sent','#billing/invoices/Paid']],
+    ['#team/crew',['#team/crew','#team/assignments','#team/inventory'],['#team/crew/active','#team/crew/all']]
   ]){
-    const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,'<div>Actual content</div>');
-    assert.match(html,/class="workspace-view-picker"/);
-    assert.match(html,/id="workspace-destination" data-workspace-destination/);
-    for(const target of expected)assert.ok(html.includes('value="'+target+'"'),target);
-    assert.match(html,/Actual content/);
-    assert.doesNotMatch(html,/workspace-feature-tabs|workspace-subfeature-strip|workspace-feature-tab|workspace-subfeature-tab|role="tablist"|role="tabpanel"/);
+    const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,'<div>Real workspace content</div>');
+    assert.match(html,/workspace-angular-navigation/);
+    assert.match(html,/class="workspace-feature-tabs"/);
+    assert.match(html,/class="workspace-subfeature-bar"/);
+    assert.match(html,/class="workspace-feature-panel" role="region"/);
+    for(const target of [...featureLinks,...subLinks])
+      assert.ok(html.includes('href="'+target+'"'),target);
+    assert.match(html,/Real workspace content/);
+    assert.doesNotMatch(html,/<select\b|workspace-view-picker|role="tabpanel"|workspace-panel-chrome/);
   }
-  const href='#customers/leads/board';
-  const html=renderFeatureWorkspace(resolveWorkspaceRoute(href),undefined,'Board content');
-  assert.match(html,/value="#customers\/leads\/board" selected/);
-  assert.equal((html.match(/<select\b/g)||[]).length,1);
+  const board=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads/board'),undefined,'Board');
+  assert.match(board,/data-subfeature="board" aria-current="page"/);
+  assert.match(board,/workspace-feature-tab active" href="#customers\/leads"/);
+  assert.equal((board.match(/class="workspace-subfeature-tab active"/g)||[]).length,1);
+  const base=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Base');
+  assert.match(base,/data-subfeature="list" aria-current="page"/,'base route displays its default view');
+  const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
+  assert.match(css,/CERIUM SIDE-BRACKET NAV/);
+  assert.match(css,/clip-path:polygon\(10px 0,calc\(100% - 10px\) 0,100% 100%,0 100%\)/);
+  assert.match(css,/\.workspace-angular-navigation\+\.workspace-feature-panel\{/);
 });
 
 test('seven pre-PR99 sidebar sections and standalone utility pages retain modern routes',()=>{
@@ -129,7 +140,8 @@ test('seven pre-PR99 sidebar sections and standalone utility pages retain modern
   assert.match(css,/border-radius:7px;padding:3px;gap:0/);
   assert.doesNotMatch(css,/workspace-panel-chrome|workspace-chrome-dots|border-top:3\.5px solid #2f5bff/);
   const ordinary=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Leads');
-  assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status|workspace-subfeature-strip/);
+  assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status/);
+  assert.match(ordinary,/workspace-angular-navigation/);
 });
 
 test('Overview restores its exact standalone pre-PR99 layout',()=>{

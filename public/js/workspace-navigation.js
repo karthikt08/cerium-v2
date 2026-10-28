@@ -6,25 +6,30 @@ const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"><
 export const SIDEBAR_CATEGORIES=Object.freeze(WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id)));
 
 export {FEATURE_SUBFEATURES} from './workspace-subviews.js';
-import {subfeaturesFor,subviewHref} from './workspace-subviews.js';
+import {subfeaturesFor,subviewHref,selectedSubview,subviewCount} from './workspace-subviews.js';
 
-// A single compact selector replaces both tab bars. Registered routes,
-// including saved deep links, remain intact.
-function renderWorkspacePicker(route,features,workspace){
-  const options=features.map(f=>{
-    const count=featureRecordCount(f,workspace);
-    const baseLabel=f.label+(count?.count?' · '+count.count:'');
-    const options=[
-      `<option value="${esc(f.href)}" ${route.href===f.href?'selected':''}>${esc(baseLabel)}</option>`,
-      ...subfeaturesFor(f).map(sub=>{
-        const href=subviewHref(f,sub.id);
-        return `<option value="${esc(href)}" ${route.href===href?'selected':''}>↳ ${esc(sub.label)}</option>`;
-      })
-    ];
-    return `<optgroup label="${esc(f.label)}">${options.join('')}</optgroup>`;
-  });
-  return `<label class="workspace-view-picker" for="workspace-destination"><span>Feature / view</span>
-    <select id="workspace-destination" data-workspace-destination aria-label="Choose a feature or view">${options.join('')}</select></label>`;
+// Two connected but visually distinct navigation levels. All destinations
+// remain ordinary links, so old bookmarks, keyboard users and no-JS fallbacks
+// keep their canonical hash routes. No feature content is wrapped in tab chrome.
+function renderBracketNavigation(route,features,workspace){
+  const first=features.map(feature=>{
+    const active=feature.id===route.id;
+    const count=featureRecordCount(feature,workspace);
+    const aria=feature.label+(count?.count?' · '+count.label:'');
+    return `<a class="workspace-feature-tab${active?' active':''}" href="${feature.href}" data-nav="${feature.href.slice(1)}" data-feature="${feature.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-feature-label">${esc(feature.label)}</span></a>`;
+  }).join('');
+  const subfeatures=subfeaturesFor(route);
+  const selected=selectedSubview(route);
+  const second=subfeatures.map(sub=>{
+    const href=subviewHref(route,sub.id),active=sub.id===selected;
+    const count=subviewCount({...route,subview:sub.id},workspace);
+    const aria=sub.label+(count!==null?' · '+count+' records':'');
+    return `<a class="workspace-subfeature-tab${active?' active':''}" href="${href}" data-nav="${href.slice(1)}" data-subfeature="${sub.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-subfeature-label">${esc(sub.label)}</span></a>`;
+  }).join('');
+  return `<div class="workspace-angular-navigation" aria-label="${esc(route.label)} navigation">
+    <div class="workspace-tab-scroll"><nav class="workspace-feature-tabs" aria-label="${esc(route.category)} subfeatures">${first}</nav></div>
+    ${second?`<div class="workspace-subfeature-strip"><nav class="workspace-subfeature-bar" aria-label="${esc(route.label)} views">${second}</nav></div>`:''}
+  </div>`;
 }
 
 export function renderCategoryNavigation(){
@@ -63,8 +68,9 @@ export function renderFeatureWorkspace(route,modules,content,workspace){
   return `<section class="category-workspace" aria-label="${esc(category.label)}">
     <div class="workspace-category-heading">
       <p class="eyebrow">${esc(category.label)}</p>
-      <div class="workspace-category-actions">${renderWorkspacePicker(route,features,workspace)}<a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
+      <div class="workspace-category-actions"><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
     </div>
+    ${renderBracketNavigation(route,features,workspace)}
     <section id="workspace-feature-panel" class="workspace-feature-panel" role="region" aria-label="${esc(route.label)} content">
       <div class="workspace-feature-content">
         ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
@@ -74,5 +80,17 @@ export function renderFeatureWorkspace(route,modules,content,workspace){
 }
 export function featureTitle(route){return workspacePathLabel(route);}
 
-// Kept as a harmless compatibility hook for existing callers.
-export function revealActiveFeature(){ }
+// Scroll only the tab strip, never the page's vertical workspace position.
+export function revealActiveFeature(root){
+  if(!root)return;
+  for(const [stripSelector,activeSelector] of [
+    ['.workspace-tab-scroll','.workspace-feature-tab.active'],
+    ['.workspace-subfeature-strip','.workspace-subfeature-tab.active']
+  ]){
+    const strip=root.querySelector(stripSelector),tab=strip?.querySelector(activeSelector);
+    if(!strip||!tab)continue;
+    const edge=strip.getBoundingClientRect(),target=tab.getBoundingClientRect();
+    if(target.left<edge.left)strip.scrollLeft+=target.left-edge.left;
+    else if(target.right>edge.right)strip.scrollLeft+=target.right-edge.right+8;
+  }
+}

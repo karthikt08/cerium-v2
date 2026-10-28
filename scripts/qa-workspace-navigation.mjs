@@ -31,7 +31,7 @@ async function tab(id){
   const current=resolveWorkspaceRoute(page.url().split('#')[1]);
   const feature=WORKSPACE_FEATURES.find(f=>f.id===id&&f.category===current.category);
   assert.ok(feature,'Missing feature in category: '+id);
-  await page.locator('[data-workspace-destination]').selectOption(feature.href);
+  await page.locator('.workspace-feature-tabs [data-feature="'+id+'"]').click();
   await settled(feature.href);
 }
 async function workspace(){return (await context.request.get(t.url+'/api/workspace')).json();}
@@ -59,7 +59,7 @@ try{
     for(const [category,labels] of Object.entries(groups)){
       await page.locator('[data-category="'+category+'"]').click();
       await settled(page.url().split('#')[1]);
-      const visibleLabels=await page.locator('[data-workspace-destination] optgroup').evaluateAll(groups=>groups.map(group=>group.label));
+      const visibleLabels=await page.locator('.workspace-feature-tab .workspace-feature-label').allTextContents();
       assert.deepEqual(visibleLabels,labels);
     }
     await open('#field/schedule');
@@ -67,19 +67,20 @@ try{
     assert.equal(await page.getByRole('region',{name:'Weekly schedule',exact:true}).count(),1);
   });
   for(const category of WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id))){
-    await check(category.label+' category and each picker destination',async()=>{
+    await check(category.label+' category and each angular feature destination',async()=>{
       await page.locator('[data-category="'+category.id+'"]').click();
       const features=WORKSPACE_FEATURES.filter(f=>f.category===category.id);
       for(const feature of features){
-        if(category.id!=='overview')await page.locator('[data-workspace-destination]').selectOption(feature.href);
+        if(category.id!=='overview')await page.locator('.workspace-feature-tab[data-feature="'+feature.id+'"]').click();
         await settled(feature.href);
         if(await page.locator('#workspace-customizer-dialog[open]').count())await page.locator('#workspace-cancel-customizer').click();
         assert.equal(await page.locator('[data-category="'+category.id+'"]').getAttribute('aria-current'),'page');
         assert.ok(await page.locator('#page-body h1').count());
         if(category.id!=='overview'){
-          assert.equal(await page.locator('[data-workspace-destination]').inputValue(),feature.href);
+          assert.equal(await page.locator('.workspace-feature-tab.active').getAttribute('href'),feature.href);
           assert.equal(await page.locator('#workspace-feature-panel').getAttribute('role'),'region');
-          assert.equal(await page.locator('.workspace-feature-tab,.workspace-subfeature-tab').count(),0);
+          assert.ok(await page.locator('.workspace-subfeature-tab').count()>0);
+          assert.equal(await page.locator('[data-workspace-destination]').count(),0);
         }
       }
     });
@@ -129,7 +130,7 @@ try{
     // Closing the editor precedes the async workspace refresh. Wait for its
     // visible result before checking navigation or using the next feature.
     for(const category of ['customers','field','team'])await page.locator('[data-category='+category+']').waitFor({state:'hidden'});
-    await page.locator('[data-category=billing]').click();await settled('#billing/invoices');assert.equal(await page.locator('[data-workspace-destination] optgroup').count(),1);
+    await page.locator('[data-category=billing]').click();await settled('#billing/invoices');assert.equal(await page.locator('.workspace-feature-tab').count(),1);
     const before=(await workspace()).leads;
     await page.evaluate(()=>location.hash='#leads');await settled('#customers/leads');await page.getByText('Preserved Customer',{exact:true}).waitFor();assert.equal(await page.locator('.hidden-tool-notice').count(),1);
     const data=await workspace();assert.deepEqual(data.leads,before);assert.deepEqual(data.account.workspacePreferences.modules,['invoices']);
@@ -190,21 +191,21 @@ try{
     assert.equal(await page.locator('tbody tr').count(),3);
     assert.deepEqual((await workspace()).invoices,before,'Viewing groups must not alter financial records');
   });
-  await check('Mobile drawer and single feature picker work within 320px',async()=>{
+  await check('Angular tab rows stay usable at 320px without overflowing the document',async()=>{
     await page.setViewportSize({width:320,height:800});await open('#overview');
     await page.locator('#menu-toggle').click();await page.locator('[data-category=billing]').click();
     assert.equal(await page.locator('#menu-toggle').getAttribute('aria-expanded'),'false');
-    const picker=page.locator('[data-workspace-destination]');
-    await picker.selectOption('#billing/expenses');await settled('#billing/expenses');
-    assert.equal(await page.locator('[data-workspace-destination]').inputValue(),'#billing/expenses');
-    await page.locator('[data-workspace-destination]').selectOption('#billing/invoices');await settled('#billing/invoices');
-    await page.locator('[data-workspace-destination]').selectOption('#billing/payments');await settled('#billing/payments');
+    await page.locator('.workspace-feature-tab[data-feature=expenses]').click();await settled('#billing/expenses');
+    assert.equal(await page.locator('.workspace-feature-tab.active').getAttribute('data-feature'),'expenses');
+    await page.locator('.workspace-feature-tab[data-feature=invoices]').click();await settled('#billing/invoices');
+    await page.locator('.workspace-feature-tab.active').focus();await page.keyboard.press('ArrowRight');await settled('#billing/payments');
+    await page.locator('.workspace-subfeature-tab.active').focus();await page.keyboard.press('End');await settled('#billing/payments/bank');
+    const active=await page.locator('.workspace-subfeature-tab.active').boundingBox();
+    assert.ok(active.x>=-1&&active.x+active.width<=321,JSON.stringify(active));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-    const bounds=await page.locator('[data-workspace-destination]').boundingBox();
-    assert.ok(bounds.x>=0&&bounds.x+bounds.width<=321);
     await page.screenshot({path:join(out,'billing-mobile.png')});
-    await open('#insights/revenue');const selected=page.locator('[data-workspace-destination]');
-    assert.equal(await selected.inputValue(),'#insights/revenue');
+    await open('#insights/revenue');
+    assert.equal(await page.locator('.workspace-feature-tab.active').getAttribute('data-feature'),'revenue');
     await page.screenshot({path:join(out,'revenue-mobile.png')});
   });
   await check('Read-only plans retain category navigation and lock mutation controls',async()=>{

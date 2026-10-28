@@ -125,7 +125,11 @@ function go(target,focusTab=false){
   const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
   if(location.hash!==route.href)history.pushState(null,'',route.href);
   navigate(route.href,!focusTab);
-  if(focusTab)document.querySelector('[data-workspace-destination]')?.focus({preventScroll:true});
+  if(focusTab){
+    const selector=focusTab==='subview'?'.workspace-subfeature-tab.active':'.workspace-feature-tab.active';
+    document.querySelector(selector)?.focus({preventScroll:true});
+    revealActiveFeature($('page-body'));
+  }
 }
 
 function taskRow(f) {
@@ -606,6 +610,16 @@ window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList
 window.addEventListener('hashchange',()=>navigate(location.hash,true));
 window.addEventListener('popstate',()=>navigate(location.hash,true));
 document.addEventListener('cerium:form-saved',e=>drafts.clear(e.detail?.section));
+// Ordinary links support Tab/Enter; Arrow/Home/End speed up each horizontal tier.
+document.addEventListener('keydown',e=>{
+  const link=e.target.closest('.workspace-angular-navigation .workspace-feature-tab,.workspace-angular-navigation .workspace-subfeature-tab');
+  if(!link||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+  const bar=link.closest('nav'),items=[...bar.querySelectorAll('a[href]')],index=items.indexOf(link);
+  if(index<0||!items.length)return;
+  e.preventDefault();
+  const next=e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowRight'?1:-1)+items.length)%items.length;
+  go(items[next].getAttribute('href'),link.classList.contains('workspace-subfeature-tab')?'subview':true);
+});
 document.addEventListener('cerium:open-invoice',e=>{
   if(!state.ws)return;
   go('#billing/invoices');
@@ -695,10 +709,6 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.dataset.filter==='query'){(state.filters[state.section]||={}).query=e.target.value;renderResults();}});
 document.addEventListener('change',e=>{
-  if(e.target.matches('[data-workspace-destination]')){
-    if(e.target.value)go(e.target.value,true);
-    return;
-  }
   if(e.target.name==='taxTreatment'&&$('invoice-tax-fields'))$('invoice-tax-fields').hidden=e.target.value!=='tax';
   if(e.target.id==='field-country'&&!state.ws.account.regionLocked){
     const saved=state.ws.account.country;
