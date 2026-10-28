@@ -1200,8 +1200,18 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     try{
       if(!(await phones.check(claim.phone,code)))
         return res.status(400).json({error:'invalid_code',message:'That code was not approved. Try again.'});
-      if(!db.completeBillingPhone(req.session.userId,claim.phone,claim.country))
-        return res.status(409).json({error:'verification_expired',message:'This code expired or your billing country changed.'});
+      const completed=db.completeBillingPhoneResult(req.session.userId,claim.phone,claim.country);
+      if(!completed.ok){
+        const failures={
+          phone_in_use:{status:409,message:'This number is already verified on another CERIUM account. Sign in to that account or use a different number. If you own this number, request a manual review.'},
+          expired:{status:409,message:'This code has expired. Request a new verification code.'},
+          attempt_limit:{status:429,message:'Too many verification attempts. Request a new code later.'},
+          country_mismatch:{status:409,message:'Your saved billing country cannot be changed because this account has billing history. Request a manual review.'},
+          verification_changed:{status:409,message:'The verification request changed. Request a new code and try again.'}
+        };
+        const outcome=failures[completed.reason]||failures.verification_changed;
+        return res.status(outcome.status).json({error:completed.reason,message:outcome.message});
+      }
       if(config.workspaceAccessMode==='phone'&&db.businessProfileComplete(req.session.userId))db.beginTrialOnEntry(req.session.userId);
       return res.json({ok:true,verified:true,phoneMasked:maskBillingPhone(claim.phone),country:claim.country,currency:claim.country==='IN'?'INR':'USD'});
     }catch{

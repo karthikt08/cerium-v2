@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {buildConfig} from '../server/config.js';
 import {normalizeBillingPhone,maskBillingPhone,makePhoneVerifier} from '../server/billing-identity.js';
-import {startServer,signIn,ALICE} from './helpers.js';
+import {startServer,signIn,ALICE,BOB} from './helpers.js';
 
 test('billing phone format is pinned to saved edition, not to a user-controlled currency',()=>{
   assert.equal(normalizeBillingPhone('+91 98765 43210','IN'),'+919876543210');
@@ -102,4 +102,57 @@ test('Verify API adapter keeps SMS operations server-side',async()=>{
   assert.ok(seen.every(req=>req.url.startsWith('https://verify.twilio.com/v2/Services/')));
   assert.ok(seen.every(req=>req.opts.headers.Authorization.startsWith('Basic ')));
   assert.match(seen[0].opts.body,/Channel=sms/);
+});
+
+test('a valid local OTP for an already-owned number reports the real conflict and keeps both accounts safe',async()=>{
+  const t=await startServer({env:{WORKSPACE_ACCESS_MODE:'phone'}});
+  try{
+    const a=t.browser(),b=t.browser();
+    await signIn(t,a,{profile:ALICE});
+    await signIn(t,b,{profile:BOB});
+    const csrfA=(await a.me()).csrfToken,csrfB=(await b.me()).csrfToken;
+    const start=browser=>browser===a?csrfA:csrfB;
+    const request=browser=>browser.req('/api/billing/identity/start',{method:'POST',csrf:start(browser),
+      json:{phone:'9876543210',declaredCountry:'IN',confirmCountry:true}});
+    const first=await request(a);
+    assert.equal(first.status,200,await first.clone().text());
+    const verified=await a.req('/api/billing/identity/verify',{method:'POST',csrf:csrfA,json:{code:'000000'}});
+    assert.equal(verified.status,200,await verified.clone().text());
+
+    const duplicate=await request(b);
+    assert.equal(duplicate.status,200,'do not reveal existing phone owners before OTP proof');
+    const conflict=await b.req('/api/billing/identity/verify',{method:'POST',csrf:csrfB,json:{code:'000000'}});
+    assert.equal(conflict.status,409);
+    const error=await conflict.json();
+    assert.equal(error.error,'phone_in_use');
+    assert.match(error.message,/another CERIUM account/i);
+    assert.doesNotMatch(error.message,/expired|country changed/i);
+    const ownerId=t.db.getUserByEmail(ALICE.email).id,otherId=t.db.getUserByEmail(BOB.email).id;
+    assert.equal(t.db.billingEligible(ownerId),true);
+    assert.equal(t.db.billingEligible(otherId),false);
+    assert.equal((await (await b.req('/api/billing/identity')).json()).verified,false);
+    assert.equal((await b.req('/api/workspace')).status,403);
+
+    // A different valid number can be used once the standard resend cooldown expires.
+    const later=Date.now()+90_001;
+    assert.deepEqual(t.db.beginBillingPhone(otherId,'+919876543211','IN',later),{ok:true});
+    assert.deepEqual(t.db.completeBillingPhoneResult(otherId,'+919876543211','IN',later+1),{ok:true});
+    assert.equal(t.db.billingEligible(otherId),true);
+    assert.equal(t.db.billingEligible(ownerId),true);
+  }finally{await t.close();}
+});
+
+test('verification expiration and changed pending requests are distinguishable',async()=>{
+  const t=await startServer();
+  try{
+    const b=t.browser();await signIn(t,b,{profile:ALICE});
+    const id=t.db.getUserByEmail(ALICE.email).id;
+    const old=Date.now()-11*60_000;
+    assert.deepEqual(t.db.beginBillingPhone(id,'+919876543210','IN',old),{ok:true});
+    assert.deepEqual(t.db.completeBillingPhoneResult(id,'+919876543210','IN',Date.now()),
+      {ok:false,reason:'expired'});
+    assert.deepEqual(t.db.completeBillingPhoneResult(id,'+919876543211','IN',old+1),
+      {ok:false,reason:'verification_changed'});
+    assert.equal(t.db.billingEligible(id),false);
+  }finally{await t.close();}
 });
