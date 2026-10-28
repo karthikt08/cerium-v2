@@ -192,6 +192,10 @@ export const CeriumAPI = {
   async deleteJob(id) { return request('/api/jobs/'+encodeURIComponent(id), { method:'DELETE' }); },
   async createJobInvoice(id) { return request('/api/jobs/'+encodeURIComponent(id)+'/invoice', { method:'POST' }); },
   async addCrew(payload) { return request('/api/crew', { method:'POST', body:JSON.stringify(payload) }); },
+  async updateCrew(id,data){return request('/api/crew/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(data)});},
+  async saveOperation(kind,id,data){return request('/api/operations/'+encodeURIComponent(kind)+(id?'/'+encodeURIComponent(id):''),{method:id?'PATCH':'POST',body:JSON.stringify(data)});},
+  async deleteOperation(kind,id){return request('/api/operations/'+encodeURIComponent(kind)+'/'+encodeURIComponent(id),{method:'DELETE'});},
+  async dispatchCandidates(jobId){return request('/api/operations/dispatch/'+encodeURIComponent(jobId));},
   async archiveCrew(id) { return request('/api/crew/'+encodeURIComponent(id), { method:'DELETE' }); },
 
   async previewLeadImport(upload) {

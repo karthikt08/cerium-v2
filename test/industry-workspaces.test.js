@@ -146,6 +146,7 @@ test('Overview hides empty sections and restores cards for every feature combina
  const card=id=>({dataset:{workspaceModule:id},hidden:false,style:{display:''}});
  const metrics={children:['leads','followups','invoices','invoices'].map(card),hidden:false};
  const panels={children:['followups','invoices','leads','reviews'].map(card),hidden:false};
+ for(const grid of [metrics,panels])grid.append=function(card){this.children.splice(this.children.indexOf(card),1);this.children.push(card);};
  const links=ids.map(card),tools={hidden:true};
  const all=[...metrics.children,...panels.children,...links];
  const root={querySelectorAll:selector=>selector==='[data-workspace-module]'?all:[metrics,panels],
@@ -160,6 +161,8 @@ test('Overview hides empty sections and restores cards for every feature combina
  customizeOverview(root,undefined);
  assert.ok(all.every(element=>!element.hidden&&element.style.display===''));
  assert.equal(metrics.hidden,false);assert.equal(panels.hidden,false);assert.equal(tools.hidden,true);
+ customizeOverview(root,['reviews','leads','invoices','followups']);
+ assert.deepEqual(panels.children.map(c=>c.dataset.workspaceModule),['reviews','leads','invoices','followups']);
  const html=renderOverviewTools();
  for(const id of ids)assert.ok(html.includes('href="#'+id+'"'));
 });

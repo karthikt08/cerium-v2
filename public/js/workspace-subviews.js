@@ -2,6 +2,12 @@
 import {businessLocalDate} from './us-market.js';
 
 export const FEATURE_SUBFEATURES = Object.freeze({
+  availability: Object.freeze([{id:'windows',label:'Working Windows & Absences'}]),
+  attendance: Object.freeze([{id:'open',label:'Open Shifts'}]),
+  timesheets: Object.freeze([{id:'records',label:'Recorded Hours'}]),
+  inventory: Object.freeze([{id:'items',label:'Stock Records'}]),
+  'dispatch-planning': Object.freeze([{id:'candidates',label:'Available Crew'}]),
+  expenses: Object.freeze([{id:'records',label:'Expense Records'}]),
   overview: Object.freeze([
     { id: 'kpis', label: 'Business KPIs' },
     { id: 'actions', label: 'Quick Actions' },

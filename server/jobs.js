@@ -1,3 +1,4 @@
+import {workerAvailability} from './operation-records.js';
 import {randomUUID} from 'node:crypto';
 
 // Job times are local business wall-clock values: YYYY-MM-DDTHH:mm.
@@ -109,6 +110,11 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
         if (!(id && worker && !worker.active && q.job.get(id,userId)?.worker_id===worker.id && !ACTIVE.includes(j.status)))
           throw new JobsError('invalid_worker','Choose an active crew member from your workspace.');
       }
+      if(ACTIVE.includes(j.status)&&db.prepare("SELECT 1 FROM sqlite_master WHERE name='operation_records'").get()){
+        const availability=workerAvailability(db,userId,j.workerId,j.startAt,j.endAt,id);
+        if(!availability.available&&!availability.unconfigured)throw new JobsError('worker_unavailable',availability.reason,409);
+      }
+
       if (ACTIVE.includes(j.status) && q.overlap.get(userId,j.workerId,id,j.endAt,j.startAt))
         throw new JobsError('schedule_conflict','Crew member is already booked at that time. Change the time or assignment.',409);
     }
@@ -117,6 +123,17 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
   return {
     listJobs(userId){return q.jobs.all(userId).map(jobOut);},
     listCrew(userId){return q.crew.all(userId).map(crewOut);},
+    updateCrew(userId,id,p){
+      const previous=q.worker.get(id,userId);
+      if(!previous)throw new JobsError('not_found','Crew member not found.',404);
+      if(!p||typeof p!=='object'||Array.isArray(p))throw new JobsError('invalid_worker','Enter crew details.');
+      const name=text(p.name??previous.name,'Crew name',100,true),role=opt(p.role??previous.role,'Role',80),phone=opt(p.phone??previous.phone,'Phone',40);
+      if(p.active!==undefined&&typeof p.active!=='boolean')throw new JobsError('invalid_worker','Active must be true or false.');
+      const active=p.active===undefined?Boolean(previous.active):p.active;
+      if(!active&&q.assigned.get(userId,id).n)throw new JobsError('worker_assigned','Reassign or finish active jobs before archiving.',409);
+      db.prepare('UPDATE crew_members SET name=?,role=?,phone=?,active=? WHERE id=? AND user_id=?').run(name,role,phone,Number(active),id,userId);
+      return crewOut(q.worker.get(id,userId));
+    },
     addCrew(userId,p){
       const name=text(p?.name,'Crew name',100,true),role=opt(p?.role,'Role',80),phone=opt(p?.phone,'Phone',40);
       const id=randomUUID();q.newCrew.run(id,userId,name,role,phone,new Date().toISOString());return crewOut(q.worker.get(id,userId));

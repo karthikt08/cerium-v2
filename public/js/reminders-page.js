@@ -33,6 +33,7 @@ export function renderRemindersPage(ws,readOnly=false){
         eligible.map(i=>'<option value="'+esc(i.id)+'" '+(optouts.has(i.customerEmail.trim().toLowerCase())?'disabled':'')+'>'+
           '#'+esc(i.id)+' — '+esc(i.customerName)+' ('+esc(i.customerEmail)+')</option>').join('')+
       '</select></label>'+
+      '<label>Message template<select name="templateId"><option value="">Standard reminder</option>'+ (ws.operations?.templates||[]).map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select></label>'+
       '<label>Reminder time ('+esc(timeZone?((timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[timeZone])||'business local time'):'your device local time')+')<input name="dueAt" type="datetime-local" value="'+defaultTime+'" required></label>'+
       '<label class="reminders-check"><input name="consentConfirmed" type="checkbox" required><span>I confirm this customer agreed to receive invoice reminders by email.</span></label>'+
       '<label class="reminders-check"><input name="approved" type="checkbox" required><span>I approve scheduling this payment reminder.</span></label>'+
@@ -65,7 +66,7 @@ export function initializeRemindersUI({API,refresh,getWorkspace,toast,isReadOnly
       const timeZone=getWorkspace()?.account?.timeZone||'';
       const dueAt=businessLocalToInstant(values.dueAt,timeZone);
       const payload={
-        invoiceId:values.invoiceId,dueAt,
+        invoiceId:values.invoiceId,dueAt,templateId:values.templateId||undefined,
         consentConfirmed:form.elements.consentConfirmed.checked,
         approved:form.elements.approved.checked,
       };
