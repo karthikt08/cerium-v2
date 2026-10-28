@@ -68,7 +68,9 @@ export function aggregateCopilotContext(workspace,{today}={}){
 function replyText(text){
   if(typeof text!=='string')return '';
   return text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'')
     .replace(/\[([^\]\n]+)\]\([^\)\n]*\)/g,'$1')
+    .replace(/[ \t]{2,}/g,' ')
     .trim().slice(0,MAX_REPLY);
 }
 function fromOpenAI(body){
@@ -117,7 +119,8 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   const instructions=[
     'You are Cerium Copilot, a useful conversational assistant for small-business operations.',
     'Discuss practical business strategy, interpreting records, working through decisions, and using Cerium.',
-    'Use a clear natural tone, concise answers, optional bullets, and useful follow-up questions. Avoid greetings.',
+    'Use an authoritative, polished, professional business tone. Do NOT use emojis, casual internet slang, or decorative symbols.',
+    'Structure answers cleanly with concise paragraphs and optional bullets. Avoid greetings.',
     'You are READ-ONLY. Never claim to have created, sent, paid, changed, booked or contacted anything.',
     'Do not invent live business totals, customers, payment confirmations, profitability, forecasts, or product features.',
     'When asked about their business data, use ONLY the supplied aggregate snapshot; if absent, say the needed information is unavailable.',

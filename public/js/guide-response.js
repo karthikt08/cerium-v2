@@ -3,7 +3,10 @@
 export const MAX_GUIDE_REPLY=2400;
 const clean=value=>String(value||'').slice(0,MAX_GUIDE_REPLY)
   .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'')
-  .replace(/\[([^\]\n]+)\]\([^\)\n]*\)/g,'$1').trim();
+  .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'')
+  .replace(/\[([^\]\n]+)\]\([^\)\n]*\)/g,'$1')
+  .replace(/[ \t]{2,}/g,' ')
+  .trim();
 const sentences=text=>text.split(/(?<=[.!?])\s+(?=[A-Z0-9])/u).filter(Boolean);
 
 export function guideReplyBlocks(result,question=''){
@@ -23,7 +26,7 @@ export function guideReplyBlocks(result,question=''){
     const bullet=line.match(/^[-*•]\s+(.+)/);
     if(numbered)add('ol',numbered[1]);
     else if(bullet)add('ul',bullet[1]);
-    else if(social||explicit)add('p',line.replace(/^#{1,6}\s+/,''));
+    else if(social||explicit||lines.length>1||['llm','copilot'].includes(result.source)||result.type==='copilot')add('p',line.replace(/^#{1,6}\s+/,''));
     else for(const sentence of sentences(line))add('ul',sentence);
   }
   // Provider answers already contain their own steps. Never append a second,
