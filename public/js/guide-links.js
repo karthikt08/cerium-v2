@@ -22,6 +22,11 @@ export function guideNavigationLinks(result,question=''){
     seen.add(safe.href);
     links.push({...safe});
   };
+  // Read-only Copilot answers supply only destinations that this registry trusts.
+  if(result.type==='copilot'&&result.source==='copilot'){
+    for(const href of Array.isArray(result.destinations)?result.destinations:[])add(href);
+    return links;
+  }
   // Unknown/social turns must not get random navigation destinations.
   if(result.type==='conversation'&&!GUIDE_SECTIONS.includes(result.section))return [];
   if(result.source==='navlm'&&result.matched===false)return [];

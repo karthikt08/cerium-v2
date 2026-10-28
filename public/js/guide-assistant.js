@@ -1,4 +1,4 @@
-// In-app navigation assistant for Cerium: safe, read-only guidance.
+// Cerium Copilot MVP: local business snapshots plus existing read-only navigation.
 import {GUIDE_SECTIONS,pickGuide} from './guide-knowledge.js';
 import {guideNavigationLinks,trustedGuideLink} from './guide-links.js';
 import {workspaceDestination,workspacePathLabel} from './workspace-registry.js';
@@ -9,8 +9,22 @@ import {guideReplyBlocks,typeGuideReply} from './guide-response.js';
 
 const SECTION_NAMES=Object.fromEntries(GUIDE_SECTIONS.map(section=>[section,workspacePathLabel(workspaceDestination(section))]));
 
+const COPILOT_PROMPTS = {
+  invoices: [{prompt:'Which invoices are overdue?',label:'Overdue invoices'}],
+  leads: [{prompt:'Which leads have stalled?',label:'Older open leads'}],
+  followups: [{prompt:'Which customers need follow-ups?',label:'Follow-ups due'}],
+  jobs: [{prompt:'What should I focus on today?',label:'Today\'s priorities'}],
+  payments: [{prompt:'Which invoices are overdue?',label:'Overdue invoices'}],
+  insights: [{prompt:'How is my business performing this month?',label:'Monthly activity'}]
+};
+
 const CONTEXT_SUGGESTIONS = {
   overview: [
+    { prompt: "What should I focus on today?", label: "Today's priorities" },
+    { prompt: "Which invoices are overdue?", label: "Overdue invoices" },
+    { prompt: "Which customers need follow-ups?", label: "Follow-ups due" },
+    { prompt: "Which leads have stalled?", label: "Older open leads" },
+    { prompt: "How is my business performing this month?", label: "Monthly activity" },
     { prompt: "Which Cerium tools should I use for my business?", label: "Recommend tools" },
     { prompt: "How do I convert an accepted quote into a scheduled job and invoice?", label: "Quote to invoice" },
     { prompt: "How do I reconcile bank deposits with invoices?", label: "Reconcile deposits" },
@@ -85,19 +99,19 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.id='cerium-guide';
   shell.className='cerium-guide';
   shell.innerHTML='<button type="button" class="guide-trigger" id="guide-trigger" aria-expanded="false" aria-controls="guide-panel">'+
-    '<span class="guide-mark" aria-hidden="true">✦</span><span>Ask Cerium</span></button>'+
-    '<section class="guide-panel" id="guide-panel" aria-label="Cerium assistant" hidden>'+
+    '<span class="guide-mark" aria-hidden="true">✦</span><span>Cerium Copilot</span></button>'+
+    '<section class="guide-panel" id="guide-panel" aria-label="Cerium Copilot" hidden>'+
       '<div class="guide-header">'+
         '<div class="guide-header-main">'+
           '<div class="guide-header-badge-row">'+
-            '<span class="guide-eyebrow">WORKSPACE AI</span>'+
+            '<span class="guide-eyebrow">BUSINESS COPILOT · MVP</span>'+
             '<span class="guide-status-pill" aria-label="AI Status: Ready">'+
               '<span class="guide-status-dot" aria-hidden="true"></span>'+
               '<span class="guide-status-text">Ready</span>'+
             '</span>'+
             '<span class="guide-context-badge" id="guide-context-badge">Overview</span>'+
           '</div>'+
-          '<h2>Ask <span class="ac">Cerium<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
+          '<h2>Cerium <span class="ac">Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
         '</div>'+
         '<div class="guide-header-actions">'+
           '<button type="button" class="guide-header-btn guide-reset" id="guide-reset" aria-label="Start new conversation" title="Clear conversation">'+
@@ -130,12 +144,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-footer-zone">'+
         '<div class="guide-response-controls" id="guide-response-controls" hidden><button type="button" id="guide-reveal">Show full answer</button></div>'+
         '<form class="guide-form" id="guide-form">'+
-          '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about an advanced task, workflow, or your tools…" autocomplete="off" maxlength="420" required>'+
+          '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about invoices, follow-ups or Cerium tools…" autocomplete="off" maxlength="420" required>'+
           '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button>'+
         '</form>'+
         '<div class="guide-privacy">'+
           '<span class="guide-privacy-icon" aria-hidden="true">🔒</span>'+
-          '<span>Read-only guidance. Avoid private details; an enabled AI provider may process your question.</span>'+
+          '<span>Business summaries stay on Cerium's server. Other questions may use an enabled AI provider. Read-only; no actions are taken.</span>'+
         '</div>'+
       '</div>'+
     '</section>';
@@ -178,7 +192,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     const friendlyName=SECTION_NAMES[sec]||'Overview';
     if(contextBadge)contextBadge.textContent=friendlyName;
     if(sectionNameLabel)sectionNameLabel.textContent=friendlyName;
-    const list=CONTEXT_SUGGESTIONS[sec]||CONTEXT_SUGGESTIONS.overview;
+    const list=[...(COPILOT_PROMPTS[sec]||[]),...(CONTEXT_SUGGESTIONS[sec]||CONTEXT_SUGGESTIONS.overview)].slice(0,8);
     if(chips){
       chips.innerHTML='';
       for(const item of list){
@@ -211,12 +225,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     card.innerHTML=
       '<div class="guide-welcome-header">'+
         '<span class="guide-welcome-mark" aria-hidden="true">✦</span>'+
-        '<div><strong>Cerium Workspace Assistant</strong>'+
-        '<p class="guide-welcome-sub">Find features, guide operational workflows, or ask about contractor best practices.</p></div>'+
+        '<div><strong>Cerium Copilot · Early access</strong>'+
+        '<p class="guide-welcome-sub">Review business priorities from your saved records, or find the right Cerium workflow.</p></div>'+
       '</div>'+
       '<div class="guide-welcome-features">'+
-        '<span class="guide-welcome-pill">⚡ Multi-step operations</span>'+
-        '<span class="guide-welcome-pill">💼 Field service advice</span>'+
+        '<span class="guide-welcome-pill">📊 Live business summaries</span>'+
+        '<span class="guide-welcome-pill">⚡ Guided workflows</span>'+
         '<span class="guide-welcome-pill">🔒 Private & read-only</span>'+
       '</div>';
     messages.append(card);
@@ -467,7 +481,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     send.disabled=true;
     followBottom=true;
     messages.setAttribute('aria-busy','true');
-    announcer.textContent='Cerium is thinking.';
+    announcer.textContent='Cerium Copilot is checking your question.';
     setStatus('Thinking');
     suggestions.hidden=true;
     const welcome=messages.querySelector('#guide-welcome-card');
@@ -491,6 +505,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         (result.type==='tool_recommendations'&&Array.isArray(result.recommendations))||
         (result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null)||
         (result.type==='conversation'&&result.section===null)||
+        (result.type==='copilot'&&result.source==='copilot'&&result.section===null&&Array.isArray(result.destinations))||
         (result.source==='navlm'&&result.matched===false&&result.section===null));
       if(!valid)result=localAnswer(clean,current,wantRecommendations,businessDescription);
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
@@ -515,11 +530,11 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       awaitingBusinessDescription=recommendation&&safe.needsMoreInfo===true;
       if(recommendation&&!safe.needsMoreInfo)lastBusinessDescription=businessDescription;
       if(recommendation)renderToolRecommendations(safe);
-      if(workflow)lastSection=null;
+      if(workflow||safe.type==='copilot')lastSection=null;
       renderGuideLinks(safe,resolved);
       if(GUIDE_SECTIONS.includes(safe.section))lastSection=safe.section;
       if(workflow||GUIDE_SECTIONS.includes(safe.section))lastQuestion=resolved;
-      if(recommendation||uncertain||['unknown','clarify'].includes(safe.kind)){
+      if(safe.type==='copilot'||recommendation||uncertain||['unknown','clarify'].includes(safe.kind)){
         lastSection=null;
         lastQuestion=null;
       }
