@@ -23,7 +23,7 @@ export function guideNavigationLinks(result,question=''){
     links.push({...safe});
   };
   // Read-only Copilot answers supply only destinations that this registry trusts.
-  if(result.type==='copilot'&&result.source==='copilot'){
+  if(result.type==='copilot'&&['copilot','llm'].includes(result.source)){
     for(const href of Array.isArray(result.destinations)?result.destinations:[])add(href);
     return links;
   }
