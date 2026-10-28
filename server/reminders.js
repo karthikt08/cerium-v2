@@ -47,8 +47,9 @@ export function createReminderStore(db){
     "CREATE TABLE IF NOT EXISTS email_optouts ("+
     "user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,email TEXT NOT NULL,"+
     "created_at INTEGER NOT NULL,PRIMARY KEY(user_id,email));");
+  if(!db.prepare('PRAGMA table_info(email_reminders)').all().some(c=>c.name==='template_json'))db.exec("ALTER TABLE email_reminders ADD COLUMN template_json TEXT");
   const q={
-    invoice:db.prepare('SELECT id,customer_name,customer_email,job_title,status,total,due_date FROM invoices WHERE id=? AND user_id=?'),
+    invoice:db.prepare('SELECT id,customer_name,customer_email,job_title,status,total,due_date,invoice_currency FROM invoices WHERE id=? AND user_id=?'),
     user:db.prepare('SELECT name,business_name,email,plan_status,trial_started_at,trial_days_total,trial_ends_at,subscription_expires_at FROM users WHERE id=?'),
     list:db.prepare('SELECT * FROM email_reminders WHERE user_id=? ORDER BY due_at DESC LIMIT 250'),
     get:db.prepare('SELECT * FROM email_reminders WHERE id=? AND user_id=?'),
@@ -95,7 +96,14 @@ export function createReminderStore(db){
         if(q.byInvoice.get(userId,invoiceId))
           throw new ReminderError('already_scheduled','A reminder already exists for this invoice.',409);
         const id=randomUUID();
+        let template=null;
+        if(p.templateId){
+          const record=db.prepare("SELECT data_json FROM operation_records WHERE id=? AND user_id=? AND kind='templates'").get(p.templateId,userId);
+          if(!record)throw new ReminderError('invalid_template','Choose a saved template from your workspace.');
+          template=record.data_json;
+        }
         q.create.run(id,userId,invoiceId,email,due,now);
+        if(template)db.prepare('UPDATE email_reminders SET template_json=? WHERE id=?').run(template,id);
         return out(q.get.get(id,userId));
       })();
     },
@@ -152,6 +160,9 @@ export function createReminderStore(db){
         : user.trial_started_at&&(Math.floor((now-Date.parse(user.trial_started_at+'T00:00:00Z'))/86400000)>=Number(user.trial_days_total||15)));
       if(user.plan_status==='expired'||subscriptionExpired||trialExpired)
         return {eligible:false,reason:'Workspace subscription/trial expired.'};
+      const paid=Number(db.prepare('SELECT COALESCE(SUM(a.amount_units),0) AS n FROM invoice_allocations a JOIN customer_receipts p ON p.id=a.receipt_id WHERE a.user_id=? AND a.invoice_id=? AND p.voided_at IS NULL').get(r.user_id,invoice.id).n)/10000;
+      invoice.total=Math.max(0,Math.round((invoice.total-paid)*10000)/10000);
+      if(!invoice.total)return {eligible:false,reason:'Invoice has no outstanding balance.'};
       return {eligible:true,recipient:r.email,invoice,
         businessName:user.business_name||user.name||'Your contractor',
         senderReplyTo:cleanEmail(user.email)||null};

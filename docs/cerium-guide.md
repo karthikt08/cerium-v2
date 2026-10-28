@@ -40,7 +40,7 @@ Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknow
 - Natural descriptions of businesses ("I run a bakery") can trigger the existing local business tool advisor. Business follow-ups continue until a suitable description is available.
 - **Advanced multi-step operations:** The assistant guides users through complex contractor workflows with step-by-step numbered plans and verified direct-action buttons:
   - **Accepted quote conversion:** Confirm approval in Estimates & quotes, book appointments in Jobs & dispatch, then bill completed work in Invoices (`quotes` → `jobs` → `invoices`).
-  - **Bank reconciliation:** Review invoices and matched deposits in Bank Matching. Matching requires a deposit equal to the invoice total; partial payments are not currently supported (`invoices` → `payments`).
+  - **Bank reconciliation:** Review invoices and matched deposits in Bank Matching. Bank Matching requires a deposit equal to the invoice total; Payment Ledger & Allocation supports partial payments and splits across invoices (`invoices` → `payments`).
   - **GST & tax invoice preparation:** Review business registration details in Settings and supported tax fields in the invoice preview. Mixed per-item rates and statutory tax filing are not supported (`settings` → `invoices`).
   - **Bulk contact import & scheduling:** Upload spreadsheets in Leads, inspect duplicate flags, and book work in Jobs & dispatch (`leads` → `jobs`).
   - **Crew dispatch & conflict resolution:** Identify overlapping technician slots in Jobs & dispatch and record briefing notes in Follow-ups (`jobs` → `followups`).
@@ -81,7 +81,7 @@ The Ask Cerium interface is designed to blend seamlessly with Cerium's software 
 
 Ask Cerium can recommend the **existing Cerium tools** a business needs, even when the business does not fit one of the original contractor presets.
 
-Try: "I run a mobile dog grooming business with appointments and invoices. Which Cerium tools should I use?" or "Which features fit my small clothing boutique?" The advisor proposes up to six existing modules with short explanations. For businesses needing inventory, POS, clinical records, payroll or route optimization, it notes that Cerium does not provide those products rather than pretending it does.
+Try: "I run a mobile dog grooming business with appointments and invoices. Which Cerium tools should I use?" or "Which features fit my small clothing boutique?" The advisor proposes up to six existing modules with short explanations. It distinguishes basic Inventory item/SKU quantities from unsupported POS, clinical records, payroll and route optimization.
 
 **Where the information comes from:**
 - On authenticated API requests, Cerium reads only the signed-in user's saved trade, workspace category and currently visible module IDs. It does not read a different tenant's data.
@@ -118,7 +118,7 @@ Implementation: public/js/industry-advisor-playbooks.js. Comprehensive tests: te
 
 For a message such as "I run a typical textile shop. Recommend what's useful", the advisor recognizes the business immediately and recommends **Invoices** and **Payments** first; it marks **Leads** and **Quotes** optional where repeat buyers or bulk/custom orders matter. It never assumes shop owners need contractor dispatch tools.
 
-The same language model-free advisor distinguishes wholesale textile distribution (quotes and account billing), tailoring (scheduling, quotes and invoices), and textile manufacturing (customer quotes and invoicing). It explicitly calls out missing retail inventory/POS and SKU tracking rather than inventing non-existent modules.
+The same language model-free advisor distinguishes wholesale textile distribution (quotes and account billing), tailoring (scheduling, quotes and invoices), and textile manufacturing (customer quotes and invoicing). It identifies the basic Inventory records and explains that size/colour variants, barcode transactions and POS checkout need dedicated software.
 
 If a business is clearly described but not in a predefined trade taxonomy, the assistant gives cautious cross-industry starting suggestions **before** asking a targeted, optional question. It asks for more details only when the user has not provided enough business information.
 

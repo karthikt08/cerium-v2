@@ -76,9 +76,9 @@ test('Ask Cerium gives category paths and verified destinations for old and new 
   assert.equal(guideNavigationLinks({section:'payments'},'match a bank deposit')[0].href,'#billing/bank');
 });
 
-test('assistant does not advertise unsupported partial payments or undo matching',async()=>{
+test('assistant describes payment allocation and the existing bank-match limitation',async()=>{
   const partial=await answerGuide('How do partial payments and bank deposits work?','payments',{provider:'guide'});
-  assert.match(partial.reply,/partial payments.*not (currently )?supported/i);
+  assert.match(partial.reply,/Payment Ledger & Allocation/);
   assert.doesNotMatch(partial.reply,/balance automatically/);
   const undo=await answerGuide('How do I undo match?','payments',{provider:'guide'});
   assert.match(undo.reply,/no Undo match control/i);
@@ -98,7 +98,7 @@ test('2-tier tabbed layout provides feature tabs and subfeatures under active fe
   // Tier 2: Subfeature Bar nested inside top of container under active feature
   assert.match(html,/class="workspace-subfeature-strip"/);
   assert.match(html,/class="workspace-subfeature-bar"/);
-  assert.match(html,/data-subfeature="list"[^>]*aria-pressed="true"[^>]*>[\s\S]*?All Leads/);
+  assert.match(html,/data-subfeature="list"[^>]*aria-current="page"[^>]*>[\s\S]*?All Leads/);
   assert.match(html,/data-subfeature="board"[^>]*>[\s\S]*?Pipeline Board/);
   assert.match(html,/data-subfeature="active"[^>]*>[\s\S]*?Active Leads/);
   
@@ -156,49 +156,40 @@ test('CERIUM provides 10 top-level categories and full subfeature taxonomies acr
 });
 
 
-test('Overview keeps its standalone pre-two-tier workspace layout',()=>{
-  const overviewRoute = resolveWorkspaceRoute('#overview');
-  assert.equal(overviewRoute.category, 'overview');
-  assert.equal(overviewRoute.label, 'Daily Dashboard');
-  const content = '<div>Overview Hero</div>';
-  const html = renderFeatureWorkspace(overviewRoute, undefined, content);
-  assert.equal(html, content, 'Overview content must not be wrapped in the category tab panel');
-  assert.doesNotMatch(html, /workspace-(?:feature-tabs|subfeature-strip|feature-panel)/);
+test('Overview uses the same hierarchy as other sidebar features',()=>{
+  const html=renderFeatureWorkspace(resolveWorkspaceRoute('#overview'),undefined,'<div>Dashboard</div>');
+  assert.match(html,/Daily Dashboard/);
+  assert.match(html,/Business KPIs/);
+  assert.match(html,/workspace-feature-content/);
+  assert.match(html,/Dashboard/);
 });
 
-
-test('Ask Cerium assistant section and navigation triggers are registered',async()=>{
-  const {SECTIONS} = await import('../public/js/workspace-model.js');
-  assert.ok(SECTIONS.assistant, 'SECTIONS.assistant must be defined');
-  assert.equal(SECTIONS.assistant[0], 'Ask Cerium');
-  const appSource = fs.readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
-  assert.match(appSource, /function assistantPage/);
-  assert.match(appSource, /s==='assistant'\?assistantPage/);
-  assert.match(appSource, /action==='ask-guide'/);
+test('assistant subviews provide distinct user-triggered guidance',async()=>{
+  const {renderGuidancePage}=await import('../public/js/workspace-view-panels.js');
+  const discovery=renderGuidancePage(resolveWorkspaceRoute('#assistant/feature-discovery/modules'));
+  const typing=renderGuidancePage(resolveWorkspaceRoute('#assistant/response-experience/progressive'));
+  assert.match(discovery,/Recommend tools/);
+  assert.match(typing,/Show full answer/);
+  assert.doesNotMatch(discovery,/Show full answer/);
+  assert.match(typing,/data-action="ask-guide"/);
 });
 
-test('all 10 feature subfeature actions and support views are wired', async () => {
-  const {FEATURE_SUBFEATURES} = await import('../public/js/workspace-navigation.js');
-  const appSource = fs.readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
-
-  // Verify that all keys in FEATURE_SUBFEATURES are handled in app.js
-  const featureKeys = Object.keys(FEATURE_SUBFEATURES);
-  assert.equal(featureKeys.length, 30);
-  for (const key of featureKeys) {
-    const hasHandler = appSource.includes(`kind==='${key}'`) || 
-                       appSource.includes(`'${key}'`) || 
-                       appSource.includes(key);
-    assert.ok(hasHandler, `Subfeature kind ${key} must be referenced in app.js`);
+test('registered subviews resolve exactly and preserve legacy feature links',async()=>{
+  const {FEATURE_SUBFEATURES,subviewHref}=await import('../public/js/workspace-subviews.js');
+  for(const feature of WORKSPACE_FEATURES){
+    for(const sub of FEATURE_SUBFEATURES[feature.id]||[]){
+      const href=subviewHref(feature,sub.id),route=resolveWorkspaceRoute(href);
+      assert.equal(route.id,feature.id);
+      assert.equal(route.subview,sub.id);
+      assert.equal(route.featureHref,feature.href);
+      assert.equal(workspaceRouteKnown(href),true);
+      assert.ok(workspacePathLabel(route).includes(sub.label));
+      assert.equal(categoryDestination(feature.category,undefined,{[feature.category]:href}).href,href);
+    }
+    assert.equal(resolveWorkspaceRoute(feature.href),feature);
   }
-
-  // Verify support page view differentiation
-  assert.match(appSource, /function supportPage\(view='help'\)/);
-  assert.match(appSource, /id="support-requests-panel"/);
-  assert.match(appSource, /id="product-help-workflows"/);
-  assert.match(appSource, /id="product-help-feedback"/);
-
-  // Verify settings view panel identifiers
-  assert.match(appSource, /id="settings-profile-panel"/);
-  assert.match(appSource, /id="settings-plan-panel"/);
-  assert.match(appSource, /id="settings-data-panel"/);
+  for(const href of ['#customers/leads/unknown','#customers/leads/board/extra','#billing/bank/__proto__']){
+    assert.equal(workspaceRouteKnown(href),false);
+    assert.equal(resolveWorkspaceRoute(href).id,'overview');
+  }
 });

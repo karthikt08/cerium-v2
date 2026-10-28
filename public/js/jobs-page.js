@@ -47,7 +47,8 @@ function card(job,ws,ro=false) {
     <strong>${esc(job.title)}</strong><span>${esc(job.customerName)}</span>
     <small>${esc(workerName(ws,job.workerId))}</small></button>`;
 }
-export function renderJobsPage(ws,readOnly=false,view='schedule') {
+export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false) {
+  if(scoped)filter='all';
   if(view!=='schedule')return renderOperationsPage(ws,readOnly,view);
   const jobs=ws.jobs||[],crew=ws.crew||[],start=monday(),end=new Date(start);end.setDate(start.getDate()+6);
   const week=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);week.push(d);}
@@ -165,8 +166,8 @@ function formJob(ws,id='',date=today()) {
 }
 function formCrew(ws) {
   openDialog(`${dialogTop('Manage crew','Keep an organized roster for job assignments.')}
-    <div class="jobs-modal-body"><div class="jobs-crew-list">${(ws.crew||[]).map(c=>`<div class="jobs-crew-item"><strong>${esc(c.name)}</strong><small>${esc(c.role||'Team member')}${c.active?'':' · Archived'}</small>${c.active&&!dispatch.isReadOnly()?`<button type="button" class="button secondary" data-job-action="archive" data-worker-id="${esc(c.id)}">Archive</button>`:''}</div>`).join('')||'<p>No team members yet.</p>'}</div>
-    ${dispatch.isReadOnly()?'':`<form data-job-form="crew" class="jobs-add-crew"><label>Name<input name="name" required maxlength="100" placeholder="Crew member name"></label><label>Role<input name="role" maxlength="80" placeholder="Technician, electrician..."></label><label>Phone (optional)<input name="phone" maxlength="40"></label><p class="jobs-form-error" role="alert" hidden></p><button type="submit" class="button primary">Add crew member</button></form>`}
+    <div class="jobs-modal-body"><div class="jobs-crew-list">${(ws.crew||[]).map(c=>`<div class="jobs-crew-item"><strong>${esc(c.name)}</strong><small>${esc(c.role||'Team member')}${c.active?'':' · Archived'}</small>${!dispatch.isReadOnly()?`<button type="button" class="button secondary" data-job-action="edit-crew" data-worker-id="${esc(c.id)}">Edit</button>`:''}${c.active&&!dispatch.isReadOnly()?`<button type="button" class="button secondary" data-job-action="archive" data-worker-id="${esc(c.id)}">Archive</button>`:''}</div>`).join('')||'<p>No team members yet.</p>'}</div>
+    ${dispatch.isReadOnly()?'':`<form data-job-form="crew" class="jobs-add-crew"><input name="id" type="hidden"><label>Active<select name="active"><option value="true">Active</option><option value="false">Archived</option></select></label><label>Name<input name="name" required maxlength="100" placeholder="Crew member name"></label><label>Role<input name="role" maxlength="80" placeholder="Technician, electrician..."></label><label>Phone (optional)<input name="phone" maxlength="40"></label><p class="jobs-form-error" role="alert" hidden></p><button type="submit" class="button primary">Add crew member</button></form>`}
     </div><div class="jobs-modal-actions"><button class="button secondary" data-job-action="close">Done</button></div>`);
 }
 export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
@@ -174,6 +175,11 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
   document.addEventListener('click',async event=>{
     const el=event.target.closest('[data-job-action]');if(!el)return;
     const action=el.dataset.jobAction;const ws=getWorkspace();if(!ws)return;
+    if(action==='edit-crew'){
+      if(isReadOnly())return;
+      const crew=ws.crew.find(c=>c.id===el.dataset.workerId),form=document.querySelector('[data-job-form=crew]');
+      if(crew&&form){for(const field of form.elements)if(field.name&&crew[field.name]!==undefined)field.value=String(crew[field.name]);form.querySelector('[type=submit]').textContent='Save crew member';form.elements.name.focus();}return;
+    }
     if(action==='previous'||action==='next'||action==='today') {
       weekShift=action==='today'?0:weekShift+(action==='previous'?-1:1);
       await refresh();return;
@@ -234,11 +240,11 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
         if(data.billableItems.some(item=>!item.description))throw Error('Enter a description for each priced line item.');
         if(data.endAt<=data.startAt)throw Error('The end time must be after the start time.');
         if(form.dataset.jobId)await API.updateJob(form.dataset.jobId,data);else await API.createJob(data);
-      }else await API.addCrew(data);
+      }else if(data.id)await API.updateCrew(data.id,{...data,active:data.active==='true'});else await API.addCrew({...data,active:data.active==='true'});
       const type=form.dataset.jobForm;
       form.closest('dialog')?.close();await refresh();
       if(type==='crew')formCrew(getWorkspace());
-      toast(type==='crew'?'Crew member added.':data.status==='Completed'?'Job completed. An invoice draft is ready to review.':'Job saved.');
+      toast(type==='crew'?(data.id?'Crew member updated.':'Crew member added.'):data.status==='Completed'?'Job completed. An invoice draft is ready to review.':'Job saved.');
     }catch(e){if(error){error.textContent=e.message;error.hidden=false;}else toast(e.message,true);}
     finally{busy=false;if(submit)submit.disabled=false;}
   });

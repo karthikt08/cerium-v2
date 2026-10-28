@@ -1,5 +1,6 @@
 // One registry for category navigation, feature routes, tool visibility and AI links.
 // Module IDs stay unchanged so saved preferences and API contracts remain compatible.
+import {subfeaturesFor,subviewHref} from './workspace-subviews.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 export const WORKSPACE_CATEGORIES=Object.freeze([
   {id:'overview',label:'Overview',icon:'overview'},
@@ -36,10 +37,17 @@ export const WORKSPACE_FEATURES=Object.freeze([
   feature('business','insights','Business Overview','insights','business'),
   feature('sales','insights','Sales Insights','insights','sales',['leads','quotes']),
   feature('revenue','insights','Revenue Insights','insights','revenue',['invoices','payments']),
+  feature('availability','team','Availability','operations','availability',['jobs']),
+  feature('attendance','team','Attendance','operations','timesheets',['jobs']),
+  feature('timesheets','team','Timesheets','operations','timesheets',['jobs']),
+  feature('inventory','team','Inventory','operations','inventory',['jobs']),
+  feature('dispatch-planning','field','Dispatch Planning','planning','',['jobs']),
+  feature('expenses','billing','Expenses','operations','expenses',['payments']),
   feature('business-settings','settings','Business Settings','settings','profile',[],'#settings'),
   feature('customize-tools','settings','Customize Tools','settings','tools',[],'#settings/tools'),
   feature('data-management','settings','Data Management','settings','data'),
   feature('account-subscription','settings','Account & Subscription','settings','account'),
+  feature('migration','settings','Spreadsheet Migration','migration'),
   feature('feature-discovery','assistant','Feature Discovery','assistant','discovery'),
   feature('workflow-guidance','assistant','Workflow Guidance','assistant','guidance'),
   feature('response-experience','assistant','Response Experience','assistant','experience'),
@@ -52,7 +60,10 @@ export const WORKSPACE_UTILITIES=Object.freeze([
   Object.freeze({id:'support',category:'support',label:'Help & Support',section:'support',href:'#support',modules:[]}),
 ]);
 const routes=[...WORKSPACE_UTILITIES,...WORKSPACE_FEATURES];
-const byHash=new Map(routes.map(item=>[item.href.slice(1),item]));
+const subviewRoutes=WORKSPACE_FEATURES.flatMap(f=>subfeaturesFor(f).map(sub=>Object.freeze({
+  ...f,featureHref:f.href,subview:sub.id,subviewLabel:sub.label,href:subviewHref(f,sub.id)
+})));
+const byHash=new Map([...routes,...subviewRoutes].map(item=>[item.href.slice(1),item]));
 export const LEGACY_WORKSPACE_ROUTES=Object.freeze({
   today:'overview',leads:'customers/leads',followups:'customers/followups',quotes:'customers/quotes',jobs:'field/schedule',
   invoices:'billing/invoices',payments:'billing/payments',bank:'billing/bank',reminders:'billing/reminders',reviews:'marketing/reviews',
@@ -70,7 +81,8 @@ export function categoryFeatures(category,modules,activeId=''){
 }
 export function categoryDestination(category,modules,lastUsed={}){
   const features=categoryFeatures(category,modules);
-  return features.find(f=>f.id===lastUsed[category])||features[0]||WORKSPACE_FEATURES[0];
+  const remembered=byHash.get(String(lastUsed[category]||'').replace(/^#/,''));
+  return (remembered?.category===category&&features.some(f=>f.id===remembered.id)?remembered:null)||features.find(f=>f.id===lastUsed[category])||features[0]||WORKSPACE_FEATURES[0];
 }
 export function resolveWorkspaceRoute(hash,modules,lastUsed={}){
   const key=String(hash||'').replace(/^#/,'');
@@ -88,5 +100,5 @@ export function workspaceDestination(section){
 }
 export function workspacePathLabel(route){
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
-  return category&&category.id!=='overview'?category.label+' → '+route.label:route.label;
+  return (category&&category.id!=='overview'?category.label+' → '+route.label:route.label)+(route.subviewLabel?' → '+route.subviewLabel:'');
 }

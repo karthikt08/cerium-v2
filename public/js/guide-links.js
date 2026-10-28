@@ -1,5 +1,6 @@
 // Trusted destinations for Cerium Guide. Model text never controls a URL.
 // Hashes below must map to an actual page (or a Marketing tab) in this app.
+import {subfeaturesFor,subviewHref} from './workspace-subviews.js';
 import {GUIDE_SECTIONS} from './guide-knowledge.js';
 import {MARKETING_FEATURE_TABS} from './marketing-features.js';
 
@@ -7,6 +8,7 @@ import {WORKSPACE_FEATURES,WORKSPACE_UTILITIES,LEGACY_WORKSPACE_ROUTES,workspace
 const asLink=route=>({href:route.href,label:workspacePathLabel(route)});
 const PAGES=Object.fromEntries(GUIDE_SECTIONS.map(section=>[section,asLink(workspaceDestination(section))]));
 const HASHES=new Map([...WORKSPACE_FEATURES,...WORKSPACE_UTILITIES].map(route=>[route.href,asLink(route)]));
+for(const feature of WORKSPACE_FEATURES)for(const sub of subfeaturesFor(feature)){const href=subviewHref(feature,sub.id);HASHES.set(href,{href,label:workspacePathLabel(feature)+' → '+sub.label});}
 for(const alias of Object.keys(LEGACY_WORKSPACE_ROUTES))HASHES.set('#'+alias,asLink(workspaceDestination(alias)));
 for(const section of GUIDE_SECTIONS)HASHES.set('#'+section,PAGES[section]);
 export function trustedGuideLink(href){
@@ -37,6 +39,7 @@ export function guideNavigationLinks(result,question=''){
     if(result.recommendations?.length)add('#settings');
     return links;
   }
+  if(/\b(?:partial|split|allocat\w*|payment ledger)\b/.test(query)&&['payments','workflow'].includes(result.section||result.type))add('#billing/payments/ledger');
   if(result.type==='workflow'&&Array.isArray(result.actions)){
     for(const action of result.actions)if(GUIDE_SECTIONS.includes(action?.section))add(PAGES[action.section].href);
     return links;

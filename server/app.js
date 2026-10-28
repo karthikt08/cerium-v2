@@ -208,12 +208,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   app.use(cookieParser());
   // Business documents support 20 line items plus notes, including UTF-8 text.
   // Keep the smaller cap on authentication and simple public forms.
-  app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me','/api/dues'], express.json({ limit: '64kb' }));
+  app.use(['/api/invoices','/api/quotes','/api/jobs','/api/leads','/api/followups','/api/reviews','/api/messages','/api/me','/api/dues','/api/operations','/api/customer-payments'], express.json({ limit: '64kb' }));
   // Copilot sends up to eight conversation turns plus the current question.
   // Allow the bounded browser payload, including multi-byte text, before the
   // small default parser runs. Model history still has its own stricter budget.
   app.use('/api/assistant/message', express.json({ limit: '32kb' }));
-  app.use('/api/import', express.json({ limit: '3mb' }));
+  app.use(['/api/import','/api/migration'], express.json({ limit: '3mb' }));
   app.use(express.json({ limit: '2kb' }));
   app.use(express.urlencoded({ extended: false, limit: '2kb' }));
   app.use(loadSession(db, config));
@@ -819,7 +819,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import', '/operations', '/migration', '/customer-payments'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -875,6 +875,40 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!err.code || !err.status) throw err;
     return res.status(err.status).json({ error: err.code, message: err.message });
   };
+  api.post('/customer-payments',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.recordCustomerPayment(req.session.userId,req.body));}catch(err){scheduleError(res,err);}
+  });
+  for(const [action,method] of [['allocate','allocateCustomerPayment'],['void','voidCustomerPayment']])api.post('/customer-payments/:id/'+action,writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db[method](req.session.userId,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.get('/migration/mappings',requireSession,(req,res)=>res.json(db.listMigrationMappings(req.session.userId)));
+  api.post('/migration/mappings',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.saveMigrationMapping(req.session.userId,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.delete('/migration/mappings/:id',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.deleteMigrationMapping(req.session.userId,req.params.id));}catch(err){scheduleError(res,err);}
+  });
+  for(const mode of ['preview','commit'])api.post('/migration/'+mode,writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.set('Cache-Control','no-store').json(db.runMigration(db,req.session.userId,req.body,mode==='commit'));}catch(err){scheduleError(res,err);}
+  });
+  api.get('/operations/dispatch/:jobId', requireSession, (req,res)=>{
+    try{res.json(db.dispatchCandidates(req.session.userId,req.params.jobId));}catch(err){scheduleError(res,err);}
+  });
+  api.get('/operations/:kind', requireSession, (req,res)=>{
+    try{res.json(db.listOperationRecords(req.session.userId,req.params.kind));}catch(err){scheduleError(res,err);}
+  });
+  api.post('/operations/:kind', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.saveOperationRecord(req.session.userId,req.params.kind,null,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.patch('/operations/:kind/:id', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.saveOperationRecord(req.session.userId,req.params.kind,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.delete('/operations/:kind/:id', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.deleteOperationRecord(req.session.userId,req.params.kind,req.params.id));}catch(err){scheduleError(res,err);}
+  });
+  api.patch('/crew/:id',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.updateCrew(req.session.userId,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
   api.post('/crew', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
     try { res.status(201).json(db.addCrew(req.session.userId, req.body)); }
     catch(err) { scheduleError(res,err); }

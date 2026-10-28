@@ -1,3 +1,6 @@
+import {createCustomerPaymentStore} from './customer-payments.js';
+import {createMigrationStore} from './universal-migration.js';
+import {createOperationStore} from './operation-records.js';
 import {makeInvoiceDetails,readInvoiceDetails} from './invoice-details.js';
 import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
 // server/db.js
@@ -412,6 +415,9 @@ export function openDb(file) {
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
   if (!invoiceColumns.has('job_id')) db.exec('ALTER TABLE invoices ADD COLUMN job_id TEXT');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
+  const migrationStore = createMigrationStore(db);
+  const operationRecords = createOperationStore(db);
+  const customerPayments = createCustomerPaymentStore(db);
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
   const paymentDues = createPaymentDuesStore(db);
@@ -422,6 +428,8 @@ export function openDb(file) {
   db.prepare(`
     UPDATE users SET currency='USD', updated_at=?
     WHERE currency='INR' AND COALESCE(country,'US')='US'
+      AND NOT EXISTS (SELECT 1 FROM customer_receipts WHERE customer_receipts.user_id=users.id)
+      AND NOT EXISTS (SELECT 1 FROM operation_records WHERE operation_records.user_id=users.id AND kind='expenses')
       AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.user_id=users.id)
        AND NOT EXISTS (SELECT 1 FROM payment_dues WHERE payment_dues.user_id=users.id)
       AND NOT EXISTS (SELECT 1 FROM quotes WHERE quotes.user_id=users.id)
@@ -690,10 +698,11 @@ export function openDb(file) {
   // Business-facing days follow the US service location, not the Oracle VM clock.
   // Keep trial/billing timestamps in their existing UTC semantics.
   const userBusinessToday=userId=>{const u=q.getUserById.get(userId);return businessLocalDate(u?.country==='IN'?'Asia/Kolkata':u?.time_zone);};
-  const pricedHistory=userId=>['invoices','payment_dues','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
+  const expenseHistory=userId=>Boolean(db.prepare("SELECT 1 FROM operation_records WHERE user_id=? AND kind='expenses' LIMIT 1").get(userId));
+  const pricedHistory=userId=>expenseHistory(userId)||['customer_receipts','invoices','payment_dues','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
     table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId))
   );
-  const businessMoneyHistory=userId=>['invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
+  const businessMoneyHistory=userId=>expenseHistory(userId)||['customer_receipts','invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
   const editionTax=(user,items,p={})=>{
     if(user.country!=='IN')return null;
     const base=lineItemsTotal(items);
@@ -718,6 +727,7 @@ export function openDb(file) {
       tax.placeOfSupply,tax.hsnSac,tax.gstRate,tax.taxable,tax.cgst,tax.sgst,tax.utgst,tax.igst,tax.upiVpa,id,userId);
   };
   const protectRecordedPayment=(userId,invoice,total,status)=>{
+    customerPayments.protectAllocatedInvoice(userId,invoice,total,status);
     if(q.getInvoicePayment.get(userId,invoice.id)&&
        (status!=='Paid'||Math.round(total*10000)!==Math.round(invoice.total*10000)))
       throw Object.assign(new Error('This invoice is linked to a recorded payment. Its paid status and total must stay consistent with that payment.'),{code:'payment_linked_invoice',status:409});
@@ -1201,6 +1211,8 @@ export function openDb(file) {
           status,
           items,
           total: Number(i.total) || 0,
+          allocatedAmount:customerPayments.paymentAllocationAmount(userId,i.id),
+          balance:status==='Paid'?0:Math.max(0,Math.round((i.total-customerPayments.paymentAllocationAmount(userId,i.id))*10000)/10000),
           notes: i.notes || '',
           paidAt: i.paid_at || undefined,
           jobId: i.job_id || null,
@@ -1285,17 +1297,24 @@ export function openDb(file) {
         followUps,
         invoices,
         paymentDues:paymentDues.listPaymentDues(userId),
+        customerPayments:customerPayments.listCustomerPayments(userId),
         bankTransactions,
         reviews,
         messages,
         jobs: jobsStore.listJobs(userId).map(j => ({...j, invoiceId: invoices.find(i => i.jobId === j.id)?.id || null})),
         crew: jobsStore.listCrew(userId),
+        migrationMappings:migrationStore.listMigrationMappings(userId),
+        importMetadata:migrationStore.migrationMetadata(userId),
+        operations:operationRecords.allOperationRecords(userId),
         reminders: reminders.listReminders(userId),
         quotes: quotesStore.listQuotes(userId),
         reminderOptouts: reminders.listEmailOptouts(userId),
       };
     },
 
+    ...customerPayments,
+    ...migrationStore,
+    ...operationRecords,
     ...jobsStore,
     ...reminders,
     ...quotesStore,
@@ -1350,7 +1369,7 @@ export function openDb(file) {
       })();
     },
 
-    createLead(userId, payload) {
+    createLead(userId, payload, {historical=false}={}) {
       payload=workspaceFields('lead',payload,true);
       const today = userBusinessToday(userId);
       const id = 'LD-' + randomBytes(4).toString('hex');
@@ -1377,7 +1396,7 @@ export function openDb(file) {
           lead.nextFollowUp, 0, today
         );
       }
-      if (lead.stage === 'Done') {
+      if (!historical && lead.stage === 'Done') {
         const revId = 'RV-' + randomBytes(4).toString('hex');
         q.insertReview.run(revId, userId, lead.name, lead.phone, lead.email, lead.notes || 'Completed Service Job', today, 'Not Asked', null, null, '', today);
       }
@@ -1585,6 +1604,7 @@ export function openDb(file) {
       return db.transaction(()=>{
         const inv=q.getInvoice.get(String(id),userId);
         if(!inv)throw Object.assign(new Error('Invoice not found.'),{code:'not_found',status:404});
+        if(customerPayments.hasInvoiceAllocations(userId,id))throw Object.assign(new Error('This invoice has payment history. Retain it for the ledger; export or clear the whole workspace explicitly if needed.'),{status:409,code:'payment_linked_invoice'});
         db.prepare(`UPDATE bank_transactions SET
           status=CASE WHEN matched_invoice_id=? OR status='suggested' THEN 'unmatched' ELSE status END,
           suggested_invoice_id=CASE WHEN suggested_invoice_id=? THEN NULL ELSE suggested_invoice_id END,
@@ -1614,6 +1634,7 @@ export function openDb(file) {
       if (action === 'confirm') {
         if(!targetInvoiceId)throw Object.assign(new Error('Select an invoice.'),{code:'invalid_match',status:400});
         const source=q.getInvoice.get(String(targetInvoiceId),userId);
+        if(customerPayments.paymentAllocationAmount(userId,source.id)>0)throw Object.assign(new Error('This invoice has allocations. Record the remaining payment in Payments instead.'),{status:409,code:'payment_linked_invoice'});
         if(tx.type!=='Deposit'||Number(tx.amount)<=0||Math.round(Number(tx.amount)*10000)!==Math.round(Number(source.total)*10000))
           throw Object.assign(new Error('Match a deposit equal to the invoice total.'),{code:'amount_mismatch',status:409});
         if(tx.matched_invoice_id&&tx.matched_invoice_id!==String(targetInvoiceId))
@@ -1692,10 +1713,13 @@ export function openDb(file) {
       const run = db.transaction(() => {
         q.clearLeads.run(userId);
         q.clearFollowUps.run(userId);
+        customerPayments.clearCustomerPayments(userId);
         q.clearInvoices.run(userId);
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        migrationStore.clearMigrationData(userId);
+        operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         paymentDues.clearPaymentDues(userId);
@@ -1824,10 +1848,13 @@ export function openDb(file) {
 
         q.clearLeads.run(userId);
         q.clearFollowUps.run(userId);
+        customerPayments.clearCustomerPayments(userId);
         q.clearInvoices.run(userId);
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        migrationStore.clearMigrationData(userId);
+        operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
         paymentDues.clearPaymentDues(userId);

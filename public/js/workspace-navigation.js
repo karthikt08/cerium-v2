@@ -4,50 +4,18 @@ import {featureRecordCount} from './workspace-counts.js';
 const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"></use></svg>';
 
 export {FEATURE_SUBFEATURES} from './workspace-subviews.js';
-import {FEATURE_SUBFEATURES} from './workspace-subviews.js';
+import {selectedSubview,subviewHref,subviewCount,FEATURE_SUBFEATURES} from './workspace-subviews.js';
 
-function getSubfeatureCount(routeId, subId, ws){
-  if(!ws) return null;
-  if(routeId === 'leads'){
-    if(subId === 'list' || subId === 'board') return ws.leads?.length ?? null;
-    if(subId === 'active') return ws.leads?.filter(l => l.stage !== 'Done').length ?? null;
-  }
-  if(routeId === 'followups'){
-    const today = new Date().toISOString().slice(0, 10);
-    if(subId === 'Due') return ws.followUps?.filter(f => !f.done && (f.dueDate || '') <= today).length ?? null;
-    if(subId === 'Upcoming') return ws.followUps?.filter(f => !f.done && (f.dueDate || '') > today).length ?? null;
-    if(subId === 'Done') return ws.followUps?.filter(f => f.done).length ?? null;
-    if(subId === 'All') return ws.followUps?.length ?? null;
-  }
-  if(routeId === 'invoices'){
-    if(subId === 'All') return ws.invoices?.length ?? null;
-    if(subId === 'Sent') return ws.invoices?.filter(i => ['Sent','Overdue'].includes(i.status)).length ?? null;
-    if(subId === 'Paid') return ws.invoices?.filter(i => i.status === 'Paid').length ?? null;
-    if(subId === 'Draft') return ws.invoices?.filter(i => i.status === 'Draft').length ?? null;
-  }
-  if(routeId === 'quotes'){
-    if(subId === 'all') return ws.quotes?.length ?? null;
-    if(subId === 'sent') return ws.quotes?.filter(q => q.status === 'Sent').length ?? null;
-    if(subId === 'accepted') return ws.quotes?.filter(q => q.status === 'Accepted').length ?? null;
-  }
-  return null;
-}
-
-export function renderSubfeaturesBar(route, ws, currentSubfeature=''){
+export function renderSubfeaturesBar(route, ws, currentSubfeature=selectedSubview(route)){
   const subs = FEATURE_SUBFEATURES[route?.id];
   if(!subs?.length) return '';
-  return `<div class="workspace-subfeature-strip" role="toolbar" aria-label="${esc(route.label)} subfeatures">
-    <div class="workspace-subfeature-bar">
-      ${subs.map((s, idx) => {
-        const isActive = currentSubfeature ? s.id === currentSubfeature : idx === 0;
-        const count = getSubfeatureCount(route.id, s.id, ws);
-        return `<button type="button" class="workspace-subfeature-tab${isActive ? ' active' : ''}" data-subfeature="${s.id}" data-kind="${route.id}" aria-pressed="${isActive ? 'true' : 'false'}">
-          <span class="workspace-subfeature-label">${esc(s.label)}</span>
-          ${count !== null && count !== undefined ? `<span class="workspace-subfeature-count">${count}</span>` : ''}
-        </button>`;
-      }).join('')}
-    </div>
-  </div>`;
+  return `<div class="workspace-subfeature-strip"><nav class="workspace-subfeature-bar" aria-label="${esc(route.label)} views">
+    ${subs.map(s=>{
+      const on=s.id===currentSubfeature,count=subviewCount({...route,subview:s.id},ws);
+      return `<a class="workspace-subfeature-tab${on?' active':''}" href="${subviewHref(route,s.id)}" data-nav="${subviewHref(route,s.id).slice(1)}" data-subfeature="${s.id}" data-kind="${route.id}" ${on?'aria-current="page"':''}>
+        <span class="workspace-subfeature-label">${esc(s.label)}</span>${count===null?'':`<span class="workspace-subfeature-count" aria-hidden="true">${count}</span>`}</a>`;
+    }).join('')}
+  </nav></div>`;
 }
 
 export function renderCategoryNavigation(){
@@ -77,8 +45,8 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
     link.title=categoryLabel+details;
   }
 }
-export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=''){
-  if(!route.category||route.category==='overview')return content;
+export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=selectedSubview(route)){
+  if(!route.category)return content;
   const tabs=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
   const hidden=!featureEnabled(route,modules);
@@ -98,9 +66,14 @@ export function featureTitle(route){return workspacePathLabel(route);}
 
 // Reveal direct-linked tabs horizontally without moving the page's vertical scroll.
 export function revealActiveFeature(root){
-  const strip=root.querySelector('.workspace-tab-scroll'),tab=root.querySelector('.workspace-feature-tab[aria-selected="true"]');
-  if(!strip||!tab)return;
-  const edge=strip.getBoundingClientRect(),active=tab.getBoundingClientRect();
-  if(active.left<edge.left)strip.scrollLeft-=edge.left-active.left+4;
-  else if(active.right>edge.right)strip.scrollLeft+=active.right-edge.right+4;
+  for(const [stripSelector,activeSelector] of [
+    ['.workspace-tab-scroll','.workspace-feature-tab[aria-selected="true"]'],
+    ['.workspace-subfeature-strip','.workspace-subfeature-tab[aria-current="page"]']
+  ]){
+    const strip=root.querySelector(stripSelector),tab=root.querySelector(activeSelector);
+    if(!strip||!tab)continue;
+    const edge=strip.getBoundingClientRect(),active=tab.getBoundingClientRect();
+    if(active.width>edge.width||active.left<edge.left)strip.scrollLeft+=active.left-edge.left;
+    else if(active.right>edge.right)strip.scrollLeft+=active.right-edge.right+4;
+  }
 }
