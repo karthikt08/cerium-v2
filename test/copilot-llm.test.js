@@ -226,6 +226,34 @@ test('TinyLM provides local generative answers over loopback chat completions',a
   assert.match(body.messages[0].content,/BUSINESS SNAPSHOT/);
 });
 
+test('TinyLM supports Astra agentic computer-use tool calls with verified destinations',async()=>{
+  const result=await answerCopilotWithLLM('Show me overdue aging report','overview',{
+    provider:'tinylm',tinylmBaseURL:'http://127.0.0.1:5005',workspace,
+    fetcher:async()=>({
+      ok:true,
+      json:async()=>({
+        choices:[{
+          message:{
+            role:'assistant',
+            content:'Opening the payment dues aging report for you.',
+            tool_calls:[{
+              id:'call_1',
+              type:'function',
+              function:{
+                name:'cerium_navigate',
+                arguments:JSON.stringify({section:'invoices',subfeature:'dues'})
+              }
+            }]
+          }
+        }]
+      })
+    })
+  });
+  assert.equal(result.source,'llm');
+  assert.equal(result.provider,'tinylm');
+  assert.deepEqual(result.destinations,['#invoices/dues']);
+});
+
 test('Copilot model status requires authentication and returns no credentials',async()=>{
   const t=await startServer();
   try{

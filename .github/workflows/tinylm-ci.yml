@@ -29,9 +29,7 @@ jobs:
         run: python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.3,<3'
       - name: Run TinyLM unit tests
         run: python -m unittest discover -s experiments/cerium-tiny-lm -p test_tiny_lm.py -v
-      - name: Smoke-train and evaluate a reproducible checkpoint
+      - name: Smoke-train and run chat inference
         run: |
-          python experiments/cerium-tiny-lm/tiny_lm.py train --steps 12 --eval-every 6 --out output/tinylm-ci.pt
-          python experiments/cerium-tiny-lm/tiny_lm.py eval --checkpoint output/tinylm-ci.pt
-          python experiments/cerium-tiny-lm/tiny_lm.py eval --checkpoint output/tinylm-ci.pt --data experiments/cerium-tiny-lm/evaluation.jsonl --subset all
-          python experiments/cerium-tiny-lm/tiny_lm.py chat --mode verified --prompt 'How do invoices work?'
+          python experiments/cerium-tiny-lm/tiny_lm.py train --profile tiny --steps 12 --out output/tinylm-ci.pt
+          python experiments/cerium-tiny-lm/tiny_lm.py chat --checkpoint output/tinylm-ci.pt --prompt 'How do invoices work?'

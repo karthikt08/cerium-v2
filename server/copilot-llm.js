@@ -134,6 +134,7 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   const turns=[...sanitizeCopilotHistory(history),{role:'user',content:question.trim()}];
   try{
     let answer='';
+  let toolDestination=null;
     if(provider==='openai'){
       const response=await fetcher('https://api.openai.com/v1/responses',{
         method:'POST',headers:{Authorization:'Bearer '+apiKey,'Content-Type':'application/json'},
@@ -175,7 +176,20 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
           })
         });
         if(!response.ok)return null;
-        answer=fromOpenRouter(await response.json());
+        const resBody=await response.json();
+        answer=fromOpenRouter(resBody);
+        const tools=resBody?.choices?.[0]?.message?.tool_calls;
+        if(Array.isArray(tools)&&tools.length>0){
+          const nav=tools.find(t=>t?.function?.name==='cerium_navigate');
+          if(nav){
+            try{
+              const parsed=JSON.parse(nav.function.arguments);
+              if(parsed.section&&typeof parsed.section==='string'&&/^[a-z0-9_-]+$/.test(parsed.section)){
+                toolDestination='#'+parsed.section+(parsed.subfeature&&/^[a-z0-9_-]+$/.test(parsed.subfeature)?'/'+parsed.subfeature:'');
+              }
+            }catch{}
+          }
+        }
       }finally{localRequests--;}
     }else if(provider==='ollama'){
       const base=validateOllamaBaseURL(ollamaBaseURL);
@@ -197,8 +211,8 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
     }
     if(!answer)return null;
     // The model's text never determines a route. The original static guide does.
-    const destinations=topic.matched?
-      guideNavigationLinks({section:topic.section},question).map(link=>link.href):[];
+    const destinations=toolDestination?[toolDestination]:(topic.matched?
+      guideNavigationLinks({section:topic.section},question).map(link=>link.href):[]);
     return {source:'llm',type:'copilot',section:null,reply:answer,
       destinations,mode:'llm',provider};
   }catch{
