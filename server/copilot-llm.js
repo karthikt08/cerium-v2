@@ -15,9 +15,11 @@ let localRequests=0;
 export function copilotModelStatus({
   provider=process.env.CERIUM_AI_PROVIDER||'navlm',
   apiKey=process.env.CERIUM_AI_API_KEY||'',
+  openrouterApiKey=process.env.CERIUM_OPENROUTER_API_KEY||'',
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434'
 }={}){
-  if(provider==='openai'&&apiKey.trim())return {mode:'llm',provider:'openai'};
+  if(provider==='openai'&&typeof apiKey==='string'&&apiKey.trim())return {mode:'llm',provider:'openai'};
+  if(provider==='openrouter'&&typeof openrouterApiKey==='string'&&openrouterApiKey.trim())return {mode:'llm',provider:'openrouter'};
   if(provider==='ollama'&&validateOllamaBaseURL(ollamaBaseURL))return {mode:'llm',provider:'ollama'};
   return {mode:'local',provider:null};
 }
@@ -62,6 +64,11 @@ function fromOpenAI(body){
     .filter(item=>item.type==='output_text'&&typeof item.text==='string')
     .map(item=>item.text).join('\n'));
 }
+function fromOpenRouter(body){
+  // OpenRouter follows the Chat Completions response shape.
+  const message=body?.choices?.[0]?.message;
+  return replyText(typeof message?.content==='string'?message.content:'');
+}
 function fromOllama(body){
   return body?.done===true?replyText(body.message?.content):'';
 }
@@ -70,6 +77,7 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   provider=process.env.CERIUM_AI_PROVIDER||'navlm',
   model=process.env.CERIUM_AI_MODEL||'',
   apiKey=process.env.CERIUM_AI_API_KEY||'',
+  openrouterApiKey=process.env.CERIUM_OPENROUTER_API_KEY||'',
   ollamaBaseURL=process.env.CERIUM_OLLAMA_BASE_URL||'http://127.0.0.1:11434',
   shareCloudAggregates=process.env.CERIUM_COPILOT_SHARE_AGGREGATES==='true',
   workspace=null,
@@ -77,9 +85,9 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   fetcher=fetch
 }={}){
   if(typeof question!=='string'||!question.trim()||question.length>420)return null;
-  const status=copilotModelStatus({provider,apiKey,ollamaBaseURL});
+  const status=copilotModelStatus({provider,apiKey,openrouterApiKey,ollamaBaseURL});
   if(status.mode!=='llm')return null;
-  const selected=model||(provider==='ollama'?'qwen3.5:4b':'gpt-4.1-mini');
+  const selected=model||(provider==='ollama'?'qwen3.5:4b':provider==='openrouter'?'qwen/qwen3.5-9b':'gpt-4.1-mini');
   if(!/^[a-zA-Z0-9_][\w./:-]{1,79}$/.test(selected)||selected.includes('..'))return null;
 
   const topic=pickGuide(question,currentSection);
@@ -122,6 +130,20 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
       });
       if(!response.ok)return null;
       answer=fromOpenAI(await response.json());
+    }else if(provider==='openrouter'){
+      // Fixed server-side HTTPS endpoint. Never accept a browser-supplied URL or API key.
+      const response=await fetcher('https://openrouter.ai/api/v1/chat/completions',{
+        method:'POST',
+        headers:{Authorization:'Bearer '+openrouterApiKey,'Content-Type':'application/json'},
+        signal:AbortSignal.timeout(20000),
+        body:JSON.stringify({
+          model:selected,
+          messages:[{role:'system',content:instructions},...turns],
+          max_tokens:650,temperature:0.35,stream:false
+        })
+      });
+      if(!response.ok)return null;
+      answer=fromOpenRouter(await response.json());
     }else if(provider==='ollama'){
       const base=validateOllamaBaseURL(ollamaBaseURL);
       if(!base||localRequests>=2)return null;
