@@ -25,6 +25,7 @@ const CONTEXT_SUGGESTIONS = {
     { prompt: "Which customers need follow-ups?", label: "Follow-ups due" },
     { prompt: "Which leads have stalled?", label: "Older open leads" },
     { prompt: "How is my business performing this month?", label: "Monthly activity" },
+    { prompt: "Suggest three ways to improve my sales follow-up process", label: "Improve sales process" },
     { prompt: "Which Cerium tools should I use for my business?", label: "Recommend tools" },
     { prompt: "How do I convert an accepted quote into a scheduled job and invoice?", label: "Quote to invoice" },
     { prompt: "How do I reconcile bank deposits with invoices?", label: "Reconcile deposits" },
@@ -104,12 +105,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-header">'+
         '<div class="guide-header-main">'+
           '<div class="guide-header-badge-row">'+
-            '<span class="guide-eyebrow">BUSINESS COPILOT · MVP</span>'+
+            '<span class="guide-eyebrow">CERIUM COPILOT</span>'+
             '<span class="guide-status-pill" aria-label="AI Status: Ready">'+
               '<span class="guide-status-dot" aria-hidden="true"></span>'+
               '<span class="guide-status-text">Ready</span>'+
             '</span>'+
-            '<span class="guide-context-badge" id="guide-context-badge">Overview</span>'+
+            '<span class="guide-context-badge" id="guide-context-badge">Overview</span><span class="guide-model-badge" id="guide-model-badge">Local mode</span>'+
           '</div>'+
           '<h2>Cerium <span class="ac">Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
         '</div>'+
@@ -144,12 +145,12 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-footer-zone">'+
         '<div class="guide-response-controls" id="guide-response-controls" hidden><button type="button" id="guide-reveal">Show full answer</button></div>'+
         '<form class="guide-form" id="guide-form">'+
-          '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about invoices, follow-ups or Cerium tools…" autocomplete="off" maxlength="420" required>'+
+          '<input type="text" id="guide-question" aria-label="Ask a Cerium question" placeholder="Ask about your business or Cerium workflows…" autocomplete="off" maxlength="420" required>'+
           '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button>'+
         '</form>'+
         '<div class="guide-privacy">'+
           '<span class="guide-privacy-icon" aria-hidden="true">🔒</span>'+
-          '<span>Business summaries stay on Cerium's server. Other questions may use an enabled AI provider. Read-only; no actions are taken.</span>'+
+          '<span>Business records stay in Cerium. A configured model may process your typed chat and permitted summary totals. Read-only.</span>'+
         '</div>'+
       '</div>'+
     '</section>';
@@ -169,12 +170,14 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   const responseControls=shell.querySelector('#guide-response-controls');
   const reveal=shell.querySelector('#guide-reveal');
   const status=shell.querySelector('.guide-status-text');
+  const modelBadge=shell.querySelector('#guide-model-badge');
   const known=new Map(WORKSPACE_MODULES.map(item=>[item.id,item]));
   let pending=false;
   let awaitingBusinessDescription=false;
   let lastBusinessDescription='';
   let lastSection=null;
   let lastQuestion=null;
+  let modelHistory=[];
   let turn=0;
   let typing=null;
   let controller=null;
@@ -205,8 +208,15 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     }
   }
 
+  async function refreshModelStatus(){
+    try{
+      const result=typeof api?.getCopilotStatus==='function'?await api.getCopilotStatus():null;
+      modelBadge.textContent=result?.mode==='llm'?'LLM configured':'Local mode';
+    }catch{modelBadge.textContent='Local mode';}
+  }
   function openGuide(){
     panel.hidden=false;
+    void refreshModelStatus();
     trigger.setAttribute('aria-expanded','true');
     updateSuggestions(getSection?.());
     input.focus();
@@ -226,7 +236,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-welcome-header">'+
         '<span class="guide-welcome-mark" aria-hidden="true">✦</span>'+
         '<div><strong>Cerium Copilot · Early access</strong>'+
-        '<p class="guide-welcome-sub">Review business priorities from your saved records, or find the right Cerium workflow.</p></div>'+
+        '<p class="guide-welcome-sub">Ask about business decisions and workflows. Live record summaries work even without an LLM.</p></div>'+
       '</div>'+
       '<div class="guide-welcome-features">'+
         '<span class="guide-welcome-pill">📊 Live business summaries</span>'+
@@ -249,6 +259,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     followBottom=true;
     lastSection=null;
     lastQuestion=null;
+    modelHistory=[];
     lastBusinessDescription='';
     awaitingBusinessDescription=false;
     createWelcomeCard();
@@ -493,7 +504,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       let result;
       try{
         result=typeof api?.askGuide==='function'
-          ?await api.askGuide({question:clean,currentSection:current,lastSection,lastQuestion,recommendTools:wantRecommendations,businessDescription})
+          ?await api.askGuide({question:clean,currentSection:current,lastSection,lastQuestion,history:modelHistory,recommendTools:wantRecommendations,businessDescription})
           :localAnswer(clean,current,wantRecommendations,businessDescription);
       }catch{
         if(thisTurn!==turn)return;
@@ -505,7 +516,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         (result.type==='tool_recommendations'&&Array.isArray(result.recommendations))||
         (result.type==='workflow'&&Array.isArray(result.actions)&&result.section===null)||
         (result.type==='conversation'&&result.section===null)||
-        (result.type==='copilot'&&result.source==='copilot'&&result.section===null&&Array.isArray(result.destinations))||
+        (result.type==='copilot'&&['copilot','llm'].includes(result.source)&&result.section===null&&Array.isArray(result.destinations))||
         (result.source==='navlm'&&result.matched===false&&result.section===null));
       if(!valid)result=localAnswer(clean,current,wantRecommendations,businessDescription);
       const recommendation=result.type==='tool_recommendations'&&Array.isArray(result.recommendations);
@@ -514,6 +525,16 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       // the previously opened section and display a bogus navigation button.
       const uncertain=result.source==='navlm'&&result.matched===false&&result.section===null;
       const conversational=result.type==='conversation'&&result.section===null;
+      // Only model-generated conversation text is forwarded to the next model
+      // call. Deterministic account answers can contain private customer names.
+      if(result.source==='llm'){
+        modelHistory.push({role:'user',content:clean},{role:'assistant',content:result.reply.slice(0,650)});
+        modelHistory=modelHistory.slice(-8);
+        modelBadge.textContent='LLM answer';
+      }else{
+        modelHistory=[];
+        modelBadge.textContent='Local answer';
+      }
       const safe=result;
       progress.classList.remove('guide-thinking');
       setStatus('Typing');
