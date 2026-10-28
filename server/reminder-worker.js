@@ -21,7 +21,7 @@ export async function processDueReminders({db,send,secret,baseUrl,now=Date.now()
       const link=baseUrl+'/unsubscribe?token='+encodeURIComponent(signOptOut({userId:item.user_id,email:item.email},secret));
       const email=buildReminderEmail({
         businessName:assessment.businessName,invoice:assessment.invoice,
-        recipient:assessment.recipient,unsubscribeUrl:link,
+        recipient:assessment.recipient,unsubscribeUrl:link,template:item.template_json?JSON.parse(item.template_json):null,
       });
       // Re-check immediately before sending, in case a payment or opt-out was recorded
       // while preparing the message. A tiny race with concurrent external actions remains.

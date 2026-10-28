@@ -819,7 +819,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import', '/operations'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -875,6 +875,24 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!err.code || !err.status) throw err;
     return res.status(err.status).json({ error: err.code, message: err.message });
   };
+  api.get('/operations/dispatch/:jobId', requireSession, (req,res)=>{
+    try{res.json(db.dispatchCandidates(req.session.userId,req.params.jobId));}catch(err){scheduleError(res,err);}
+  });
+  api.get('/operations/:kind', requireSession, (req,res)=>{
+    try{res.json(db.listOperationRecords(req.session.userId,req.params.kind));}catch(err){scheduleError(res,err);}
+  });
+  api.post('/operations/:kind', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.saveOperationRecord(req.session.userId,req.params.kind,null,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.patch('/operations/:kind/:id', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.saveOperationRecord(req.session.userId,req.params.kind,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
+  api.delete('/operations/:kind/:id', writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.deleteOperationRecord(req.session.userId,req.params.kind,req.params.id));}catch(err){scheduleError(res,err);}
+  });
+  api.patch('/crew/:id',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db.updateCrew(req.session.userId,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
   api.post('/crew', writeLimiter, sameOrigin, requireSession, requireCsrf, (req,res) => {
     try { res.status(201).json(db.addCrew(req.session.userId, req.body)); }
     catch(err) { scheduleError(res,err); }
