@@ -233,7 +233,7 @@ function field(name,label,value='',type='text',options={}) {
   let input=choices?`<select ${attrs}>${choices.map(x=>{const option=typeof x==='string'?{value:x,label:x}:x;return `<option value="${esc(option.value)}" ${String(value)===String(option.value)?'selected':''}>${esc(option.label)}</option>`;}).join('')}</select>`:type==='textarea'?`<textarea ${attrs} rows="3">${esc(value)}</textarea>`:`<input type="${type}" ${attrs} value="${esc(value)}" ${min!==undefined?`min="${min}"`:''} ${step?`step="${step}"`:''}>`;
   return `<label class="field ${full?'full-width':''}" for="field-${name}">${label}${required?' <span class="sr-only">(required)</span>':''}${input}</label>`;
 }
-function settingsPage() {
+function settingsPage(view='profile') {
   const a=state.ws.account,ind=isIndia(),us=a.country==='US',countryLabel=countryName(a.country);
   const legacy=currencyMismatch()?'<p class="muted" role="alert">Existing amounts are stored in '+esc(a.currency)+'. We will not relabel them. Export valuable history and ask support about migration. Disposable demos may be cleared with confirmation.</p>':'';
   const tzHelp=a.timeZone?'Appointments use '+(US_TIME_ZONE_OPTIONS.find(x=>x.value===a.timeZone)?.label||a.timeZone)+'.':'Set your business time zone so crews see the correct local appointment times.';
@@ -266,7 +266,7 @@ function settingsPage() {
   const canCancel=a.subscription&&!['cancelled','expired'].includes(a.subscription.status);
   const proof=state.billingIdentity||{};
 
-  return pageHeading(...SECTIONS.settings)+renderWorkspaceCustomizer(a.workspacePreferences)+`<div class="settings-grid"><section class="panel">${panelHeader('settings','Business profile','The details used across your workspace')}
+  return pageHeading(...SECTIONS.settings)+renderWorkspaceCustomizer(a.workspacePreferences)+`<div class="settings-grid"><section class="panel" id="settings-profile-panel">${panelHeader('settings','Business profile','The details used across your workspace')}
   <div class="settings-content settings-section-border">
     <div class="business-profile-summary">
       <div class="business-summary-header">
@@ -302,7 +302,7 @@ function settingsPage() {
     ${field('googlePlaceUrl','Google review link',a.googlePlaceUrl,'url',{full:true,placeholder:'Paste HTTPS review link',max:350})}
   </div><p id="profile-error" class="form-error" role="alert" hidden></p>
   <div class="settings-actions"><button type="submit" class="button primary">Save changes</button></div></form>
-  </section><div class="settings-stack"><section class="panel">
+  </section><div class="settings-stack"><section class="panel" id="settings-plan-panel">
   ${panelHeader('payments','Your plan',a.planStatus==='active'?'Cerium Pro is active':a.subscription?.status==='authenticated'?'Automatic billing authorized':a.planStatus==='expired'?'Your free trial has ended':`${a.trialDaysRemaining} days remaining in your free trial`)}
   <div class="settings-content"><p class="eyebrow">CERIUM PRO — ${ind?'INDIA':us?'US':'GLOBAL'} EDITION</p>
     <p class="plan-price">${moneyPrice}<small> / ${currentAnnual?'year':'month'}</small></p>
@@ -312,7 +312,7 @@ function settingsPage() {
     <p class="muted">${ind?'For Indian subscriptions, Razorpay checkout can offer UPI AutoPay where supported. Authorize the mandate in your UPI app; no subscription is active until provider confirmation.':'USD checkout uses eligible international cards. Availability depends on the payment provider.'}</p>
     ${!currencyMismatch()&&canAuthorize?proof.verified?`<div class="settings-actions">${proof.checkoutConfigured?button('Authorize monthly billing','upgrade'):''}${proof.annualCheckoutConfigured?button('Authorize annual billing · '+annualNewPrice+'/year · 1 month free','upgrade-annual'):''}</div>`:'<p class="muted">Complete phone confirmation and billing-country declaration to unlock the recurring payment authorization button.</p>':''}
     ${canCancel?`<p class="muted">Recurring billing ${esc(a.subscription.status)}. Cancel future payments anytime.</p><div class="settings-actions">${button('Cancel subscription','cancel-subscription','','secondary')}</div>`:''}
-  </div></section><section class="panel">
+  </div></section><section class="panel" id="settings-data-panel">
     ${panelHeader('download','Your data','Take a copy whenever you need it')}
     <div class="settings-content"><p class="muted">Export your profile and workspace records as JSON, or bring existing customers and leads from a CSV or Excel spreadsheet. Imports never overwrite existing records.</p>
     <div class="settings-actions">${button(icon('download')+'Export data','export','','secondary')}${button('Import customers / leads','import-leads','','secondary')}</div></div></section>
@@ -363,7 +363,7 @@ function renderPage() {
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():s==='assistant'?assistantPage(state.route.view):supportPage(state.route.view));
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage(state.route.view):s==='assistant'?assistantPage(state.route.view):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
@@ -379,6 +379,12 @@ function renderPage() {
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
+  if(s==='settings'&&state.route.view){
+    if(state.route.view==='tools')$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='data')$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='account')$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    else if(state.route.view==='profile')$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
   if(s==='dues')initializePaymentDuesUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,refresh,toast});
   if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
   if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
