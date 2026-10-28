@@ -75,6 +75,16 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .gbtn{background:#fff;border-radius:8px;border:1px solid var(--ge);color:var(--ink);font-weight:500;box-shadow:0 6px 16px -10px rgba(20,30,50,.3);transition:transform .2s,box-shadow .2s,background .2s}
 .pg .gbtn:hover{background:#fff;transform:translateY(-1px);box-shadow:0 10px 22px -10px rgba(20,30,50,.35)}
 
+/* Eyebrow live pulsing beacon across all pages */
+.pg .ey::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ac);display:inline-block;position:relative;flex:none}
+.pg .ey::before::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--ac);animation:pulse 2.2s ease-out infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}70%,100%{transform:scale(2.4);opacity:0}}
+
+/* Card title hover animated underlines across all marketing pages */
+.pg .cd h3, .pg .feature h3, .pg .pcard h3, .pg .acard h2, .pg .fmc h2, .pg .panel h2{position:relative;display:inline-block}
+.pg .cd h3::after, .pg .feature h3::after, .pg .pcard h3::after, .pg .acard h2::after, .pg .fmc h2::after, .pg .panel h2::after{content:"";position:absolute;left:0;bottom:-.2em;height:3.5px;width:0;border-radius:3px;background:linear-gradient(90deg,#3b5bff 0%,#7c3aed 50%,#d946ef 100%);box-shadow:0 2px 10px rgba(124,58,237,.55);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.pg .cd:hover h3::after, .pg .feature:hover h3::after, .pg .pcard:hover h3::after, .pg .acard:hover h2::after, .pg .fmc:hover h2::after, .pg .panel:hover h2::after{width:100%}
+
 /* glass cards, panels & widgets with refined depth and soft hover lift */
 .pg .cd, .pg .acard, .pg .pcard, .pg .panel, .pg .fmc, .pg .nt, .pg .doc, .pg .kpi-card, .pg .welcome-hero-card, .pg .brief-preview-card, .pg .card{
   position:relative;
