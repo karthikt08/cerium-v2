@@ -156,19 +156,14 @@ test('CERIUM provides 10 top-level categories and full subfeature taxonomies acr
 });
 
 
-test('Overview renders with two-tier layout including Daily Dashboard and KPI subfeatures',()=>{
+test('Overview keeps its standalone pre-two-tier workspace layout',()=>{
   const overviewRoute = resolveWorkspaceRoute('#overview');
   assert.equal(overviewRoute.category, 'overview');
   assert.equal(overviewRoute.label, 'Daily Dashboard');
-  const html = renderFeatureWorkspace(overviewRoute, undefined, '<div>Overview Hero</div>');
-  assert.match(html, /class="workspace-category-heading"/);
-  assert.match(html, /id="workspace-tab-overview"[^>]*aria-selected="true"/);
-  assert.match(html, /Daily Dashboard/);
-  assert.match(html, /class="workspace-subfeature-strip"/);
-  assert.match(html, /data-subfeature="kpis"[^>]*>[\s\S]*?Business KPIs/);
-  assert.match(html, /data-subfeature="actions"[^>]*>[\s\S]*?Quick Actions/);
-  assert.match(html, /data-subfeature="workspace"[^>]*>[\s\S]*?Personalized Workspace/);
-  assert.ok(html.includes('Overview Hero'));
+  const content = '<div>Overview Hero</div>';
+  const html = renderFeatureWorkspace(overviewRoute, undefined, content);
+  assert.equal(html, content, 'Overview content must not be wrapped in the category tab panel');
+  assert.doesNotMatch(html, /workspace-(?:feature-tabs|subfeature-strip|feature-panel)/);
 });
 
 
