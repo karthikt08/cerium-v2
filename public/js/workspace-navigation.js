@@ -51,15 +51,11 @@ export function renderFeatureWorkspace(route,modules,content,workspace,currentSu
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
   const hidden=!featureEnabled(route,modules);
   return `<section class="category-workspace" aria-label="${esc(category.label)}">
-    <div class="workspace-category-heading"><p class="eyebrow">${esc(category.label)}</p><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
+    <div class="workspace-category-heading"><div class="workspace-heading-chrome"><div class="workspace-chrome-dots" aria-hidden="true"><i></i><i></i><i></i></div><p class="eyebrow">${esc(category.label)}</p></div><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
     <div class="workspace-tab-scroll"><div class="workspace-feature-tabs" role="tablist" aria-label="${esc(category.label)} features">
       ${tabs.map(f=>`<a role="tab" id="workspace-tab-${f.id}" class="workspace-feature-tab" href="${f.href}" data-feature="${f.id}" data-nav="${f.href.slice(1)}" aria-selected="${f.id===route.id}" aria-controls="workspace-feature-panel" tabindex="${f.id===route.id?'0':'-1'}" aria-label="${esc(f.label)}${featureRecordCount(f,workspace)?.count?' · '+esc(featureRecordCount(f,workspace).label):''}"><span class="workspace-feature-label">${esc(f.label)}</span>${featureRecordCount(f,workspace)?.count?'<span class="workspace-feature-count" aria-hidden="true">'+featureRecordCount(f,workspace).count+'</span>':''}</a>`).join('')}
     </div></div>
     <section id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel" aria-labelledby="workspace-tab-${route.id}" tabindex="0">
-      <div class="workspace-panel-chrome">
-        <div class="workspace-chrome-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="workspace-chrome-status"><span>${esc(category.label)} · <b class="workspace-chrome-feature">${esc(route.label)}</b></span></div>
-      </div>
       ${renderSubfeaturesBar(route,workspace,currentSubfeature)}
       <div class="workspace-feature-content">
         ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
