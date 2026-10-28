@@ -355,9 +355,89 @@ function assistantPage(view='discovery') {
       </div>
     </div></section></div>`;
 }
-function supportPage() {
-  return pageHeading(...SECTIONS.support)+`<div class="settings-grid"><section class="panel">${panelHeader('support','Write to us','We’d like to hear what would make your work easier.')}<form class="settings-content" id="support-form"><div class="form-grid">${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}${field('subject','Subject','','text',{required:true,full:true,max:100})}${field('body','Message','','textarea',{required:true,full:true,max:700})}</div><p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p><p id="support-error" class="form-error" role="alert" hidden></p><div class="settings-actions"><button class="button primary" type="submit">Open email draft</button></div></form></section><section class="panel">${panelHeader('support','Keep in touch')}<div class="settings-content"><p class="muted">Questions, problems, or something you wish Cerium did better?</p><a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a><p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}</div></section></div>`;
-}
+function supportPage(view='help') {
+  if (view === 'requests') {
+    return pageHeading(...SECTIONS.support)+`<div class="settings-grid">
+      <section class="panel" id="support-requests-panel">
+        ${panelHeader('support','Support Requests','Direct assistance from the Cerium team')}
+        <form class="settings-content" id="support-form">
+          <div class="form-grid">
+            ${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}
+            ${field('subject','Subject','','text',{required:true,full:true,max:100})}
+            ${field('body','Message','','textarea',{required:true,full:true,max:700})}
+          </div>
+          <p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p>
+          <p id="support-error" class="form-error" role="alert" hidden></p>
+          <div class="settings-actions">
+            <button class="button primary" type="submit">Open email draft</button>
+          </div>
+        </form>
+      </section>
+      <section class="panel">
+        ${panelHeader('support','Keep in touch')}
+        <div class="settings-content">
+          <p class="muted">Questions, problems, or something you wish Cerium did better?</p>
+          <a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>
+          <p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>
+          ${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}
+        </div>
+      </section>
+    </div>`;
+  }
+  return pageHeading(...SECTIONS.support)+`<div class="settings-grid">
+    <section class="panel" id="product-help-workflows">
+      ${panelHeader('support','Workflow Explanations','Learn how Cerium unifies daily trade operations')}
+      <div class="settings-content">
+        <div class="guide-suggestions" style="margin-top:0">
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">1. Customers &amp; Sales (CRM)</span>
+              <span class="row-meta">Enquiries &rarr; Pipeline Board &rarr; Follow-ups &rarr; Quotes &amp; Estimates</span>
+              <p class="muted" style="margin:4px 0 0">Capture incoming customer leads, move them across your pipeline board, schedule callbacks, and send itemized quotes.</p>
+            </div>
+            <a class="button secondary" href="#customers/leads" data-nav="customers/leads">Open CRM</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">2. Field Service (FSM)</span>
+              <span class="row-meta">Weekly Calendar &rarr; Dispatch &rarr; Crew Assignments</span>
+              <p class="muted" style="margin:4px 0 0">Schedule work appointments on the weekly calendar, dispatch crew members, and monitor active jobs without external calendars.</p>
+            </div>
+            <a class="button secondary" href="#field/schedule" data-nav="field/schedule">Open Schedule</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">3. Billing &amp; Payments</span>
+              <span class="row-meta">Invoices &rarr; WhatsApp/SMS &rarr; Payments &rarr; Bank Matching</span>
+              <p class="muted" style="margin:4px 0 0">Convert completed jobs to itemized invoices, share payment links/QR, record customer payments, and review deposit matching.</p>
+            </div>
+            <a class="button secondary" href="#billing/invoices" data-nav="billing/invoices">Open Billing</a>
+          </div>
+          <div class="task-row">
+            <div class="row-details">
+              <span class="row-title">4. Marketing &amp; Reputation</span>
+              <span class="row-meta">Get Found &rarr; Re-engage &rarr; Reviews &rarr; Lead Sources</span>
+              <p class="muted" style="margin:4px 0 0">Draft local business updates, send Google review requests to satisfied customers, and analyze top enquiry channels.</p>
+            </div>
+            <a class="button secondary" href="#marketing/visibility" data-nav="marketing/visibility">Open Marketing</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel" id="product-help-feedback">
+      ${panelHeader('support','Help &amp; Feedback','Need a hand or want to report an issue?')}
+      <div class="settings-content">
+        <p class="muted">Cerium is crafted for independent trades and services. We read every message and respond directly.</p>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
+          <a class="button primary" href="#support/support-requests" data-nav="support/support-requests">Contact Support</a>
+          <button class="button secondary" data-action="ask-guide" data-prompt="How do I get started with Cerium?">Ask Cerium AI</button>
+        </div>
+        <p class="eyebrow" style="margin-top:22px">DIRECT CONTACT</p>
+        <a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a>
+      </div>
+    </section>
+  </div>`;
+}
 function renderPage() {
   if(state.route.category)lastUsedTabs[state.route.category]=state.route.id;
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;

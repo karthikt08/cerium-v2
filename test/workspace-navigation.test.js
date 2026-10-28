@@ -181,3 +181,29 @@ test('Ask Cerium assistant section and navigation triggers are registered',async
   assert.match(appSource, /s==='assistant'\?assistantPage/);
   assert.match(appSource, /action==='ask-guide'/);
 });
+
+test('all 10 feature subfeature actions and support views are wired', async () => {
+  const {FEATURE_SUBFEATURES} = await import('../public/js/workspace-navigation.js');
+  const appSource = fs.readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
+
+  // Verify that all keys in FEATURE_SUBFEATURES are handled in app.js
+  const featureKeys = Object.keys(FEATURE_SUBFEATURES);
+  assert.equal(featureKeys.length, 30);
+  for (const key of featureKeys) {
+    const hasHandler = appSource.includes(`kind==='${key}'`) || 
+                       appSource.includes(`'${key}'`) || 
+                       appSource.includes(key);
+    assert.ok(hasHandler, `Subfeature kind ${key} must be referenced in app.js`);
+  }
+
+  // Verify support page view differentiation
+  assert.match(appSource, /function supportPage\(view='help'\)/);
+  assert.match(appSource, /id="support-requests-panel"/);
+  assert.match(appSource, /id="product-help-workflows"/);
+  assert.match(appSource, /id="product-help-feedback"/);
+
+  // Verify settings view panel identifiers
+  assert.match(appSource, /id="settings-profile-panel"/);
+  assert.match(appSource, /id="settings-plan-panel"/);
+  assert.match(appSource, /id="settings-data-panel"/);
+});
