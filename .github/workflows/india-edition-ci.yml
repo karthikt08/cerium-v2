@@ -30,6 +30,11 @@ jobs:
         run: |
           node --check server/db.js
           node --check server/app.js
+          node --check server/copilot.js
+          node --check server/copilot-llm.js
+          node --check public/js/guide-assistant.js
+          node --check public/js/guide-links.js
+          node --check public/js/api.js
           node --check public/js/app.js
           node --check public/js/india-market.js
       - name: Execute full Node test suite
