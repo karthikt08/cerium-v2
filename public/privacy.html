@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ---------- Base (same on every page) ---------- */
-body{margin:0;background:#f4f6fa}
+body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth;scroll-padding-top:96px}
 .pg{--ac:#2f5bff;--bg:#f4f6fa;--ink:#0c1729;--mut:#566178;--ln:#dde3ee;--wh:#fff;--hf:"Castrade","Castrade Personal Use Only","Bricolage Grotesque",system-ui,sans-serif;--bf:"Figtree",system-ui,sans-serif;position:relative;isolation:isolate;overflow-x:clip;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--bf)}
 .pg *{box-sizing:border-box}.pg a{color:inherit;text-decoration:none}
 .pg h1,.pg h2,.pg h3,.lg{font-family:var(--hf);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:0}
@@ -55,7 +55,7 @@ body{margin:0;background:#f4f6fa}
 
 /* ---------- Privacy and Terms pages only ---------- */
 .lw{display:grid;grid-template-columns:220px minmax(0,740px);justify-content:center;gap:56px;align-items:start;max-width:1160px;margin:0 auto;padding:8px 24px 96px}
-.toc{position:sticky;top:24px;counter-reset:t}
+.toc{position:sticky;top:96px;counter-reset:t;max-height:calc(100vh - 116px);overflow-y:auto;scrollbar-width:thin}
 .th{margin:0 0 12px;font:600 12px var(--bf);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 .pg .toc a{display:block;padding:7px 0 7px 14px;border-left:2px solid var(--ln);color:var(--mut);font-size:15px;line-height:1.35;counter-increment:t;transition:color .2s,border-color .2s}
 .pg .toc a::before{content:counter(t) ". "}
@@ -66,7 +66,7 @@ body{margin:0;background:#f4f6fa}
 .doc .sum ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
 .doc .sum li{display:flex;gap:12px;align-items:flex-start;margin:0;font-size:15.5px;color:var(--ink)}
 .doc .sum li::before{content:"";flex:none;width:6px;height:11px;border:solid var(--ac);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);margin:2px 6px 0 4px}
-.doc h2{counter-increment:s;font-size:clamp(1.4rem,2.4vw,1.75rem);letter-spacing:-.02em;line-height:1.15;margin:44px 0 12px;scroll-margin-top:24px}
+.doc h2{counter-increment:s;font-size:clamp(1.4rem,2.4vw,1.75rem);letter-spacing:-.02em;line-height:1.15;margin:44px 0 12px;scroll-margin-top:96px}
 .doc h2::before{content:counter(s) ". ";color:var(--ac)}
 .doc p,.doc li{color:#2a3550}
 .doc p{margin:0 0 14px}
