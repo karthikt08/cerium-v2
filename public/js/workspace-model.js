@@ -15,6 +15,7 @@ export const SECTIONS = {
   marketing: ['Marketing', 'Plan outreach, re-engage customers and track real workspace activity.'],
   insights: ['Insights & Reports', 'Summaries based on saved business records.'],
   settings: ['Settings', 'Manage your business profile, plan, and data.'],
+  assistant: ['Ask Cerium', 'AI assistant for feature discovery and workflow guidance.'],
   support: ['Help & feedback', 'Get in touch with the people building Cerium.'],
 };
 export const STAGES = ['New', 'Quoted', 'Booked', 'Done'];
