@@ -61,7 +61,7 @@ try{
     assert.equal((await page.locator('#page-body h1').textContent()).trim(),'Job schedule');
     assert.equal(await page.getByRole('region',{name:'Weekly schedule',exact:true}).count(),1);
   });
-  for(const category of WORKSPACE_CATEGORIES){
+  for(const category of WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id))){
     await check(category.label+' category and every visible feature tab',async()=>{
       await page.locator('[data-category="'+category.id+'"]').click();
       const features=WORKSPACE_FEATURES.filter(f=>f.category===category.id);
@@ -84,7 +84,7 @@ try{
     await page.goBack();await settled('#customers/followups');
     await page.goBack();await settled('#customers/leads');
     await page.goForward();await settled('#customers/followups');
-    await page.locator('[data-category=settings]').click();await settled('#settings');
+    await page.locator('#utility-navigation [data-nav=settings]').click();await settled('#settings');
     await page.locator('[data-category=customers]').click();await settled('#customers/followups');
   });
   await check('Marketing drafts survive reviews, categories and back/forward',async()=>{
@@ -97,7 +97,7 @@ try{
   await check('Unsaved profile fields survive category navigation and clear after saving',async()=>{
     await open('#settings');const saved=(await workspace()).account.businessName;
     await page.locator('#profile-form [name=businessName]').fill('Unsaved Navigation Business');
-    await page.locator('[data-category=customers]').click();await page.locator('[data-category=settings]').click();await settled('#settings');
+    await page.locator('[data-category=customers]').click();await page.locator('#utility-navigation [data-nav=settings]').click();await settled('#settings');
     assert.equal(await page.locator('#profile-form [name=businessName]').inputValue(),'Unsaved Navigation Business');
     assert.equal((await workspace()).account.businessName,saved);
     await page.locator('#profile-form [type=submit]').click();await page.getByText('Business profile saved.',{exact:true}).waitFor();
@@ -106,7 +106,7 @@ try{
   });
   await check('Support drafts survive tab navigation without sending messages',async()=>{
     await open('#support/support-requests');await page.locator('#support-form [name=subject]').fill('Unsent support draft');await page.locator('#support-form [name=body]').fill('Keep my draft text.');
-    await page.locator('[data-category=billing]').click();await page.locator('[data-category=support]').click();await settled('#support/support-requests');
+    await page.locator('[data-category=billing]').click();await page.locator('#utility-navigation [data-nav=support]').click();await settled('#support');await open('#support/support-requests');
     assert.equal(await page.locator('#support-form [name=body]').inputValue(),'Keep my draft text.');assert.equal((await workspace()).messages.length,0);
   });
   await check('Browser navigation keeps open record and tool-customization editors intact',async()=>{
@@ -129,7 +129,7 @@ try{
     await page.evaluate(()=>location.hash='#leads');await settled('#customers/leads');await page.getByText('Preserved Customer',{exact:true}).waitFor();assert.equal(await page.locator('.hidden-tool-notice').count(),1);
     const data=await workspace();assert.deepEqual(data.leads,before);assert.deepEqual(data.account.workspacePreferences.modules,['invoices']);
     await page.goto(t.url+'/app.html#customers');await page.reload();await settled('#overview');assert.equal(await page.locator('[data-category=customers]').isVisible(),false);
-    await page.locator('.workspace-category-heading [data-nav="settings/tools"]').click();
+    await page.locator('#utility-navigation [data-nav="settings/tools"]').click();
     for(const input of await page.locator('input[name=modules]').all())await input.check();
     await page.locator('#workspace-save-modules').click();await page.locator('#workspace-customizer-dialog').waitFor({state:'hidden'});
     await page.locator('[data-category=team]').waitFor({state:'visible'});
