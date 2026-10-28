@@ -41,16 +41,17 @@ export function sanitizeCopilotHistory(value){
   if(!Array.isArray(value))return [];
   let size=0;
   const out=[];
-  // The client keeps only its own model conversation; this is defense in depth.
-  for(const item of value.slice(-MAX_HISTORY)){
+  // Keep the newest valid conversation suffix within the budget, then restore
+  // chronological order. Filling from the oldest turn discards recent context.
+  for(const item of value.slice(-MAX_HISTORY).reverse()){
     if(!item||!['user','assistant'].includes(item.role)||
       typeof item.content!=='string'||!item.content.trim()||item.content.length>700||
       /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(item.content))continue;
-    if(size+item.content.length>MAX_HISTORY_CHARS)continue;
+    if(size+item.content.length>MAX_HISTORY_CHARS)break;
     out.push({role:item.role,content:item.content.trim()});
     size+=item.content.length;
   }
-  return out;
+  return out.reverse();
 }
 
 export function aggregateCopilotContext(workspace,{today}={}){
