@@ -22,7 +22,7 @@ test('all feature pages render the requested angular navigation without changing
   const leads=renderFeatureWorkspace(WORKSPACE_FEATURES.find(x=>x.id==='leads'),undefined,
     '<div class="page-heading"><h1>Leads</h1></div>',
     {account:{country:'IN',timeZone:'Asia/Kolkata'},leads:[{id:1}],followUps:[]});
-  assert.match(leads,/aria-label="Leads · 1 leads"/,'real counts are accessible without bulky visual badges');
+  assert.match(leads,/aria-label="Leads · 1 lead"/,'real counts are accessible without bulky visual badges');
   assert.match(css,/CERIUM SIDE-BRACKET NAV/);
   assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{content:none!important/,'decorative double-glow stays off the navigation');
 });
