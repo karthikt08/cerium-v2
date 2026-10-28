@@ -22,7 +22,7 @@ test('every category feature resolves, has a trusted AI destination and an acces
       assert.equal((html.match(/aria-selected="true"/g)||[]).length,1);
     }
   }
-  assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
+  assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,10);
 });
 test('all saved module combinations hide empty categories and preserve valid last-used destinations',()=>{
   const ids=WORKSPACE_MODULES.map(x=>x.id);
@@ -112,4 +112,44 @@ test('2-tier tabbed layout provides feature tabs and subfeatures under active fe
   assert.match(billingHtml,/data-subfeature="All"[^>]*>[\s\S]*?All Invoices/);
   assert.match(billingHtml,/data-subfeature="Sent"[^>]*>[\s\S]*?Unpaid &amp; Due/);
   assert.match(billingHtml,/data-subfeature="Paid"[^>]*>[\s\S]*?Paid Invoices/);
+});
+
+
+test('CERIUM provides 10 top-level categories and full subfeature taxonomies across all modules',()=>{
+  const expectedCats = [
+    'overview', 'customers', 'field', 'billing', 'marketing',
+    'team', 'insights', 'settings', 'assistant', 'support'
+  ];
+  assert.deepEqual(WORKSPACE_CATEGORIES.map(c=>c.id), expectedCats);
+  assert.equal(WORKSPACE_CATEGORIES.length, 10);
+
+  // Settings & Customization
+  const settingsRoute = resolveWorkspaceRoute('#settings');
+  assert.equal(settingsRoute.category, 'settings');
+  const settingsHtml = renderFeatureWorkspace(settingsRoute, undefined, '<div>Settings Body</div>');
+  assert.match(settingsHtml, /Business Settings/);
+  assert.match(settingsHtml, /Customize Tools/);
+  assert.match(settingsHtml, /Data Management/);
+  assert.match(settingsHtml, /Account &amp; Subscription/);
+  assert.match(settingsHtml, /Business Profile/);
+  assert.match(settingsHtml, /Currency &amp; Country/);
+
+  // Ask Cerium (AI Assistant)
+  const assistantRoute = resolveWorkspaceRoute('#assistant');
+  assert.equal(assistantRoute.category, 'assistant');
+  const assistantHtml = renderFeatureWorkspace(assistantRoute, undefined, '<div>Assistant Body</div>');
+  assert.match(assistantHtml, /Feature Discovery/);
+  assert.match(assistantHtml, /Workflow Guidance/);
+  assert.match(assistantHtml, /Response Experience/);
+  assert.match(assistantHtml, /Find Modules/);
+  assert.match(assistantHtml, /Section Navigation/);
+
+  // Help & Support
+  const supportRoute = resolveWorkspaceRoute('#support');
+  assert.equal(supportRoute.category, 'support');
+  const supportHtml = renderFeatureWorkspace(supportRoute, undefined, '<div>Support Body</div>');
+  assert.match(supportHtml, /Product Help/);
+  assert.match(supportHtml, /Support Requests/);
+  assert.match(supportHtml, /Help &amp; Feedback/);
+  assert.match(supportHtml, /Workflow Explanations/);
 });
