@@ -274,3 +274,14 @@
 .app-page .workspace-subfeature-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:16px;padding:0 5px;font-size:10px;font-weight:600;border-radius:10px;background:#e2e8f0;color:#475569}
 .app-page .workspace-subfeature-tab.active .workspace-subfeature-count,.app-page .workspace-subfeature-tab[aria-pressed="true"] .workspace-subfeature-count{background:#dbeafe;color:#1d4ed8}
 @media print{.workspace-category-heading,.workspace-tab-scroll{display:none!important}.workspace-feature-panel{border:0!important;padding:0!important}}
+
+/* Flat, single-level workspace: remove the inherited two-tier tab frame. */
+.app-page .workspace-category-heading{align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.app-page .workspace-category-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;min-width:0}
+.app-page .workspace-view-picker{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:650;color:#59657a}
+.app-page .workspace-view-picker select{appearance:auto;display:block;max-width:min(360px,70vw);min-width:190px;min-height:40px;border:1px solid #cbd1e2;border-radius:8px;background:#fff;color:#2d3953;padding:8px 12px;font-size:13px;font-family:inherit;cursor:pointer}
+.app-page .workspace-view-picker select:focus-visible{outline:3px solid #6483ff;outline-offset:2px}
+.app-page #page-body .workspace-feature-panel{margin:0;min-height:0;padding:0!important;border:0;border-radius:0;background:transparent;box-shadow:none!important}
+.app-page #page-body .workspace-feature-content{min-width:0}
+@media(max-width:760px){.app-page .workspace-category-actions{width:100%;justify-content:space-between}.app-page .workspace-view-picker{flex:1}.app-page .workspace-view-picker select{min-width:0;width:100%;max-width:100%}}
+@media print{.app-page .workspace-view-picker{display:none!important}}
