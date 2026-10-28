@@ -20,6 +20,7 @@ import {makeTrialSchedule,safeTrialSchedule,safeSubscriptionSchedule} from './tr
 import {lineItemsTotal,lineItemsRoundingAdjustment} from '../public/js/money.js';
 import {parseSpreadsheet,suggestedMapping,mappedLeads,suggestedDueMapping,mappedDues,unmappedColumns} from './spreadsheet-import.js';
 import {answerGuide,validateGuideQuestion} from './guide-assistant.js';
+import {copilotIntent,answerCopilot} from './copilot.js';
 import {GUIDE_SECTIONS} from '../public/js/guide-knowledge.js';
 import {
   sign, unsign, cleanText, csvCell,
@@ -753,11 +754,18 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     });
   });
 
-  // Cerium Guide is a read-only navigation assistant. It cannot invoke business writes.
+  // Cerium Copilot's live business summaries stay on this authenticated server.
+  // They do not invoke an AI provider, expose records to another account, or write business data.
   const guideLimiter=makeLimiter({windowMs:60*1000,limit:12});
   api.post('/assistant/message',guideLimiter,writeLimiter,sameOrigin,requireSession,requireCsrf,async(req,res)=>{
     if(!validateGuideQuestion(req.body?.question))return res.status(400).json({error:'invalid_question',message:'Enter a question of up to 420 characters.'});
-    // Only business type and saved workspace preferences are used for tool advice.
+    const intent=copilotIntent(req.body.question);
+    if(intent){
+      const workspace=db.getWorkspace(req.session.userId);
+      if(!workspace)return res.status(404).json({error:'workspace_not_found'});
+      return res.json(answerCopilot(intent,workspace));
+    }
+    // All other questions keep the existing navigation and workflow guide.
     // Never send account identity, customer lists, invoices or billing records to AI providers.
     const businessUser=db.getUserById(req.session.userId);
     const preferences=db.getWorkspacePreferences(req.session.userId);
