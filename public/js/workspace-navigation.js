@@ -6,18 +6,25 @@ const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"><
 export const SIDEBAR_CATEGORIES=Object.freeze(WORKSPACE_CATEGORIES.filter(c=>!['settings','assistant','support'].includes(c.id)));
 
 export {FEATURE_SUBFEATURES} from './workspace-subviews.js';
-import {selectedSubview,subviewHref,subviewCount,FEATURE_SUBFEATURES} from './workspace-subviews.js';
+import {subfeaturesFor,subviewHref} from './workspace-subviews.js';
 
-export function renderSubfeaturesBar(route, ws, currentSubfeature=selectedSubview(route)){
-  const subs = FEATURE_SUBFEATURES[route?.id];
-  if(!subs?.length) return '';
-  return `<div class="workspace-subfeature-strip"><nav class="workspace-subfeature-bar" aria-label="${esc(route.label)} views">
-    ${subs.map(s=>{
-      const on=s.id===currentSubfeature,count=subviewCount({...route,subview:s.id},ws);
-      return `<a class="workspace-subfeature-tab${on?' active':''}" href="${subviewHref(route,s.id)}" data-nav="${subviewHref(route,s.id).slice(1)}" data-subfeature="${s.id}" data-kind="${route.id}" ${on?'aria-current="page"':''}>
-        <span class="workspace-subfeature-label">${esc(s.label)}</span>${count===null?'':`<span class="workspace-subfeature-count" aria-hidden="true">${count}</span>`}</a>`;
-    }).join('')}
-  </nav></div>`;
+// A single compact selector replaces both tab bars. Registered routes,
+// including saved deep links, remain intact.
+function renderWorkspacePicker(route,features,workspace){
+  const options=features.map(f=>{
+    const count=featureRecordCount(f,workspace);
+    const baseLabel=f.label+(count?.count?' · '+count.count:'');
+    const options=[
+      `<option value="${esc(f.href)}" ${route.href===f.href?'selected':''}>${esc(baseLabel)}</option>`,
+      ...subfeaturesFor(f).map(sub=>{
+        const href=subviewHref(f,sub.id);
+        return `<option value="${esc(href)}" ${route.href===href?'selected':''}>↳ ${esc(sub.label)}</option>`;
+      })
+    ];
+    return `<optgroup label="${esc(f.label)}">${options.join('')}</optgroup>`;
+  });
+  return `<label class="workspace-view-picker" for="workspace-destination"><span>Feature / view</span>
+    <select id="workspace-destination" data-workspace-destination aria-label="Choose a feature or view">${options.join('')}</select></label>`;
 }
 
 export function renderCategoryNavigation(){
@@ -47,36 +54,25 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
     link.title=categoryLabel+details;
   }
 }
-export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=selectedSubview(route)){
-  // The original Overview, Settings and Help pages are standalone, not nested tab panels.
+export function renderFeatureWorkspace(route,modules,content,workspace){
+  // Overview and utility pages remain standalone like the original workspace.
   if(!route.category||['overview','settings','assistant','support'].includes(route.category))return content;
-  const tabs=categoryFeatures(route.category,modules,route.id);
+  const features=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
   const hidden=!featureEnabled(route,modules);
   return `<section class="category-workspace" aria-label="${esc(category.label)}">
-    <div class="workspace-category-heading"><p class="eyebrow">${esc(category.label)}</p><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
-    <div class="workspace-tab-scroll"><div class="workspace-feature-tabs" role="tablist" aria-label="${esc(category.label)} features">
-      ${tabs.map(f=>`<a role="tab" id="workspace-tab-${f.id}" class="workspace-feature-tab" href="${f.href}" data-feature="${f.id}" data-nav="${f.href.slice(1)}" aria-selected="${f.id===route.id}" aria-controls="workspace-feature-panel" tabindex="${f.id===route.id?'0':'-1'}" aria-label="${esc(f.label)}${featureRecordCount(f,workspace)?.count?' · '+esc(featureRecordCount(f,workspace).label):''}"><span class="workspace-feature-label">${esc(f.label)}</span>${featureRecordCount(f,workspace)?.count?'<span class="workspace-feature-count" aria-hidden="true">'+featureRecordCount(f,workspace).count+'</span>':''}</a>`).join('')}
-    </div></div>
-    <section id="workspace-feature-panel" class="workspace-feature-panel" role="tabpanel" aria-labelledby="workspace-tab-${route.id}" tabindex="0">
-      ${renderSubfeaturesBar(route,workspace,currentSubfeature)}
+    <div class="workspace-category-heading">
+      <p class="eyebrow">${esc(category.label)}</p>
+      <div class="workspace-category-actions">${renderWorkspacePicker(route,features,workspace)}<a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
+    </div>
+    <section id="workspace-feature-panel" class="workspace-feature-panel" role="region" aria-label="${esc(route.label)} content">
       <div class="workspace-feature-content">
         ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
       </div>
-    </section></section>`;
+    </section>
+  </section>`;
 }
 export function featureTitle(route){return workspacePathLabel(route);}
 
-// Reveal direct-linked tabs horizontally without moving the page's vertical scroll.
-export function revealActiveFeature(root){
-  for(const [stripSelector,activeSelector] of [
-    ['.workspace-tab-scroll','.workspace-feature-tab[aria-selected="true"]'],
-    ['.workspace-subfeature-strip','.workspace-subfeature-tab[aria-current="page"]']
-  ]){
-    const strip=root.querySelector(stripSelector),tab=root.querySelector(activeSelector);
-    if(!strip||!tab)continue;
-    const edge=strip.getBoundingClientRect(),active=tab.getBoundingClientRect();
-    if(active.width>edge.width||active.left<edge.left)strip.scrollLeft+=active.left-edge.left;
-    else if(active.right>edge.right)strip.scrollLeft+=active.right-edge.right+4;
-  }
-}
+// Kept as a harmless compatibility hook for existing callers.
+export function revealActiveFeature(){ }
