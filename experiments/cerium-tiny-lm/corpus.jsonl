@@ -1,0 +1,36 @@
+{"prompt":"What is Cerium?","completion":"Cerium is a business operations workspace for small teams. It organizes leads, jobs, quotes, invoices, follow-ups and reviews."}
+{"prompt":"How do I start my day?","completion":"Review follow-ups due, scheduled work and overdue invoices. Start with the items that need a response today."}
+{"prompt":"What should I focus on today?","completion":"Check your due follow-up tasks, overdue invoices, and today's jobs. Prioritize urgent commitments."}
+{"prompt":"How can I organize customer calls?","completion":"Create a follow-up task with an owner, due date and next action. Review the list each morning."}
+{"prompt":"How do I track leads?","completion":"Use Leads to record enquiries and move them through New, Quoted, Booked and Done."}
+{"prompt":"How do I avoid losing prospects?","completion":"Record a next step and date for each open lead. Review older leads regularly."}
+{"prompt":"What is a sales lead?","completion":"A sales lead is a potential customer who may be interested in a service or product."}
+{"prompt":"How should I follow up on a quote?","completion":"Confirm the customer received the quote, answer their questions and agree on a specific next step."}
+{"prompt":"How can I create an estimate?","completion":"Open Estimates and quotes, add services, quantities and rates, then review the proposal before sharing."}
+{"prompt":"How do invoices work?","completion":"An invoice records the amount a customer has been asked to pay. It is not proof that money was collected."}
+{"prompt":"What does overdue mean?","completion":"An overdue invoice is unpaid after its due date. Confirm its status before contacting the customer."}
+{"prompt":"How should I handle late payment?","completion":"Check the invoice and its terms, then send a polite reminder through an approved channel."}
+{"prompt":"How do I send an invoice?","completion":"Prepare and preview the invoice. Review the recipient and message before sending a draft."}
+{"prompt":"What is a payment reminder?","completion":"A payment reminder asks a customer to review an unpaid invoice. Keep the amount and due date clear."}
+{"prompt":"How do I track customer requests?","completion":"Add each request to Leads or Follow-ups, record a due date and review pending tasks regularly."}
+{"prompt":"How do I manage field work?","completion":"Use Jobs to schedule work, assign people and check for date conflicts."}
+{"prompt":"How do I avoid double bookings?","completion":"Check team availability before confirming a job. Review overlapping times and assignments."}
+{"prompt":"How do I ask for reviews?","completion":"Request honest feedback after completing the work. Do not promise or invent ratings."}
+{"prompt":"How can I improve repeat business?","completion":"Deliver reliable service, follow up at an appropriate time and make it easy for customers to return."}
+{"prompt":"How do I measure performance?","completion":"Review recorded leads, issued invoices and completed jobs. Do not confuse invoice totals with cash receipts."}
+{"prompt":"How do I import customers?","completion":"Use the import feature in Leads. Map spreadsheet columns and review duplicates before confirming."}
+{"prompt":"Can you change my invoice?","completion":"I can explain the steps, but I cannot change records without an explicit approved action."}
+{"prompt":"Can you send messages automatically?","completion":"No. Customer communication must be reviewed and authorized before it is sent."}
+{"prompt":"What if data is missing?","completion":"Say which records are unavailable instead of guessing counts or amounts."}
+{"prompt":"Should I use marketing tools?","completion":"Choose tools based on your business goals, available time and the channels your customers use."}
+{"prompt":"How can a bakery use Cerium?","completion":"A bakery can track enquiries, customer callbacks, quotes, invoices and repeat orders where relevant."}
+{"prompt":"How can a service contractor use Cerium?","completion":"A contractor can organize leads, quotes, scheduled jobs, crew assignments and invoices in one workspace."}
+{"prompt":"How can I improve operations?","completion":"Start by listing repeated tasks, defining owners and reviewing overdue work every day."}
+{"prompt":"What is cash flow?","completion":"Cash flow tracks money entering and leaving a business over time. Invoice face value is not cash received."}
+{"prompt":"What is gross profit?","completion":"Gross profit is revenue minus direct costs. Calculate it from verified revenue and cost records."}
+{"prompt":"What is a customer follow-up?","completion":"A follow-up is an agreed next communication or task with a customer, usually tied to a date."}
+{"prompt":"Can you predict next month's revenue?","completion":"Not reliably without suitable history and assumptions. A forecast should state its uncertainty."}
+{"prompt":"Can you access the internet?","completion":"This tiny experimental model cannot browse the web or check live external facts."}
+{"prompt":"Where does this answer come from?","completion":"A model learns patterns from its training examples. Verify important details against actual records."}
+{"prompt":"What is an LLM?","completion":"A language model predicts token sequences based on training examples. A tiny model is not a capable general assistant."}
+{"prompt":"How can I stay organized?","completion":"Create clear next actions, assign due dates, and review what remains open each day."}
