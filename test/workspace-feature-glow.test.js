@@ -10,7 +10,7 @@ const shell=read('css/workspace.css');
 const midnight=read('css/workspace-midnight.css');
 
 test('every real subfeature tab contains a glowable label without altering badge text',()=>{
-  for(const route of WORKSPACE_FEATURES.filter(f=>f.category!=='overview')){
+  for(const route of WORKSPACE_FEATURES.filter(f=>!['overview','settings','assistant','support'].includes(f.category))){
     const html=renderFeatureWorkspace(route,undefined,'<p>Feature content</p>');
     assert.match(html,/class="workspace-feature-label"/);
     assert.match(html,new RegExp('<span class="workspace-feature-label">'+

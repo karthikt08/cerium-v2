@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {renderCategoryNavigation,renderUtilityNavigation} from '../public/js/workspace-navigation.js';
+import {SIDEBAR_CATEGORIES,renderCategoryNavigation,renderUtilityNavigation} from '../public/js/workspace-navigation.js';
 import {WORKSPACE_CATEGORIES} from '../public/js/workspace-registry.js';
 const read = p => fs.readFileSync(new URL('../public/' + p, import.meta.url), 'utf8');
 test('rebuilt app has one visual system and loads its real controller',()=>{
@@ -14,9 +14,11 @@ test('rebuilt app has one visual system and loads its real controller',()=>{
 test('every navigation destination has an accessible named link',()=>{
  const html=read('app.html');
  const navigation=renderCategoryNavigation()+renderUtilityNavigation();
- for(const category of WORKSPACE_CATEGORIES){assert.ok(navigation.includes('data-category="'+category.id+'"'));assert.ok(navigation.includes('aria-label="'));}
+ for(const category of SIDEBAR_CATEGORIES){assert.ok(navigation.includes('data-category="'+category.id+'"'));assert.ok(navigation.includes('aria-label="'));}
  for(const utility of ['settings','settings/tools','support'])assert.ok(navigation.includes('data-nav="'+utility+'"'));
+ assert.equal(SIDEBAR_CATEGORIES.length,7);
  assert.match(html,/id="category-navigation"/);
+ assert.match(html,/id="utility-navigation"/);
  assert.match(html,/aria-controls="sidebar"/);
  assert.match(html,/id="workspace-main" tabindex="-1"/);
 });

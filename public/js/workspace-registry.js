@@ -16,7 +16,7 @@ export const WORKSPACE_CATEGORIES=Object.freeze([
 ].map(Object.freeze));
 const feature=(id,category,label,section,view='',modules=[],customHref=null)=>Object.freeze({id,category,label,section,view,modules:Object.freeze(modules),href:customHref||'#'+(category==='overview'?'overview':category+'/'+id)});
 export const WORKSPACE_FEATURES=Object.freeze([
-  feature('overview','overview','Daily Dashboard','overview'),
+  feature('overview','overview','Overview','overview'),
   feature('leads','customers','Leads','leads','',['leads']),
   feature('followups','customers','Follow-ups','followups','',['followups']),
   feature('quotes','customers','Estimates & Quotes','quotes','',['quotes']),
