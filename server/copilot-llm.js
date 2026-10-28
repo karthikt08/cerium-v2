@@ -80,7 +80,7 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   const status=copilotModelStatus({provider,apiKey,ollamaBaseURL});
   if(status.mode!=='llm')return null;
   const selected=model||(provider==='ollama'?'qwen3.5:4b':'gpt-4.1-mini');
-  if(!/^[\w.][\w./:-]{1,79}$/.test(selected))return null;
+  if(!/^[a-zA-Z0-9_][\w./:-]{1,79}$/.test(selected)||selected.includes('..'))return null;
 
   const topic=pickGuide(question,currentSection);
   const guide=topic.matched?
