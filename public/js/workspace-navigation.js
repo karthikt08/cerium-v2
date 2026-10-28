@@ -4,6 +4,11 @@ import {featureRecordCount} from './workspace-counts.js';
 const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"></use></svg>';
 
 export const FEATURE_SUBFEATURES = Object.freeze({
+  overview: Object.freeze([
+    { id: 'kpis', label: 'Business KPIs' },
+    { id: 'actions', label: 'Quick Actions' },
+    { id: 'workspace', label: 'Personalized Workspace' }
+  ]),
   leads: Object.freeze([
     { id: 'list', label: 'All Leads' },
     { id: 'board', label: 'Pipeline Board' },
@@ -48,6 +53,10 @@ export const FEATURE_SUBFEATURES = Object.freeze({
     { id: 'rules', label: 'Automation Rules' },
     { id: 'templates', label: 'Message Templates' }
   ]),
+  dues: Object.freeze([
+    { id: 'all', label: 'All Dues' },
+    { id: 'import', label: 'Import Dues' }
+  ]),
   bank: Object.freeze([
     { id: 'unmatched', label: 'Unmatched Deposits' },
     { id: 'matched', label: 'Matched Records' }
@@ -89,6 +98,49 @@ export const FEATURE_SUBFEATURES = Object.freeze({
   revenue: Object.freeze([
     { id: 'paid', label: 'Paid Revenue' },
     { id: 'outstanding', label: 'Outstanding Invoices' }
+  ]),
+  'business-settings': Object.freeze([
+    { id: 'profile', label: 'Business Profile' },
+    { id: 'currency', label: 'Currency & Country' },
+    { id: 'tax', label: 'GST / Tax' },
+    { id: 'upi', label: 'Saved UPI' }
+  ]),
+  'customize-tools': Object.freeze([
+    { id: 'modules', label: 'Active Modules' },
+    { id: 'presets', label: 'Industry Presets' },
+    { id: 'reflow', label: 'Reflow Overview' }
+  ]),
+  'data-management': Object.freeze([
+    { id: 'import', label: 'Import Leads' },
+    { id: 'mapping', label: 'Column Mapping' },
+    { id: 'export', label: 'Data Export' }
+  ]),
+  'account-subscription': Object.freeze([
+    { id: 'profile', label: 'Profile & Preferences' },
+    { id: 'pricing', label: 'Country-Aware Pricing' },
+    { id: 'plan', label: 'Billing & Plan' }
+  ]),
+  'feature-discovery': Object.freeze([
+    { id: 'modules', label: 'Find Modules' },
+    { id: 'navigate', label: 'Section Navigation' }
+  ]),
+  'workflow-guidance': Object.freeze([
+    { id: 'step-by-step', label: 'Step-by-Step Guides' },
+    { id: 'multi-feature', label: 'Multi-Feature Workflows' },
+    { id: 'context', label: 'Context-Aware Follow-ups' }
+  ]),
+  'response-experience': Object.freeze([
+    { id: 'point-wise', label: 'Point-Wise Answers' },
+    { id: 'progressive', label: 'Progressive Typing' },
+    { id: 'verified-links', label: 'Verified Navigation Links' }
+  ]),
+  'product-help': Object.freeze([
+    { id: 'help', label: 'Help & Feedback' },
+    { id: 'workflows', label: 'Workflow Explanations' }
+  ]),
+  'support-requests': Object.freeze([
+    { id: 'contact', label: 'Contact Support' },
+    { id: 'issues', label: 'Report Issues' }
   ])
 });
 
