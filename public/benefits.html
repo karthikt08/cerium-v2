@@ -81,7 +81,12 @@ section.group{padding:76px 0 0;scroll-margin-top:28px}
 @media(max-width:720px){.pg.home.benefits-page .hd nav{display:none}}
 @media(max-width:620px){.hero{padding:54px 0 44px}.features{grid-template-columns:1fr}.pg.home.benefits-page .feature.cd{padding:23px 24px 25px}.group{padding-top:57px!important}.bottom-cta{padding:60px 0}.footer{display:block}.footer-links{margin-top:15px}}
 @media(max-width:440px){.pg.home.benefits-page .hd{flex-wrap:wrap;justify-content:space-between;border-radius:22px!important}.pg.home.benefits-page .hd-actions{flex:1 1 100%;justify-content:space-between}.pg.home.benefits-page .hd .btn{padding:0 12px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dr{to{stroke-dashoffset:0}}
+.ul{position:absolute;left:0;bottom:-.2em;width:100%;height:auto;overflow:visible;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(124,58,237,.38))}
+.ul path{fill:none;stroke:var(--blue);stroke:url(#ug);stroke-width:5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.1s .4s cubic-bezier(.6,0,.2,1) forwards}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.u{animation:none!important;opacity:1!important;transform:none!important}.ul path{stroke-dashoffset:0}}
 </style>
 <link rel="stylesheet" href="css/brand-motion.css">
 <link rel="stylesheet" href="css/ui-consistency.css">
@@ -97,10 +102,10 @@ section.group{padding:76px 0 0;scroll-margin-top:28px}
 </header>
 <main id="main" class="shell">
 <section class="hero">
-<p class="ey eyebrow">Built into Cerium today</p>
-<h1>From first inquiry to the <span class="ac">next opportunity.</span></h1>
-<p class="lead">A practical workspace for service teams, independent professionals and customer-facing small businesses. Explore the tools available now—not an imaginary roadmap.</p>
-<nav class="hero-nav" aria-label="Feature categories">
+<p class="ey eyebrow u">Built into Cerium today</p>
+<h1 class="u" style="animation-delay:.08s">From first inquiry to the <span class="ac-wrap" style="position:relative;display:inline-block"><span class="ac">next opportunity.</span><svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+<p class="lead u" style="animation-delay:.18s">A practical workspace for service teams, independent professionals and customer-facing small businesses. Explore the tools available now—not an imaginary roadmap.</p>
+<nav class="hero-nav u" style="animation-delay:.26s" aria-label="Feature categories">
 <a href="#win-work">Win work</a><a href="#deliver-work">Deliver work</a><a href="#get-paid">Get paid</a><a href="#grow-business">Grow relationships</a><a href="#run-business">Choose your tools</a>
 </nav>
 </section>

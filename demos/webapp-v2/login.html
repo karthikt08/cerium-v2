@@ -56,6 +56,9 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
 @media(max-width:900px){.au{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){.hd nav{display:none}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dr{to{stroke-dashoffset:0}}
 </style>
 <link rel="stylesheet" href="css/spatial.css">
 </head>

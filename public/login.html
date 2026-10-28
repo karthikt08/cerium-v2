@@ -56,6 +56,9 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 .ft p{color:var(--mut);margin:14px 0 0;max-width:22em}.ft .ff{grid-column:1/-1;max-width:none;border-top:1px solid var(--ln);padding-top:24px;font-size:13px}
 @media(max-width:900px){.au{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){.hd nav{display:none}.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}}
+.u{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dr{to{stroke-dashoffset:0}}
 </style>
 <link rel="stylesheet" href="css/spatial.css">
 <link rel="stylesheet" href="css/landing-workspace-cursor.css">
@@ -84,12 +87,12 @@ body{margin:0;background:#f4f6fa}html{scroll-behavior:smooth}
 <main id="main">
 <section class="hw"><div class="w au">
   <div class="intro">
-    <p class="ey">Sign in</p>
-    <h1>Welcome <span class="ac">back.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
-    <p class="ld">Sign in to your Cerium contractor workspace. Your callbacks, invoices, jobs, payment records, and customer reviews are waiting.</p>
+    <p class="ey u">Sign in</p>
+    <h1 class="u" style="animation-delay:.08s">Welcome <span class="ac">back.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
+    <p class="ld u" style="animation-delay:.18s">Sign in to your Cerium contractor workspace. Your callbacks, invoices, jobs, payment records, and customer reviews are waiting.</p>
   </div>
 
-  <div class="acard" data-rv>
+  <div class="acard u" data-rv style="animation-delay:.14s">
     <h2>Log in to Cerium</h2>
     <p class="sub">Choose your preferred sign-in method:</p>
 
