@@ -1,0 +1,37 @@
+name: Cerium TinyLM research checks
+on:
+  pull_request:
+    paths:
+      - 'experiments/cerium-tiny-lm/**'
+      - '.github/workflows/tinylm-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/cerium-tiny-lm/**'
+      - '.github/workflows/tinylm-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-tinylm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only experiment dependency
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.3,<3'
+      - name: Run TinyLM unit tests
+        run: python -m unittest discover -s experiments/cerium-tiny-lm -p test_tiny_lm.py -v
+      - name: Smoke-train and evaluate a reproducible checkpoint
+        run: |
+          python experiments/cerium-tiny-lm/tiny_lm.py train --steps 12 --eval-every 6 --out output/tinylm-ci.pt
+          python experiments/cerium-tiny-lm/tiny_lm.py eval --checkpoint output/tinylm-ci.pt
+          python experiments/cerium-tiny-lm/tiny_lm.py eval --checkpoint output/tinylm-ci.pt --data experiments/cerium-tiny-lm/evaluation.jsonl --subset all
+          python experiments/cerium-tiny-lm/tiny_lm.py chat --mode verified --prompt 'How do invoices work?'
