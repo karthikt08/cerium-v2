@@ -1,3 +1,4 @@
+import {renderCustomerPayments,initializeCustomerPayments} from './customer-payments-page.js';
 import {renderMigration,initializeMigration} from './migration-page.js';
 import {renderOperations,renderDispatchPlanner,initializeOperations} from './operations-page.js';
 import {INVOICE_CURRENCIES,invoiceCurrencyHint,invoiceCountry,invoiceMoney,invoiceDate} from './invoice-country.js';
@@ -132,7 +133,7 @@ function taskRow(f) {
   return `<div class="task-row"><button class="task-check ${f.done?'completed':''}" data-action="toggle-followup" data-id="${esc(f.id)}" aria-label="${f.done?'Reopen':'Complete'} follow-up for ${esc(f.contactName)}">${f.done?icon('check'):''}</button><div class="row-details"><span class="row-title">${esc(f.contactName)}</span><span class="row-meta">${esc(f.task)} · ${esc(f.channel)}</span></div><div class="row-end">${badge(status)}</div></div>`;
 }
 function invoiceRow(i) {
-  return `<div class="task-row"><span class="mini-avatar lavender">${esc(initials(i.customerName))}</span><div class="row-details"><span class="row-title">${esc(i.customerName)}</span><span class="row-meta">#${esc(i.id)} · Due ${dateLabel(i.dueDate)}</span></div><div class="row-end"><div><span class="amount">${cash(i.total)}</span><div style="margin-top:4px;text-align:right">${badge(i.status)}</div></div><button class="icon-button" data-action="preview-invoice" data-id="${esc(i.id)}" aria-label="Preview invoice ${esc(i.id)}">${icon('chevron')}</button></div></div>`;
+  return `<div class="task-row"><span class="mini-avatar lavender">${esc(initials(i.customerName))}</span><div class="row-details"><span class="row-title">${esc(i.customerName)}</span><span class="row-meta">#${esc(i.id)} · Due ${dateLabel(i.dueDate)}</span></div><div class="row-end"><div><span class="amount">${cash(i.balance??i.total)}</span><div style="margin-top:4px;text-align:right">${badge(i.status)}</div></div><button class="icon-button" data-action="preview-invoice" data-id="${esc(i.id)}" aria-label="Preview invoice ${esc(i.id)}">${icon('chevron')}</button></div></div>`;
 }
 function overview() {
   const ws=state.ws,m=metrics(ws),tz=ws.account.timeZone,now=new Date();
@@ -217,13 +218,14 @@ function renderResults() {
   } else if(kind==='followups') {
     holder.innerHTML=table(['Task','Customer','Due','Channel','Status','Actions'],rows.map(f=>`<tr><td><div class="person">${esc(f.task)}</div></td><td>${esc(f.contactName)}<div class="subline">${esc(f.phone)}</div></td><td>${dateLabel(f.dueDate)}</td><td>${esc(f.channel)}</td><td><button class="button secondary" data-action="toggle-followup" data-id="${esc(f.id)}">${f.done?icon('check')+'Done':'Mark done'}</button></td><td>${rowActions('followup',f.id,f.contactName)}</td></tr>`));
   } else if(kind==='invoices') {
-    holder.innerHTML=table(['Invoice','Customer','Job','Due date','Total','Status','Actions'],rows.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button><div class="subline">${esc(i.jobTitle)}</div></td><td><div class="person">${esc(i.customerName)}</div></td><td>${i.jobId?`<a href="#jobs" data-nav="jobs" class="text-button" title="From completed job">From job ↗</a>`:'—'}</td><td>${dateLabel(i.dueDate)}</td><td class="amount">${esc(invoiceMoney(i.total,i.currency||currency(),i.country||state.ws.account.country))}</td><td><select class="small-select" data-invoice-status="${esc(i.id)}" aria-label="Status of invoice ${esc(i.id)}">${['Draft','Sent','Overdue','Paid'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${rowActions('invoice',i.id,'invoice '+i.id)}</td></tr>`));
+    holder.innerHTML=table(['Invoice','Customer','Job','Due date','Total','Balance','Status','Actions'],rows.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button><div class="subline">${esc(i.jobTitle)}</div></td><td><div class="person">${esc(i.customerName)}</div></td><td>${i.jobId?`<a href="#jobs" data-nav="jobs" class="text-button" title="From completed job">From job ↗</a>`:'—'}</td><td>${dateLabel(i.dueDate)}</td><td class="amount">${esc(invoiceMoney(i.total,i.currency||currency(),i.country||state.ws.account.country))}</td><td class="amount">${esc(invoiceMoney(i.balance??(i.status==='Paid'?0:i.total),i.currency||currency(),i.country||state.ws.account.country))}</td><td><select class="small-select" data-invoice-status="${esc(i.id)}" aria-label="Status of invoice ${esc(i.id)}">${['Draft','Sent','Overdue','Paid'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${rowActions('invoice',i.id,'invoice '+i.id)}</td></tr>`));
   } else if(kind==='reviews') {
     holder.innerHTML=table(['Customer','Job','Status','Request','Actions'],rows.map(r=>`<tr><td><div class="person">${esc(r.customerName)}</div><div class="subline">${esc(r.customerEmail||r.customerPhone)}</div></td><td>${esc(r.jobTitle)}</td><td>${badge(r.status==='Sent'?'Requested':r.status)}</td><td><div class="table-actions">${button('Copy request','copy-review',`data-id="${esc(r.id)}"`,'secondary')}${r.status==='Not Asked'?button('Mark requested','mark-requested',`data-id="${esc(r.id)}"`,'secondary'):r.status!=='Reviewed'?button('Mark received','review-received',`data-id="${esc(r.id)}"`,'secondary'):''}</div></td><td>${rowActions('review',r.id,r.customerName)}</td></tr>`));
   }
   holder.insertAdjacentHTML('beforeend',`<div class="result-footer"><span>${recordLabel}</span><span>Changes are saved to your workspace</span></div>`);
 }
 function paymentsPage(view='paid',sub='paid') {
+  if(sub==='ledger')return renderCustomerPayments(state.ws,readOnly());
   const paid=state.ws.invoices.filter(i=>i.status==='Paid'),tx=state.ws.bankTransactions.filter(t=>t.status==='pending_match');
   const paidTotals=businessInsights({account:state.ws.account,invoices:paid}).currencies
     .map(row=>invoiceMoney(row.paid,row.currency,state.ws.account.country)).join(' · ');
@@ -434,6 +436,7 @@ function renderPage() {
   if(singular[s])renderResults();
   applySubviewLayout($('page-body'),state.route,state.ws);
   initializeOperations({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
+  initializeCustomerPayments({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   initializeMigration({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   drafts.restore(s);
   requestAnimationFrame(()=>revealActiveFeature($('page-body')));
@@ -509,7 +512,7 @@ function previewInvoice(id) {
   const merchantName=supplier?.name??(a.businessName||a.name);
   const upiUri=invoiceUpiUri({
     country:preset.country,currency:i.currency,upiVpa:i.upiVpa,
-    amount:i.total,merchantName,invoiceId:i.id,status:i.status
+    amount:i.balance??i.total,merchantName,invoiceId:i.id,status:i.status
   });
   const upiQr=invoiceUpiQrSvg(upiUri);
   const shareLinks=invoiceShareLinks({invoice:i,merchantName,upiUri});
@@ -530,10 +533,11 @@ function previewInvoice(id) {
     ${taxLines}
     ${ind&&!gst?'<p class="muted">Commercial invoice — no GST charged by the supplier. This is not a GST tax invoice.</p>':''}
     <div class="invoice-total"><span>Total</span><span>${fmt(i.total)}</span></div>
+    ${i.allocatedAmount>0?`<p>Recorded payments: ${fmt(i.allocatedAmount)}</p><div class="invoice-total"><span>Balance due</span><span>${fmt(i.balance)}</span></div>`:''}
     ${upiUri?`<section class="invoice-upi-payment" aria-label="UPI payment information">
       ${upiQr?`<div class="invoice-upi-qr-frame">${upiQr}<small>Scan to pay</small></div>`:''}
       <div class="invoice-upi-payment-details"><strong>Pay by UPI</strong>
-        <p>Payee: ${esc(i.upiVpa)}</p><p>Amount: ${fmt(i.total)}</p>
+        <p>Payee: ${esc(i.upiVpa)}</p><p>Amount: ${fmt(i.balance??i.total)}</p>
         <p><a href="${esc(upiUri)}" rel="nofollow">Open your UPI app to pay</a></p>
         <small>Check the payee and amount in your app. Payment is not confirmed by Cerium; the business must verify receipt.</small>
       </div></section>`:''}
@@ -677,7 +681,7 @@ document.addEventListener('click',e=>{
     const r=getRecord(kind,id);if(!r)return;requestConfirmation('Delete '+(kind==='followup'?'follow-up':kind)+'?',`This permanently removes ${r.name||r.contactName||r.customerName||'this record'}. This cannot be undone.`,async()=>{await deleteCalls[kind](id);await refresh();toast('Record deleted.');});return;
   }
   if(action==='clear-data'||action==='delete-account'){
-    requestConfirmation(action==='clear-data'?'Clear your workspace?':'Delete your account?',action==='clear-data'?'This permanently deletes leads, quotes, scheduled jobs, invoices, custom payment dues, reminders, reviews, and other workspace records. Your account and payment history remain. If safe, an older INR demo workspace will start fresh in USD. Export anything you need first.':'This permanently deletes your account and all its records. Export your data first if you need a copy.',async()=>{if(action==='clear-data'){await API.deleteWorkspaceData();await refresh();toast('Workspace cleared.');}else{await API.deleteAccount();location.href='/';}},true);return;
+    requestConfirmation(action==='clear-data'?'Clear your workspace?':'Delete your account?',action==='clear-data'?'This permanently deletes leads, quotes, scheduled jobs, invoices, customer payments and allocations, custom payment dues, reminders, reviews, and other workspace records. Your account and payment history remain. If safe, an older INR demo workspace will start fresh in USD. Export anything you need first.':'This permanently deletes your account and all its records. Export your data first if you need a copy.',async()=>{if(action==='clear-data'){await API.deleteWorkspaceData();await refresh();toast('Workspace cleared.');}else{await API.deleteAccount();location.href='/';}},true);return;
   }
   perform(action+':'+(id||''),el,async()=>{
     if(action==='toggle-followup'){await API.toggleFollowUp(id);await refresh();toast('Follow-up updated.');}

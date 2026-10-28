@@ -160,6 +160,9 @@ export function createReminderStore(db){
         : user.trial_started_at&&(Math.floor((now-Date.parse(user.trial_started_at+'T00:00:00Z'))/86400000)>=Number(user.trial_days_total||15)));
       if(user.plan_status==='expired'||subscriptionExpired||trialExpired)
         return {eligible:false,reason:'Workspace subscription/trial expired.'};
+      const paid=Number(db.prepare('SELECT COALESCE(SUM(a.amount_units),0) AS n FROM invoice_allocations a JOIN customer_receipts p ON p.id=a.receipt_id WHERE a.user_id=? AND a.invoice_id=? AND p.voided_at IS NULL').get(r.user_id,invoice.id).n)/10000;
+      invoice.total=Math.max(0,Math.round((invoice.total-paid)*10000)/10000);
+      if(!invoice.total)return {eligible:false,reason:'Invoice has no outstanding balance.'};
       return {eligible:true,recipient:r.email,invoice,
         businessName:user.business_name||user.name||'Your contractor',
         senderReplyTo:cleanEmail(user.email)||null};
