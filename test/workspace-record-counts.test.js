@@ -98,14 +98,14 @@ test('every list-based feature uses precisely the same underlying record definit
   }
 });
 
-test('tab badges share their totals with sidebar badge and have a descriptive accessible label',()=>{
+test('single feature selector shows the same recorded totals as the sidebar',()=>{
   const ws=sample(),route=resolveWorkspaceRoute('#customers/leads');
   const html=renderFeatureWorkspace(route,['leads','followups','quotes'],'<div>Real leads table</div>',ws);
-  assert.match(html,/role="tablist"/);
-  assert.match(html,/workspace-feature-count" aria-hidden="true">14<\/span>/);
-  assert.match(html,/aria-label="Leads · 14 leads"/);
-  assert.match(html,/aria-label="Follow-ups · 2 follow-ups"/);
-  assert.match(html,/aria-label="Estimates &amp; Quotes · 3 estimates"/);
+  assert.match(html,/data-workspace-destination/);
+  assert.match(html,/value="#customers\/leads" selected[^>]*>Leads · 14/);
+  assert.match(html,/value="#customers\/followups"[^>]*>Follow-ups · 2/);
+  assert.match(html,/value="#customers\/quotes"[^>]*>Estimates &amp; Quotes · 3/);
+  assert.doesNotMatch(html,/role="tablist"|workspace-feature-tab|workspace-subfeature-tab/);
   assert.match(html,/Real leads table/);
   const source=fs.readFileSync(new URL('../public/js/app.js',import.meta.url),'utf8');
   assert.match(source,/workspace:state\.ws/);
@@ -122,7 +122,7 @@ test('zero-count records do not show confusing empty badges; no workspace data i
   assert.equal(nav.get('customers').badge.hidden,true);
   assert.equal(nav.get('customers').badge.textContent,'');
   const html=renderFeatureWorkspace(feature('leads'),['leads'],'empty workspace',ws);
-  assert.doesNotMatch(html,/workspace-feature-count/);
+  assert.doesNotMatch(html,/Leads · 0|workspace-feature-count/);
 });
 
 test('filtered result footers explain shown versus total records rather than imply data loss',()=>{
