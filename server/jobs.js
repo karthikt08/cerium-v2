@@ -143,10 +143,10 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       if (q.assigned.get(userId,id).n)throw new JobsError('worker_assigned','Reassign or finish active jobs before archiving this worker.',409);
       q.archive.run(id,userId);return {ok:true};
     },
-    createJob(userId,p){return db.transaction(()=>{
+    createJob(userId,p,{historical=false}={}){return db.transaction(()=>{
       const j=normalize(p,userId),id=randomUUID(),now=new Date().toISOString();
       q.newJob.run(id,userId,j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,now,now,JSON.stringify(j.billableItems));
-      if (j.status==='Completed') { onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
+      if (j.status==='Completed') { if(!historical)onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},
     updateJob(userId,id,p){return db.transaction(()=>{

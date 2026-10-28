@@ -43,6 +43,7 @@ export const WORKSPACE_FEATURES=Object.freeze([
   feature('inventory','team','Inventory','operations','inventory',['jobs']),
   feature('dispatch-planning','field','Dispatch Planning','planning','',['jobs']),
   feature('expenses','billing','Expenses','operations','expenses',['payments']),
+  feature('migration','settings','Spreadsheet Migration','migration'),
   feature('business-settings','settings','Business Settings','settings','profile',[],'#settings'),
   feature('customize-tools','settings','Customize Tools','settings','tools',[],'#settings/tools'),
   feature('data-management','settings','Data Management','settings','data'),
