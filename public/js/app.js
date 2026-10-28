@@ -322,6 +322,39 @@ function settingsPage() {
   </div></div>`;
 }
 
+function assistantPage(view='discovery') {
+  return pageHeading(...SECTIONS.assistant, addButton('lead','New lead'))+
+    `<div class="settings-grid"><section class="panel">${panelHeader('search','Feature Discovery & Operations','Find relevant modules and step-by-step guidance')}<div class="settings-content">
+      <p class="panel-subtitle" style="margin-bottom:16px">Cerium Assistant guides you across all 10 modules: Leads, Quotes, Jobs, Invoices, Payments, Marketing, Team, Insights, Settings and Support.</p>
+      <div class="assistant-prompts-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0;">
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="Which Cerium tools should I use for my business?">Recommend tools ↗</button>
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I convert an accepted quote into a scheduled job and invoice?">Quote to invoice workflow ↗</button>
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits ↗</button>
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I upload an Excel or CSV spreadsheet?">Import contacts ↗</button>
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I dispatch crew and avoid schedule conflicts?">Crew scheduling ↗</button>
+        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I request customer reviews after completing a job?">Review loop ↗</button>
+      </div>
+      <div class="assistant-inline-console" style="border:1px solid #d8e0ec;border-radius:8px;padding:18px;background:#f8fafc;">
+        <p style="font-size:13px;color:#475569;margin:0 0 10px;"><strong>Ask a question:</strong> Get progressive typing answers with verified navigation links.</p>
+        <div style="display:flex;gap:10px;">
+          <input type="text" id="assistant-page-input" class="search-field" placeholder="Ask about features, workflows, or billing…" style="flex:1;padding:9px 14px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+          <button type="button" class="button primary" id="assistant-page-submit">Ask</button>
+        </div>
+      </div>
+    </div></section>
+    <section class="panel">${panelHeader('reports','Verified Navigation Links','Direct paths across all Cerium features')}<div class="settings-content">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="#customers/leads" class="text-button" data-nav="customers/leads">Customers &amp; Sales → Leads ↗</a>
+        <a href="#customers/quotes" class="text-button" data-nav="customers/quotes">Customers &amp; Sales → Estimates &amp; Quotes ↗</a>
+        <a href="#field/schedule" class="text-button" data-nav="field/schedule">Field Service → Job Schedule ↗</a>
+        <a href="#billing/invoices" class="text-button" data-nav="billing/invoices">Billing &amp; Payments → Invoices ↗</a>
+        <a href="#billing/payments" class="text-button" data-nav="billing/payments">Billing &amp; Payments → Payments ↗</a>
+        <a href="#marketing/reviews" class="text-button" data-nav="marketing/reviews">Marketing &amp; Reputation → Reviews ↗</a>
+        <a href="#settings" class="text-button" data-nav="settings">Settings &amp; Customization ↗</a>
+        <a href="#support" class="text-button" data-nav="support">Help &amp; Support ↗</a>
+      </div>
+    </div></section></div>`;
+}
 function supportPage() {
   return pageHeading(...SECTIONS.support)+`<div class="settings-grid"><section class="panel">${panelHeader('support','Write to us','We’d like to hear what would make your work easier.')}<form class="settings-content" id="support-form"><div class="form-grid">${field('category','Topic','Product question','text',{choices:['Product question','Bug report','Suggestion','Service / billing question','Other'],full:true})}${field('subject','Subject','','text',{required:true,full:true,max:100})}${field('body','Message','','textarea',{required:true,full:true,max:700})}</div><p class="muted" style="margin-top:16px">This opens a draft in your email app. You choose when to send it.</p><p id="support-error" class="form-error" role="alert" hidden></p><div class="settings-actions"><button class="button primary" type="submit">Open email draft</button></div></form></section><section class="panel">${panelHeader('support','Keep in touch')}<div class="settings-content"><p class="muted">Questions, problems, or something you wish Cerium did better?</p><a class="support-email" href="mailto:cerium.founders@gmail.com">cerium.founders@gmail.com</a><p class="eyebrow" style="margin-top:22px">SAVED DRAFTS</p>${state.ws.messages.length?state.ws.messages.slice(0,5).map(m=>`<div class="message-row"><h3>${esc(m.subject)}</h3><span class="row-meta">${esc(m.category)} · ${dateLabel(m.createdAt)}</span><p>${esc(m.body.slice(0,140))}</p></div>`).join(''):'<p class="muted">Your recent messages will appear here.</p>'}</div></section></div>`;
 }
@@ -330,7 +363,7 @@ function renderPage() {
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():supportPage());
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():s==='assistant'?assistantPage(state.route.view):supportPage());
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
@@ -538,6 +571,17 @@ document.addEventListener('click',e=>{
   const subTab=e.target.closest('.workspace-subfeature-tab');
   if(subTab){
     const {subfeature,kind}=subTab.dataset;
+    if(kind==='overview'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      if(subfeature==='kpis'){$('page-body').querySelector('.metrics-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='actions'){$('page-body').querySelector('.overview-stage')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      else if(subfeature==='workspace'){$('page-body').querySelector('.overview-workspace-row')?.scrollIntoView({behavior:'smooth',block:'start'});}
+      return;
+    }
     if(kind==='leads'){
       if(subfeature==='list'){state.view='list';(state.filters.leads||={}).status='All';}
       else if(subfeature==='board'){state.view='board';}
@@ -564,12 +608,38 @@ document.addEventListener('click',e=>{
       renderResults();
       return;
     }
+    if(kind==='quotes'){
+      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
+        const on=b.dataset.subfeature===subfeature;
+        b.classList.toggle('active',on);
+        b.setAttribute('aria-pressed',String(on));
+      });
+      const filterSelect=document.getElementById('quotes-filter-status');
+      if(filterSelect){
+        filterSelect.value = subfeature==='sent'?'Sent':subfeature==='accepted'?'Accepted':'';
+        filterSelect.dispatchEvent(new Event('change'));
+      }
+      return;
+    }
+    if(kind==='payments'){
+      if(subfeature==='paid'){go('#billing/payments');}
+      else if(subfeature==='bank'){go('#billing/bank');}
+      return;
+    }
   }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
   if(!state.ws)return;
   if(readOnly() && ['import-leads','new','edit','delete','new-quote','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
+  if(action==='ask-guide'){
+    const prompt=el.dataset.prompt;
+    const drawer=document.getElementById('guide-assistant-drawer');
+    if(drawer&&!drawer.open)drawer.showModal();
+    const input=document.getElementById('guide-assistant-input');
+    if(input){input.value=prompt;input.dispatchEvent(new Event('input'));document.getElementById('guide-assistant-send')?.click();}
+    return;
+  }
   if(action==='import-leads'){
     try{openLeadImport({api:API,readOnly:readOnly(),offline:Boolean(API.localBusinessSetup),onComplete:async(result)=>{await refresh();toast(result.imported+' customers and leads imported.');}});}
     catch(err){toast(err.message||'Could not open spreadsheet import.',true);}

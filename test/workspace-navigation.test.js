@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {WORKSPACE_CATEGORIES,WORKSPACE_FEATURES,WORKSPACE_UTILITIES,resolveWorkspaceRoute,categoryFeatures,categoryDestination,workspaceRouteKnown,workspacePathLabel} from '../public/js/workspace-registry.js';
@@ -168,4 +169,15 @@ test('Overview renders with two-tier layout including Daily Dashboard and KPI su
   assert.match(html, /data-subfeature="actions"[^>]*>[\s\S]*?Quick Actions/);
   assert.match(html, /data-subfeature="workspace"[^>]*>[\s\S]*?Personalized Workspace/);
   assert.ok(html.includes('Overview Hero'));
+});
+
+
+test('Ask Cerium assistant section and navigation triggers are registered',async()=>{
+  const {SECTIONS} = await import('../public/js/workspace-model.js');
+  assert.ok(SECTIONS.assistant, 'SECTIONS.assistant must be defined');
+  assert.equal(SECTIONS.assistant[0], 'Ask Cerium');
+  const appSource = fs.readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
+  assert.match(appSource, /function assistantPage/);
+  assert.match(appSource, /s==='assistant'\?assistantPage/);
+  assert.match(appSource, /action==='ask-guide'/);
 });
