@@ -45,7 +45,7 @@ export function conversationReply(question,{lastSection=null}={}){
   const explicit=pickGuide(text);
   if(prior&&(!explicit.matched||explicit.section===prior.section)){
     if(prior.section==='payments'&&/\b(?:partial|different amount|mismatch|(?:not|doesn'?t) match|undo|wrong (?:invoice|match|amount))\b/i.test(text)){
-      return {...response('followup',"In Payments, you can match a deposit as a partial payment to update the remaining balance, or select Undo match if a deposit was linked to the wrong invoice."),section:'payments',title:prior.title};
+      return {...response('followup',"Use Payments → Payment Ledger & Allocation to record partial payments or split allocations. Void a ledger receipt with a reason to reverse it. Bank Matching has no Undo match control; review the linked invoice and contact Help & Support for an incorrect bank match."),section:'payments',title:prior.title};
     }
     if(prior.section==='invoices'&&/\b(?:terms?|net 15|net 30|due on receipt|tax rate|cgst|sgst|igst)\b/i.test(text)){
       return {...response('followup',"In Invoices, you can choose payment terms (Due on receipt, Net 15, Net 30) and apply line-item tax rates. Use Preview to inspect the computed tax subtotals."),section:'invoices',title:prior.title};
@@ -121,9 +121,9 @@ const WORKFLOWS=[
   // 7. Partial payments, bank deposit matching & reconciliation
   {
     matches:/\b(?:partial payment|split payment|deposit match|bank match|reconcil\w*)\b.{0,90}\b(?:deposit|payment|invoice|transaction|balance|bank)s?\b/i,
-    reply:'Check the unpaid balance in Invoices, review incoming bank transactions in Payments, and confirm the match. Bank Matching currently confirms deposits equal to an invoice total; partial payments are not currently supported.',
+    reply:'Open Billing & Payments → Payments → Payment Ledger & Allocation. Record a verified receipt, choose invoice allocation amounts, and confirm. You can record partial payments, split a receipt across invoices or allocate unused funds later. Bank Matching separately supports recorded deposits equal to an invoice total.',
     actions:['invoices','payments'],
-    steps:'Open Invoices → Check the total → Open Bank Matching → Review the deposit → Confirm only an equal-amount match.'
+    steps:'Open Payments → Payment Ledger & Allocation → Record verified payment → Enter allocations → Confirm.'
   },
   // 8. Overdue invoices & payment reminder escalation
   {
@@ -317,7 +317,7 @@ const TASKS=[
   {section:'payments',match:/\b(?:bank match|reconcil|deposit|paid)\b/i,
     answer:'Open Payments to review incoming deposits and match them to the correct invoice.'},
   {section:'payments',match:/\b(?:partial|split payment|unmatched)\b/i,
-    answer:'Bank Matching supports a recorded deposit equal to the invoice total. Partial payments are not currently supported.'},
+    answer:'Use Payments → Payment Ledger & Allocation for partial payments and split allocations. Record the verified amount, select issued invoices and confirm each allocation. Void a receipt with a reason to reverse its allocations. Bank Matching separately supports deposits equal to an invoice total.'},
   {section:'payments',match:/\b(?:upfront deposit|down payment|retainer|deposit before work)\b/i,
     answer:'Specify deposit terms on your quote, issue an initial invoice in Invoices, and record the incoming deposit in Payments to track the remaining balance.'},
   {section:'payments',match:/\b(?:undo match|wrong invoice matched|unmatch)\b/i,

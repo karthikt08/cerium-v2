@@ -44,17 +44,17 @@ try{
   await check('Feature groups expose the requested implemented tools',async()=>{
     const groups={
       customers:['Leads','Follow-ups','Estimates & Quotes'],
-      field:['Job Schedule','Dispatch','Crew Assignments'],
-      billing:['Invoices','Payments','Payment Reminders','Bank Matching'],
+      field:['Job Schedule','Dispatch','Crew Assignments','Dispatch Planning'],
+      billing:['Invoices','Payments','Payment Reminders','Custom Dues','Bank Matching','Expenses'],
       marketing:['Get Found','Re-engage','Reviews','Performance'],
-      team:['Crew','Assignments'],
+      team:['Crew','Assignments','Availability','Attendance','Timesheets','Inventory'],
       insights:['Business Overview','Sales Insights','Revenue Insights'],
     };
     for(const [category,labels] of Object.entries(groups)){
       await page.locator('[data-category="'+category+'"]').click();
       await settled(page.url().split('#')[1]);
       const visibleLabels=await page.locator('.workspace-feature-tab:visible').evaluateAll(tabs=>tabs.map(tab=>
-        [...tab.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join('').trim()));
+        tab.querySelector('.workspace-feature-label').textContent.trim()));
       assert.deepEqual(visibleLabels,labels);
     }
     await open('#field/schedule');
@@ -68,6 +68,7 @@ try{
       for(const feature of features){
         if(category.id!=='overview')await page.locator('#workspace-tab-'+feature.id).click();
         await settled(feature.href);
+        if(await page.locator('#workspace-customizer-dialog[open]').count())await page.locator('#workspace-cancel-customizer').click();
         assert.equal(await page.locator('[data-category="'+category.id+'"]').getAttribute('aria-current'),'page');
         assert.ok(await page.locator('#page-body h1').count());
         if(category.id!=='overview'){
@@ -83,7 +84,7 @@ try{
     await page.goBack();await settled('#customers/followups');
     await page.goBack();await settled('#customers/leads');
     await page.goForward();await settled('#customers/followups');
-    await page.locator('#utility-navigation [data-nav=settings]').click();await settled('#settings');
+    await page.locator('[data-category=settings]').click();await settled('#settings');
     await page.locator('[data-category=customers]').click();await settled('#customers/followups');
   });
   await check('Marketing drafts survive reviews, categories and back/forward',async()=>{
@@ -96,7 +97,7 @@ try{
   await check('Unsaved profile fields survive category navigation and clear after saving',async()=>{
     await open('#settings');const saved=(await workspace()).account.businessName;
     await page.locator('#profile-form [name=businessName]').fill('Unsaved Navigation Business');
-    await page.locator('[data-category=customers]').click();await page.locator('#utility-navigation [data-nav=settings]').click();await settled('#settings');
+    await page.locator('[data-category=customers]').click();await page.locator('[data-category=settings]').click();await settled('#settings');
     assert.equal(await page.locator('#profile-form [name=businessName]').inputValue(),'Unsaved Navigation Business');
     assert.equal((await workspace()).account.businessName,saved);
     await page.locator('#profile-form [type=submit]').click();await page.getByText('Business profile saved.',{exact:true}).waitFor();
@@ -104,15 +105,15 @@ try{
     await page.locator('[data-action=refresh]').click();await page.waitForFunction(()=>document.querySelector('#profile-form [name=businessName]')?.value==='Updated elsewhere');
   });
   await check('Support drafts survive tab navigation without sending messages',async()=>{
-    await open('#support');await page.locator('#support-form [name=subject]').fill('Unsent support draft');await page.locator('#support-form [name=body]').fill('Keep my draft text.');
-    await page.locator('[data-category=billing]').click();await page.locator('#utility-navigation [data-nav=support]').click();await settled('#support');
+    await open('#support/support-requests');await page.locator('#support-form [name=subject]').fill('Unsent support draft');await page.locator('#support-form [name=body]').fill('Keep my draft text.');
+    await page.locator('[data-category=billing]').click();await page.locator('[data-category=support]').click();await settled('#support/support-requests');
     assert.equal(await page.locator('#support-form [name=body]').inputValue(),'Keep my draft text.');assert.equal((await workspace()).messages.length,0);
   });
   await check('Browser navigation keeps open record and tool-customization editors intact',async()=>{
     await open('#overview');await page.locator('[data-category=customers]').click();await tab('leads');
     await page.locator('[data-action=new][data-kind=lead]').click();await page.locator('#record-form [name=name]').fill('Unsent lead draft');await page.goBack();
     assert.equal(await page.locator('#record-form [name=name]').inputValue(),'Unsent lead draft');assert.equal(await page.locator('#record-dialog').isVisible(),true);await page.keyboard.press('Escape');
-    await page.locator('#utility-navigation [data-nav="settings/tools"]').click();await settled('#settings/tools');await page.locator('#workspace-work-description').fill('Keep my tool-selection draft');
+    await page.locator('.workspace-category-heading [data-nav="settings/tools"]').click();await settled('#settings/tools');await page.locator('#workspace-work-description').fill('Keep my tool-selection draft');
     await page.goBack();assert.equal(await page.locator('#workspace-customizer-dialog').isVisible(),true);assert.equal(await page.locator('#workspace-work-description').inputValue(),'Keep my tool-selection draft');
     assert.equal(await page.locator('#workspace-customizer-dialog').count(),1);await page.locator('#workspace-cancel-customizer').click();
   });
@@ -128,7 +129,7 @@ try{
     await page.evaluate(()=>location.hash='#leads');await settled('#customers/leads');await page.getByText('Preserved Customer',{exact:true}).waitFor();assert.equal(await page.locator('.hidden-tool-notice').count(),1);
     const data=await workspace();assert.deepEqual(data.leads,before);assert.deepEqual(data.account.workspacePreferences.modules,['invoices']);
     await page.goto(t.url+'/app.html#customers');await page.reload();await settled('#overview');assert.equal(await page.locator('[data-category=customers]').isVisible(),false);
-    await page.locator('#utility-navigation [data-nav="settings/tools"]').click();
+    await page.locator('.workspace-category-heading [data-nav="settings/tools"]').click();
     for(const input of await page.locator('input[name=modules]').all())await input.check();
     await page.locator('#workspace-save-modules').click();await page.locator('#workspace-customizer-dialog').waitFor({state:'hidden'});
     await page.locator('[data-category=team]').waitFor({state:'visible'});
@@ -170,7 +171,7 @@ try{
     const before=(await workspace()).invoices;
     await open('#billing/invoices');
     for(const [name,amount] of [['Euro historical customer','EUR 21.50'],['Rupee historical customer','INR 890.12']]){
-      assert.equal(await page.locator('tr').filter({hasText:name}).locator('.amount').textContent(),amount);
+      assert.equal(await page.locator('tr').filter({hasText:name}).locator('.amount').first().textContent(),amount);
     }
     await tab('payments');
     const summary=await page.locator('.panel-subtitle').textContent();
@@ -187,9 +188,9 @@ try{
   await check('Mobile drawer, scrollable feature tabs and keyboard focus work at 320px',async()=>{
     await page.setViewportSize({width:320,height:800});await open('#overview');await page.locator('#menu-toggle').click();await page.locator('[data-category=billing]').click();
     assert.equal(await page.locator('#menu-toggle').getAttribute('aria-expanded'),'false');
-    await page.locator('.workspace-feature-tab[aria-selected=true]').focus();await page.keyboard.press('End');await settled('#billing/bank');
-    assert.equal(await page.locator('#workspace-tab-bank').evaluate(e=>document.activeElement===e),true);
-    const bounds=await page.locator('#workspace-tab-bank').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=321);
+    await page.locator('.workspace-feature-tab[aria-selected=true]').focus();await page.keyboard.press('End');await settled('#billing/expenses');
+    assert.equal(await page.locator('#workspace-tab-expenses').evaluate(e=>document.activeElement===e),true);
+    const bounds=await page.locator('#workspace-tab-expenses').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=321);
     await page.keyboard.press('Home');await settled('#billing/invoices');await page.keyboard.press('ArrowRight');await settled('#billing/payments');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
     await page.screenshot({path:join(out,'billing-mobile.png')});

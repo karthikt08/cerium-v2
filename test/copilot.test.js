@@ -42,6 +42,13 @@ const business={
   ]
 };
 
+test('Copilot overdue answers subtract recorded allocations while issued totals remain intact',()=>{
+  const ws={...business,invoices:[{...business.invoices[0],allocatedAmount:250,balance:1000.5}]};
+  assert.match(answerCopilot('overdue',ws,{today:'2026-10-28'}).reply,/1,000\.50/);
+  assert.match(answerCopilot('priorities',ws,{today:'2026-10-28'}).reply,/1,000\.50/);
+  assert.match(answerCopilot('monthly',ws,{today:'2026-10-28'}).reply,/1,250\.50/);
+});
+
 test('Copilot computes deterministic, read-only overdue and priority summaries',()=>{
   const overdue=answerCopilot('overdue',business,{today:'2026-10-28'});
   assert.equal(overdue.type,'copilot');

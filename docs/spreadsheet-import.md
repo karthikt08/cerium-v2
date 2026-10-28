@@ -21,7 +21,7 @@ Limits: 2 MiB uploaded file, at most 2,000 data rows and 40 populated columns pe
 - Historical leads import without generating reminders, invoices, payments, or review-request records. A populated follow-up date is stored as a date field but does not schedule outreach.
 - Account, CSRF, same-origin, paid/trial entitlement, currency and onboarding gates apply to imports. The file is not retained by Cerium outside this request; previews are not saved. Avoid uploading files containing data you are not permitted to handle.
 - CSV and .xlsx are parsed using bounded server code with no executable spreadsheets or third-party scripts, and zipped workbook data is capped during inflation.
-- This is a **customer/lead migration**, not a historical invoice, accounting, or tax-ledger import. For historical invoices, use the existing export or request a separately reviewed migration.
+- This is a **customer/lead migration**, not a historical invoice, accounting, or tax-ledger import. Use Settings & Customization → Spreadsheet Migration for historical invoices and other supported record types; see [universal migration](universal-migration.md).
 
 ### Regression tests
 

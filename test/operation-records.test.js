@@ -9,6 +9,7 @@ test('operations: isolated records, availability conflicts, attendance, editing,
     const a=t.browser(),b=t.browser();await signIn(t,a,{profile:ALICE});await signIn(t,b,{profile:BOB});
     const ac=(await a.me()).csrfToken,bc=(await b.me()).csrfToken;
     const call=async(path,method='GET',json,other=false)=>{const r=await (other?b:a).req(path,{method,json,csrf:other?bc:ac});return {status:r.status,data:await r.json()};};
+    const archived=(await call('/api/crew','POST',{name:'Archived operator',active:false})).data;assert.equal(archived.active,false);
     const worker=(await call('/api/crew','POST',{name:'Operator'})).data;
     assert.equal((await call('/api/crew/'+worker.id,'PATCH',{name:'Updated Operator'})).data.name,'Updated Operator');
     assert.equal((await call('/api/crew/'+worker.id,'PATCH',{name:'Intruder'},true)).status,404);
@@ -20,6 +21,9 @@ test('operations: isolated records, availability conflicts, attendance, editing,
     const made=(await call('/api/jobs','POST',job)).data;
     assert.equal((await call('/api/operations/dispatch/'+made.id)).data[0].available,true);
     assert.equal((await call('/api/jobs/'+made.id,'PATCH',{workerId:worker.id})).status,200);
+    const window=(await call('/api/operations/availability')).data[0];
+    assert.equal((await call('/api/operations/availability/'+window.id,'PATCH',{startAt:'2026-11-02T12:00'})).status,409);
+    assert.equal((await call('/api/operations/availability')).data[0].startAt,interval.startAt,'conflicting availability edit rolls back');
     assert.equal((await call('/api/jobs','POST',{...job,workerId:worker.id,startAt:'2026-11-02T18:00',endAt:'2026-11-02T19:00'})).status,409);
     assert.equal((await call('/api/operations/availability','POST',{...interval,type:'Unavailable'})).status,409);
     const shift=(await call('/api/operations/timesheets','POST',{workerId:worker.id,jobId:made.id,startAt:'2026-11-02T09:00',breakMinutes:0})).data;

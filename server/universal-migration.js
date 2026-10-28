@@ -28,6 +28,7 @@ export function createMigrationStore(sql){
     return mapping;
   };
   const fingerprint=(target,data)=>{
+    if(target!=='inventory'&&data.reference)return hash(['reference',stable(data.reference)]);
     const fields={leads:['name','email','phone','address'],jobs:['title','customerName','startAt','endAt'],invoices:['customerName','jobTitle','amount','issueDate','dueDate'],expenses:['description','date','amount','currency'],inventory:['sku']}[target];
     return hash(fields.map(k=>stable(data[k])));
   };
@@ -68,7 +69,7 @@ export function createMigrationStore(sql){
       const before=api.getWorkspace(userId),userCurrency=before.account.currency;
       const mapped=new Set(Object.values(mapping).filter(Number.isInteger));
       const dateFields=['date','issueDate','dueDate','paidAt','nextFollowUp'];
-      const known=new Set((target==='expenses'||target==='inventory'?before.operations[target]:before[target]||[]).map(r=>fingerprint(target,{...r,amount:r.amount??r.total})));
+      const known=new Set((target==='expenses'||target==='inventory'?before.operations[target]:before[target]||[]).map(r=>fingerprint(target,{...r,amount:r.amount??(target==='invoices'?(r.details?.subtotal??(r.taxable||r.total)):r.total)})));
       const leadContacts=new Set((before.leads||[]).flatMap(r=>[r.email&&'email:'+stable(r.email),r.phone&&'phone:'+r.phone.replace(/\D/g,'')].filter(Boolean)));
       const rollback={preview:true};
       try{sql.transaction(()=>{

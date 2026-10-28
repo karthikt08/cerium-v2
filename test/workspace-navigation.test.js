@@ -76,9 +76,9 @@ test('Ask Cerium gives category paths and verified destinations for old and new 
   assert.equal(guideNavigationLinks({section:'payments'},'match a bank deposit')[0].href,'#billing/bank');
 });
 
-test('assistant does not advertise unsupported partial payments or undo matching',async()=>{
+test('assistant describes payment allocation and the existing bank-match limitation',async()=>{
   const partial=await answerGuide('How do partial payments and bank deposits work?','payments',{provider:'guide'});
-  assert.match(partial.reply,/partial payments.*not (currently )?supported/i);
+  assert.match(partial.reply,/Payment Ledger & Allocation/);
   assert.doesNotMatch(partial.reply,/balance automatically/);
   const undo=await answerGuide('How do I undo match?','payments',{provider:'guide'});
   assert.match(undo.reply,/no Undo match control/i);

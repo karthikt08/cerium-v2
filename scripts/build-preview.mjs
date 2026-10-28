@@ -135,7 +135,7 @@ function demoAdapter() {
     createMessage:()=>unavailable('Support is available in the connected app. This demo does not open or send messages.'),
     resolveBankMatch:()=>unavailable('Bank connections are unavailable in this demo.'),
   };
-  for(const name of ['createJob','updateJob','deleteJob','createJobInvoice','addCrew','archiveCrew',
+  for(const name of ['saveOperation','deleteOperation','updateCrew','dispatchCandidates','migration','saveMigrationMapping','deleteMigrationMapping','recordCustomerPayment','customerPaymentAction','previewPaymentDueImport','commitPaymentDueImport','createPaymentDue','updatePaymentDue','setPaymentDueStatus','deletePaymentDue','createJob','updateJob','deleteJob','createJobInvoice','addCrew','archiveCrew',
     'createQuote','updateQuote','deleteQuote','sendQuote','quoteLink','convertQuote','createReminder','cancelReminder',
     'getBillingStatus','startBillingPhone','verifyBillingPhone','cancelSubscription','toggleBankConnection'])
     api[name]=()=>unavailable('This action requires the connected CERIUM app.');

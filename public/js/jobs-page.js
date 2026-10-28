@@ -240,11 +240,11 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
         if(data.billableItems.some(item=>!item.description))throw Error('Enter a description for each priced line item.');
         if(data.endAt<=data.startAt)throw Error('The end time must be after the start time.');
         if(form.dataset.jobId)await API.updateJob(form.dataset.jobId,data);else await API.createJob(data);
-      }else if(data.id)await API.updateCrew(data.id,{...data,active:data.active==='true'});else await API.addCrew(data);
+      }else if(data.id)await API.updateCrew(data.id,{...data,active:data.active==='true'});else await API.addCrew({...data,active:data.active==='true'});
       const type=form.dataset.jobForm;
       form.closest('dialog')?.close();await refresh();
       if(type==='crew')formCrew(getWorkspace());
-      toast(type==='crew'?'Crew member added.':data.status==='Completed'?'Job completed. An invoice draft is ready to review.':'Job saved.');
+      toast(type==='crew'?(data.id?'Crew member updated.':'Crew member added.'):data.status==='Completed'?'Job completed. An invoice draft is ready to review.':'Job saved.');
     }catch(e){if(error){error.textContent=e.message;error.hidden=false;}else toast(e.message,true);}
     finally{busy=false;if(submit)submit.disabled=false;}
   });

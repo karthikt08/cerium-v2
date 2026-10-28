@@ -60,4 +60,4 @@ rows; imports do not mark any due as paid.
 
 For other layouts (multiple item rows per order, separate customer master sheets,
 complex installment schedules) do not flatten or guess relationships. Those
-remain a future structured migration workflow with explicit owner mapping.
+are available in Settings & Customization → Spreadsheet Migration, with explicit owner mapping and preview; see [universal migration](universal-migration.md).

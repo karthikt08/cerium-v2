@@ -26,6 +26,9 @@ test('migration previews are reversible, imports validate atomically and preserv
     assert.equal(run(invoice,true).imported,1);
     const inv=t.db.getWorkspace(uid).invoices[0];assert.equal(inv.total,20);assert.equal(inv.paidAt,'2026-09-10');
     assert.equal(run(invoice).duplicates,1);
+    const distinct=file('invoices','Customer,Job title,Amount,Issue date,Due date,Reference\nSame,Work,10,2026-09-01,2026-09-15,ORDER-A\nSame,Work,10,2026-09-01,2026-09-15,ORDER-B',{approved:true});
+    assert.equal(run(distinct,true).imported,2,'distinct external references preserve legitimate repeated work');
+    assert.equal(run(distinct).duplicates,2);
     assert.equal(run(file('invoices','Customer,Job title,Amount,Issue date,Due date,Currency\nDifferent,Work,10,2026-09-01,2026-09-15,EUR')).invalid,1);
   }finally{await t.close();}
 });
