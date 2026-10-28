@@ -66,9 +66,14 @@ export function featureTitle(route){return workspacePathLabel(route);}
 
 // Reveal direct-linked tabs horizontally without moving the page's vertical scroll.
 export function revealActiveFeature(root){
-  const strip=root.querySelector('.workspace-tab-scroll'),tab=root.querySelector('.workspace-feature-tab[aria-selected="true"]');
-  if(!strip||!tab)return;
-  const edge=strip.getBoundingClientRect(),active=tab.getBoundingClientRect();
-  if(active.left<edge.left)strip.scrollLeft-=edge.left-active.left+4;
-  else if(active.right>edge.right)strip.scrollLeft+=active.right-edge.right+4;
+  for(const [stripSelector,activeSelector] of [
+    ['.workspace-tab-scroll','.workspace-feature-tab[aria-selected="true"]'],
+    ['.workspace-subfeature-strip','.workspace-subfeature-tab[aria-current="page"]']
+  ]){
+    const strip=root.querySelector(stripSelector),tab=root.querySelector(activeSelector);
+    if(!strip||!tab)continue;
+    const edge=strip.getBoundingClientRect(),active=tab.getBoundingClientRect();
+    if(active.width>edge.width||active.left<edge.left)strip.scrollLeft+=active.left-edge.left;
+    else if(active.right>edge.right)strip.scrollLeft+=active.right-edge.right+4;
+  }
 }

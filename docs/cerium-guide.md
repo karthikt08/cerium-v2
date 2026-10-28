@@ -40,7 +40,7 @@ Ask Cerium recognizes greetings (e.g. "hi"), help/capabilities questions, acknow
 - Natural descriptions of businesses ("I run a bakery") can trigger the existing local business tool advisor. Business follow-ups continue until a suitable description is available.
 - **Advanced multi-step operations:** The assistant guides users through complex contractor workflows with step-by-step numbered plans and verified direct-action buttons:
   - **Accepted quote conversion:** Confirm approval in Estimates & quotes, book appointments in Jobs & dispatch, then bill completed work in Invoices (`quotes` → `jobs` → `invoices`).
-  - **Bank reconciliation:** Review invoices and matched deposits in Bank Matching. Matching requires a deposit equal to the invoice total; partial payments are not currently supported (`invoices` → `payments`).
+  - **Bank reconciliation:** Review invoices and matched deposits in Bank Matching. Bank Matching requires a deposit equal to the invoice total; Payment Ledger & Allocation supports partial payments and splits across invoices (`invoices` → `payments`).
   - **GST & tax invoice preparation:** Review business registration details in Settings and supported tax fields in the invoice preview. Mixed per-item rates and statutory tax filing are not supported (`settings` → `invoices`).
   - **Bulk contact import & scheduling:** Upload spreadsheets in Leads, inspect duplicate flags, and book work in Jobs & dispatch (`leads` → `jobs`).
   - **Crew dispatch & conflict resolution:** Identify overlapping technician slots in Jobs & dispatch and record briefing notes in Follow-ups (`jobs` → `followups`).

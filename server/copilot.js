@@ -22,11 +22,11 @@ const money=(cents,currency)=>{
 const cents=value=>Number.isFinite(Number(value))?Math.max(0,Math.round(Number(value)*100)):0;
 const countLabel=(count,singular,plural=singular+'s')=>count+' '+(count===1?singular:plural);
 const label=value=>String(value||'Unnamed record').replace(/[\r\n\t]+/g,' ').slice(0,75);
-function sumByCurrency(rows,defaultCurrency){
+function sumByCurrency(rows,defaultCurrency,field='total'){
   const sums=new Map();
   for(const row of rows){
     const currency=/^[A-Z]{3}$/.test(row.currency||'')?row.currency:defaultCurrency;
-    sums.set(currency,(sums.get(currency)||0)+cents(row.total));
+    sums.set(currency,(sums.get(currency)||0)+cents(row[field]??row.total));
   }
   return sums.size?[...sums].map(([currency,total])=>money(total,currency)).join(' + '):money(0,defaultCurrency);
 }
@@ -55,7 +55,7 @@ export function answerCopilot(intent,workspace,{today}={}) {
   let destinations=[];
   if(intent==='priorities'){
     lines.push('**Today\'s business priorities** ('+day+')');
-    if(overdue.length)lines.push('- **Overdue invoices:** '+countLabel(overdue.length,'invoice')+' totaling '+sumByCurrency(overdue,currency)+' require review.');
+    if(overdue.length)lines.push('- **Overdue invoices:** '+countLabel(overdue.length,'invoice')+' totaling '+sumByCurrency(overdue,currency,'balance')+' require review.');
     if(due.length)lines.push('- **Follow-ups due:** '+countLabel(due.length,'task')+' due or past due.');
     if(todayJobs.length)lines.push('- **Jobs today:** '+countLabel(todayJobs.length,'active job')+' scheduled for today.');
     if(stalled.length)lines.push('- **Older open leads:** '+countLabel(stalled.length,'lead')+' still New or Quoted after 7+ days since creation.');
@@ -64,8 +64,8 @@ export function answerCopilot(intent,workspace,{today}={}) {
     destinations=['#invoices','#followups','#jobs','#leads'];
   }else if(intent==='overdue'){
     lines.push('**Overdue invoices** (as of '+day+')');
-    lines.push('- '+countLabel(overdue.length,'invoice')+' overdue; outstanding invoice face value: '+sumByCurrency(overdue,currency)+'.');
-    for(const item of overdue.slice(0,3))lines.push('- '+label(item.customerName)+': '+money(cents(item.total),item.currency||currency)+' (due '+(dateOnly(item.dueDate)||'date unknown')+').');
+    lines.push('- '+countLabel(overdue.length,'invoice')+' overdue; remaining invoice balance: '+sumByCurrency(overdue,currency,'balance')+'.');
+    for(const item of overdue.slice(0,3))lines.push('- '+label(item.customerName)+': '+money(cents(item.balance??item.total),item.currency||currency)+' (due '+(dateOnly(item.dueDate)||'date unknown')+').');
     if(overdue.length>3)lines.push('- '+(overdue.length-3)+' additional overdue invoices in Invoices.');
     lines.push('This is based on unpaid invoice status and due dates; it is not a verified bank balance.');
     destinations=['#invoices','#reminders'];

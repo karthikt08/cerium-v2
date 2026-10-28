@@ -48,6 +48,7 @@ export function applySubviewLayout(root,route,ws){
     const heading=root.querySelector('.page-heading h1');if(heading&&sub!=='calendar')heading.textContent=sub==='active'?'Active work':'Upcoming appointments';
   }
   if(id==='overview'&&route.subview){
+    if(sub!=='actions')root.querySelector('.workspace-feature-content').insertAdjacentHTML('afterbegin',`<div class="page-heading"><div><h1>${sub==='kpis'?'Business KPIs':'Personalized workspace'}</h1><p class="page-description">${sub==='kpis'?'Current activity and balances from your saved records.':'Your selected tools and dashboard cards.'}</p></div></div>`);
     hide('.metrics-grid',sub!=='kpis');
     hide('.overview-stage',sub!=='actions');
     hide('.dashboard-grid,.overview-workspace-row,.overview-tools',sub!=='workspace');
@@ -113,7 +114,7 @@ export function applySubviewLayout(root,route,ws){
     if(event.target.closest('[data-reminder-draft-generate]')){
       const invoice=ws.invoices.find(i=>String(i.id)===draft.elements.invoiceId.value);
       if(!invoice){status.textContent='Choose an invoice before generating a draft.';return;}
-      message.value=`Hello ${invoice.customerName}, a friendly follow-up about invoice #${invoice.id} for ${invoiceMoney(invoice.total,invoice.currency||ws.account.currency,ws.account.country)}, due ${invoice.dueDate}. Please let us know if you have any questions. Thank you.`;
+      message.value=`Hello ${invoice.customerName}, a friendly follow-up about invoice #${invoice.id} for ${invoiceMoney(invoice.balance??invoice.total,invoice.currency||ws.account.currency,ws.account.country)}, due ${invoice.dueDate}. Please let us know if you have any questions. Thank you.`;
       message.dispatchEvent(new Event('input',{bubbles:true}));
     }
     if(event.target.closest('[data-reminder-draft-copy]')){
