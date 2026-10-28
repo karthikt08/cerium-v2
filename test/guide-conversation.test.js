@@ -210,7 +210,8 @@ test('domain intelligence answers contractor operating questions and disambiguat
   assert.equal(paymentFollowup.kind,'followup');
   assert.equal(paymentFollowup.section,'payments');
   assert.match(paymentFollowup.reply,/partial payment/i);
-  assert.match(paymentFollowup.reply,/Undo match/i);
+  assert.match(paymentFollowup.reply,/no Undo match control/i);
+  assert.match(paymentFollowup.reply,/Payment Ledger & Allocation/);
 
   // 7. Intelligent multi-turn follow-up on invoices (payment terms)
   const invoiceFollowup=await answerGuide('What payment terms can I set?','overview',{provider:'guide',lastSection:'invoices'});
