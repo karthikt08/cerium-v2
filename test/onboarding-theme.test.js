@@ -42,6 +42,9 @@ test('phone, business, and payment steps preserve forms and dynamic progress con
   assert.match(script,/details\.workspaceUnlocked/);
   assert.match(script,/API\.startBillingPhone/);
   assert.match(script,/API\.verifyBillingPhone/);
+  assert.match(script,/reason==='phone_in_use'/);
+  assert.match(script,/check\.hidden=true/);
+  assert.match(script,/phone\.focus\(\)/);
   assert.match(script,/API\.getBusinessSetup/);
   assert.match(script,/startSubscriptionCheckout/);
 });
