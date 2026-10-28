@@ -2,12 +2,24 @@
 import {businessLocalDate} from './us-market.js';
 
 export const FEATURE_SUBFEATURES = Object.freeze({
-  migration: Object.freeze([{id:'import',label:'Preview & Import'},{id:'mappings',label:'Saved Mappings'},{id:'fields',label:'Preserved Custom Fields'}]),
-  availability: Object.freeze([{id:'windows',label:'Working Windows & Absences'}]),
+  migration: Object.freeze([
+    { id: 'import', label: 'Preview & Import' },
+    { id: 'types', label: 'Import Other Data Types' },
+    { id: 'advanced', label: 'Advanced File Understanding' },
+    { id: 'mappings', label: 'Saved Mappings' },
+    { id: 'fields', label: 'Preserved Custom Fields' }
+  ]),
+  availability: Object.freeze([
+    { id: 'windows', label: 'Working Windows & Absences' },
+    { id: 'calendar', label: 'True Crew Availability' }
+  ]),
   attendance: Object.freeze([{id:'open',label:'Open Shifts'}]),
   timesheets: Object.freeze([{id:'records',label:'Recorded Hours'}]),
   inventory: Object.freeze([{id:'items',label:'Stock Records'}]),
-  'dispatch-planning': Object.freeze([{id:'candidates',label:'Available Crew'}]),
+  'dispatch-planning': Object.freeze([
+    { id: 'candidates', label: 'Available Crew' },
+    { id: 'planning', label: 'Advanced Dispatch Planning' }
+  ]),
   expenses: Object.freeze([{id:'records',label:'Expense Records'}]),
   overview: Object.freeze([
     { id: 'kpis', label: 'Business KPIs' },
@@ -61,6 +73,8 @@ export const FEATURE_SUBFEATURES = Object.freeze({
   ]),
   dues: Object.freeze([
     { id: 'all', label: 'All Dues' },
+    { id: 'tracking', label: 'Flexible Due-Date Tracking' },
+    { id: 'amounts', label: 'Custom Due Amounts' },
     { id: 'import', label: 'Import Dues' }
   ]),
   bank: Object.freeze([
@@ -138,6 +152,7 @@ export const FEATURE_SUBFEATURES = Object.freeze({
   'response-experience': Object.freeze([
     { id: 'point-wise', label: 'Point-Wise Answers' },
     { id: 'progressive', label: 'Progressive Typing' },
+    { id: 'show-full', label: 'Show Full Answer' },
     { id: 'verified-links', label: 'Verified Navigation Links' }
   ]),
   'product-help': Object.freeze([
