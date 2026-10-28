@@ -38,11 +38,12 @@ try{
       const href=subviewHref(feature,sub.id);await open(href);
       const standalone=['overview','settings','assistant','support'].includes(feature.category);
       if(!standalone){
-        const picker=page.locator('[data-workspace-destination]');
-        assert.equal(await picker.count(),1,href);
-        assert.equal(await picker.inputValue(),href,href);
-        assert.equal(await page.locator('.workspace-feature-tab,.workspace-subfeature-tab').count(),0,href);
-      }else assert.equal(await page.locator('[data-workspace-destination]').count(),0,href);
+        assert.equal(await page.locator('.workspace-feature-tab.active').getAttribute('data-feature'),feature.id,href);
+        const tab=page.locator('.workspace-subfeature-tab.active');
+        assert.equal(await tab.count(),1,href);
+        assert.equal(await tab.getAttribute('href'),href,href);
+        assert.equal(await page.locator('[data-workspace-destination]').count(),0,href);
+      }else assert.equal(await page.locator('.workspace-angular-navigation').count(),0,href);
       assert.ok(await page.locator('#page-body h1:visible').count(),href+' has a visible heading');
       assert.ok((await page.locator('#page-body').innerText()).trim().length>30,href+' has content');
       const ids=await page.locator('[id]').evaluateAll(nodes=>nodes.map(n=>n.id));assert.equal(new Set(ids).size,ids.length,href+' duplicate IDs');count++;
@@ -51,10 +52,10 @@ try{
   });
   await check('Lead and follow-up subviews filter actual records and retain history',async()=>{
     await open('#customers/leads/active');assert.equal(await page.locator('#results tbody tr').count(),2);
-    await page.locator('[data-workspace-destination]').selectOption('#customers/leads/board');await settle('#customers/leads/board');assert.equal(await page.locator('.lead-card').count(),4);
+    await page.locator('.workspace-subfeature-tab[data-subfeature=board]').click();await settle('#customers/leads/board');assert.equal(await page.locator('.lead-card').count(),4);
     await page.goBack();await settle('#customers/leads/active');assert.equal(await page.locator('#results tbody tr').count(),2);
     await open('#customers/followups/Due');assert.equal(await page.locator('#results tbody tr').count(),1);await page.getByText('Overdue callback',{exact:true}).waitFor();
-    await page.locator('[data-workspace-destination]').selectOption('#customers/followups/Upcoming');await page.getByText('Upcoming callback',{exact:true}).waitFor();
+    await page.locator('.workspace-subfeature-tab[data-subfeature=Upcoming]').click();await page.getByText('Upcoming callback',{exact:true}).waitFor();
   });
   await check('Availability and dispatch planning save a reviewed assignment',async()=>{
     await open('#team/availability/windows');const f=page.locator('[data-operation-form]');
@@ -97,21 +98,21 @@ try{
   await check('Assistant guidance is user-triggered and opens the actual panel',async()=>{
     await open('#assistant/response-experience/progressive');await page.locator('[data-action=ask-guide]').click();await page.locator('#guide-panel').waitFor({state:'visible'});await page.locator('#guide-messages .guide-bubble:not(.user)').last().waitFor();await page.locator('#guide-close').click();
   });
-  await check('Mobile single-picker navigation and direct links stay inside the viewport',async()=>{
+  await check('Mobile angular navigation and direct links stay inside the viewport',async()=>{
     await page.setViewportSize({width:320,height:820});await open('#billing/payments/ledger');
-    const picker=page.locator('[data-workspace-destination]');
-    assert.equal(await picker.inputValue(),'#billing/payments/ledger');
-    await picker.selectOption('#billing/payments/bank');await settle('#billing/payments/bank');
-    await page.locator('[data-workspace-destination]').selectOption('#billing/payments/paid');await settle('#billing/payments/paid');
-    await page.locator('[data-workspace-destination]').selectOption('#billing/payments/ledger');await settle('#billing/payments/ledger');
-    const box=await page.locator('[data-workspace-destination]').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=321,JSON.stringify(box));
+    assert.equal(await page.locator('.workspace-subfeature-tab.active').getAttribute('href'),'#billing/payments/ledger');
+    await page.locator('.workspace-subfeature-tab[data-subfeature=bank]').click();await settle('#billing/payments/bank');
+    await page.locator('.workspace-subfeature-tab[data-subfeature=paid]').click();await settle('#billing/payments/paid');
+    await page.locator('.workspace-subfeature-tab[data-subfeature=ledger]').click();await settle('#billing/payments/ledger');
+    const box=await page.locator('.workspace-subfeature-tab.active').boundingBox();
+    assert.ok(box.x>=-1&&box.x+box.width<=321,JSON.stringify(box));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
     await page.waitForFunction(()=>!document.querySelector('#toast-region .toast'));await page.screenshot({path:join(out,'payment-mobile.png')});
     for(const hash of ['#settings/migration/import','#team/timesheets/records','#field/dispatch-planning/candidates','#customers/leads/board']){
       await open(hash);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,hash);
     }
     await page.screenshot({path:join(out,'lead-board-mobile.png')});
-    await page.setViewportSize({width:1440,height:1000});await open('#customers/leads/active');await page.screenshot({path:join(out,'lead-single-picker-desktop.png')});
+    await page.setViewportSize({width:1440,height:1000});await open('#customers/leads/active');await page.screenshot({path:join(out,'lead-side-bracket-desktop.png')});
     await open('#team/availability/windows');await page.screenshot({path:join(out,'availability-desktop.png')});
   });
   await check('New mutation forms are read-only on expired plans',async()=>{
