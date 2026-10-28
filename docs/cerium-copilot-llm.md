@@ -41,6 +41,24 @@ CERIUM_OLLAMA_BASE_URL=http://127.0.0.1:11434
 
 The local Ollama endpoint is loopback-only by design. When deploying Cerium on a remote server, **the model must run on that server or inside the same secured localhost network namespace**; a model installed only on your laptop cannot serve a remote deployment. Do not expose the model's port publicly.
 
+
+## Optional: zero-cost local Cerium TinyLM 100x
+
+Cerium includes an original, purpose-built autoregressive Transformer experiment in `experiments/cerium-tiny-lm/` featuring a 100x scaled architecture (~14.5M parameters with `power100x` profile), KV-caching, nucleus sampling, and an OpenAI-compatible loopback serving endpoint:
+
+```ini
+CERIUM_AI_PROVIDER=tinylm
+CERIUM_AI_MODEL=cerium-tiny-lm-100x
+CERIUM_TINYLM_BASE_URL=http://127.0.0.1:5005
+```
+
+1. Launch the TinyLM server:
+   ```sh
+   python experiments/cerium-tiny-lm/tiny_lm.py serve --checkpoint output/cerium-tiny.pt --port 5005
+   ```
+2. Set the variables in `.env` and start Cerium (`npm run dev`).
+3. Copilot connects over local loopback (`127.0.0.1:5005`), requiring no external subscriptions, API keys, or cloud egress.
+
 ## Alternative cloud model: OpenAI
 
 ```ini

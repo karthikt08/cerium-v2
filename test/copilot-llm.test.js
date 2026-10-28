@@ -22,6 +22,8 @@ test('LLM configuration status requires an actual configured provider',()=>{
   assert.deepEqual(copilotModelStatus({provider:'ollama',ollamaBaseURL:'https://not-loopback.example'}),{mode:'local',provider:null});
   assert.deepEqual(copilotModelStatus({provider:'openai',apiKey:'test-key'}),{mode:'llm',provider:'openai'});
   assert.deepEqual(copilotModelStatus({provider:'ollama',ollamaBaseURL:'http://127.0.0.1:11434'}),{mode:'llm',provider:'ollama'});
+  assert.deepEqual(copilotModelStatus({provider:'tinylm',tinylmBaseURL:'http://127.0.0.1:5005'}),{mode:'llm',provider:'tinylm'});
+  assert.deepEqual(copilotModelStatus({provider:'tinylm',tinylmBaseURL:'https://not-loopback.example'}),{mode:'local',provider:null});
 });
 
 test('Hosted Qwen requires a server API key, not a browser installation',()=>{
@@ -184,6 +186,26 @@ test('No provider or failed calls return null rather than fabricated model answe
     fetcher:async()=>{throw Error('should not fetch');}
   });
   assert.equal(badModel,null);
+});
+
+test('TinyLM provides local generative answers over loopback chat completions',async()=>{
+  let captured;
+  const result=await answerCopilotWithLLM('How do I handle overdue invoices?','overview',{
+    provider:'tinylm',tinylmBaseURL:'http://127.0.0.1:5005',workspace,
+    history:[{role:'user',content:'I have unpaid bills'}],
+    fetcher:async(url,opts)=>{
+      captured={url,opts};
+      return {ok:true,json:async()=>({choices:[{message:{role:'assistant',content:'Send courteous reminders with clear due dates.'}}]})};
+    }
+  });
+  assert.equal(result.source,'llm');
+  assert.equal(result.provider,'tinylm');
+  assert.match(result.reply,/courteous reminders/);
+  assert.equal(captured.url,'http://127.0.0.1:5005/v1/chat/completions');
+  const body=JSON.parse(captured.opts.body);
+  assert.equal(body.model,'cerium-tiny-lm-100x');
+  assert.equal(body.messages[0].role,'system');
+  assert.match(body.messages[0].content,/BUSINESS SNAPSHOT/);
 });
 
 test('Copilot model status requires authentication and returns no credentials',async()=>{
