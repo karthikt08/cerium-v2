@@ -815,7 +815,7 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
   // Keep expired workspaces readable and exportable, but prevent ALL business-data
   // mutations on the server (including direct API requests that bypass the UI).
   // Profile, support, billing, data export, and deletion remain available.
-  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import', '/operations', '/migration'], requireSession, (req, res, next) => {
+  api.use(['/leads', '/followups', '/invoices', '/dues', '/bank', '/reviews', '/jobs', '/crew', '/reminders', '/quotes', '/import', '/operations', '/migration', '/customer-payments'], requireSession, (req, res, next) => {
     if (req.method === 'GET' || req.method === 'HEAD') return next();
     const workspace = db.getWorkspace(req.session.userId);
     if (!workspace) return res.status(404).json({ error: 'workspace_not_found' });
@@ -871,6 +871,12 @@ export function createApp({ config, db, google = null, razorpay = null, phoneVer
     if (!err.code || !err.status) throw err;
     return res.status(err.status).json({ error: err.code, message: err.message });
   };
+  api.post('/customer-payments',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.status(201).json(db.recordCustomerPayment(req.session.userId,req.body));}catch(err){scheduleError(res,err);}
+  });
+  for(const [action,method] of [['allocate','allocateCustomerPayment'],['void','voidCustomerPayment']])api.post('/customer-payments/:id/'+action,writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
+    try{res.json(db[method](req.session.userId,req.params.id,req.body));}catch(err){scheduleError(res,err);}
+  });
   api.get('/migration/mappings',requireSession,(req,res)=>res.json(db.listMigrationMappings(req.session.userId)));
   api.post('/migration/mappings',writeLimiter,sameOrigin,requireSession,requireCsrf,(req,res)=>{
     try{res.status(201).json(db.saveMigrationMapping(req.session.userId,req.body));}catch(err){scheduleError(res,err);}

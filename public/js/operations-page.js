@@ -30,7 +30,7 @@ export function initializeOperations({root,ws,api,refresh,readOnly,toast}){
     form?.addEventListener('submit',async event=>{
       event.preventDefault();if(readOnly())return;
       const button=form.querySelector('[type=submit]'),error=form.querySelector('[data-operation-error]');button.disabled=true;error.hidden=true;
-      try{const data=Object.fromEntries(new FormData(form));await api.saveOperation(kind,data.id,data);document.dispatchEvent(new CustomEvent('cerium:form-saved',{detail:{section:'operations'}}));await refresh();toast('Record saved.');}
+      try{const data=Object.fromEntries(new FormData(form));await api.saveOperation(kind,data.id,data);document.dispatchEvent(new CustomEvent('cerium:form-saved',{detail:{section:kind==='templates'?'reminders':'operations'}}));await refresh();toast('Record saved.');}
       catch(err){error.textContent=err.message;error.hidden=false;}finally{button.disabled=false;}
     });
     holder.addEventListener('click',async event=>{
