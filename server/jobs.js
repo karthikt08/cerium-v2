@@ -136,7 +136,9 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     },
     addCrew(userId,p){
       const name=text(p?.name,'Crew name',100,true),role=opt(p?.role,'Role',80),phone=opt(p?.phone,'Phone',40);
-      const id=randomUUID();q.newCrew.run(id,userId,name,role,phone,new Date().toISOString());return crewOut(q.worker.get(id,userId));
+      if(p.active!==undefined&&typeof p.active!=='boolean')throw new JobsError('invalid_worker','Active must be true or false.');
+      return db.transaction(()=>{const id=randomUUID();q.newCrew.run(id,userId,name,role,phone,new Date().toISOString());
+        if(p.active===false)q.archive.run(id,userId);return crewOut(q.worker.get(id,userId));})();
     },
     archiveCrew(userId,id){
       if (!q.worker.get(id,userId))throw new JobsError('not_found','Crew member not found.',404);

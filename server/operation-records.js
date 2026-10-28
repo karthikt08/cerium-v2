@@ -27,6 +27,15 @@ export function createOperationStore(db){
     CREATE INDEX IF NOT EXISTS operation_owner_kind ON operation_records(user_id,kind);`);
   const out=r=>({...JSON.parse(r.data_json),id:r.id,createdAt:r.created_at,updatedAt:r.updated_at});
   const validKind=kind=>{if(!Object.hasOwn(OPERATION_FIELDS,kind))fail('Unknown record type.',404);};
+  const checkAssignments=(userId,workers)=>{
+    for(const workerId of new Set(workers.filter(Boolean))){
+      const jobs=db.prepare("SELECT id,starts_at,ends_at FROM jobs WHERE user_id=? AND worker_id=? AND status IN ('Scheduled','Confirmed','In progress')").all(userId,workerId);
+      for(const job of jobs){
+        const result=workerAvailability(db,userId,workerId,job.starts_at,job.ends_at,job.id);
+        if(!result.available&&!result.unconfigured)fail('This availability change conflicts with an assigned job. Reassign or reschedule the job first.',409);
+      }
+    }
+  };
   const store={
     listOperationRecords(userId,kind){validKind(kind);return db.prepare('SELECT * FROM operation_records WHERE user_id=? AND kind=? ORDER BY created_at,id').all(userId,kind).map(out);},
     allOperationRecords(userId){return Object.fromEntries(Object.keys(OPERATION_FIELDS).map(kind=>[kind,store.listOperationRecords(userId,kind)]));},
@@ -74,9 +83,16 @@ export function createOperationStore(db){
       }
       const key=id||randomUUID(),now=new Date().toISOString();
       db.prepare('INSERT INTO operation_records(id,user_id,kind,data_json,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data_json=excluded.data_json,updated_at=excluded.updated_at').run(key,userId,kind,JSON.stringify(data),previous?.created_at||now,now);
+      if(kind==='availability')checkAssignments(userId,[data.workerId,previous&&JSON.parse(previous.data_json).workerId]);
       return out(db.prepare('SELECT * FROM operation_records WHERE id=? AND user_id=?').get(key,userId));
     })();},
-    deleteOperationRecord(userId,kind,id){validKind(kind);if(!db.prepare('DELETE FROM operation_records WHERE id=? AND user_id=? AND kind=?').run(id,userId,kind).changes)fail('Record not found.',404);return {ok:true};},
+    deleteOperationRecord(userId,kind,id){return db.transaction(()=>{
+      validKind(kind);const previous=db.prepare('SELECT * FROM operation_records WHERE id=? AND user_id=? AND kind=?').get(id,userId,kind);
+      if(!previous)fail('Record not found.',404);
+      db.prepare('DELETE FROM operation_records WHERE id=? AND user_id=? AND kind=?').run(id,userId,kind);
+      if(kind==='availability')checkAssignments(userId,[JSON.parse(previous.data_json).workerId]);
+      return {ok:true};
+    })();},
     clearOperationRecords(userId){db.prepare('DELETE FROM operation_records WHERE user_id=?').run(userId);},
     dispatchCandidates(userId,jobId){
       const job=db.prepare('SELECT * FROM jobs WHERE id=? AND user_id=?').get(jobId,userId);if(!job)fail('Job not found.',404);

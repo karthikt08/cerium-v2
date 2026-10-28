@@ -21,7 +21,7 @@ import {invoiceUpiUri,invoiceShareLinks,invoiceUpiQrSvg} from './invoice-sharing
 import {mountGuideAssistant} from './guide-assistant.js';
 import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import {WORKSPACE_CATEGORIES,resolveWorkspaceRoute,categoryDestination} from './workspace-registry.js';
-import {renderCategoryNavigation,renderUtilityNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
+import {renderCategoryNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
 import {createWorkspaceDrafts} from './workspace-drafts.js';
 import {selectedSubview,subviewWorkspace,subviewHref} from './workspace-subviews.js';
 import {applySubviewLayout,renderGuidancePage,renderReminderDrafts} from './workspace-view-panels.js';
@@ -33,7 +33,7 @@ const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${nam
 const lastUsedTabs={};
 const state = { route:resolveWorkspaceRoute(location.hash), ws:null, billingIdentity:null, section:routeFromHash(location.hash), filters:{}, view:'list', editor:null, confirmation:null, printInvoice:null, pending:new Set() };
 $('category-navigation').innerHTML=renderCategoryNavigation();
-$('utility-navigation').innerHTML=renderUtilityNavigation();
+
 const drafts=createWorkspaceDrafts($('page-body'),()=>state.section);
 const kindKey = {lead:'leads',followup:'followUps',invoice:'invoices',review:'reviews'};
 const singular = {leads:'lead',followups:'followup',invoices:'invoice',reviews:'review'};
@@ -66,7 +66,7 @@ const panelHeader = (name,title,sub='',right='') => `<div class="panel-header"><
 const pageHeading = (title,description,action='',eyebrow='') => `<div class="page-heading"><div>${eyebrow?`<p class="eyebrow">${esc(eyebrow)}</p>`:''}<h1>${typeof title === 'string' && title.includes('<span') ? title : esc(title)}</h1><p class="page-description">${esc(description)}</p></div><div class="heading-actions">${action}</div></div>`;
 const rowActions = (kind,id,label,extra='') => `<div class="table-actions">${extra}<button class="icon-button" data-action="edit" data-kind="${kind}" data-id="${esc(id)}" aria-label="Edit ${esc(label)}">${icon('edit')}</button><button class="icon-button" data-action="delete" data-kind="${kind}" data-id="${esc(id)}" aria-label="Delete ${esc(label)}">${icon('close')}</button></div>`;
 function toast(message,error=false) {
-  const el=document.createElement('div'); el.className='toast'+(error?' error':''); el.textContent=message; $('toast-region').append(el); setTimeout(()=>el.remove(),5000);
+  const el=document.createElement('div'); el.className='toast'+(error?' error':''); el.textContent=message; $('toast-region').append(el); while($('toast-region').children.length>3)$('toast-region').firstElementChild.remove(); setTimeout(()=>el.remove(),5000);
 }
 function formError(id,message) {
   const el=$(id);
@@ -124,7 +124,7 @@ function go(target,focusTab=false){
   const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
   if(location.hash!==route.href)history.pushState(null,'',route.href);
   navigate(route.href,!focusTab);
-  if(focusTab){const tab=document.querySelector('.workspace-feature-tab[aria-selected="true"]');tab?.focus({preventScroll:true});tab?.scrollIntoView({block:'nearest',inline:'nearest'});}
+  if(focusTab){const tab=document.querySelector(focusTab==='subview'?'.workspace-subfeature-tab[aria-current="page"]':'.workspace-feature-tab[aria-selected="true"]');tab?.focus({preventScroll:true});revealActiveFeature($('page-body'));}
 }
 
 function taskRow(f) {
@@ -421,7 +421,7 @@ function renderPage() {
   const openTools=state.route.id==='customize-tools'&&!state.route.subview&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section,sub=selectedSubview(state.route),scoped=subviewWorkspace(state.route,state.ws);
-  if(s==='leads'&&state.route.subview)state.view=sub==='board'?'board':'list';
+  if(s==='leads')state.view=sub==='board'?'board':'list';
   const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(scoped,readOnly(),state.route.id==='schedule'&&sub!=='calendar'?'dispatch':state.route.view,Boolean(state.route.subview)):s==='quotes'?renderQuotesPage(scoped,readOnly()):s==='reminders'?(sub==='templates'?renderOperations(state.ws,'templates',readOnly())+renderReminderDrafts(state.ws):renderRemindersPage(state.ws,readOnly())):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.id==='payments'&&sub==='bank'?'bank':state.route.view,sub):s==='insights'?renderInsightsPage(state.ws,state.route.view,state.route.subview):s==='settings'?settingsPage(state.route.view):s==='migration'?renderMigration(state.ws,selectedSubview(state.route),readOnly()):s==='operations'?renderOperations(state.ws,state.route.view,readOnly(),state.route.id==='attendance'?'attendance':''):s==='planning'?renderDispatchPlanner(state.ws,readOnly()):s==='assistant'?renderGuidancePage(state.route):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
@@ -605,11 +605,11 @@ window.addEventListener('hashchange',()=>navigate(location.hash,true));
 window.addEventListener('popstate',()=>navigate(location.hash,true));
 document.addEventListener('cerium:form-saved',e=>drafts.clear(e.detail?.section));
 document.addEventListener('keydown',e=>{
-  const tab=e.target.closest('.workspace-feature-tab');
+  const tab=e.target.closest('.workspace-feature-tab,.workspace-subfeature-tab');
   if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-  e.preventDefault();const tabs=[...tab.closest('[role=tablist]').querySelectorAll('[role=tab]')],index=tabs.indexOf(tab);
+  e.preventDefault();const sub=tab.matches('.workspace-subfeature-tab'),tabs=[...tab.closest(sub?'.workspace-subfeature-bar':'[role=tablist]').querySelectorAll(sub?'.workspace-subfeature-tab':'[role=tab]')],index=tabs.indexOf(tab);
   const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
-  go(tabs[next].getAttribute('href'),true);
+  go(tabs[next].getAttribute('href'),sub?'subview':true);
 });
 document.addEventListener('cerium:open-invoice',e=>{
   if(!state.ws)return;
@@ -623,7 +623,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('click',e=>{
   const category=e.target.closest('[data-category]'),nav=e.target.closest('[data-nav]');
-  if(category||nav){if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go(category?categoryDestination(category.dataset.category,state.ws?.account.workspacePreferences?.modules,lastUsedTabs).href:nav.getAttribute('href'),Boolean(nav?.dataset.feature));return;}
+  if(category||nav){if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go(category?categoryDestination(category.dataset.category,state.ws?.account.workspacePreferences?.modules,lastUsedTabs).href:nav.getAttribute('href'),nav?.dataset.subfeature?'subview':Boolean(nav?.dataset.feature));return;}
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}

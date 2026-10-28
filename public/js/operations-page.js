@@ -27,6 +27,8 @@ export function initializeOperations({root,ws,api,refresh,readOnly,toast}){
   const holder=root.querySelector('[data-operation-kind]');
   if(holder){
     const kind=holder.dataset.operationKind,form=holder.querySelector('[data-operation-form]');
+    const clearDraft=()=>document.dispatchEvent(new CustomEvent('cerium:form-saved',{detail:{section:kind==='templates'?'reminders':'operations'}}));
+    form?.addEventListener('reset',clearDraft);
     form?.addEventListener('submit',async event=>{
       event.preventDefault();if(readOnly())return;
       const button=form.querySelector('[type=submit]'),error=form.querySelector('[data-operation-error]');button.disabled=true;error.hidden=true;
@@ -37,10 +39,10 @@ export function initializeOperations({root,ws,api,refresh,readOnly,toast}){
       const edit=event.target.closest('[data-operation-edit]'),del=event.target.closest('[data-operation-delete]'),clock=event.target.closest('[data-operation-clockout]');
       if((!edit&&!del&&!clock)||readOnly())return;
       const id=edit?.dataset.operationEdit||del?.dataset.operationDelete||clock?.dataset.operationClockout,r=(ws.operations[kind]||[]).find(r=>r.id===id);if(!r)return;
-      if(edit){for(const field of form.elements)if(field.name&&r[field.name]!==undefined)field.value=r[field.name];form.scrollIntoView({block:'start'});form.querySelector('input:not([type=hidden]),select')?.focus();return;}
+      if(edit){for(const field of form.elements)if(field.name&&r[field.name]!==undefined){field.value=r[field.name];field.dispatchEvent(new Event('input',{bubbles:true}));}form.scrollIntoView({block:'start'});form.querySelector('input:not([type=hidden]),select')?.focus();return;}
       if(del&&!confirm('Delete this saved record?'))return;
       const button=del||clock;button.disabled=true;
-      try{if(del)await api.deleteOperation(kind,id);else await api.saveOperation(kind,id,{endAt:businessLocalDateTime(ws.account.timeZone)});await refresh();toast(del?'Record deleted.':'Shift completed.');}catch(err){toast(err.message,true);}finally{button.disabled=false;}
+      try{if(del)await api.deleteOperation(kind,id);else await api.saveOperation(kind,id,{endAt:businessLocalDateTime(ws.account.timeZone)});clearDraft();await refresh();toast(del?'Record deleted.':'Shift completed.');}catch(err){toast(err.message,true);}finally{button.disabled=false;}
     });
   }
   const planner=root.querySelector('[data-dispatch-planner]');
