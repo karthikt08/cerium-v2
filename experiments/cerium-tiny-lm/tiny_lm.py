@@ -420,12 +420,12 @@ def train(data, output, steps=150, seed=17, profile=None, context=None,
 
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
 
-    print(f"🌟 Cerium Astra Architecture: context={ctx}, width={cfg['width']}, "
+    print(f"[Astra] Architecture: context={ctx}, width={cfg['width']}, "
           f"layers={cfg['layers']}, heads={cfg['heads']}, kv_heads={cfg.get('kv_heads', cfg['heads'])}, "
           f"moe={cfg.get('moe', False)}")
-    print(f"📊 Model parameters: {model.parameter_count:,} "
+    print(f"[Params] Model parameters: {model.parameter_count:,} "
           f"({model.parameter_count / 121984:.1f}x baseline capacity)")
-    print(f"📚 Training tokens: {len(train_corpus):,} | Validation tokens: {len(val_corpus):,}")
+    print(f"[Data] Training tokens: {len(train_corpus):,} | Validation tokens: {len(val_corpus):,}")
 
     model.train()
     final_loss = 0.0
@@ -736,7 +736,7 @@ def serve(checkpoint: Path, host: str = "127.0.0.1", port: int = 5005):
     model = load_model(checkpoint)
     TinyLMServerHandler.model = model
     server = http.server.HTTPServer((host, port), TinyLMServerHandler)
-    print(f"🌟 Cerium TinyLM Astra serving at http://{host}:{port}/v1/chat/completions")
+    print(f"[Server] Cerium TinyLM Astra serving at http://{host}:{port}/v1/chat/completions")
     print(f"   Architecture: Astra-Transformer | Parameters: {model.parameter_count:,} | Context: {model.config['context']}")
     try:
         server.serve_forever()

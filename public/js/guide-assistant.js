@@ -100,7 +100,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
   shell.id='cerium-guide';
   shell.className='cerium-guide';
   shell.innerHTML='<button type="button" class="guide-trigger" id="guide-trigger" aria-expanded="false" aria-controls="guide-panel">'+
-    '<span class="guide-mark" aria-hidden="true">✦</span><span>Cerium Copilot</span></button>'+
+    '<span class="guide-mark" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg></span><span>Cerium Copilot</span></button>'+
     '<section class="guide-panel" id="guide-panel" aria-label="Cerium Copilot" hidden>'+
       '<div class="guide-header">'+
         '<div class="guide-header-main">'+
@@ -130,7 +130,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       '<div class="guide-announcer" id="guide-announcer" role="status" aria-live="polite" aria-atomic="true"></div>'+
       '<div class="guide-suggestions" id="guide-suggestions" aria-label="Suggested topics">'+
         '<div class="guide-suggestions-header">'+
-          '<span class="guide-suggestions-icon" aria-hidden="true">💡</span>'+
+          '<span class="guide-suggestions-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>'+
           '<span>Suggested for <strong class="guide-section-name" id="guide-section-name">Overview</strong></span>'+
         '</div>'+
         '<div class="guide-suggestions-chips" id="guide-suggestions-chips">'+
@@ -234,7 +234,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
     card.id='guide-welcome-card';
     card.innerHTML=
       '<div class="guide-welcome-header">'+
-        '<span class="guide-welcome-mark" aria-hidden="true">✦</span>'+
+        '<span class="guide-welcome-mark" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg></span>'+
         '<div><strong>Cerium Copilot · Early access</strong>'+
         '<p class="guide-welcome-sub">Ask about business decisions and workflows. Live record summaries work even without an LLM.</p></div>'+
       '</div>'+
@@ -316,7 +316,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       const isChoice=/^Choose\b/i.test(result.steps||'');
       const header=document.createElement('div');
       header.className='guide-workflow-header';
-      header.innerHTML='<span class="guide-plan-tag">'+(isChoice?'🧭 Choose Action':'⚡ Recommended Sequence')+'</span>'+
+      header.innerHTML='<span class="guide-plan-tag">'+(isChoice?'Available Options':'Recommended Sequence')+'</span>'+
         '<span class="guide-plan-count">'+links.length+' '+(isChoice?'options':'steps')+'</span>';
       card.append(header);
 
@@ -395,7 +395,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
 
     const recHeader=document.createElement('div');
     recHeader.className='guide-recommendations-header';
-    recHeader.innerHTML='<span class="guide-rec-icon" aria-hidden="true">🛠</span><span>Recommended Workspace Tools</span>';
+    recHeader.innerHTML='<span class="guide-rec-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Recommended Workspace Tools</span>';
     container.append(recHeader);
 
     for(const item of items){
