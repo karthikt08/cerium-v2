@@ -879,23 +879,33 @@ export function openDb(file) {
       })();
     },
 
-    completeBillingPhone(userId,phone,country,at=Date.now()) {
+    // Preserve precise failure reasons for the OTP API. An approved SMS code
+    // must not be reported as expired when the number belongs to another owner.
+    // The ownership check occurs AFTER provider approval to avoid using this
+    // endpoint to enumerate other accounts' verified phone numbers.
+    completeBillingPhoneResult(userId,phone,country,at=Date.now()) {
       return db.transaction(()=>{
         const proof=billingRow.get(userId),user=q.getUserById.get(userId);
-        if(!proof||!user||proof.pending_country!==country||
-           proof.pending_phone!==phone||proof.pending_expires_at<at||proof.attempts>5)return false;
-        // Do not allow repeated signups to unlock trials using the same
-        // verified phone, even if they use different Google accounts.
-        if(billingPhoneOtherOwner.get(phone,userId))return false;
+        if(!proof||!user||proof.pending_country!==country||proof.pending_phone!==phone)
+          return {ok:false,reason:'verification_changed'};
+        if(proof.pending_expires_at<at)return {ok:false,reason:'expired'};
+        if(proof.attempts>5)return {ok:false,reason:'attempt_limit'};
+        // One verified account per phone, including local development.
+        if(billingPhoneOtherOwner.get(phone,userId))return {ok:false,reason:'phone_in_use'};
         // Edition changes only AFTER OTP success, and never relabel stored money.
         if(user.country!==country){
-          if(pricedHistory(userId)||user.subscription_id)return false;
+          if(pricedHistory(userId)||user.subscription_id)return {ok:false,reason:'country_mismatch'};
           updateCountryForVerifiedPhone.run(country,country==='IN'?'INR':'USD',
             country==='IN'?'Asia/Kolkata':country==='US'?'':'UTC',at,userId);
         }
         billingFinish.run(at,at,userId);
-        return true;
+        return {ok:true};
       })();
+    },
+
+    // Retain the boolean contract for existing callers and tests.
+    completeBillingPhone(userId,phone,country,at=Date.now()) {
+      return this.completeBillingPhoneResult(userId,phone,country,at).ok;
     },
 
     // ---------------------------------------------------------------- Users
