@@ -69,4 +69,51 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers
     }
   },{passive:true});
 }
+
+/* Table of Contents scrollspy for documentation and legal pages */
+var tocEl=document.querySelector('.toc');
+if(tocEl){
+  var tocLinks=[].slice.call(tocEl.querySelectorAll('a[href^="#"]'));
+  var targets=tocLinks.map(function(a){
+    var id=a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+  if(targets.length){
+    var activeId='',ticking=false;
+    function updateToc(){
+      var current=targets[0].id;
+      for(var i=0;i<targets.length;i++){
+        var rect=targets[i].getBoundingClientRect();
+        if(rect.top<=140){
+          current=targets[i].id;
+        }else{
+          break;
+        }
+      }
+      if(activeId!==current){
+        activeId=current;
+        tocLinks.forEach(function(a){
+          if(a.getAttribute('href')==='#'+current){
+            a.classList.add('active');
+            a.setAttribute('aria-current','true');
+            if(typeof a.scrollIntoView==='function'&&tocEl.scrollHeight>tocEl.clientHeight){
+              a.scrollIntoView({block:'nearest',behavior:'smooth'});
+            }
+          }else{
+            a.classList.remove('active');
+            a.removeAttribute('aria-current');
+          }
+        });
+      }
+      ticking=false;
+    }
+    window.addEventListener('scroll',function(){
+      if(!ticking){
+        requestAnimationFrame(updateToc);
+        ticking=true;
+      }
+    },{passive:true});
+    updateToc();
+  }
+}
 })();

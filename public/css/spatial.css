@@ -247,17 +247,15 @@ html body{margin:0;background:#e9ecf1 linear-gradient(180deg,#eef0f5,#e3e7ee) fi
 .pg .c.o{background:#fdecd8}.pg .c.b{background:#e0e8ff}.pg .c.g{background:linear-gradient(135deg,rgba(237,242,255,.95) 0%,rgba(216,228,255,.85) 100%);color:#1d3c93;border:1px solid rgba(59,91,255,.28);box-shadow:0 1px 3px rgba(59,91,255,.1),inset 0 1px 0 rgba(255,255,255,.8)}
 
 /* ---- privacy and terms ---- */
-.pg .toc{position:sticky;top:96px;max-height:calc(100vh - 116px);overflow-y:auto;scrollbar-width:thin}
+.pg .toc{position:sticky;top:96px;max-height:calc(100vh - 124px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(47,91,255,.22) transparent}
 .pg .doc h2,.pg .doc [id]{scroll-margin-top:96px}
-.pg .th,.pg .sh{font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;color:var(--mut)}
-.pg .toc a{border-left-color:var(--ln)}.pg .toc a:hover{border-color:var(--ink)}
 .pg .doc{opacity:1!important;visibility:visible!important}
 .pg .doc *{visibility:visible}
-.pg .doc h2{font-weight:500;letter-spacing:-.03em}
-.pg .doc h2::before{color:var(--mut)}
+.pg .doc h2{letter-spacing:-.02em}
+.pg .doc h2::before{color:var(--ac)}
 .pg .doc p,.pg .doc li{color:#2b313b}
 .pg .doc li::marker{color:var(--mut)}
-.pg .doc a:not(.btn),.pg .note a{color:var(--ink)}
+.pg .doc a:not(.btn),.pg .note a{color:var(--ac)}
 .pg .sum{background:rgba(255,255,255,.6);border:1px solid var(--ge);border-radius:22px}
 .pg .todo{background:rgba(255,236,160,.7);color:#6b4e00}
 .pg .alsoread{border-top-color:var(--ln)}
