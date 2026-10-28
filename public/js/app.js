@@ -363,7 +363,7 @@ function renderPage() {
   const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
   const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():s==='assistant'?assistantPage(state.route.view):supportPage());
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage():s==='assistant'?assistantPage(state.route.view):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
