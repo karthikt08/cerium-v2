@@ -216,7 +216,7 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
   }
 }
 export function renderFeatureWorkspace(route,modules,content,workspace,currentSubfeature=''){
-  if(!route.category)return content;
+  if(!route.category||route.category==='overview')return content;
   const tabs=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
   const hidden=!featureEnabled(route,modules);
