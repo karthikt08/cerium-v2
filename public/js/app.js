@@ -20,6 +20,8 @@ import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import {WORKSPACE_CATEGORIES,resolveWorkspaceRoute,categoryDestination} from './workspace-registry.js';
 import {renderCategoryNavigation,renderUtilityNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
 import {createWorkspaceDrafts} from './workspace-drafts.js';
+import {selectedSubview,subviewWorkspace,subviewHref} from './workspace-subviews.js';
+import {applySubviewLayout,renderGuidancePage,renderReminderDrafts} from './workspace-view-panels.js';
 import {businessInsights,renderInsightsPage} from './workspace-insights.js';
 import { SECTIONS, STAGES, SOURCES, escapeHTML as esc, dateLabel, money, metrics, filteredRows, validateRecord, safeReviewURL, routeFromHash } from './workspace-model.js';
 
@@ -108,7 +110,7 @@ function navigate(target,focus=false) {
   const route=resolveWorkspaceRoute(target,state.ws?.account.workspacePreferences?.modules,lastUsedTabs);
   const same=$('page-body').dataset.route===route.href;
   state.route=route;state.section=route.section;
-  if(route.category)lastUsedTabs[route.category]=route.id;
+  if(route.category)lastUsedTabs[route.category]=route.href;
   setNavigation();closeNavigation();
   window.dispatchEvent(new CustomEvent('cerium:navigation',{detail:{section:state.section,route:route.href}}));
   if(state.ws&&!same){renderPage();$('workspace-main').scrollTop=0;}
@@ -198,7 +200,8 @@ function listPage(kind) {
 function table(head,rows) {return `<div class="table-scroll" tabindex="0" aria-label="Scrollable records table"><table class="data-table"><thead><tr>${head.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
 function renderResults() {
   const kind=state.section,holder=$('results');if(!holder)return;
-  const rows=filteredRows(kind,state.ws,state.filters[kind]);
+  const scoped=state.route.subview?subviewWorkspace(state.route,state.ws):state.ws;
+  const rows=filteredRows(kind,scoped,{...state.filters[kind],status:state.route.subview?'All':state.filters[kind]?.status});
   const total=state.ws[kindKey[singular[kind]]]?.length||0;
   const recordLabel=rows.length===total?`${total} ${total===1?'record':'records'}`:`${rows.length} of ${total} records shown`;
   if(!rows.length) {
@@ -218,12 +221,16 @@ function renderResults() {
   }
   holder.insertAdjacentHTML('beforeend',`<div class="result-footer"><span>${recordLabel}</span><span>Changes are saved to your workspace</span></div>`);
 }
-function paymentsPage(view='paid') {
+function paymentsPage(view='paid',sub='paid') {
   const paid=state.ws.invoices.filter(i=>i.status==='Paid'),tx=state.ws.bankTransactions.filter(t=>t.status==='pending_match');
   const paidTotals=businessInsights({account:state.ws.account,invoices:paid}).currencies
     .map(row=>invoiceMoney(row.paid,row.currency,state.ws.account.country)).join(' · ');
   const note=`<div class="notice">${icon('payments')}<div><strong>Recorded payments and deposits</strong><p>Mark an invoice as paid only after verifying payment. A live bank feed is not connected.</p></div></div>`;
   const deposits=tx.length?`<section class="panel">${panelHeader('payments','Recorded deposits','Review these before marking an invoice as paid')}<div class="panel-body">${tx.map(t=>`<div class="task-row"><div class="row-details"><span class="row-title">${esc(t.description)}</span><span class="row-meta">${dateLabel(t.date)} · ${cash(t.amount)}</span></div>${t.suggestedInvoiceId?button('Match #'+esc(t.suggestedInvoiceId),'match-payment',`data-id="${esc(t.id)}" data-invoice="${esc(t.suggestedInvoiceId)}"`,'secondary'):badge('No suggested match')}${button('Dismiss','dismiss-payment',`data-id="${esc(t.id)}"`,'secondary')}</div>`).join('')}</div></section>`:empty('No deposits awaiting review','Existing recorded deposits appear here when they need matching. No live bank connection is configured.');
+  if(view==='bank'&&sub==='matched'){
+    const matched=state.ws.bankTransactions.filter(t=>t.status==='matched');
+    return pageHeading('Matched records','Confirmed matches from your recorded deposits.')+note+`<section class="panel">${matched.length?table(['Deposit','Date','Amount','Linked invoice'],matched.map(t=>`<tr><td>${esc(t.description)}</td><td>${dateLabel(t.date)}</td><td>${cash(t.amount)}</td><td>${t.matchedInvoiceId?button('#'+esc(t.matchedInvoiceId),'preview-invoice',`data-id="${esc(t.matchedInvoiceId)}"`,'secondary'):'No linked invoice'}</td></tr>`)):empty('No matched deposits','Confirmed matches appear here after manual review.')}</section>`;
+  }
   if(view==='bank')return pageHeading('Bank matching','Review recorded deposits against invoices.',viewLink('billing/payments','Paid invoices'))+note+deposits;
   return pageHeading(...SECTIONS.payments,viewLink('billing/bank','Bank matching'))+note+`<section class="panel">${panelHeader('payments','Paid invoices',`${paid.length} paid${paidTotals?' · '+esc(paidTotals):''} · Totals by invoice currency`)}${paid.length?table(['Invoice','Customer','Paid on','Amount'],paid.map(i=>`<tr><td><button class="text-button" data-action="preview-invoice" data-id="${esc(i.id)}">#${esc(i.id)}</button></td><td><div class="person">${esc(i.customerName)}</div></td><td>${dateLabel(i.paidAt)}</td><td class="amount">${esc(invoiceMoney(i.total,i.currency||currency(),i.country||state.ws.account.country))}</td></tr>`)):empty('No payments recorded yet','Your paid invoices will appear here.')}</section>`;
 }
@@ -322,39 +329,6 @@ function settingsPage(view='profile') {
   </div></div>`;
 }
 
-function assistantPage(view='discovery') {
-  return pageHeading(...SECTIONS.assistant, addButton('lead','New lead'))+
-    `<div class="settings-grid"><section class="panel">${panelHeader('search','Feature Discovery & Operations','Find relevant modules and step-by-step guidance')}<div class="settings-content">
-      <p class="panel-subtitle" style="margin-bottom:16px">Cerium Assistant guides you across all 10 modules: Leads, Quotes, Jobs, Invoices, Payments, Marketing, Team, Insights, Settings and Support.</p>
-      <div class="assistant-prompts-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0;">
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="Which Cerium tools should I use for my business?">Recommend tools ↗</button>
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I convert an accepted quote into a scheduled job and invoice?">Quote to invoice workflow ↗</button>
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I reconcile bank deposits with invoices?">Reconcile deposits ↗</button>
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I upload an Excel or CSV spreadsheet?">Import contacts ↗</button>
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I dispatch crew and avoid schedule conflicts?">Crew scheduling ↗</button>
-        <button type="button" class="button secondary sm" data-action="ask-guide" data-prompt="How do I request customer reviews after completing a job?">Review loop ↗</button>
-      </div>
-      <div class="assistant-inline-console" style="border:1px solid #d8e0ec;border-radius:8px;padding:18px;background:#f8fafc;">
-        <p style="font-size:13px;color:#475569;margin:0 0 10px;"><strong>Ask a question:</strong> Get progressive typing answers with verified navigation links.</p>
-        <div style="display:flex;gap:10px;">
-          <input type="text" id="assistant-page-input" class="search-field" placeholder="Ask about features, workflows, or billing…" style="flex:1;padding:9px 14px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
-          <button type="button" class="button primary" id="assistant-page-submit">Ask</button>
-        </div>
-      </div>
-    </div></section>
-    <section class="panel">${panelHeader('reports','Verified Navigation Links','Direct paths across all Cerium features')}<div class="settings-content">
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <a href="#customers/leads" class="text-button" data-nav="customers/leads">Customers &amp; Sales → Leads ↗</a>
-        <a href="#customers/quotes" class="text-button" data-nav="customers/quotes">Customers &amp; Sales → Estimates &amp; Quotes ↗</a>
-        <a href="#field/schedule" class="text-button" data-nav="field/schedule">Field Service → Job Schedule ↗</a>
-        <a href="#billing/invoices" class="text-button" data-nav="billing/invoices">Billing &amp; Payments → Invoices ↗</a>
-        <a href="#billing/payments" class="text-button" data-nav="billing/payments">Billing &amp; Payments → Payments ↗</a>
-        <a href="#marketing/reviews" class="text-button" data-nav="marketing/reviews">Marketing &amp; Reputation → Reviews ↗</a>
-        <a href="#settings" class="text-button" data-nav="settings">Settings &amp; Customization ↗</a>
-        <a href="#support" class="text-button" data-nav="support">Help &amp; Support ↗</a>
-      </div>
-    </div></section></div>`;
-}
 function supportPage(view='help') {
   if (view === 'requests') {
     return pageHeading(...SECTIONS.support)+`<div class="settings-grid">
@@ -439,36 +413,24 @@ function supportPage(view='help') {
   </div>`;
 }
 function renderPage() {
-  if(state.route.category)lastUsedTabs[state.route.category]=state.route.id;
-  const openTools=state.route.id==='customize'&&$('page-body').dataset.route!==state.route.href;
+  if(state.route.category)lastUsedTabs[state.route.category]=state.route.href;
+  const openTools=state.route.id==='customize-tools'&&!state.route.subview&&$('page-body').dataset.route!==state.route.href;
   $('load-state').hidden=true; $('page-body').hidden=false;setNavigation();
-  const s=state.section;
-  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(state.ws,readOnly(),state.route.view):s==='quotes'?renderQuotesPage(state.ws,readOnly()):s==='reminders'?renderRemindersPage(state.ws,readOnly()):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.view):s==='insights'?renderInsightsPage(state.ws,state.route.view):s==='settings'?settingsPage(state.route.view):s==='assistant'?assistantPage(state.route.view):supportPage(state.route.view));
+  const s=state.section,sub=selectedSubview(state.route),scoped=subviewWorkspace(state.route,state.ws);
+  if(s==='leads'&&state.route.subview)state.view=sub==='board'?'board':'list';
+  const content=(readOnly()?trialNotice():'')+(s==='overview'?overview():s==='jobs'?renderJobsPage(scoped,readOnly(),state.route.id==='schedule'&&sub!=='calendar'?'dispatch':state.route.view,Boolean(state.route.subview)):s==='quotes'?renderQuotesPage(scoped,readOnly()):s==='reminders'?(sub==='templates'?renderReminderDrafts(state.ws):renderRemindersPage(state.ws,readOnly())):s==='dues'?renderPaymentDuesPage(state.ws,readOnly()):s==='marketing'?renderMarketingPage(state.ws,{embedded:true}):singular[s]?listPage(s):s==='payments'?paymentsPage(state.route.id==='payments'&&sub==='bank'?'bank':state.route.view,sub):s==='insights'?renderInsightsPage(state.ws,state.route.view,state.route.subview):s==='settings'?settingsPage(state.route.view):s==='assistant'?renderGuidancePage(state.route):supportPage(state.route.view));
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor]:not([open])'))modal.remove();
   const openEditors=[...$('page-body').querySelectorAll('dialog[open]')];
   for(const modal of openEditors){modal.dataset.preservedEditor='true';document.body.append(modal);}
   $('page-body').innerHTML=renderFeatureWorkspace(state.route,state.ws.account.workspacePreferences?.modules,content,state.ws);
-  const activeSub = s==='leads'?(state.view==='board'?'board':(state.filters.leads?.status==='New'?'active':'list')):(s==='followups'?(state.filters.followups?.status||'Due'):(s==='invoices'?(state.filters.invoices?.status||'All'):(s==='reviews'?(state.filters.reviews?.status||'All'):'')));
-  if(activeSub){
-    $('page-body').querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-      const on=b.dataset.subfeature===activeSub;
-      b.classList.toggle('active',on);
-      b.setAttribute('aria-pressed',String(on));
-    });
-  }
   for(const modal of document.querySelectorAll('body>dialog[data-preserved-editor][open]'))$('page-body').querySelector('#'+modal.id)?.remove();
   $('page-body').dataset.route=state.route.href;
   if(s==='overview')customizeOverview($('page-body'),state.ws.account.workspacePreferences?.modules);
-  if(s==='settings'&&state.route.view){
-    if(state.route.view==='tools')$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});
-    else if(state.route.view==='data')$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
-    else if(state.route.view==='account')$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
-    else if(state.route.view==='profile')$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
-  }
   if(s==='dues')initializePaymentDuesUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,refresh,toast});
   if(s==='marketing')initializeMarketingUI({root:$('page-body'),api:API,getWorkspace:()=>state.ws,readOnly,onCreated:refresh,toast,onNavigate:target=>go(target)});
   if(s==='marketing'){$('page-body').querySelector('h1').textContent=state.route.label;for(const panel of $('page-body').querySelectorAll('[data-marketing-panel]'))panel.hidden=panel.dataset.marketingPanel!==state.route.view;}
   if(singular[s])renderResults();
+  applySubviewLayout($('page-body'),state.route,state.ws);
   drafts.restore(s);
   requestAnimationFrame(()=>revealActiveFeature($('page-body')));
   if(openTools)$('workspace-customizer-dialog')?.showModal();
@@ -654,269 +616,6 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{
   const category=e.target.closest('[data-category]'),nav=e.target.closest('[data-nav]');
   if(category||nav){if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go(category?categoryDestination(category.dataset.category,state.ws?.account.workspacePreferences?.modules,lastUsedTabs).href:nav.getAttribute('href'),Boolean(nav?.dataset.feature));return;}
-  const subTab=e.target.closest('.workspace-subfeature-tab');
-  if(subTab){
-    const {subfeature,kind}=subTab.dataset;
-    if(kind==='overview'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='kpis'){$('page-body').querySelector('.metrics-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='actions'){$('page-body').querySelector('.overview-stage')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='workspace'){$('page-body').querySelector('.overview-workspace-row')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='leads'){
-      if(subfeature==='list'){state.view='list';(state.filters.leads||={}).status='All';}
-      else if(subfeature==='board'){state.view='board';}
-      else if(subfeature==='active'){state.view='list';(state.filters.leads||={}).status='New';}
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));
-      renderResults();
-      return;
-    }
-    if(['followups','invoices','reviews'].includes(kind)){
-      state.filters[kind]||=initialFilters(kind);
-      state.filters[kind].status=subfeature;
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      const sel=$('results')?.closest('.panel')?.querySelector('select[data-filter="status"]');
-      if(sel)sel.value=subfeature;
-      renderResults();
-      return;
-    }
-    if(kind==='quotes'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      const filterSelect=document.getElementById('quotes-filter-status');
-      if(filterSelect){
-        filterSelect.value = subfeature==='sent'?'Sent':subfeature==='accepted'?'Accepted':'';
-        filterSelect.dispatchEvent(new Event('change'));
-      }
-      return;
-    }
-    if(kind==='payments'){
-      if(subfeature==='paid'){go('#billing/payments');}
-      else if(subfeature==='bank'){go('#billing/bank');}
-      return;
-    }
-    if(kind==='schedule'||kind==='dispatch'||kind==='crew-assignments'||kind==='assignments'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='calendar'){
-        $('page-body').querySelector('.job-calendar')?.scrollIntoView({behavior:'smooth',block:'start'});
-        return;
-      }
-      const filterSelect=$('page-body').querySelector('[data-jobs-filter]');
-      if(filterSelect){
-        filterSelect.value = subfeature==='unassigned'?'unassigned':subfeature==='active'?'active':'all';
-        filterSelect.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-      return;
-    }
-    if(kind==='crew'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      $('page-body').querySelectorAll('.crew-directory-row').forEach(r=>{
-        r.hidden = (subfeature==='active' && r.textContent.includes('Archived'));
-      });
-      return;
-    }
-    if(kind==='visibility'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='reviews'){go('#marketing/reviews');return;}
-      const sel=$('page-body').querySelector('[data-marketing-composer-type]');
-      if(sel){sel.value=subfeature==='profile'?'post':'promo';sel.dispatchEvent(new Event('change',{bubbles:true}));}
-      $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
-      return;
-    }
-    if(kind==='reengage'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='campaign'){
-        const sel=$('page-body').querySelector('[data-marketing-composer-type]');
-        if(sel){sel.value='rebook';sel.dispatchEvent(new Event('change',{bubbles:true}));}
-        $('page-body').querySelector('.marketing-composer')?.scrollIntoView({behavior:'smooth',block:'start'});
-      } else if(subfeature==='history'){
-        $('page-body').querySelector('.marketing-customer')?.scrollIntoView({behavior:'smooth',block:'start'});
-      }
-      return;
-    }
-    if(kind==='performance'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='summary'){$('page-body').querySelector('.marketing-stat')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='sources'){$('page-body').querySelector('.marketing-source')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='business'||kind==='sales'||kind==='revenue'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='summary'||subfeature==='pipeline'||subfeature==='paid'){
-        $('page-body').querySelector('.report-stats')?.scrollIntoView({behavior:'smooth',block:'start'});
-      } else {
-        $('page-body').querySelector('.report-note, .report-section:last-child')?.scrollIntoView({behavior:'smooth',block:'start'});
-      }
-      return;
-    }
-    if(kind==='bank'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='unmatched'){$('page-body').querySelector('.task-row')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='matched'){$('page-body').querySelector('.notice')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='reminders'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='rules'){$('page-body').querySelector('.reminders-rules, .panel:first-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='templates'){$('page-body').querySelector('.reminders-template, .panel:last-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='dues'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-dues"]')?.click();}
-      else {$('page-body').querySelector('.panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='business-settings'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='profile'){$('field-name')?.focus();}
-      else if(subfeature==='currency'){$('field-country')?.focus();}
-      else if(subfeature==='tax'){($('field-gstin')||$('field-usState')||$('field-location'))?.focus();}
-      else if(subfeature==='upi'){($('field-upiVpa')||$('field-location'))?.focus();}
-      return;
-    }
-    if(kind==='customize-tools'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='modules'){$('page-body').querySelector('.workspace-customizer')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='presets'){$('page-body').querySelector('.industry-chips, #field-trade')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='reflow'){$('page-body').querySelector('.workspace-customizer-actions')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='data-management'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='import'){$('page-body').querySelector('[data-action="import-leads"]')?.click();}
-      else if(subfeature==='mapping'){$('page-body').querySelector('#settings-data-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='export'){$('page-body').querySelector('[data-action="export"]')?.click();}
-      return;
-    }
-    if(kind==='account-subscription'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='profile'){$('page-body').querySelector('#settings-profile-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='pricing'){$('page-body').querySelector('.plan-price')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='plan'){$('page-body').querySelector('#settings-plan-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='feature-discovery'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='modules'){$('page-body').querySelector('#assistant-modules-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='navigate'){$('page-body').querySelector('#assistant-quick-nav')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='workflow-guidance'||kind==='response-experience'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      const prompt=subfeature==='step-by-step'?'Walk me through standard customer workflow from lead to payment.'
-        :subfeature==='multi-feature'?'How do CRM, FSM, and Invoices connect with each other?'
-        :subfeature==='point-wise'?'Explain how Ask Cerium structures its point-wise answers.'
-        :subfeature==='progressive'?'How does progressive typing assist during long answers?'
-        :subfeature==='verified-links'?'What verified navigation links can Cerium generate?'
-        :'What are the core capabilities of Cerium?';
-      const drawer=document.getElementById('guide-drawer');
-      if(drawer){
-        drawer.hidden=false;
-        const input=drawer.querySelector('#guide-prompt');
-        if(input){input.value=prompt;input.focus();}
-      }
-      return;
-    }
-    if(kind==='product-help'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      if(subfeature==='workflows'){$('page-body').querySelector('#product-help-workflows')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      else if(subfeature==='help'){$('page-body').querySelector('#product-help-feedback')?.scrollIntoView({behavior:'smooth',block:'start'});}
-      return;
-    }
-    if(kind==='support-requests'){
-      subTab.closest('.workspace-subfeature-bar')?.querySelectorAll('.workspace-subfeature-tab').forEach(b=>{
-        const on=b.dataset.subfeature===subfeature;
-        b.classList.toggle('active',on);
-        b.setAttribute('aria-pressed',String(on));
-      });
-      const catSelect=$('field-category');
-      if(catSelect){catSelect.value=subfeature==='issues'?'Bug report':'Product question';}
-      $('field-subject')?.focus();
-      return;
-    }
-  }
   const el=e.target.closest('[data-action]');if(!el)return;const {action,id,kind}=el.dataset;
   if(action==='close-dialog'){if(!el.closest('dialog').hasAttribute('aria-busy'))el.closest('dialog').close();return;}
   if(action==='refresh'){perform('refresh',el,async()=>{if(state.ws)await refresh();else await initialize();});return;}
@@ -924,10 +623,10 @@ document.addEventListener('click',e=>{
   if(readOnly() && ['import-leads','new','edit','delete','new-quote','toggle-followup','mark-requested','review-received','match-payment','dismiss-payment'].includes(action)){toast('Your trial has ended. Upgrade in Settings to make changes.',true);return;}
   if(action==='ask-guide'){
     const prompt=el.dataset.prompt;
-    const drawer=document.getElementById('guide-assistant-drawer');
-    if(drawer&&!drawer.open)drawer.showModal();
-    const input=document.getElementById('guide-assistant-input');
-    if(input){input.value=prompt;input.dispatchEvent(new Event('input'));document.getElementById('guide-assistant-send')?.click();}
+    const trigger=document.getElementById('guide-trigger');
+    if(trigger?.getAttribute('aria-expanded')==='false')trigger.click();
+    const input=document.getElementById('guide-question');
+    if(input){input.value=prompt;input.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('guide-form')?.requestSubmit();}
     return;
   }
   if(action==='import-leads'){
@@ -941,17 +640,7 @@ document.addEventListener('click',e=>{
     return;
   }
   if(action==='new'||action==='edit'){openRecord(kind,action==='edit'?id:null);return;}
-  if(action==='lead-view'){
-    state.view=el.dataset.view;
-    document.querySelectorAll('[data-action=lead-view]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.view===state.view)));
-    document.querySelectorAll('.workspace-subfeature-bar [data-subfeature]').forEach(b=>{
-      const on=b.dataset.subfeature===state.view;
-      b.classList.toggle('active',on);
-      b.setAttribute('aria-pressed',String(on));
-    });
-    renderResults();
-    return;
-  }
+  if(action==='lead-view'){go(subviewHref(state.route,el.dataset.view));return;}
   if(action==='preview-invoice'){previewInvoice(id);return;}
   if(action==='business-setup'){perform('business-setup',el,async()=>showLocalBusinessSetup(await API.getBusinessSetup(),true));return;}
   if(action==='print-invoice'){
@@ -1012,7 +701,10 @@ document.addEventListener('change',e=>{
       ?'Saved edition: '+countryName(saved)+' · '+(saved==='IN'?'INR':'USD')+'.'
       :'Pending change to '+countryName(chosen)+' · '+priceLabel(chosen)+'/month'+'. Click Save changes to activate. The workspace must be empty; existing invoices, jobs, payments and subscriptions are never converted.';
   }
-  const key=e.target.dataset.filter;if(key&&key!=='query'){state.filters[state.section][key]=e.target.value;renderResults();}
+  const key=e.target.dataset.filter;if(key&&key!=='query'){
+    state.filters[state.section]||=initialFilters(state.section);state.filters[state.section][key]=e.target.value;
+    if(key==='status'&&state.route.subview)go(state.route.featureHref);else renderResults();
+  }
   const id=e.target.dataset.invoiceStatus;if(id && readOnly()){toast('Your trial has ended. Invoice changes are unavailable.',true);return;}if(id){const old=getRecord('invoice',id)?.status;perform('invoice-status:'+id,e.target,async()=>{try{await API.updateInvoiceStatus(id,e.target.value);await refresh();toast('Invoice status updated.');}catch(err){e.target.value=old;throw err;}});}
 });
 $('invoice-dialog').addEventListener('close',()=>{state.printInvoice=null;});

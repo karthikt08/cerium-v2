@@ -47,7 +47,8 @@ function card(job,ws,ro=false) {
     <strong>${esc(job.title)}</strong><span>${esc(job.customerName)}</span>
     <small>${esc(workerName(ws,job.workerId))}</small></button>`;
 }
-export function renderJobsPage(ws,readOnly=false,view='schedule') {
+export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false) {
+  if(scoped)filter='all';
   if(view!=='schedule')return renderOperationsPage(ws,readOnly,view);
   const jobs=ws.jobs||[],crew=ws.crew||[],start=monday(),end=new Date(start);end.setDate(start.getDate()+6);
   const week=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);week.push(d);}
