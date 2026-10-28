@@ -1,3 +1,4 @@
+import {createMigrationStore} from './universal-migration.js';
 import {createOperationStore} from './operation-records.js';
 import {makeInvoiceDetails,readInvoiceDetails} from './invoice-details.js';
 import {validWorkspaceCurrency} from '../public/js/invoice-country.js';
@@ -413,6 +414,7 @@ export function openDb(file) {
   const invoiceColumns = new Set(db.prepare('PRAGMA table_info(invoices)').all().map(c => c.name));
   if (!invoiceColumns.has('job_id')) db.exec('ALTER TABLE invoices ADD COLUMN job_id TEXT');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invoices_source_job ON invoices(user_id, job_id) WHERE job_id IS NOT NULL');
+  const migrationStore = createMigrationStore(db);
   const operationRecords = createOperationStore(db);
   const jobsStore = createJobsStore(db, {onCompleted: generateJobDraft});
   const reminders = createReminderStore(db);
@@ -692,10 +694,11 @@ export function openDb(file) {
   // Business-facing days follow the US service location, not the Oracle VM clock.
   // Keep trial/billing timestamps in their existing UTC semantics.
   const userBusinessToday=userId=>{const u=q.getUserById.get(userId);return businessLocalDate(u?.country==='IN'?'Asia/Kolkata':u?.time_zone);};
-  const pricedHistory=userId=>['invoices','payment_dues','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
+  const expenseHistory=userId=>Boolean(db.prepare("SELECT 1 FROM operation_records WHERE user_id=? AND kind='expenses' LIMIT 1").get(userId));
+  const pricedHistory=userId=>expenseHistory(userId)||['invoices','payment_dues','quotes','jobs','bank_transactions','payments','recurring_subscriptions','leads','follow_ups'].some(
     table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId))
   );
-  const businessMoneyHistory=userId=>['invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
+  const businessMoneyHistory=userId=>expenseHistory(userId)||['invoices','quotes','jobs','bank_transactions','leads','follow_ups'].some(table=>Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE user_id=? LIMIT 1').get(userId)));
   const editionTax=(user,items,p={})=>{
     if(user.country!=='IN')return null;
     const base=lineItemsTotal(items);
@@ -1292,6 +1295,8 @@ export function openDb(file) {
         messages,
         jobs: jobsStore.listJobs(userId).map(j => ({...j, invoiceId: invoices.find(i => i.jobId === j.id)?.id || null})),
         crew: jobsStore.listCrew(userId),
+        migrationMappings:migrationStore.listMigrationMappings(userId),
+        importMetadata:migrationStore.migrationMetadata(userId),
         operations:operationRecords.allOperationRecords(userId),
         reminders: reminders.listReminders(userId),
         quotes: quotesStore.listQuotes(userId),
@@ -1299,6 +1304,7 @@ export function openDb(file) {
       };
     },
 
+    ...migrationStore,
     ...operationRecords,
     ...jobsStore,
     ...reminders,
@@ -1354,7 +1360,7 @@ export function openDb(file) {
       })();
     },
 
-    createLead(userId, payload) {
+    createLead(userId, payload, {historical=false}={}) {
       payload=workspaceFields('lead',payload,true);
       const today = userBusinessToday(userId);
       const id = 'LD-' + randomBytes(4).toString('hex');
@@ -1381,7 +1387,7 @@ export function openDb(file) {
           lead.nextFollowUp, 0, today
         );
       }
-      if (lead.stage === 'Done') {
+      if (!historical && lead.stage === 'Done') {
         const revId = 'RV-' + randomBytes(4).toString('hex');
         q.insertReview.run(revId, userId, lead.name, lead.phone, lead.email, lead.notes || 'Completed Service Job', today, 'Not Asked', null, null, '', today);
       }
@@ -1700,6 +1706,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        migrationStore.clearMigrationData(userId);
         operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);
@@ -1833,6 +1840,7 @@ export function openDb(file) {
         q.clearBankTx.run(userId);
         q.clearReviews.run(userId);
         q.clearMessages.run(userId);
+        migrationStore.clearMigrationData(userId);
         operationRecords.clearOperationRecords(userId);
         jobsStore.clear(userId);
         reminders.clearReminderData(userId);

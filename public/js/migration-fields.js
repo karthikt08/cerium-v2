@@ -1,0 +1,8 @@
+export const MIGRATION_FIELDS={
+  leads:{label:'Customers / leads',required:['name'],fields:['name','email','phone','address','source','stage','value','nextFollowUp','notes','reference']},
+  jobs:{label:'Jobs / appointments',required:['title','customerName','startAt','endAt'],fields:['title','customerName','customerEmail','customerPhone','address','startAt','endAt','status','notes','reference']},
+  invoices:{label:'Historical invoices',required:['customerName','jobTitle','amount','issueDate','dueDate'],fields:['customerName','customerEmail','customerAddress','jobTitle','amount','total','currency','issueDate','dueDate','paidAt','status','terms','customerGstin','placeOfSupply','hsnSac','gstRate','notes','reference']},
+  expenses:{label:'Expenses',required:['description','date','amount'],fields:['description','date','amount','currency','reference','notes']},
+  inventory:{label:'Inventory',required:['name','sku','quantity'],fields:['name','sku','quantity','unit','notes','reference']},
+};
+export const migrationAliases={name:['name','customer','customer name','client','item name'],customerName:['customer','customer name','client','client name'],title:['title','job','job title','appointment'],jobTitle:['job title','description','service'],startAt:['start','starts at','start time','appointment start'],endAt:['end','ends at','end time','appointment end'],amount:['amount','subtotal','pre-tax amount','cost'],quantity:['quantity','qty','stock'],reference:['reference','external id','invoice number','job number'],phone:['phone','mobile','telephone'],email:['email','email address'],sku:['sku','item code','product code']};
