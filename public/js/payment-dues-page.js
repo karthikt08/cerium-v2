@@ -4,13 +4,20 @@ import {openPaymentDueImport} from './payment-due-import-ui.js';
 import {businessLocalDate} from './us-market.js';
 
 const renderStatus=(due,today)=>due.status==='Settled'?'Settled':due.dueDate<today?'Overdue':due.dueDate===today?'Due today':'Upcoming';
-export function renderPaymentDuesPage(ws,readOnly=false){
+
+export function renderPaymentDuesPage(ws,readOnly=false,subview='all'){
   const dues=ws.paymentDues||[],today=businessLocalDate(ws.account?.timeZone);
   const outstanding=dues.filter(d=>d.status==='Open');
   const overdue=outstanding.filter(d=>d.dueDate<today);
+  const dueToday=outstanding.filter(d=>d.dueDate===today);
   const currency=ws.account?.currency||'USD';
   const sum=rows=>money(rows.filter(d=>d.currency===currency).reduce((n,d)=>n+Number(d.amount),0),currency);
-  const rows=dues.map(d=>{
+
+  const displayRows=subview==='tracking'?
+    outstanding.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)):
+    dues;
+
+  const rows=displayRows.map(d=>{
     const status=renderStatus(d,today),name=esc(d.customerName),label=esc(d.description);
     return '<div class="due-row" data-due-row="'+esc(d.id)+'">'+
       '<div class="due-row-main"><strong>'+name+'</strong><span>'+label+'</span>'+
@@ -24,6 +31,39 @@ export function renderPaymentDuesPage(ws,readOnly=false){
         '<button type="button" class="text-button due-delete" data-due-delete="'+esc(d.id)+'">Delete</button>'+
       '</div>')+'</div>';
   }).join('');
+
+  const subviewExtra=subview==='tracking'?`
+    <section class="panel" style="margin-bottom:24px">
+      <div class="panel-header"><div class="panel-title"><h2>Flexible due-date tracking</h2></div><span class="badge blue">Timeline View</span></div>
+      <div class="settings-content">
+        <p class="muted">Track custom commitments by urgency. Flexible due dates allow contractors to manage staggered deposits, progress billing checkpoints, and multi-stage client promises.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:16px">
+          <div class="report-stat" style="border-left:3px solid #e11d48"><span>Overdue dues</span><strong>${overdue.length}</strong><small>${esc(sum(overdue))}</small></div>
+          <div class="report-stat" style="border-left:3px solid #f59e0b"><span>Due today</span><strong>${dueToday.length}</strong><small>${esc(sum(dueToday))}</small></div>
+          <div class="report-stat" style="border-left:3px solid #3b82f6"><span>Open pipeline</span><strong>${outstanding.length}</strong><small>${esc(sum(outstanding))}</small></div>
+        </div>
+      </div>
+    </section>`:subview==='amounts'?`
+    <section class="panel" style="margin-bottom:24px">
+      <div class="panel-header"><div class="panel-title"><h2>Custom due amounts &amp; allocation</h2></div><span class="badge purple">Amounts</span></div>
+      <div class="settings-content">
+        <p class="muted">Record non-standard payment splits such as 50% deposit on contract signing, 25% rough-in completion, and 25% final sign-off. Dues remain distinct from formal invoice accounting.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+          <a class="button secondary" href="#billing/payments/ledger">Open Payment Ledger &amp; Allocation &rarr;</a>
+          <button type="button" class="button secondary" data-open-dues-import>Import Bulk Dues &rarr;</button>
+        </div>
+      </div>
+    </section>`:subview==='import'?`
+    <section class="panel" style="margin-bottom:24px">
+      <div class="panel-header"><div class="panel-title"><h2>Import custom dues</h2></div><span class="badge green">Spreadsheet</span></div>
+      <div class="settings-content">
+        <p class="muted">Upload your customer dues list in CSV or Excel format. Preview, match columns, and validate records before saving.</p>
+        <div style="margin-top:16px">
+          <button type="button" class="button primary" data-open-dues-import>Launch Dues Importer &rarr;</button>
+        </div>
+      </div>
+    </section>`:'';
+
   return '<div class="payment-dues-page" data-payment-dues-page>'+
     '<div class="page-heading"><div><p class="eyebrow">BILLING & PAYMENTS</p><h1>Custom dues</h1>'+
     '<p class="page-description">Record balances, advances or installments that do not fit a standard invoice schedule.</p></div>'+
@@ -32,6 +72,7 @@ export function renderPaymentDuesPage(ws,readOnly=false){
       '<div class="due-summary-card"><span>Open dues</span><strong>'+outstanding.length+'</strong><small>'+esc(sum(outstanding))+' in '+esc(currency)+'</small></div>'+
       '<div class="due-summary-card"><span>Overdue dues</span><strong>'+overdue.length+'</strong><small>'+esc(sum(overdue))+' in '+esc(currency)+'</small></div>'+
       '<div class="due-summary-card"><span>Settled records</span><strong>'+dues.filter(d=>d.status==='Settled').length+'</strong><small>Manually confirmed only</small></div></div>'+
+    subviewExtra+
     '<div class="due-layout">'+
       '<section class="panel due-editor"><div class="panel-header"><div class="panel-title"><h2>Add a payment due</h2></div>'+
       '<p class="panel-subtitle">One amount and due date per record. Add more records for installments.</p></div>'+
@@ -59,6 +100,7 @@ export function renderPaymentDuesPage(ws,readOnly=false){
     '<p class="due-footer">Dues remain separate from your invoice totals and bank matches. Confirm actual receipt before marking a due settled.</p>'+
   '</div>';
 }
+
 export function initializePaymentDuesUI({root,api,getWorkspace,readOnly,refresh,toast}){
   const page=root.querySelector('[data-payment-dues-page]');
   if(!page)return;

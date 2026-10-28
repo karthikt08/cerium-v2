@@ -17,6 +17,7 @@ export function renderGuidancePage(route){
     context:['Context-aware follow-ups','Continue a conversation in Ask Cerium using its previous questions and your current workspace section.',ask('Help me plan customer follow-ups')],
     'point-wise':['Point-wise answers','Ask Cerium breaks guidance into steps and relevant actions. Review the answer before making changes.',ask('Show me the steps for recording a payment')],
     progressive:['Progressive typing','Answers appear progressively in the assistant. Use Show full answer to reveal the remaining text immediately.',ask('Explain how I can use Cerium for my daily workflow')],
+    'show-full':['Show full answer','Reveal the entire AI response immediately without progressive streaming delays.',ask('Show full response directly without typing delay')],
     'verified-links':['Verified navigation links','Assistant links point to registered Cerium destinations. Open a link to review the relevant records.',ask('Where can I review outstanding invoices?')],
   }[sub];
   return `<div class="page-heading"><div><h1>${esc(route.label)}</h1><p class="page-description">Guidance for your existing Cerium tools.</p></div></div>`+panel(content[0],`<p>${esc(content[1])}</p><div class="subview-actions">${content[2]}</div>`);

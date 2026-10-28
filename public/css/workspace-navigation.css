@@ -41,9 +41,9 @@
 .app-page .workspace-category-heading .text-button{flex:none;font-size:12px}
 .app-page .workspace-tab-scroll{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-top:4px}
 .app-page .workspace-feature-tabs{display:flex;align-items:stretch;gap:6px;min-width:max-content;padding:0 3px}
-.app-page .workspace-feature-tab{display:flex;align-items:center;justify-content:center;flex:none;min-height:50px;padding:13px 24px;border:1px solid #cbd1e2;border-bottom:0;border-radius:5px 5px 0 0;background:#e9edf6;color:#505e76;font-size:13px;font-weight:650;text-decoration:none;position:relative;white-space:nowrap}
-.app-page .workspace-feature-tab:hover{background:#f5f7fc;color:#263b72}
-.app-page .workspace-feature-tab[aria-selected="true"]{background:#fff;color:#304ac4;box-shadow:inset 0 3px #4263e8;z-index:1}
+.app-page .workspace-feature-tab{display:flex;align-items:center;justify-content:center;flex:none;min-height:48px;padding:12px 22px;border:1px solid #dde3ee;border-bottom:0;border-radius:12px 12px 0 0;background:#f0f3fa;color:#566178;font-family:var(--hf,"Figtree",system-ui,sans-serif);font-size:13.5px;font-weight:650;letter-spacing:-0.01em;text-decoration:none;position:relative;white-space:nowrap;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}
+.app-page .workspace-feature-tab:hover{background:#ffffff;color:#0c1729;transform:translateY(-2px);box-shadow:0 -4px 12px rgba(47,91,255,.08)}
+.app-page .workspace-feature-tab[aria-selected="true"]{background:#fff;color:#0c1729;border-color:#dde3ee;border-top:3.5px solid #2f5bff;border-bottom:1px solid #ffffff;margin-bottom:-1px;box-shadow:0 -8px 22px -6px rgba(47,91,255,.18),inset 0 1px 0 #ffffff;z-index:3}
 .app-page .workspace-feature-tab:focus-visible{outline:3px solid #6483ff;outline-offset:-4px}
 
 /* Counts are attached to specific feature tabs, never implied to be totals
@@ -51,14 +51,24 @@
 .app-page .workspace-feature-count{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:22px;min-height:20px;margin-inline-start:9px;padding:1px 6px;
-  border-radius:6px;background:#dbe2f2;color:#5f6c8b;
+  border-radius:99px;background:#dde4f0;color:#475569;
   font-size:10px;font-weight:650;font-variant-numeric:tabular-nums;
 }
 .app-page .workspace-feature-tab[aria-selected="true"] .workspace-feature-count{
-  background:#edf0ff;color:#3e54ad;
+  background:#e0e8ff;color:#1a3fc4;border:1px solid rgba(26,63,196,0.2);box-shadow:0 1px 3px rgba(47,91,255,0.12);
 }
 
-.app-page .workspace-feature-panel{min-width:0;min-height:calc(100vh - 210px);padding:32px var(--workspace-panel-inset);border:1px solid #cbd1e2;border-radius:0 0 8px 8px;background:#fff;margin-top:-1px;container:workspace-feature / inline-size}
+.app-page .workspace-feature-panel{min-width:0;min-height:calc(100vh - 200px);padding:24px 32px 64px;border:1px solid #dde3ee;border-radius:0 18px 18px 18px;background:#ffffff;margin-top:0;position:relative;z-index:1;box-shadow:0 32px 72px -24px rgba(12,23,41,0.12),0 0 0 1px rgba(12,23,41,0.03);container:workspace-feature / inline-size}
+
+/* Landing Page Mockup Window Chrome */
+.app-page .workspace-panel-chrome{display:flex;align-items:center;gap:12px;margin:-12px -20px 22px;padding:10px 18px 12px;border-bottom:1px solid #eef2f7;background:#fafbfe;border-radius:12px 12px 0 0}
+.app-page .workspace-chrome-dots{display:flex;align-items:center;gap:7px}
+.app-page .workspace-chrome-dots i{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,0.06)}
+.app-page .workspace-chrome-dots i:nth-child(1){background:#ff5f56}
+.app-page .workspace-chrome-dots i:nth-child(2){background:#ffbd2e}
+.app-page .workspace-chrome-dots i:nth-child(3){background:#3b5bff}
+.app-page .workspace-chrome-status{margin-left:auto;font-size:12px;color:#566178;display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:99px;background:#ffffff;border:1px solid #dde3ee;box-shadow:0 1px 3px rgba(12,23,41,0.04)}
+.app-page .workspace-chrome-status b{color:#0c1729;font-weight:700}
 .app-page .workspace-feature-panel:focus-visible{outline:3px solid #6483ff;outline-offset:2px}
 .app-page .workspace-feature-panel>.page-heading,.app-page .workspace-feature-panel>div>.page-heading{margin-top:0}
 .app-page .workspace-feature-panel .page-heading h1{font-size:27px}
@@ -264,14 +274,14 @@
 @media(max-width:400px){.app-page .workspace-category-heading{flex-wrap:wrap}}
 
 /* The two navigation rows follow the existing light workspace and navy accents. */
-.app-page .workspace-subfeature-strip{margin:-8px 0 26px;padding:4px 0 12px;border-bottom:1px solid #dce2ed;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scroll-padding-inline:4px}
+.app-page .workspace-subfeature-strip{margin:0 0 24px;padding:4px 0 14px;border-bottom:1px solid #edf1f7;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scroll-padding-inline:4px}
 .app-page .workspace-subfeature-bar{display:flex;align-items:stretch;gap:4px;min-width:max-content;padding:0 2px}
-.app-page .workspace-subfeature-tab{display:inline-flex;flex:none;align-items:center;gap:8px;min-height:42px;padding:10px 16px;font-size:12px;font-weight:550;color:#52617c;background:transparent;border:1px solid transparent;border-radius:5px;text-decoration:none;white-space:nowrap;transition:background .15s,color .15s}
-.app-page .workspace-subfeature-tab:hover{color:#253c70;background:#f0f3fa}
-.app-page .workspace-subfeature-tab[aria-current="page"]{color:#234a9c;background:#edf2ff;border-color:#ccd9fa;font-weight:650;box-shadow:inset 0 -2px #4263e8}
+.app-page .workspace-subfeature-tab{display:inline-flex;flex:none;align-items:center;gap:8px;min-height:38px;padding:7px 18px;font-family:var(--bf,"Figtree",system-ui,sans-serif);font-size:12.5px;font-weight:600;color:#566178;background:#f4f6fa;border:1px solid transparent;border-radius:99px;text-decoration:none;white-space:nowrap;transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease}
+.app-page .workspace-subfeature-tab:hover{color:#0c1729;background:#eef2f8;transform:translateY(-1px)}
+.app-page .workspace-subfeature-tab[aria-current="page"]{color:#1a3fc4;background:linear-gradient(135deg,#eef3ff 0%,#e0e8ff 100%);border-color:rgba(47,91,255,0.28);font-weight:700;box-shadow:0 3px 10px -2px rgba(47,91,255,0.22)}
 .app-page .workspace-subfeature-tab:focus-visible{outline:3px solid #6483ff;outline-offset:-3px}
-.app-page .workspace-subfeature-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;min-height:20px;padding:1px 6px;font-size:10px;font-weight:650;border-radius:6px;background:#e1e7f2;color:#52617c;font-variant-numeric:tabular-nums}
-.app-page .workspace-subfeature-tab[aria-current="page"] .workspace-subfeature-count{background:#dae5ff;color:#254b9f}
+.app-page .workspace-subfeature-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;min-height:20px;padding:1px 6px;font-size:10px;font-weight:650;border-radius:99px;background:#e2e8f0;color:#475569;font-variant-numeric:tabular-nums}
+.app-page .workspace-subfeature-tab[aria-current="page"] .workspace-subfeature-count{background:#d4e2ff;color:#1a3fc4}
 .app-page .workspace-feature-content{min-width:0}
 .app-page .subview-actions{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}
 .app-page .subview-explanation{margin-bottom:24px}
