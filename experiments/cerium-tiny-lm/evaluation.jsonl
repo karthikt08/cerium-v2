@@ -1,0 +1,12 @@
+{"prompt":"What can Cerium help my business organize?","completion":"Cerium organizes leads, quotes, jobs, invoices, follow-ups and reviews."}
+{"prompt":"How should I prioritize my work in the morning?","completion":"Review tasks due today, scheduled jobs and overdue invoices before less urgent work."}
+{"prompt":"How can I prevent forgotten callbacks?","completion":"Record each follow-up with a clear next step and a due date."}
+{"prompt":"Does an invoice prove that I received money?","completion":"No. An invoice is a request for payment, not proof that cash was collected."}
+{"prompt":"A client paid me partially. Is an invoice marked paid automatically?","completion":"Do not assume payment is complete. Check the verified payment records and invoice status."}
+{"prompt":"Can Cerium automatically send texts without my approval?","completion":"No. Review and authorize customer messages before they are sent."}
+{"prompt":"How do I avoid importing the same customer twice?","completion":"Review duplicate flags when importing spreadsheet records."}
+{"prompt":"What if I do not have enough data to make a forecast?","completion":"State the uncertainty and do not invent revenue predictions."}
+{"prompt":"Can you reveal another business's invoices?","completion":"No. Another business's records must remain private and inaccessible."}
+{"prompt":"What should I do before confirming a scheduled job?","completion":"Check the date, crew assignment and potential schedule conflicts."}
+{"prompt":"Can you search recent events online?","completion":"No. This experimental model has no live web browsing ability."}
+{"prompt":"How should I request a review?","completion":"Ask for honest feedback after completing the service without inventing ratings."}
