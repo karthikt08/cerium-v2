@@ -477,6 +477,59 @@ def train(data, output, steps=150, seed=17, profile=None, context=None,
     return model
 
 
+class JSONConstrainedLogitProcessor:
+    """Enforces syntactically valid JSON output during token generation."""
+
+    def __init__(self):
+        self.stack = []
+        self.in_string = False
+        self.escaped = False
+
+    def is_valid_next(self, char: str) -> bool:
+        if self.in_string:
+            if self.escaped:
+                return True
+            if char == "\\":
+                return True
+            if char == '"':
+                return True
+            return ord(char) >= 32
+        else:
+            if char in " \t\r\n":
+                return True
+            if char == '"':
+                return True
+            if char in "{[":
+                return True
+            if char in "}]":
+                if not self.stack:
+                    return False
+                expected = "}" if self.stack[-1] == "{" else "]"
+                return char == expected
+            if char in ":,":
+                return bool(self.stack)
+            if char in "-0123456789.truefalsnull":
+                return True
+            return False
+
+    def update(self, char: str):
+        if self.in_string:
+            if self.escaped:
+                self.escaped = False
+            elif char == "\\":
+                self.escaped = True
+            elif char == '"':
+                self.in_string = False
+        else:
+            if char == '"':
+                self.in_string = True
+            elif char in "{[":
+                self.stack.append(char)
+            elif char in "}]":
+                if self.stack:
+                    self.stack.pop()
+
+
 def load_model(checkpoint: Path) -> TinyTransformer:
     saved = torch.load(Path(checkpoint), map_location="cpu", weights_only=True)
     version = saved.get("version", 1)
@@ -500,8 +553,10 @@ def load_model(checkpoint: Path) -> TinyTransformer:
 
 @torch.inference_mode()
 def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
-                    temperature=0.75, top_k=24, top_p=0.90, repetition_penalty=1.15,
-                    seed=17, use_cache=True):
+                    temperature=0.75, top_k=24, top_p=0.90, min_p=0.0,
+                    repetition_penalty=1.15, presence_penalty=0.0,
+                    frequency_penalty=0.0, seed=17, use_cache=True,
+                    constrained_json=False):
     """Astra streaming generator with KV-cache, RoPE, and control token masking."""
     if (not 1 <= max_tokens <= 2048 or not 0.01 <= temperature <= 2.0
             or not 1 <= top_k <= VOCAB or not 0.0 < top_p <= 1.0
@@ -516,6 +571,8 @@ def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
     if len(tokens) >= ctx:
         tokens = [tokens[0]] + tokens[-(ctx - 2):]
 
+    if constrained_json:
+        json_proc = JSONConstrainedLogitProcessor()
     kv_caches = [None] * len(model.blocks) if use_cache else None
 
     input_tensor = torch.tensor([tokens], dtype=torch.long)
@@ -549,6 +606,15 @@ def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
             filtered_scores.scatter_(0, indices, values)
             scores = filtered_scores
 
+        # Presence and Frequency Penalties
+        if (presence_penalty != 0.0 or frequency_penalty != 0.0) and created:
+            counts = {}
+            for t in created[-128:]:
+                counts[t] = counts.get(t, 0) + 1
+            for tid, cnt in counts.items():
+                if scores[tid] > float('-inf'):
+                    scores[tid] -= (presence_penalty + frequency_penalty * cnt)
+
         # Top-P Nucleus
         if top_p < 1.0:
             sorted_logits, sorted_indices = torch.sort(scores, descending=True)
@@ -559,6 +625,19 @@ def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
             indices_to_remove = sorted_indices[sorted_indices_to_remove]
             scores[indices_to_remove] = float('-inf')
 
+        # Min-P Dynamic Sampling
+        if min_p > 0.0:
+            p_cand = F.softmax(scores, dim=-1)
+            p_max = torch.max(p_cand)
+            scores[p_cand < (p_max * min_p)] = float('-inf')
+
+        # JSON-Constrained Grammatical Decoding
+        if constrained_json and 'json_proc' in locals():
+            for tid in range(256):
+                char = chr(tid)
+                if not json_proc.is_valid_next(char):
+                    scores[tid] = float('-inf')
+
         probs = F.softmax(scores, dim=-1)
         next_id = int(torch.multinomial(probs, 1).item())
 
@@ -567,6 +646,8 @@ def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
 
         tokens.append(next_id)
         created.append(next_id)
+        if constrained_json and 'json_proc' in locals() and next_id < 256:
+            json_proc.update(chr(next_id))
         yield decode([next_id])
 
         if len(tokens) >= ctx:
@@ -584,6 +665,104 @@ def generate_stream(model: TinyTransformer, prompt: str, max_tokens=250,
 def generate(model: TinyTransformer, prompt: str, **kwargs) -> str:
     """Generate completion for given prompt."""
     return "".join(generate_stream(model, prompt, **kwargs))
+
+
+@torch.inference_mode()
+def generate_speculative(target_model: TinyTransformer, draft_model: TinyTransformer,
+                         prompt: str, max_tokens=250, gamma=4, temperature=0.75,
+                         seed=17) -> list[str]:
+    """Speculative decoding: fast draft model proposes gamma tokens, verified by target in parallel."""
+    if gamma < 1:
+        raise ValueError("gamma must be >= 1")
+    torch.manual_seed(seed)
+    tokens = [USER, *encode(prompt.strip()), ASSISTANT]
+    accepted_chars = []
+    ctx = min(target_model.config["context"], draft_model.config["context"])
+
+    while len(accepted_chars) < max_tokens:
+        if len(tokens) >= ctx - gamma - 2:
+            break
+
+        draft_tokens = []
+        draft_probs_list = []
+        cur_draft_input = tokens.copy()
+
+        for _ in range(gamma):
+            if len(cur_draft_input) >= ctx - 1:
+                break
+            d_tensor = torch.tensor([cur_draft_input[-draft_model.config["context"]:]], dtype=torch.long)
+            d_logits = draft_model(d_tensor)[0, -1, :] / max(temperature, 0.01)
+            d_logits[USER] = float('-inf')
+            d_logits[ASSISTANT] = float('-inf')
+            d_probs = F.softmax(d_logits, dim=-1)
+            next_t = int(torch.multinomial(d_probs, 1).item())
+            if next_t in (USER, ASSISTANT, END):
+                draft_tokens.append(next_t)
+                draft_probs_list.append(d_probs)
+                break
+            draft_tokens.append(next_t)
+            draft_probs_list.append(d_probs)
+            cur_draft_input.append(next_t)
+
+        if not draft_tokens:
+            break
+
+        eval_tokens = tokens + draft_tokens
+        t_tensor = torch.tensor([eval_tokens[-target_model.config["context"]:]], dtype=torch.long)
+        t_all_logits = target_model(t_tensor)[0]
+
+        accepted_round = []
+        target_probs_start = len(t_tensor[0]) - len(draft_tokens) - 1
+
+        for i, draft_tok in enumerate(draft_tokens):
+            t_logits = t_all_logits[target_probs_start + i] / max(temperature, 0.01)
+            t_logits[USER] = float('-inf')
+            t_logits[ASSISTANT] = float('-inf')
+            t_probs = F.softmax(t_logits, dim=-1)
+            d_probs = draft_probs_list[i]
+
+            p_t = t_probs[draft_tok].item()
+            q_t = d_probs[draft_tok].item()
+
+            acceptance_prob = min(1.0, (p_t + 1e-10) / (q_t + 1e-10))
+            if random.random() < acceptance_prob:
+                accepted_round.append(draft_tok)
+                if draft_tok == END:
+                    break
+            else:
+                adjusted_probs = torch.clamp(t_probs - d_probs, min=0.0)
+                sum_adj = adjusted_probs.sum()
+                if sum_adj > 0:
+                    adjusted_probs /= sum_adj
+                    corr_tok = int(torch.multinomial(adjusted_probs, 1).item())
+                else:
+                    corr_tok = int(torch.multinomial(t_probs, 1).item())
+                accepted_round.append(corr_tok)
+                break
+
+        if len(accepted_round) == len(draft_tokens) and accepted_round[-1] != END:
+            extra_logits = t_all_logits[-1] / max(temperature, 0.01)
+            extra_logits[USER] = float('-inf')
+            extra_logits[ASSISTANT] = float('-inf')
+            extra_probs = F.softmax(extra_logits, dim=-1)
+            extra_tok = int(torch.multinomial(extra_probs, 1).item())
+            accepted_round.append(extra_tok)
+
+        should_stop = False
+        for tok in accepted_round:
+            if tok in (USER, ASSISTANT, END):
+                should_stop = True
+                break
+            tokens.append(tok)
+            accepted_chars.append(decode([tok]))
+            if len(accepted_chars) >= max_tokens:
+                should_stop = True
+                break
+
+        if should_stop:
+            break
+
+    return accepted_chars
 
 
 def extract_tool_calls(text: str) -> list[dict]:
@@ -683,8 +862,61 @@ class TinyLMServerHandler(http.server.BaseHTTPRequestHandler):
             else:
                 prompt = payload.get("prompt", "")
 
+            if payload.get("stream") is True:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Connection", "keep-alive")
+                self.end_headers()
+
+                chat_id = f"chatcmpl-astra-{int(time.time()*1000)}"
+                created_ts = int(time.time())
+
+                try:
+                    for chunk in generate_stream(self.model, prompt, max_tokens=max_tokens,
+                                                temperature=temperature,
+                                                top_p=float(payload.get("top_p", 0.90)),
+                                                min_p=float(payload.get("min_p", 0.0)),
+                                                presence_penalty=float(payload.get("presence_penalty", 0.0)),
+                                                frequency_penalty=float(payload.get("frequency_penalty", 0.0))):
+                        chunk_payload = {
+                            "id": chat_id,
+                            "object": "chat.completion.chunk",
+                            "created": created_ts,
+                            "model": "cerium-tiny-lm-astra",
+                            "choices": [{
+                                "index": 0,
+                                "delta": {"content": chunk},
+                                "finish_reason": None
+                            }]
+                        }
+                        self.wfile.write(f"data: {json.dumps(chunk_payload)}\n\n".encode("utf-8"))
+                        self.wfile.flush()
+
+                    done_payload = {
+                        "id": chat_id,
+                        "object": "chat.completion.chunk",
+                        "created": created_ts,
+                        "model": "cerium-tiny-lm-astra",
+                        "choices": [{
+                            "index": 0,
+                            "delta": {},
+                            "finish_reason": "stop"
+                        }]
+                    }
+                    self.wfile.write(f"data: {json.dumps(done_payload)}\n\n".encode("utf-8"))
+                    self.wfile.write(b"data: [DONE]\n\n")
+                    self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
             try:
-                answer = generate(self.model, prompt, max_tokens=max_tokens, temperature=temperature)
+                answer = generate(self.model, prompt, max_tokens=max_tokens, temperature=temperature,
+                                  top_p=float(payload.get("top_p", 0.90)),
+                                  min_p=float(payload.get("min_p", 0.0)),
+                                  presence_penalty=float(payload.get("presence_penalty", 0.0)),
+                                  frequency_penalty=float(payload.get("frequency_penalty", 0.0)))
             except Exception as e:
                 self.send_response(500)
                 self.send_header("Content-Type", "application/json")

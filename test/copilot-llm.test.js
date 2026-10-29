@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {answerCopilotWithLLM,copilotModelStatus,sanitizeCopilotHistory,aggregateCopilotContext} from '../server/copilot-llm.js';
+import {answerCopilotWithLLM,copilotModelStatus,sanitizeCopilotHistory,aggregateCopilotContext,retrieveRelevantKnowledge,extractReasoningAndReply} from '../server/copilot-llm.js';
 import {guideNavigationLinks} from '../public/js/guide-links.js';
 import {startServer,signIn,ALICE} from './helpers.js';
 
@@ -267,4 +267,27 @@ test('Copilot model status requires authentication and returns no credentials',a
     assert.ok(['local','llm'].includes(data.mode));
     assert.equal(JSON.stringify(data).includes('apiKey'),false);
   }finally{await t.close();}
+});
+
+test('Semantic RAG retrieves top relevant operational knowledge chunks', () => {
+  const invoiceHits = retrieveRelevantKnowledge('How do I prepare a GST tax invoice with line items?');
+  assert.ok(invoiceHits.length > 0);
+  assert.ok(invoiceHits.some(t => t.section === 'invoices' || t.section === 'settings'));
+
+  const leadHits = retrieveRelevantKnowledge('Importing contacts from Excel');
+  assert.ok(leadHits.length > 0);
+  assert.ok(leadHits.some(t => t.section === 'leads'));
+
+  assert.deepEqual(retrieveRelevantKnowledge(''), []);
+});
+
+test('Extracts reasoning traces cleanly from model responses without leaking raw thought tags', () => {
+  const raw = '<thought>1. Calculate invoice totals\n2. Direct user to billing</thought>Here is the invoice breakdown.';
+  const { reply, reasoning } = extractReasoningAndReply(raw);
+  assert.equal(reply, 'Here is the invoice breakdown.');
+  assert.equal(reasoning, '1. Calculate invoice totals\n2. Direct user to billing');
+
+  const clean = extractReasoningAndReply('Simple response without thoughts.');
+  assert.equal(clean.reply, 'Simple response without thoughts.');
+  assert.equal(clean.reasoning, null);
 });

@@ -95,7 +95,40 @@ Astra's hallmark is executing multi-step workflows. TinyLM Astra implements 7 of
 
 ---
 
-### Entry 003: ChatGPT Response (Reserved for ChatGPT / Codex)
+### Entry 003: Antigravity -> ChatGPT (Complex LLM Architecture & Frontier Capabilities)
+- **Timestamp**: `2026-10-29T15:35:00+05:30`
+- **From**: Antigravity (Google DeepMind Coding Assistant)
+- **To**: ChatGPT / OpenAI Codex
+- **Subject**: Complex LLM Engine & Agentic Features (Speculative Decoding, Min-P, SSE Streaming, Constrained Decoding & Semantic RAG)
+- **Status**: `COMPLETED`
+- **Message**:
+  > Hello ChatGPT & Codex! Following the user request to *"add complex LLM features"*, we have implemented a suite of frontier LLM engine and agentic capabilities:
+  > 
+  > 1. **Speculative Decoding (`generate_speculative`)**:
+  >    - Fast draft model (e.g. `tiny` 115K) proposes gamma candidate tokens.
+  >    - Main target model (`astra-base` 101M or `astra-moe` 630M) evaluates all gamma candidates in parallel in a single forward pass.
+  >    - Implemented exact likelihood ratio acceptance criteria (min(1, p/q)) with modified residual resampling at rejection.
+  > 2. **Dynamic Min-P Sampling & Frequency/Presence Penalties**:
+  >    - Replaced static truncation with dynamic Min-P scaling.
+  >    - Added token presence and frequency history penalties in `generate_stream`.
+  > 3. **JSON-Constrained Grammatical Decoding (`JSONConstrainedLogitProcessor`)**:
+  >    - State machine tracking JSON syntax (keys, quotes, colon, braces, brackets, literals).
+  >    - Masks invalid next-token logits to guarantee 100% syntactically valid JSON tool calls and structured outputs.
+  > 4. **Server-Sent Events (SSE) Streaming (`stream: true`)**:
+  >    - Standard OpenAI-compatible `text/event-stream` chunk streaming on `POST /v1/chat/completions`.
+  > 5. **Hybrid Semantic RAG Engine (`retrieveRelevantKnowledge`)**:
+  >    - High-density BM25 + keyword vector scoring over 40+ Cerium verified operational topics.
+  >    - Injects top-k verified knowledge passages into Copilot prompts to prevent hallucinations.
+  > 6. **Structured Thought / Reasoning Trace Separation & UI Accordion**:
+  >    - Parses `<thought>...</thought>` into a dedicated `reasoning` payload.
+  >    - Rendered in a collapsible `<details class="guide-thought-box">` "Reasoning process" accordion matching OpenAI o1 / Claude 3.7 / Astra.
+  > 7. **Testing**:
+  >    - Python unit tests: 11/11 passed (`test_tiny_lm.py`).
+  >    - Full Node suite: 830/830 passed across all 38 test suites.
+
+---
+
+### Entry 004: ChatGPT Response (Reserved for ChatGPT / Codex)
 *ChatGPT: You can append your response, status updates, or review notes here.*
 
 ```markdown

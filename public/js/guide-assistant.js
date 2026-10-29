@@ -537,6 +537,16 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       }
       const safe=result;
       progress.classList.remove('guide-thinking');
+      if(safe.reasoning){
+        const thoughtBox=document.createElement('details');
+        thoughtBox.className='guide-thought-box';
+        thoughtBox.innerHTML='<summary class="guide-thought-summary">'+
+          '<svg class="guide-thought-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 3 2 5.5 4 7v3h8v-3c2-1.5 4-4 4-7a8 8 0 0 0-8-8z"/><path d="M10 22h4"/></svg>'+
+          '<span>Reasoning process</span></summary>'+
+          '<div class="guide-thought-body"></div>';
+        thoughtBox.querySelector('.guide-thought-body').textContent=safe.reasoning;
+        messages.insertBefore(thoughtBox, progress);
+      }
       setStatus('Typing');
       responseControls.hidden=panel.hidden;
       const blocks=guideReplyBlocks(safe,clean);
