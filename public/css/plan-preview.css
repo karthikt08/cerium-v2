@@ -1,0 +1,56 @@
+/* Regional plan preview: marketing-only Growth and Team concepts.
+   Keeps Cerium's current blue/white visual language and existing buttons. */
+.pg.home .planned-inline{margin-top:20px;padding:18px;border:1px solid #dae2f3;border-radius:16px;background:linear-gradient(135deg,#f7f9ff,#fff)}
+.pg.home .planned-inline-heading{display:flex;gap:8px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.pg.home .planned-inline-heading strong{font-size:15px;color:#152440}
+.pg.home .planned-inline-heading span{font-size:11px;font-weight:700;color:#4d6089;letter-spacing:.02em}
+.pg.home .planned-inline-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pg.home .planned-inline-options>div{display:grid;align-content:start;gap:2px;padding:12px;border:1px solid #e0e7f3;border-radius:11px;background:#fff;min-width:0}
+.pg.home .planned-inline-options>div>span{font-size:12px;font-weight:700;color:#556783}
+.pg.home .planned-inline-options strong{font:700 clamp(1.5rem,3vw,1.9rem)/1.2 var(--hf);letter-spacing:-.03em;color:#162b50}
+.pg.home .planned-inline-options small{font-size:11px;line-height:1.4;color:#556783}
+.pg.home .planned-inline>p{margin:12px 0 0;font-size:12px;line-height:1.55;color:#51617b}
+.pg.home .trial-pricing-banner{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 auto 36px;padding:20px 24px;max-width:1120px;border-radius:18px;border:1px solid #cedbf3;background:linear-gradient(120deg,#edf3ff 0%,#fafcff 80%)}
+.pg.home .trial-pricing-banner strong{font-size:18px;font-weight:750}
+.pg.home .trial-pricing-banner p{margin:4px 0 0;max-width:650px;font-size:14px;color:var(--mut);line-height:1.55}
+.pg.home .trial-pricing-banner a{flex-shrink:0}
+.pg.home .plan-grid-heading{max-width:1120px;margin:0 auto 22px}
+.pg.home .plan-grid-heading h2{font-size:clamp(1.7rem,3vw,2.25rem);margin:0}
+.pg.home .plan-grid-heading p{color:var(--mut);font-size:15px;margin:8px 0 0;max-width:720px}
+.pg.home .pricing-grid{max-width:1120px;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:14px}
+.pg.home .pricing-grid .pcard{padding:clamp(20px,2.4vw,32px);min-width:0}
+.pg.home .pricing-grid .pcard h3{font-size:clamp(1.35rem,2vw,1.65rem)}
+.pg.home .pricing-grid .pcard-price{flex-wrap:wrap;margin:16px 0 14px}
+.pg.home .pricing-grid .pcard-price strong{font-size:clamp(2.6rem,4vw,3.5rem)}
+.pg.home .pricing-grid .pcard-sub{min-height:0;line-height:1.55}
+.pg.home .pricing-grid .pcard-features{font-size:14px;gap:12px}
+.pg.home .plan-status{display:inline-flex;align-self:flex-start;margin-bottom:14px;border:1px solid #d6def2;background:#f1f5fc;color:#415879;border-radius:99px;padding:5px 11px;font:700 11px var(--bf)}
+.pg.home .plan-status.available{background:#eaf2ff;color:#1b4ea2;border-color:#bcd1ff}
+.pg.home .plan-status.proposed{background:#f6f5fc;color:#6b6088;border-color:#ded7ee}
+.pg.home .planned-prices-footnote{max-width:1120px;margin:0 auto 24px;font-size:13px;color:var(--mut);line-height:1.5}
+.pg.home .region-plan-comparison{max-width:1120px;margin:0 auto 84px;background:#fff;border:1px solid var(--ln);border-radius:16px;overflow:hidden}
+.pg.home .region-plan-comparison summary{cursor:pointer;padding:18px 24px;font-weight:650;font-size:15px;color:#213a66;list-style-position:inside}
+.pg.home .region-plan-comparison summary:hover{background:#f6f8fd}
+.pg.home .region-plan-comparison summary:focus-visible{outline:3px solid #7994ff;outline-offset:-3px}
+.pg.home .region-plan-scroll{overflow-x:auto;padding:0 20px 20px}
+.pg.home .region-plan-comparison table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px;text-align:left}
+.pg.home .region-plan-comparison caption{caption-side:top;text-align:left;padding:0 0 12px;color:var(--mut);font-size:12px}
+.pg.home .region-plan-comparison th,.pg.home .region-plan-comparison td{padding:11px 10px;border-bottom:1px solid #e3e9f2}
+.pg.home .region-plan-comparison thead th{background:#f3f6fc;font-weight:700;color:#233d63}
+.pg.home .region-plan-comparison tbody th{font-weight:600}
+.pg.home .region-plan-comparison tbody tr:last-child>*{border-bottom:0}
+@media(max-width:900px){
+  .pg.home .pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pg.home .pricing-grid .pcard:last-child{grid-column:1/-1}
+}
+@media(max-width:640px){
+  .pg.home .pricing-grid{grid-template-columns:minmax(0,1fr)}
+  .pg.home .pricing-grid .pcard:last-child{grid-column:auto}
+  .pg.home .trial-pricing-banner{flex-direction:column;align-items:stretch}
+  .pg.home .trial-pricing-banner a{width:100%}
+  .pg.home .region-plan-scroll{padding:0 12px 14px}
+  .pg.home .region-plan-comparison summary{padding:16px}
+}
+@media(max-width:360px){.pg.home .planned-inline-options{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.pg.home .planned-inline *{animation:none!important;transition:none!important}}
+@media print{.pg.home .planned-inline,.pg.home .trial-pricing-banner,.pg.home .region-plan-comparison{break-inside:avoid}}

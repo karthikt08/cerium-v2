@@ -1,6 +1,25 @@
 import {billingPlan} from './countries.js';
+// Marketing-only indicative upgrade prices; never passed into checkout.
+const proposedMonthly=Object.freeze({
+  high:{growth:39,team:69},
+  upperMiddle:{growth:31,team:55},
+  lowerMiddle:{growth:23,team:41},
+  low:{growth:16,team:28},
+  india:{growth:999,team:1749},
+  unclassified:{growth:39,team:69}
+});
+const paintProposed=plan=>{
+  if(!plan)return;
+  const amounts=proposedMonthly[plan.tier]||proposedMonthly.unclassified;
+  const symbol=plan.currency==='INR'?'₹':String.fromCharCode(36);
+  for(const el of document.querySelectorAll('[data-preview-plan]')){
+    const price=amounts[el.dataset.previewPlan];
+    if(Number.isInteger(price))el.textContent=symbol+price.toLocaleString('en-US');
+  }
+};
 const paintAnnual=plan=>{
   if(!plan)return;
+  paintProposed(plan);
   const symbol=plan.currency==='INR'?'₹':String.fromCharCode(36);
   for(const el of document.querySelectorAll('[data-region-annual-price]'))el.textContent=symbol+(plan.monthlyPrice*11);
   for(const el of document.querySelectorAll('[data-region-annual-savings]'))el.textContent=symbol+plan.monthlyPrice;
@@ -42,6 +61,6 @@ if(picker){
     paintAnnual(plan);
     for(const element of document.querySelectorAll('[data-region-price]'))element.textContent=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice;
     for(const element of document.querySelectorAll('[data-region-description]'))element.textContent='Country price preview · '+plan.currency+' billing';
-    document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Same features in every country. Confirmed at business setup.';
+    document.getElementById('country-price-result').textContent=priceLabel(picker.value)+'/month Starter available'+(plan.discountPercent?' · '+plan.discountPercent+'% off the $20 standard price':'')+'. Growth and Team are future proposals, not available for checkout. Final Starter price confirmed during business setup.';
   });
 }

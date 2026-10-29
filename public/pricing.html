@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pricing &amp; Plans — CERIUM</title>
-<meta name="description" content="Cerium monthly pricing and optional annual billing: save one month with a yearly plan where enabled. The 15-day trial begins after verification and payment-method authorisation.">
+<meta name="description" content="Fair Cerium pricing by business country. Starter is available today, with Growth and Team options being explored for the future. 15-day trial after verification and payment authorization.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,6 +59,7 @@ body{margin:0;background:#f4f6fa}
 <link rel="stylesheet" href="css/controls.css">
 <link rel="stylesheet" href="css/country-pricing.css">
 <link rel="stylesheet" href="css/pricing-motion.css">
+<link rel="stylesheet" href="css/plan-preview.css">
 <link rel="stylesheet" href="css/status-pricing-night.css">
 <link rel="stylesheet" href="css/ui-consistency.css">
 <link rel="stylesheet" href="css/typography.css">
@@ -88,14 +89,14 @@ body{margin:0;background:#f4f6fa}
   <section class="w hero">
     <p class="ey u" style="justify-content:center">Honest, Predictable Pricing</p>
     <h1 class="u" style="animation-delay:.08s">Everything you need.<br><span class="ac">Nothing you don't.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>
-    <p class="ld u" style="animation-delay:.18s">No multi-thousand dollar setup fees, no pushy sales calls, and no 2-year lock-in contracts. Try Cerium completely free for 15 days.</p>
+    <p class="ld u" style="animation-delay:.18s">Start with a simple, country-aware plan. See the Growth and Team options we’re exploring as businesses expand.</p>
   </section>
 
   <section class="w">
-    <p style="text-align:center;color:var(--mut);margin:0 0 24px">Country pricing: $20 / $16 / $12 / $8 USD per month. India stays ₹500 INR/month. Your verified business country determines your plan.</p>
+    <p style="text-align:center;color:var(--mut);margin:0 0 24px">Starter is available today from $8–$20 USD/month by business country, or ₹500/month in India. The proposed Growth and Team prices below are not yet available for purchase.</p>
     <div class="country-pricing-panel">
       <h2>One platform. A fairer starting point.</h2>
-      <p>The same tools and support at every price. Discounts reflect the country where your business operates, never your ethnicity or nationality.</p>
+      <p>The same Starter tools for businesses in every region. Discounts reflect your business’s operating country, never ethnicity or nationality. Growth and Team are proposals, not active subscriptions.</p>
       <div class="country-price-tiers" aria-label="Monthly country prices">
         <div data-rv style="--i:0"><strong>$20</strong><span>High income</span><small>Standard price</small></div>
         <div data-rv style="--i:1"><strong>$16</strong><span>Upper-middle income</span><small>20% off</small></div>
@@ -109,51 +110,86 @@ body{margin:0;background:#f4f6fa}
       <p class="country-pricing-note">Based on World Bank FY2027 income groups. Unclassified economies use the $20 standard price. Existing authorized subscriptions keep their agreed price until changed. <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups">Classification source ↗</a></p>
     </div>
     <div class="annual-pricing-note" aria-label="Annual billing option">
-      <strong>Pay annually, save one month · <span data-region-annual-price>$220</span>/year</strong>
+      <strong>Starter annual billing · save one month · <span data-region-annual-price>$220</span>/year</strong>
       <span>Compared with 12 monthly payments, save <span data-region-annual-savings>$20</span> per year. Billed once every 12 months, excluding applicable taxes.</span>
       <small>Annual checkout appears only where the corresponding Razorpay yearly plan is enabled for your verified business country. Otherwise, monthly billing remains available. Existing subscriptions are never switched automatically.</small>
     </div>
-    <div class="pricing-grid">
-      <!-- Card 1: 15-Day Free Trial -->
-      <div class="pcard" data-rv style="--i:0">
-        <h3>15-Day Free Trial</h3>
-        <div class="pcard-price">
-          <strong>$0</strong>
-          <span>for 15 days</span>
-        </div>
-        <p class="pcard-sub">Explore Cerium’s current tools after required business setup and phone verification. Razorpay payment-method authorization starts the 15-day trial.</p>
-        <ul class="pcard-features">
-          <li>Choose your tools with industry-aware suggestions</li>
-          <li>Leads, estimates, scheduled jobs and follow-ups</li>
-          <li>Up to 5 country-aware invoices &amp; PDF exports</li>
-          <li>Manual invoice sharing drafts &amp; India UPI QR</li>
-          <li>Marketing drafts and Ask Cerium guidance</li>
-          <li>Review tracking and JSON data export</li>
-        </ul>
-        <a class="btn gh" href="signup.html" style="width:100%;margin-top:auto">Start 15-Day Free Trial</a>
+    <div class="trial-pricing-banner">
+      <div>
+        <strong>Start with a 15-day trial</strong>
+        <p>Explore the current Starter workspace. Phone verification, business setup and Razorpay payment-method authorization are required before trial access. Eligible trials have an invoice limit of five.</p>
       </div>
-
-      <!-- Card 2: Cerium Pro -->
-      <div class="pcard featured" data-rv style="--i:1">
-        <span class="pcard-tag">Most Popular</span>
-        <h3>Cerium Pro</h3>
-        <div class="pcard-price">
-          <strong data-region-price>$20</strong>
-          <span>/ month</span>
-        </div>
-        <p class="pcard-sub">The same customizable workspace for service teams and small businesses. Choose monthly or annual billing during payment authorization where available.</p>
-        <ul class="pcard-features">
-          <li><strong>Unlimited</strong> leads, estimates and job scheduling</li>
-          <li><strong>Unlimited</strong> invoices, Net 15/30 terms &amp; PDFs</li>
-          <li>WhatsApp, SMS, email drafts and India UPI QR</li>
-          <li>Marketing content drafts, check-ins and recorded insights</li>
-          <li>Ask Cerium navigation and business tool recommendations</li>
-          <li>Payment status, review requests &amp; follow-ups</li>
-          <li>Flexible modules, data export and founder support</li>
-        </ul>
-        <a class="btn" href="signup.html" style="width:100%;margin-top:auto">Start trial &amp; authorize billing →</a>
+      <a class="btn gh" href="signup.html">Start free trial</a>
+    </div>
+    <div class="plan-grid-heading">
+      <div>
+        <h2>Pick your pace.</h2>
+        <p>Starter is live. Growth and Team are proposed upgrades, shown for pricing feedback only—no upgrade checkout is available yet.</p>
       </div>
     </div>
+    <div class="pricing-grid">
+      <div class="pcard" data-rv style="--i:0">
+        <span class="plan-status available">Available now</span>
+        <h3>Starter</h3>
+        <div class="pcard-price"><strong data-region-price>$20</strong><span>/ month</span></div>
+        <p class="pcard-sub">The full current Cerium workspace for independent contractors and small businesses. The same features at every Starter regional price.</p>
+        <ul class="pcard-features">
+          <li>Unlimited leads, estimates and scheduled jobs</li>
+          <li>Unlimited invoices, payment status and PDFs after trial</li>
+          <li>Customer follow-ups and review tracking</li>
+          <li>WhatsApp, SMS and email drafts; India UPI QR</li>
+          <li>Marketing drafts and Ask Cerium guidance</li>
+          <li>Customizable tools, CSV/Excel import and data export</li>
+        </ul>
+        <a class="btn" href="signup.html" style="width:100%;margin-top:auto">Start 15-day trial →</a>
+      </div>
+
+      <div class="pcard featured" data-rv style="--i:1">
+        <span class="plan-status proposed">Proposed · not available</span>
+        <h3>Growth</h3>
+        <div class="pcard-price"><strong data-preview-plan="growth">$39</strong><span>/ month*</span></div>
+        <p class="pcard-sub">For teams ready to automate the routine. This is a planned feature package, not a purchasable plan.</p>
+        <ul class="pcard-features">
+          <li>Everything in Starter</li>
+          <li>Proposed automated quote follow-ups</li>
+          <li>Proposed payment-reminder workflows</li>
+          <li>Proposed recurring service templates</li>
+          <li>Proposed advanced business reports</li>
+        </ul>
+        <a class="btn gh" href="contact.html" style="width:100%;margin-top:auto">Ask about Growth</a>
+      </div>
+
+      <div class="pcard" data-rv style="--i:2">
+        <span class="plan-status proposed">Proposed · not available</span>
+        <h3>Team</h3>
+        <div class="pcard-price"><strong data-preview-plan="team">$69</strong><span>/ month*</span></div>
+        <p class="pcard-sub">For multi-person service crews. Staffing features and pricing are concepts, not currently offered subscriptions.</p>
+        <ul class="pcard-features">
+          <li>Everything proposed for Growth</li>
+          <li>Proposed staff logins and role permissions</li>
+          <li>Proposed work assignments and activity history</li>
+          <li>Proposed manager-level reporting</li>
+        </ul>
+        <a class="btn gh" href="contact.html" style="width:100%;margin-top:auto">Ask about Team</a>
+      </div>
+    </div>
+    <p class="planned-prices-footnote">*Growth and Team amounts are illustrative monthly prices, exclude taxes, and may change. They are not enabled in billing. The Starter prices and trial terms are the current offer.</p>
+    <details class="region-plan-comparison">
+      <summary>Compare proposed prices across country groups</summary>
+      <div class="region-plan-scroll">
+        <table>
+          <caption>Monthly prices by business-country income group. Growth and Team are proposals only.</caption>
+          <thead><tr><th scope="col">Business region</th><th scope="col">Starter · available</th><th scope="col">Growth · proposed</th><th scope="col">Team · proposed</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">High income / unclassified</th><td>$20</td><td>$39</td><td>$69</td></tr>
+            <tr><th scope="row">Upper-middle income</th><td>$16</td><td>$31</td><td>$55</td></tr>
+            <tr><th scope="row">Lower-middle income</th><td>$12</td><td>$23</td><td>$41</td></tr>
+            <tr><th scope="row">Low income</th><td>$8</td><td>$16</td><td>$28</td></tr>
+            <tr><th scope="row">India · local INR pricing</th><td>₹500</td><td>₹999</td><td>₹1,749</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
   </section>
 
   <!-- FAQ Section -->
