@@ -11,7 +11,7 @@ test('regional pricing preview identifies Starter as the only purchasable plan',
   assert.match(home,/Proposed plans · not available yet/);
   assert.match(pricing,/Growth and Team are proposed upgrades/);
   assert.match(pricing,/not enabled in billing/);
-  assert.match(pricing,/Only the existing Starter-equivalent subscription is currently available/);
+  assert.match(pricing,/The Starter prices and trial terms are the current offer/);
   assert.match(pricing,/href="signup\.html"[^>]*>Start 15-day trial/);
   assert.equal((pricing.match(/data-preview-plan="growth"/g)||[]).length,1);
   assert.equal((pricing.match(/data-preview-plan="team"/g)||[]).length,1);
@@ -47,7 +47,7 @@ test('proposed country prices remain isolated from subscription billing',()=>{
 test('planned upgrades cannot be mistaken for an active checkout CTA',()=>{
   const pricing=read('pricing.html');
   const growth=pricing.split('<h3>Growth</h3>')[1]?.split('<h3>Team</h3>')[0]||'';
-  const team=pricing.split('<h3>Team</h3>')[1]?.split('</div>\n    </div>\n    <p class="planned-prices-footnote">')[0]||'';
+  const team=pricing.split('<h3>Team</h3>')[1]?.split('<p class="planned-prices-footnote">')[0]||'';
   for(const card of [growth,team]){
     assert.match(card,/href="contact\.html"/);
     assert.doesNotMatch(card,/href="signup\.html"/);
