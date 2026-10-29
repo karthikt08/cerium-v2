@@ -600,3 +600,26 @@
     transition:none!important;
   }
 }
+
+/* Workspace polish: type that the reference theme does not reach.
+   Keeps Design D (side-bracket tabs, blue accent, glowing page titles).
+   Screen only, so printable invoices and reports are untouched. */
+@media screen{
+  .app-page .view-toggle button{font-size:12px;padding:6px 12px}
+  .app-page .result-footer{font-size:12px}
+  .app-page .field small,.app-page .muted,.app-page .notice{font-size:12.5px}
+  .app-page .data-table .subline{font-size:12px}
+
+  /* Page intro: the section name is already in the breadcrumb, so the label
+     above the description reads as a quiet sentence, not a 9px caps tag. */
+  .app-page .page-description{font-size:14px;line-height:1.6}
+  .app-page .workspace-category-heading .eyebrow{
+    font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:#3d4a63;
+  }
+
+  /* Empty states: clearer hierarchy and more room. */
+  .app-page .empty-state{padding:64px 24px}
+  .app-page .empty-state .empty-icon{width:46px;height:46px;border-radius:13px;margin-bottom:16px}
+  .app-page .empty-state h3{font-size:15px;font-weight:600;color:#334155;margin-bottom:6px}
+  .app-page .empty-state p{font-size:13px;max-width:340px;line-height:1.6}
+}

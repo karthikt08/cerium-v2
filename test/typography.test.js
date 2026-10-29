@@ -22,6 +22,13 @@ test('all CERIUM HTML pages load the same Figtree font and last-in-cascade typog
   }
 });
 
+test('headings use Castrade, falling back to Figtree, while body text stays Figtree',()=>{
+  assert.match(shared,/@font-face\s*\{[^}]*font-family:\s*"Castrade"[^}]*fonts\/castrade\.woff2/);
+  assert.match(shared,/--cerium-heading-typeface:\s*"Castrade",\s*var\(--cerium-typeface\)/);
+  assert.match(shared,/body :is\(h1, h2, h3\) \*,[^{]*\{\s*font-family:\s*var\(--cerium-heading-typeface\)\s*!important/,'headings and their nested accent spans share the heading face');
+  assert.ok(shared.indexOf('--cerium-heading-typeface) !important')>shared.indexOf('body, body *'),'heading rule follows the body rule so it wins');
+});
+
 test('typography consistently covers body, pop-ups, forms, headings and generated controls',()=>{
   assert.match(shared,/--cerium-typeface:\s*"Figtree"/);
   assert.match(shared,/body, body \*, body \*::before, body \*::after/);
