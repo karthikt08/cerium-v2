@@ -370,30 +370,32 @@
   scroll-padding-inline:12px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{
-  display:flex;align-items:flex-end;gap:4px;min-width:max-content;
+  display:flex;align-items:flex-end;gap:0;min-width:max-content;
   background:transparent;border:0;border-radius:0;padding:0;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
-  position:relative;isolation:isolate;min-width:120px;padding:13px 20px;margin-bottom:-1px;
+  position:relative;isolation:isolate;min-width:110px;height:42px;min-height:42px;margin-bottom:-1px;margin-left:-6px;padding:0 18px;
   display:inline-flex;align-items:center;justify-content:center;text-align:center;
-  border:0;border-bottom:3px solid transparent;border-radius:0;
+  border:0;border-bottom:2px solid transparent;border-radius:0;box-sizing:border-box;
   color:#5d687e;font-size:13px;font-weight:500;white-space:nowrap;
   text-decoration:none;box-shadow:none;transition:color .15s,border-color .15s;
 }
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:first-child{margin-left:0}
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
-  content:"";position:absolute;inset:0;z-index:-1;
-  background:#f1f4f9;border-radius:10px 10px 0 0;
-  transform:perspective(10px) rotateX(.6deg);transform-origin:bottom;
-  transition:background-color .15s;
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:#e9edf6;border:0;border-radius:12px 12px 0 0;
+  transform:perspective(12px) rotateX(1deg);transform-origin:bottom;
+  transition:background-color .15s,border-color .15s;
 }
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{color:#16213a;background:transparent}
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
-  background:#e5ebf5;
+  background:#dfe6f2;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
-  border-bottom-color:#1d5bf0;color:#1d5bf0;font-weight:600;
+  border-bottom-color:transparent;color:#1d5bf0;font-weight:600;z-index:2;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before{
-  background:#eaf1ff;
+  background:#ffffff;border:2px solid #1d5bf0;border-bottom:0;
 }
 .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
   outline:3px solid #365be6;outline-offset:-4px;

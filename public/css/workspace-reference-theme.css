@@ -170,7 +170,7 @@
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{
   display:flex;
   align-items:flex-end;
-  gap:4px;
+  gap:0;
   width:max-content;
   min-width:100%;
   padding:0;
@@ -182,17 +182,20 @@
   position:relative;
   isolation:isolate;
   flex:none;
-  min-width:120px;
+  min-width:110px;
+  height:42px;
+  min-height:42px;
+  box-sizing:border-box;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   text-align:center;
-  min-height:44px;
   margin-bottom:-1px;
-  padding:14px 20px;
+  margin-left:-6px;
+  padding:0 18px;
   clip-path:none;
   border:0;
-  border-bottom:3px solid transparent;
+  border-bottom:2px solid transparent;
   border-radius:0;
   background:transparent;
   box-shadow:none;
@@ -203,17 +206,19 @@
   text-decoration:none;
   transition:color .15s,border-color .15s;
 }
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:first-child{margin-left:0}
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
   content:"";
   position:absolute;
   inset:0;
   z-index:-1;
   pointer-events:none;
-  border-radius:10px 10px 0 0;
-  background:#f1f4f9;
-  transform:perspective(10px) rotateX(.6deg);
+  border:0;
+  border-radius:12px 12px 0 0;
+  background:var(--reference-tab);
+  transform:perspective(12px) rotateX(1deg);
   transform-origin:bottom;
-  transition:background-color .15s;
+  transition:background-color .15s,border-color .15s;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{display:none!important;content:none!important}
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{
@@ -227,15 +232,18 @@
   box-shadow:none;
   color:var(--reference-blue);
   font-weight:600;
+  z-index:2;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before{
-  background:var(--reference-soft);
+  background:var(--reference-canvas);
+  border:2px solid var(--reference-blue);
+  border-bottom:0;
   height:auto;
   width:auto;
   left:0;
   right:0;
   bottom:0;
-  border-radius:10px 10px 0 0;
+  border-radius:12px 12px 0 0;
 }
 .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
   outline:2px solid var(--reference-blue);
