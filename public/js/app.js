@@ -64,7 +64,21 @@ const badge = (status) => {
 };
 const empty = (title,description,action='') => `<div class="empty-state"><span class="empty-icon">${icon('empty')}</span><h3>${typeof title === 'string' && title.includes('<span') ? title : esc(title)}</h3><p>${esc(description)}</p>${action}</div>`;
 const panelHeader = (name,title,sub='',right='') => `<div class="panel-header"><div><div class="panel-title">${icon(name)}<h2>${title}</h2></div>${sub ? `<p class="panel-subtitle">${sub}</p>` : ''}</div>${right}</div>`;
-const pageHeading = (title,description,action='',eyebrow='') => `<div class="page-heading"><div>${eyebrow?`<p class="eyebrow">${esc(eyebrow)}</p>`:''}<h1>${typeof title === 'string' && title.includes('<span') ? title : esc(title)}</h1><p class="page-description">${esc(description)}</p></div><div class="heading-actions">${action}</div></div>`;
+const brandHeadingSVG = '<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg>';
+const brandHeadingWrap = (text) => `<span class="ac">${esc(text)}${brandHeadingSVG}</span>`;
+const cleanTitle = (t) => typeof t === 'string' ? t.replace(/<[^>]*>/g, '').trim() : '';
+const pageHeading = (title,description,action='',eyebrow='') => `<div class="page-heading"><div>${eyebrow?`<p class="eyebrow">${esc(eyebrow)}</p>`:''}<h1>${typeof title === 'string' && title.startsWith('<span class="ac">') && title.endsWith('</span>') && !title.slice(17, -7).includes('<span') ? title : brandHeadingWrap(cleanTitle(title) || title)}</h1><p class="page-description">${esc(description)}</p></div><div class="heading-actions">${action}</div></div>`;
+function decorateHeadingAccents(root) {
+  if (!root) return;
+  const headings = root.querySelectorAll('.page-heading h1:not(:has(.overview-title-accent))');
+  for (const h1 of headings) {
+    const raw = h1.textContent.trim();
+    if (!raw) continue;
+    const ac = h1.querySelector('.ac');
+    if (ac && ac.textContent.trim() === raw && h1.querySelector('.ul')) continue;
+    h1.innerHTML = brandHeadingWrap(raw);
+  }
+}
 const rowActions = (kind,id,label,extra='') => `<div class="table-actions">${extra}<button class="icon-button" data-action="edit" data-kind="${kind}" data-id="${esc(id)}" aria-label="Edit ${esc(label)}">${icon('edit')}</button><button class="icon-button" data-action="delete" data-kind="${kind}" data-id="${esc(id)}" aria-label="Delete ${esc(label)}">${icon('close')}</button></div>`;
 function toast(message,error=false) {
   const el=document.createElement('div'); el.className='toast'+(error?' error':''); el.textContent=message; $('toast-region').append(el); while($('toast-region').children.length>3)$('toast-region').firstElementChild.remove(); setTimeout(()=>el.remove(),5000);
@@ -445,6 +459,7 @@ function renderPage() {
   initializeCustomerPayments({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   initializeMigration({root:$('page-body'),ws:state.ws,api:API,refresh,readOnly,toast});
   drafts.restore(s);
+  decorateHeadingAccents($('page-body'));
   requestAnimationFrame(()=>revealActiveFeature($('page-body')));
   if(openTools)$('workspace-customizer-dialog')?.showModal();
   if(readOnly()) {

@@ -281,7 +281,7 @@
   fill: none;
   stroke: var(--cerium-ui-primary, #4263eb);
   stroke: url(#ug);
-  stroke-width: 5;
+  stroke-width: 8.5;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;

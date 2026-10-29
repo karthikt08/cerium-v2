@@ -112,7 +112,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
             '</span>'+
             '<span class="guide-context-badge" id="guide-context-badge">Overview</span><span class="guide-model-badge" id="guide-model-badge">Local mode</span>'+
           '</div>'+
-          '<h2>Cerium <span class="ac">Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
+          '<h2><span class="ac">Cerium Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug-copilot" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke="url(#ug-copilot)" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
         '</div>'+
         '<div class="guide-header-actions">'+
           '<button type="button" class="guide-header-btn guide-reset" id="guide-reset" aria-label="Start new conversation" title="Clear conversation">'+
@@ -149,7 +149,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
           '<button type="submit" class="guide-send" id="guide-send" aria-label="Send question">Send</button>'+
         '</form>'+
         '<div class="guide-privacy">'+
-          '<span class="guide-privacy-icon" aria-hidden="true">🔒</span>'+
+          '<span class="guide-privacy-icon" aria-hidden="true"><svg class="guide-privacy-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>'+
           '<span>Business records stay in Cerium. A configured model may process your typed chat and permitted summary totals. Read-only.</span>'+
         '</div>'+
       '</div>'+
@@ -239,9 +239,9 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
         '<p class="guide-welcome-sub">Ask about business decisions and workflows. Live record summaries work even without an LLM.</p></div>'+
       '</div>'+
       '<div class="guide-welcome-features">'+
-        '<span class="guide-welcome-pill">📊 Live business summaries</span>'+
-        '<span class="guide-welcome-pill">⚡ Guided workflows</span>'+
-        '<span class="guide-welcome-pill">🔒 Private & read-only</span>'+
+        '<span class="guide-welcome-pill"><svg class="guide-pill-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Live business summaries</span></span>'+
+        '<span class="guide-welcome-pill"><svg class="guide-pill-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Guided workflows</span></span>'+
+        '<span class="guide-welcome-pill"><svg class="guide-pill-svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Private & read-only</span></span>'+
       '</div>';
     messages.append(card);
     scrollToLatest();
@@ -549,7 +549,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
       }
       setStatus('Typing');
       responseControls.hidden=panel.hidden;
-      const blocks=guideReplyBlocks(safe,clean);
+      const blocks=guideReplyBlocks({...safe,type:safe.type||'copilot'},clean);
       typing=typeGuideReply(progress,blocks,{
         signal:controller.signal,instant:panel.hidden,onUpdate:scrollToLatest
       });

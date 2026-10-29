@@ -59,7 +59,7 @@ export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false) {
   const assigned=weekJobs.filter(j=>j.workerId).length;
   const open=jobs.filter(j=>active(j)&&!j.workerId).length;
   return `<div class="jobs">
-    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1>Job <span class="ac">schedule<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">Plan the week, assign your crew, and keep every job on track.</p></div>
+    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1><span class="ac">Job schedule<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">Plan the week, assign your crew, and keep every job on track.</p></div>
       <div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''}>+ Schedule a job</button></div></div>
     <div class="jobs-stats">
       <div class="jobs-stat"><span>Jobs today</span><strong>${count}</strong><small>Active appointments</small></div>
