@@ -39,7 +39,7 @@ jobs:
               html=p.read_text(encoding="utf-8")
               for name in ["app.html","login.html","signup.html","verify.html","reset-password.html","forgot-password.html","enter.html","welcome.html"]:
                   html=re.sub(r'(href=["\'])(?:/)?'+re.escape(name)+r'(?=(?:[?#][^"\']*)?["\'])',lambda m:m.group(1)+app+"/"+name,html,flags=re.I)
-              html=re.sub(r'<script\s+src=["\']js/(?:nav-auth|local-check)\.js["\']\s*></script>\s*','',html,flags=re.I)
+              html=re.sub(r'<script\b[^>]*src=["\']js/(?:nav-auth|local-check)\.js["\'][^>]*></script>\s*','',html,flags=re.I)
               if page=="404.html":
                   html=re.sub(r'(src|href)=(["\'])/(?!/)([^"\'#]+)\2',r'\1=\2\3\2',html)
                   html=html.replace('href=""','href="index.html"')
