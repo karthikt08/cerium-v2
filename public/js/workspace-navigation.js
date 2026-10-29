@@ -8,6 +8,19 @@ export const SIDEBAR_CATEGORIES=Object.freeze(WORKSPACE_CATEGORIES.filter(c=>!['
 export {FEATURE_SUBFEATURES} from './workspace-subviews.js';
 import {subfeaturesFor,subviewHref,selectedSubview,subviewCount} from './workspace-subviews.js';
 
+const TAB_SHORT_LABELS=Object.freeze({
+  quotes:'Quotes',
+  reminders:'Reminders',
+  'crew-assignments':'Assignments',
+  schedule:'Schedule',
+  bank:'Bank Match',
+  business:'Business',
+  sales:'Sales',
+  revenue:'Revenue',
+  dues:'Dues',
+  'dispatch-planning':'Planning'
+});
+
 // Two connected but visually distinct navigation levels. All destinations
 // remain ordinary links, so old bookmarks, keyboard users and no-JS fallbacks
 // keep their canonical hash routes. No feature content is wrapped in tab chrome.
@@ -16,7 +29,8 @@ function renderBracketNavigation(route,features,workspace){
     const active=feature.id===route.id;
     const count=featureRecordCount(feature,workspace);
     const aria=feature.label+(count?.count?' · '+count.label:'');
-    return `<a class="workspace-feature-tab${active?' active':''}" href="${feature.href}" data-nav="${feature.href.slice(1)}" data-feature="${feature.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-feature-label">${esc(feature.label)}</span></a>`;
+    const tabLabel=feature.tabLabel||TAB_SHORT_LABELS[feature.id]||feature.label;
+    return `<a class="workspace-feature-tab${active?' active':''}" href="${feature.href}" data-nav="${feature.href.slice(1)}" data-feature="${feature.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-feature-label">${esc(tabLabel)}</span></a>`;
   }).join('');
   const subfeatures=subfeaturesFor(route);
   const selected=selectedSubview(route);

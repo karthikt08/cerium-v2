@@ -330,14 +330,16 @@
   display:flex;align-items:stretch;position:relative;z-index:1;min-width:max-content;padding:0;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
-  flex:none;position:relative;isolation:isolate;height:54px;min-height:54px;
-  margin-left:-10px;padding:0 26px 0 34px;display:inline-flex;align-items:center;
+  flex:0 0 160px;width:160px;min-width:160px;max-width:160px;box-sizing:border-box;
+  position:relative;isolation:isolate;height:54px;min-height:54px;
+  margin-left:-10px;padding:0 14px 0 24px;display:inline-flex;align-items:center;
+  justify-content:center;text-align:center;
   color:#5d687e;font-size:14.5px;font-weight:500;
   white-space:nowrap;text-decoration:none;border:0;border-radius:0;box-shadow:none;
   transition:color .15s;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:first-child{
-  margin-left:0;padding-left:26px;
+  margin-left:0;padding-left:14px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
   content:"";position:absolute;inset:0;z-index:-1;
@@ -373,7 +375,8 @@
   background:transparent;border:0;border-radius:0;padding:0;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
-  position:relative;isolation:isolate;padding:13px 28px;margin-bottom:-1px;
+  position:relative;isolation:isolate;min-width:120px;padding:13px 20px;margin-bottom:-1px;
+  display:inline-flex;align-items:center;justify-content:center;text-align:center;
   border:0;border-bottom:3px solid transparent;border-radius:0;
   color:#5d687e;font-size:13px;font-weight:500;white-space:nowrap;
   text-decoration:none;box-shadow:none;transition:color .15s,border-color .15s;
