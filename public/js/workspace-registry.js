@@ -3,16 +3,16 @@
 import {subfeaturesFor,subviewHref} from './workspace-subviews.js';
 import {WORKSPACE_MODULES} from './industry-workspaces.js';
 export const WORKSPACE_CATEGORIES=Object.freeze([
-  {id:'overview',label:'Overview',icon:'overview'},
-  {id:'customers',label:'Customers & Sales',icon:'leads'},
-  {id:'field',label:'Field Service',icon:'jobs'},
-  {id:'billing',label:'Billing & Payments',icon:'payments'},
-  {id:'marketing',label:'Marketing & Reputation',icon:'marketing'},
-  {id:'team',label:'Team & Resources',icon:'leads'},
-  {id:'insights',label:'Insights & Reports',icon:'reports'},
-  {id:'settings',label:'Settings & Customization',icon:'settings'},
-  {id:'assistant',label:'Ask Cerium',icon:'assistant'},
-  {id:'support',label:'Help & Support',icon:'support'},
+  {id:'overview',label:'Overview',icon:'overview',description:'Real-time activity, metrics and workflow shortcuts.'},
+  {id:'customers',label:'Customers & Sales',icon:'leads',description:'Manage leads, follow-ups and customer quotes.'},
+  {id:'field',label:'Field Service',icon:'jobs',description:'Coordinate jobs, schedules and crew dispatch.'},
+  {id:'billing',label:'Billing & Payments',icon:'payments',description:'Track invoices, payments, dues and bank matches.'},
+  {id:'marketing',label:'Marketing & Reputation',icon:'marketing',description:'Grow your reputation, reviews and visibility.'},
+  {id:'team',label:'Team & Resources',icon:'leads',description:'Manage crew schedules, availability and attendance.'},
+  {id:'insights',label:'Insights & Reports',icon:'reports',description:'Review business performance and revenue trends.'},
+  {id:'settings',label:'Settings & Customization',icon:'settings',description:'Configure profile, branding and tools.'},
+  {id:'assistant',label:'Ask Cerium',icon:'assistant',description:'AI assistance and tool recommendations.'},
+  {id:'support',label:'Help & Support',icon:'support',description:'Documentation, help guides and inquiries.'},
 ].map(Object.freeze));
 const feature=(id,category,label,section,view='',modules=[],customHref=null)=>Object.freeze({id,category,label,section,view,modules:Object.freeze(modules),href:customHref||'#'+(category==='overview'?'overview':category+'/'+id)});
 export const WORKSPACE_FEATURES=Object.freeze([

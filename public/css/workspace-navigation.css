@@ -394,3 +394,6 @@
 @media print{
   .app-page #page-body .workspace-angular-navigation{display:none!important}
 }
+
+.app-page .workspace-category-meta{display:flex;flex-direction:column;gap:3px}
+.app-page .workspace-category-desc{margin:0;font-size:13px;color:#64748b;line-height:1.45}

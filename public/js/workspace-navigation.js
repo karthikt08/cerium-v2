@@ -67,7 +67,10 @@ export function renderFeatureWorkspace(route,modules,content,workspace){
   const hidden=!featureEnabled(route,modules);
   return `<section class="category-workspace" aria-label="${esc(category.label)}">
     <div class="workspace-category-heading">
-      <p class="eyebrow">${esc(category.label)}</p>
+      <div class="workspace-category-meta">
+        <p class="eyebrow">${esc(category.label)}</p>
+        ${category.description?`<p class="workspace-category-desc">${esc(category.description)}</p>`:''}
+      </div>
       <div class="workspace-category-actions"><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
     </div>
     ${renderBracketNavigation(route,features,workspace)}
