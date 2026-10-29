@@ -1,0 +1,374 @@
+/*
+ * CERIUM Workspace Reference Theme — 2026-10-29
+ * Adapted from the supplied HTML concept (side-bracket tabs, Inter,
+ * #1d5bf0, #0e1c3a, pale-blue surfaces, light table chrome).
+ *
+ * Only the authenticated software workspace and its editors are styled.
+ * DO NOT restyle .sidebar, .brand, the collapse control or the marketing site.
+ * No layout, feature routing, data, or billing behavior is changed here.
+ */
+.app-page{
+  --reference-blue:#1d5bf0;
+  --reference-blue-hover:#174ed0;
+  --reference-ink:#16213a;
+  --reference-muted:#5d687e;
+  --reference-line:#e3e8f1;
+  --reference-paper:#ffffff;
+  --reference-canvas:#fafbfe;
+  --reference-tab:#e7ecf5;
+  --reference-soft:#eaf1ff;
+  --reference-font:Inter,"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+.app-page :is(.content-scroll,dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){
+  font-family:var(--reference-font);
+}
+.app-page .content-scroll{
+  background:var(--reference-canvas);
+  color:var(--reference-ink);
+  -webkit-font-smoothing:antialiased;
+}
+.app-page .content-scroll .page-width{
+  max-width:1540px;
+  padding:28px clamp(18px,2.8vw,38px) 100px;
+}
+.app-page .content-scroll :is(.page-description,.panel-subtitle,.row-meta,.table-meta,.section-description,.empty-state p){
+  color:var(--reference-muted);
+}
+.app-page #page-body .page-heading{margin-bottom:25px}
+.app-page #page-body .page-heading h1{
+  color:var(--reference-ink);
+  font-family:var(--reference-font);
+  font-weight:700;
+  letter-spacing:-.025em;
+  line-height:1.2;
+}
+.app-page #page-body .page-heading .eyebrow,
+.app-page #page-body .workspace-category-meta .eyebrow{
+  color:#6b7890;
+  letter-spacing:.065em;
+}
+.app-page #page-body .workspace-category-heading{
+  margin-bottom:16px;
+  align-items:center;
+  gap:15px;
+}
+.app-page #page-body .workspace-category-desc{
+  color:var(--reference-muted);
+  line-height:1.5;
+}
+.app-page #page-body .workspace-category-actions .text-button{
+  color:var(--reference-blue);
+  text-underline-offset:3px;
+}
+
+/* The reference's side-bracketed tabs, keeping Cerium's real link destinations,
+ * overflow scrolling, independent levels, keyboard focus and selected state. */
+.app-page #page-body .workspace-angular-navigation{
+  margin:0 0 23px;
+  min-width:0;
+  background:transparent;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-tab-scroll{
+  padding:0;
+  margin:0;
+  border-bottom:1px solid #dce3ed;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  scroll-padding-inline:14px;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{
+  display:flex;
+  gap:0;
+  align-items:flex-end;
+  min-width:max-content;
+  padding:0;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
+  position:relative;
+  isolation:isolate;
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:none;
+  min-height:54px;
+  margin-left:-8px;
+  padding:13px 32px;
+  clip-path:none;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--reference-muted);
+  font-size:13px;
+  font-weight:500;
+  line-height:1.35;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:color .16s ease;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:first-child{margin-left:0}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:var(--reference-tab);
+  border:1px solid transparent;
+  border-bottom:0;
+  border-radius:14px 14px 0 0;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 100%,0 100%);
+  transform:perspective(40px) rotateX(1deg);
+  transform-origin:bottom;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{color:#25498d;background:transparent}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{background:#dfe7f5}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active{
+  color:var(--reference-blue);
+  background:transparent;
+  font-weight:650;
+  z-index:2;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::before{
+  background:var(--reference-canvas);
+  border:2px solid var(--reference-blue);
+  border-bottom:0;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-label{
+  color:inherit!important;
+  -webkit-text-fill-color:currentColor!important;
+  filter:none!important;
+  background:transparent!important;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-label::after{display:none!important;content:none!important}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{
+  min-width:0;
+  margin:0;
+  padding:14px 0 0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  border:0;
+  border-bottom:1px solid var(--reference-line);
+  background:transparent;
+  scrollbar-width:thin;
+  scroll-padding-inline:14px;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{
+  display:flex;
+  align-items:flex-end;
+  gap:0;
+  width:max-content;
+  min-width:100%;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
+  position:relative;
+  isolation:isolate;
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  margin-bottom:-1px;
+  padding:12px 24px;
+  clip-path:none;
+  border:0;
+  border-bottom:3px solid transparent;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--reference-muted);
+  font-size:12px;
+  font-weight:500;
+  white-space:nowrap;
+  text-decoration:none;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  border-radius:9px 9px 0 0;
+  background:#f1f4f9;
+  transform:perspective(40px) rotateX(.7deg);
+  transform-origin:bottom;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{display:none!important;content:none!important}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{
+  color:#2850ae;
+  background:transparent;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{background:#e6edfb}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
+  border-bottom-color:var(--reference-blue);
+  background:transparent;
+  box-shadow:none;
+  color:var(--reference-blue);
+  font-weight:650;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before{
+  background:var(--reference-soft);
+  height:auto;
+  width:auto;
+  left:0;
+  right:0;
+  bottom:0;
+  border-radius:9px 9px 0 0;
+}
+.app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
+  outline:2px solid var(--reference-blue);
+  outline-offset:-3px;
+}
+.app-page #page-body .workspace-angular-navigation+.workspace-feature-panel{
+  margin:0;
+  min-height:0;
+  padding:0!important;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none!important;
+}
+
+/* Forms and buttons across CRM, accounts, marketing, field service, insights,
+ * settings, migration and utility screens. No native input behaviors changed. */
+.app-page .content-scroll :is(.button.primary,button.button.primary){
+  background:var(--reference-blue);
+  border-color:var(--reference-blue);
+  color:#fff;
+  border-radius:9px;
+  font-weight:650;
+  box-shadow:0 4px 12px rgba(29,91,240,.14);
+}
+.app-page .content-scroll :is(.button.primary,button.button.primary):hover:not(:disabled){
+  background:var(--reference-blue-hover);
+  border-color:var(--reference-blue-hover);
+  box-shadow:0 7px 16px rgba(29,91,240,.17);
+}
+.app-page .content-scroll :is(.button.secondary,.button:not(.primary):not(.danger):not(.icon-button)){
+  border-color:var(--reference-line);
+  border-radius:9px;
+}
+.app-page .content-scroll :is(.toolbar,.jobs-tools,.quotes-toolbar,.reminders-toolbar,.data-toolbar){
+  gap:12px;
+  border-color:var(--reference-line);
+}
+.app-page .content-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){
+  border-color:var(--reference-line);
+  color:var(--reference-ink);
+  border-radius:9px;
+  max-width:100%;
+}
+.app-page .content-scroll :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible,
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog) :is(input,select,textarea):focus-visible{
+  border-color:#8eacf6;
+  outline:2px solid rgba(29,91,240,.27);
+  outline-offset:1px;
+}
+.app-page .content-scroll :is(.search-field input,.search-input,.search-box input){
+  background:#fff;
+  border-color:var(--reference-line);
+}
+.app-page .content-scroll :is(.view-toggle,.filter-chips,.filters-row){
+  border-color:var(--reference-line);
+}
+.app-page .content-scroll .view-toggle button[aria-pressed="true"]{
+  background:var(--reference-soft);
+  color:var(--reference-blue);
+}
+.app-page :is(.content-scroll,dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog) :is(input,textarea)::placeholder{
+  color:#8290a7;
+  opacity:1;
+}
+
+/* Shared data regions: crisp, low-noise cards and rows, not a dark UI.
+ * Dark Overview and deliberately dark metric cards are intentionally excluded. */
+.app-page #page-body :is(
+  .panel,.jobs-panel,.quote-card,.reminders-columns>.panel,
+  .settings-grid .panel,.marketing-stat,.report-stat,
+  .data-panel,.table-panel
+):not(.overview-stage-unified){
+  border-color:var(--reference-line);
+  border-radius:12px;
+}
+.app-page #page-body :is(
+  .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+){
+  border-color:var(--reference-line);
+}
+.app-page #page-body :is(
+  .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+) :is(th,thead td){
+  color:#31405b;
+  font-size:12px;
+  font-weight:650;
+  background:#f3f5f9;
+  border-color:var(--reference-line);
+}
+.app-page #page-body :is(
+  .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+) td{
+  border-color:#edf0f6;
+}
+.app-page #page-body :is(
+  .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+) tbody tr:hover{
+  background:#fafbfd;
+}
+.app-page #page-body :is(
+  .metric:not(.warning),.jobs-stat,.marketing-stat,.quote-stat,
+  .reminders-stats>div,.report-stat
+){
+  border-color:var(--reference-line);
+  border-radius:12px;
+}
+.app-page #page-body :is(.badge.blue,.badge.purple,.panel-count){
+  background:#e4edff;
+  color:#1d5bf0;
+}
+.app-page #page-body :is(.empty-state,.empty-panel){
+  color:var(--reference-muted);
+}
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){
+  border-color:var(--reference-line);
+  border-radius:14px;
+  color:var(--reference-ink);
+}
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog) .button.primary{
+  background:var(--reference-blue);
+  border-color:var(--reference-blue);
+  color:#fff;
+}
+.app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog) .button.primary:hover:not(:disabled){
+  background:var(--reference-blue-hover);
+  border-color:var(--reference-blue-hover);
+}
+
+/* Preserve actual printed invoice, receipt and report layouts. */
+@media print{
+  .app-page .content-scroll{background:#fff!important}
+  .app-page #page-body .workspace-angular-navigation{display:none!important}
+  .app-page .content-scroll :is(.button.primary,.button.secondary){box-shadow:none!important}
+}
+@media(max-width:760px){
+  .app-page .content-scroll .page-width{padding:20px 12px 82px}
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
+    min-height:45px;
+    padding:10px 19px;
+    font-size:12px;
+  }
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{padding-top:9px}
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
+    min-height:37px;
+    padding:9px 15px;
+    font-size:11px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab){
+    transition:none!important;
+  }
+}
