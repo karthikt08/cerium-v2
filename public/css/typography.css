@@ -1,6 +1,6 @@
 @import url("./workspace-reference-theme.css");
 /* CERIUM typography system
-   The reference is the Figtree paragraph below the landing page hero.
+   Body text is Figtree, the reference paragraph below the landing page hero. Headings are Castrade.
    Keep type consistent across every public page, workspace, form and dialog.
    Non-text brand artwork is unaffected. */
 :root {
@@ -9,9 +9,23 @@
   --bf: var(--cerium-typeface);
   --hf: var(--cerium-typeface);
 }
+/* Headings use Castrade, as on the landing page. It is self-hosted: add the licensed
+   file at public/fonts/castrade.woff2. Until then headings fall back to Figtree. */
+@font-face {
+  font-family: "Castrade";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: local("Castrade"), url("../fonts/castrade.woff2") format("woff2");
+}
+:root { --cerium-heading-typeface: "Castrade", var(--cerium-typeface); }
 html { font-family: var(--cerium-typeface); }
 body, body *, body *::before, body *::after {
   font-family: var(--cerium-typeface) !important;
+}
+/* Headings, and anything nested in them (accent spans, generated marks), use Castrade. */
+body :is(h1, h2, h3), body :is(h1, h2, h3) *, body :is(h1, h2, h3) *::before, body :is(h1, h2, h3) *::after {
+  font-family: var(--cerium-heading-typeface) !important;
 }
 /* The animated CERIUM wordmark is lettering/artwork, not application copy. */
 body .entry-name, body .entry-name * {
