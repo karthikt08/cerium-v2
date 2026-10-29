@@ -112,7 +112,7 @@ export function mountGuideAssistant({api,getSection,getBusiness=()=>({}),root=do
             '</span>'+
             '<span class="guide-context-badge" id="guide-context-badge">Overview</span><span class="guide-model-badge" id="guide-model-badge">Local mode</span>'+
           '</div>'+
-          '<h2>Cerium <span class="ac">Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
+          '<h2>Cerium <span class="ac">Copilot<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug-copilot" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke="url(#ug-copilot)" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>'+
         '</div>'+
         '<div class="guide-header-actions">'+
           '<button type="button" class="guide-header-btn guide-reset" id="guide-reset" aria-label="Start new conversation" title="Clear conversation">'+
