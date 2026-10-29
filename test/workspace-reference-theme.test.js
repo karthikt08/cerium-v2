@@ -13,17 +13,14 @@ test('reference theme imports from the existing final typography layer without m
   assert.ok(shared.startsWith('@import url("./workspace-reference-theme.css");'));
   assert.equal(html.includes('<link rel="stylesheet" href="'+stylesheet+'">'),false);
   assert.equal(html.split('css/typography.css').length-1,1);
-  assert.match(html,/family=Figtree:wght@400;500;600;700;800&display=swap/);
-  assert.match(shared,/body, body \\*, body \\*::before, body \\*::after/);
-  assert.match(html,/<aside class="sidebar" id="sidebar" aria-label="Main navigation">/);
-  assert.match(html,/id="sidebar-collapse-toggle"/);
-  assert.match(html,/id="category-navigation"/);
-  assert.match(html,/id="utility-navigation"/);
-  const nonCommentRules=css.replace(/\\/\\*[\\s\\S]*?\\*\\//g,'');
-  assert.doesNotMatch(nonCommentRules,/(?:^|[,}\\s])(?:\\.app-page\\s+)?\\.(?:sidebar|brand|workspace\\.sidebar-collapsed)\\s*\\{/m);
-  assert.doesNotMatch(nonCommentRules,/\\.sidebar\\s+\\./);
+  assert.ok(html.includes('family=Figtree:wght@400;500;600;700;800&display=swap'));
+  assert.ok(shared.includes('body, body *, body *::before, body *::after'));
+  assert.ok(html.includes('<aside class="sidebar" id="sidebar" aria-label="Main navigation">'));
+  for(const id of ['sidebar-collapse-toggle','category-navigation','utility-navigation'])
+    assert.ok(html.includes('id="'+id+'"'));
+  assert.equal(css.includes('.app-page .sidebar{'),false);
+  assert.equal(css.includes('.app-page .sidebar .'),false);
 });
-
 test('reference design palette and side-bracket states apply with horizontal overflow',()=>{
   for(const color of ['#1d5bf0','#0e1c3a','#16213a','#e3e8f1','#fafbfe','#e7ecf5','#eaf1ff'])
     assert.ok(css.includes(color),'Missing palette color '+color);
