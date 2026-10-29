@@ -7,20 +7,21 @@ import {renderFeatureWorkspace} from '../public/js/workspace-navigation.js';
 const html=fs.readFileSync(new URL('../public/app.html',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../public/css/workspace-reference-theme.css',import.meta.url),'utf8');
 
-test('reference theme loads after every existing stylesheet and keeps the sidebar markup',()=>{
-  const link='css/workspace-reference-theme.css';
-  assert.equal(html.split(link).length-1,1);
-  assert.ok(html.indexOf(link)>html.indexOf('css/typography.css'));
-  assert.match(html,/family=Inter:wght@400;500;600;700/);
+test('reference theme imports from the existing final typography layer without modifying the sidebar',()=>{
+  const stylesheet='css/workspace-reference-theme.css';
+  const shared=fs.readFileSync(new URL('../public/css/typography.css',import.meta.url),'utf8');
+  assert.ok(shared.startsWith('@import url("./workspace-reference-theme.css");'));
+  assert.equal(html.includes('<link rel="stylesheet" href="'+stylesheet+'">'),false);
+  assert.equal(html.split('css/typography.css').length-1,1);
+  assert.match(html,/family=Figtree:wght@400;500;600;700;800&display=swap/);
+  assert.match(shared,/body, body \\*, body \\*::before, body \\*::after/);
   assert.match(html,/<aside class="sidebar" id="sidebar" aria-label="Main navigation">/);
   assert.match(html,/id="sidebar-collapse-toggle"/);
   assert.match(html,/id="category-navigation"/);
   assert.match(html,/id="utility-navigation"/);
-  // Keep all rules scoped to work-area surfaces; the reference must not
-  // replace the existing sidebar or root application layout.
-  const nonCommentRules=css.replace(/\/\*[\s\S]*?\*\//g,'');
-  assert.doesNotMatch(nonCommentRules,/(?:^|[,}\s])(?:\.app-page\s+)?\.(?:sidebar|brand|workspace\.sidebar-collapsed)\s*\{/m);
-  assert.doesNotMatch(nonCommentRules,/\.sidebar\s+\./);
+  const nonCommentRules=css.replace(/\\/\\*[\\s\\S]*?\\*\\//g,'');
+  assert.doesNotMatch(nonCommentRules,/(?:^|[,}\\s])(?:\\.app-page\\s+)?\\.(?:sidebar|brand|workspace\\.sidebar-collapsed)\\s*\\{/m);
+  assert.doesNotMatch(nonCommentRules,/\\.sidebar\\s+\\./);
 });
 
 test('reference design palette and side-bracket states apply with horizontal overflow',()=>{
