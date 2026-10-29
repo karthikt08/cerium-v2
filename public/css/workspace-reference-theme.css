@@ -1,6 +1,6 @@
 /*
  * CERIUM Workspace Reference Theme — 2026-10-29
- * Adapted from the supplied HTML concept (side-bracket tabs, Inter,
+ * Adapted from the supplied HTML concept (side-bracket tabs, Cerium Figtree,
  * #1d5bf0, #0e1c3a, pale-blue surfaces, light table chrome).
  *
  * Only the authenticated software workspace and its editors are styled.
@@ -17,7 +17,7 @@
   --reference-canvas:#fafbfe;
   --reference-tab:#e7ecf5;
   --reference-soft:#eaf1ff;
-  --reference-font:Inter,"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --reference-font:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 .app-page :is(.content-scroll,dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,dialog.workspace-config-dialog){
   font-family:var(--reference-font);
