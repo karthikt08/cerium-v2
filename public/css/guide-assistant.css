@@ -41,7 +41,7 @@
 .guide-welcome-header strong{display:block;font-size:13px;color:#0f172a;font-weight:700;line-height:1.3}
 .guide-welcome-sub{margin:2px 0 0;font-size:11.5px;color:#64748b;line-height:1.45}
 .guide-welcome-features{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
-.guide-welcome-pill{display:inline-flex;align-items:center;padding:2.5px 8px;background:#ffffff;border:1px solid #e2e8f0;border-radius:999px;font-size:10px;font-weight:600;color:#334155;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.guide-welcome-pill{display:inline-flex;align-items:center;gap:4px;padding:2.5px 8px;background:#ffffff;border:1px solid #e2e8f0;border-radius:999px;font-size:10px;font-weight:600;color:#334155;box-shadow:0 1px 2px rgba(15,23,42,.03)}
 
 /* High-Contrast Message Bubbles */
 .guide-bubble{align-self:flex-start;max-width:95%;padding:11px 14px;border:1px solid #e2e8f0;border-radius:14px 14px 14px 4px;background:#ffffff;color:#1e293b;font-size:13px;line-height:1.52;box-shadow:0 2px 6px rgba(15,23,42,.04);white-space:pre-wrap;overflow-wrap:anywhere}
@@ -120,7 +120,7 @@
 .guide-send:hover:not(:disabled){filter:brightness(1.15);box-shadow:0 4px 14px rgba(15,23,42,.32);transform:translateY(-1px)}
 .guide-send:disabled{opacity:.5;cursor:wait}
 .guide-privacy{display:flex;align-items:center;gap:5px;padding:0 16px 9px;font-size:10.5px;line-height:1.4;color:#94a3b8}
-.guide-privacy-icon{font-size:10px;color:#64748b}
+.guide-privacy-icon{display:inline-flex;align-items:center;justify-content:center;color:#64748b;flex-shrink:0}
 
 /* Tool Recommendations */
 .guide-recommendations{display:grid;gap:8px;width:100%;margin:2px 0 6px}
@@ -157,7 +157,8 @@
 
 /* Professional Micro SVGs & Badges */
 .guide-mark-icon{display:block;color:#ffffff}
-.guide-pill-svg{flex-shrink:0;color:#64748b;margin-right:2px}
+.guide-pill-svg{flex-shrink:0;color:#64748b;margin-right:1px}
+.guide-privacy-svg{display:block;color:#64748b}
 .guide-inline-code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;background:#f1f5f9;color:#0f172a;padding:1.5px 5.5px;border-radius:4px;border:1px solid #e2e8f0}
 
 /* Collapsible Reasoning Process Box */
