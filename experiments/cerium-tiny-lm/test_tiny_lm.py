@@ -6,7 +6,7 @@ import unittest
 import torch
 from tiny_lm import (
     TinyTransformer, encode, decode, encode_example, encode_chat, train, load_model,
-    generate, generate_stream, extract_tool_calls, PROFILES, USER, ASSISTANT, END
+    generate, generate_stream, generate_speculative, extract_tool_calls, JSONConstrainedLogitProcessor, PROFILES, USER, ASSISTANT, END
 )
 
 
@@ -92,6 +92,32 @@ class TinyLMTests(unittest.TestCase):
         model = TinyTransformer(context=64, width=32, layers=1, heads=4).eval()
         out = generate(model, "Create quote", max_tokens=10, top_p=0.85, repetition_penalty=1.2)
         self.assertIsInstance(out, str)
+
+    def test_speculative_decoding(self):
+        target = TinyTransformer(context=64, width=64, layers=2, heads=4).eval()
+        draft = TinyTransformer(context=64, width=32, layers=1, heads=4).eval()
+        tokens = generate_speculative(target, draft, "Overdue invoices", max_tokens=12, gamma=3, seed=42)
+        self.assertIsInstance(tokens, list)
+        self.assertGreater(len(tokens), 0)
+        self.assertLessEqual(len(tokens), 12)
+
+    def test_min_p_sampling_and_penalties(self):
+        model = TinyTransformer(context=64, width=32, layers=1, heads=4).eval()
+        out = generate(model, "Business summary", max_tokens=10, min_p=0.08, presence_penalty=0.5, frequency_penalty=0.3)
+        self.assertIsInstance(out, str)
+
+    def test_json_constrained_decoding(self):
+        processor = JSONConstrainedLogitProcessor()
+        self.assertTrue(processor.is_valid_next("{"))
+        self.assertTrue(processor.is_valid_next(" "))
+        processor.update("{")
+        self.assertTrue(processor.is_valid_next('"'))
+        self.assertFalse(processor.is_valid_next("]"))
+        processor.update('"')
+        self.assertTrue(processor.is_valid_next("k"))
+        processor.update("k")
+        processor.update('"')
+        self.assertTrue(processor.is_valid_next(":"))
 
     def test_train_reload_and_generate(self):
         with tempfile.TemporaryDirectory() as folder:

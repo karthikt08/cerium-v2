@@ -89,6 +89,53 @@ function fromOllama(body){
   return body?.done===true?replyText(body.message?.content):'';
 }
 
+
+export function retrieveRelevantKnowledge(question, { topK = 3 } = {}) {
+  const q = String(question || '').toLowerCase();
+  const words = q.split(/[^a-z0-9_-]+/).filter(w => w.length > 2 && !['the','and','for','how','what','can','with','this','that','from','into','your','our','about'].includes(w));
+  if (!words.length) return [];
+  const scored = [];
+  for (const topic of GUIDE_TOPICS) {
+    let score = 0;
+    const title = (topic.title || '').toLowerCase();
+    const loc = (topic.location || '').toLowerCase();
+    const kw = (topic.keywords || []).map(k => k.toLowerCase()).join(' ');
+    const ans = (topic.answer || '').toLowerCase();
+    const steps = (topic.steps || '').toLowerCase();
+
+    for (const w of words) {
+      if (title.includes(w)) score += 3.5;
+      if (kw.includes(w)) score += 2.5;
+      if (loc.includes(w)) score += 2.0;
+      if (ans.includes(w)) score += 1.5;
+      if (steps.includes(w)) score += 1.0;
+    }
+    if (q.length > 5 && (title.includes(q) || kw.includes(q) || ans.includes(q))) {
+      score += 5.0;
+    }
+    if (score > 1.0) {
+      scored.push({ topic, score });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, topK).map(s => s.topic);
+}
+
+export function extractReasoningAndReply(rawText) {
+  if (typeof rawText !== 'string') return { reply: '', reasoning: null };
+  let reasoning = null;
+  const thoughtMatch = rawText.match(/<thought>([\s\S]*?)<\/thought>/i);
+  if (thoughtMatch) {
+    reasoning = thoughtMatch[1].trim();
+  }
+  let cleanReply = rawText
+    .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+    .replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '')
+    .replace(/<tool_response>[\s\S]*?<\/tool_response>/gi, '')
+    .trim();
+  return { reply: cleanReply, reasoning };
+}
+
 export async function answerCopilotWithLLM(question,currentSection='overview',{
   provider=process.env.CERIUM_AI_PROVIDER||'navlm',
   model=process.env.CERIUM_AI_MODEL||'',
@@ -111,6 +158,10 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
   const guide=topic.matched?
     'Relevant verified Cerium help: '+topic.location+'. '+topic.answer+' Steps: '+topic.steps:
     'No verified feature matched this question. Do not invent product controls.';
+  const retrieved=retrieveRelevantKnowledge(question, { topK: 3 });
+  const ragContext=retrieved.length > 0 ?
+    'RETRIEVED OPERATIONAL KNOWLEDGE:\n' + retrieved.map(t => `- ${t.location}: ${t.answer} Steps: ${t.steps}`).join('\n') :
+    '';
   // Static documentation is authoritative for product capabilities; model answers
   // must not synthesize unsupported navigation or claims of completed actions.
   const capabilities=GUIDE_TOPICS.slice(0,35).map(item=>item.location).join('; ').slice(0,1500);
@@ -131,6 +182,7 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
     'Do not emit URLs, HTML or source code. Never request passwords, account credentials or unnecessary personal details.',
     'This copilot cannot search the web and may not have current external knowledge.',
     'VERIFIED PRODUCT CONTEXT: '+guide,
+    ragContext,
     'Known Cerium destinations: '+capabilities,
     snapshot||'Business record aggregates are not shared with this model on this request.'
   ].join('\n');
@@ -213,11 +265,12 @@ export async function answerCopilotWithLLM(question,currentSection='overview',{
       }finally{localRequests--;}
     }
     if(!answer)return null;
+    const {reply, reasoning} = extractReasoningAndReply(answer);
     // The model's text never determines a route. The original static guide does.
     const destinations=toolDestination?[toolDestination]:(topic.matched?
       guideNavigationLinks({section:topic.section},question).map(link=>link.href):[]);
-    return {source:'llm',type:'copilot',section:null,reply:answer,
-      destinations,mode:'llm',provider};
+    return {source:'llm',type:'copilot',section:null,reply:reply||answer,
+      reasoning:reasoning||null,destinations,mode:'llm',provider};
   }catch{
     // No model response is never confused with a confident business answer.
     return null;

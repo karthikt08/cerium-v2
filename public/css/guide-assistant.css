@@ -159,3 +159,10 @@
 .guide-mark-icon{display:block;color:#ffffff}
 .guide-pill-svg{flex-shrink:0;color:#64748b;margin-right:2px}
 .guide-inline-code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;background:#f1f5f9;color:#0f172a;padding:1.5px 5.5px;border-radius:4px;border:1px solid #e2e8f0}
+
+/* Collapsible Reasoning Process Box */
+.guide-thought-box{border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;margin:0 0 8px;overflow:hidden;font-size:11.5px}
+.guide-thought-summary{display:flex;align-items:center;gap:6px;padding:7px 11px;font-weight:600;color:#64748b;cursor:pointer;user-select:none;transition:color .14s ease,background .14s ease}
+.guide-thought-summary:hover{color:#0f172a;background:#f1f5f9}
+.guide-thought-icon{color:#64748b;flex-shrink:0}
+.guide-thought-body{padding:8px 11px 9px;border-top:1px solid #e2e8f0;color:#475569;line-height:1.5;font-size:11px;background:#ffffff;white-space:pre-wrap}
