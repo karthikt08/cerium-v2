@@ -347,6 +347,17 @@
   border-color:var(--reference-blue-hover);
 }
 
+/* Retain the deliberately dark Overview hero's contrast and spacing. */
+.app-page #page-body .overview-stage-unified .page-heading{margin:0}
+.app-page #page-body .overview-stage-unified .page-heading h1{color:#fcfcff}
+.app-page #page-body .overview-stage-unified .page-heading .eyebrow{color:#d4dcf4}
+.app-page #page-body .overview-stage-unified .page-description{color:#e1e5f4}
+/* Keep the intentionally dark Overview metric dark, rather than forcing
+ * light-card borders onto its third tile. */
+.app-page #page-body .metrics-grid>.metric:nth-child(3){
+  border-color:#566487;
+}
+
 /* Preserve actual printed invoice, receipt and report layouts. */
 @media print{
   .app-page .content-scroll{background:#fff!important}
