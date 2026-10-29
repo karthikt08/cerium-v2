@@ -15,7 +15,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
       <div class="ws-launch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <div class="ws-launch-copy">
         <p class="ws-eyebrow">PERSONALIZED WORKSPACE</p>
-        <h2 id="ws-customizer-title">A workspace built <span class="ac">around your work.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
+        <h2 id="ws-customizer-title"><span class="ac">A workspace built around your work.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
         <p>Choose your business tools. Overview, Marketing &amp; Reputation, Insights and Ask Cerium stay ready to help.</p>
       </div>
       <button type="button" class="button primary" id="workspace-open-customizer" aria-haspopup="dialog" aria-controls="workspace-customizer-dialog">Customize tools <span aria-hidden="true">→</span></button>
@@ -25,7 +25,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
     <div class="ws-config-hero">
       <div class="ws-config-heading">
         <p class="ws-eyebrow">CERIUM · YOUR WORKSPACE</p>
-        <h2 id="ws-config-title">Make it <span class="ac">yours.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
+        <h2 id="ws-config-title"><span class="ac">Make it yours.<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h2>
         <p id="ws-config-description">Choose the business modules to show. Your records stay intact if you hide a tool.</p>
       </div>
       <button type="button" class="ws-config-close" id="workspace-close-customizer" aria-label="Close customization dialog">×</button>
