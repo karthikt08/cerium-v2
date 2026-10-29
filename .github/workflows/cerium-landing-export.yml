@@ -1,0 +1,110 @@
+name: Temporary Cerium landing ZIP export
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/cerium-landing-export.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export public marketing files only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil, zipfile
+          root=Path("public")
+          out=Path("cerium-landing")
+          pages="index.html benefits.html pricing.html about.html faq.html contact.html privacy.html terms.html 404.html".split()
+          styles="spatial.css home.css landing-workspace-cursor.css brand-motion.css controls.css country-pricing.css pricing-motion.css plan-preview.css status-pricing-night.css ui-consistency.css typography.css".split()
+          scripts="home.js faq.js contact.js workspace-cursor.js country-income.js country-codes.js".split()
+          chosen=pages+["css/"+x for x in styles]+["js/"+x for x in scripts]+["favicon.svg","favicon.ico"]
+          chosen += ["img/"+p.name for p in (root/"img").iterdir() if re.fullmatch(r"cerium-[a-z0-9-]+\.(?:png|jpg|jpeg|webp|svg)",p.name,re.I)]
+          for rel in chosen:
+              src=root/rel
+              if not src.is_file(): raise ValueError("Required asset missing: "+rel)
+              dest=out/rel
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(src,dest)
+          app="https://ceriumapp.com"
+          for page in pages:
+              p=out/page
+              html=p.read_text(encoding="utf-8")
+              for name in ["app.html","login.html","signup.html","verify.html","reset-password.html","forgot-password.html","enter.html","welcome.html"]:
+                  html=re.sub(r'(href=["\'])(?:/)?'+re.escape(name)+r'(?=(?:[?#][^"\']*)?["\'])',lambda m:m.group(1)+app+"/"+name,html,flags=re.I)
+              html=re.sub(r'<script\s+src=["\']js/(?:nav-auth|local-check)\.js["\']\s*></script>\s*','',html,flags=re.I)
+              if page=="404.html":
+                  html=re.sub(r'(src|href)=(["\'])/(?!/)([^"\'#]+)\2',r'\1=\2\3\2',html)
+                  html=html.replace('href=""','href="index.html"')
+              html=html.replace("<head>","<head>\n<meta name=\"robots\" content=\"noindex, nofollow\">",1)
+              p.write_text(html,encoding="utf-8")
+          (out/"js"/"region-pricing.js").write_text("""import {COUNTRY_CALLING_CODES} from './country-codes.js';
+          import {incomeGroup,INCOME_PRICES} from './country-income.js';
+          const proposed={high:{growth:39,team:69},upperMiddle:{growth:31,team:55},lowerMiddle:{growth:23,team:41},low:{growth:16,team:28},unclassified:{growth:39,team:69},india:{growth:999,team:1749}};
+          const pricing=country=>{
+            if(!Object.hasOwn(COUNTRY_CALLING_CODES,country))return null;
+            const tier=country==='IN'?'india':incomeGroup(country);
+            return {country,tier,currency:country==='IN'?'INR':'USD',monthlyPrice:country==='IN'?500:INCOME_PRICES[tier],discountPercent:country==='IN'?null:100-INCOME_PRICES[tier]*5};
+          };
+          function paint(plan){
+            if(!plan)return;
+            const symbol=plan.currency==='INR'?'₹':'$';
+            const format=n=>symbol+n.toLocaleString('en-US');
+            for(const el of document.querySelectorAll('[data-region-price]'))el.textContent=format(plan.monthlyPrice);
+            for(const el of document.querySelectorAll('[data-region-annual-price]'))el.textContent=format(plan.monthlyPrice*11);
+            for(const el of document.querySelectorAll('[data-region-annual-savings]'))el.textContent=format(plan.monthlyPrice);
+            for(const el of document.querySelectorAll('[data-preview-plan]')){
+              const amount=proposed[plan.tier]?.[el.dataset.previewPlan];
+              if(Number.isInteger(amount))el.textContent=format(amount);
+            }
+            for(const el of document.querySelectorAll('[data-region-description]'))el.textContent=plan.country==='IN'?'India price · INR billing':plan.discountPercent?plan.discountPercent+'% country discount · USD billing':'Standard price · USD billing';
+          }
+          const picker=document.getElementById('pricing-country');
+          if(picker){
+            const dn=new Intl.DisplayNames(['en'],{type:'region'});
+            const countries=Object.keys(COUNTRY_CALLING_CODES).map(code=>({code,label:dn.of(code)||code})).sort((a,b)=>a.label.localeCompare(b.label,'en'));
+            for(const {code,label} of countries){const o=document.createElement('option');o.value=code;o.textContent=label;picker.append(o);}
+            picker.addEventListener('change',()=>{
+              const plan=pricing(picker.value);if(!plan)return;paint(plan);
+              const result=document.getElementById('country-price-result');
+              if(result)result.textContent=(plan.currency==='INR'?'₹':'$')+plan.monthlyPrice+' '+plan.currency+'/month Starter available. Growth and Team are proposed and not available to purchase. Final price is confirmed on the Cerium app.';
+            });
+          }
+          """.replace("\n          ","\n"),encoding="utf-8")
+          (out/"README.md").write_text("# Cerium landing website (static-only)\n\nCopy of the public marketing website. No software, backend, auth, or billing code is included.\n\nLogin, signup and workspace links point to https://ceriumapp.com. Contact uses the visitor's email app. Regional price preview is static; final prices are confirmed by the Cerium app. Growth and Team are proposals, not purchasable plans.\n\nServe this folder with a static web server such as `python -m http.server 8080`. The included noindex directives are intended for a staging copy.\n",encoding="utf-8")
+          (out/"robots.txt").write_text("User-agent: *\nDisallow: /\n",encoding="utf-8")
+          (out/".gitignore").write_text(".DS_Store\nThumbs.db\nnode_modules/\n",encoding="utf-8")
+          (out/"waitlist.html").write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="0; url=https://ceriumapp.com/waitlist.html"><title>Cerium Waitlist</title></head><body><a href="https://ceriumapp.com/waitlist.html">Go to Cerium waitlist</a></body></html>',encoding="utf-8")
+          files=[p for p in out.rglob("*") if p.is_file()]
+          banned=["app.html","app.js","api.js","billing.js","auth-forms.js","signin-page.js","guide-assistant.js","workspace-navigation.js"]
+          assert len(files)>=35
+          assert not any(p.name in banned or ".env" in p.name or "secret" in p.name or "token" in p.name for p in files)
+          for page in pages:
+              html=(out/page).read_text().split("<!--")[0] if page=="about.html" else (out/page).read_text()
+              html=re.sub(r'<!--[\s\S]*?-->','',html)
+              for url in re.findall(r'\b(?:src|href)=["\']([^"\']+)["\']',html,re.I):
+                  if url.startswith(("http:","https:","mailto:","tel:","data:","#")):continue
+                  rel=url.split("?")[0].split("#")[0].lstrip("/")
+                  if not rel:continue
+                  assert (out/rel).exists(),f"Broken local link {page}: {url}"
+          with zipfile.ZipFile("cerium-landing.zip","w",compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for p in files:z.write(p,arcname=p.as_posix())
+          print("Exported",len(files),"files; ZIP has",Path("cerium-landing.zip").stat().st_size,"bytes")
+          PY
+      - name: Check standalone scripts
+        run: |
+          find cerium-landing/js -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: cerium-landing-static-package
+          path: cerium-landing.zip
+          retention-days: 2
+          if-no-files-found: error
