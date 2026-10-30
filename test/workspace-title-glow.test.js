@@ -114,11 +114,13 @@ test('all public primary heading accents load identical animated rounded neon un
   assert.match(publicStyle, /bottom:-11px;/,'consistent text-to-line gap');
   assert.match(publicStyle, /--cerium-title-neon-gap:14px;/);
   assert.match(publicStyle, /stroke-width='7'/,'same line thickness as workspace');
+  const masks=[...css.matchAll(/--cerium-title-neon-mask:url\("data:image\/svg\+xml,([^"]+)"\)/g)]
+    .map(match=>decodeURIComponent(match[1]));
+  assert.equal(masks.length,2,'one rounded SVG mask for workspace and one for public pages');
+  assert.equal(masks[0],masks[1],'workspace and public pages render identical cap geometry');
   for(const cap of ["<circle cx='12' cy='12' r='3.5' fill='white'/>",
     "<circle cx='288' cy='10' r='3.5' fill='white'/>"]){
-    assert.ok(publicStyle.includes(cap),'public SVG mask missing '+cap);
-    assert.ok(css.slice(0,css.indexOf('/* Public-page hero accents')).includes(cap),
-      'workspace mask missing matching end cap');
+    assert.ok(masks[0].includes(cap),'shared SVG mask missing '+cap);
   }
   assert.match(publicStyle, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
   assert.match(publicStyle, /:not\(\.wd\)/,'landing word-entry animation is not overridden');
