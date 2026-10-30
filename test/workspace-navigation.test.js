@@ -99,7 +99,7 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
-test('side-bracketed feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
+test('shared feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
   for(const [href,featureLinks,subLinks] of [
     ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes'],['#customers/leads/list','#customers/leads/board','#customers/leads/active']],
     ['#billing/invoices',['#billing/invoices','#billing/payments','#billing/reminders'],['#billing/invoices/All','#billing/invoices/Sent','#billing/invoices/Paid']],
@@ -122,8 +122,9 @@ test('side-bracketed feature tabs, context-specific subviews and deep links shar
   const base=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Base');
   assert.match(base,/data-subfeature="list" aria-current="page"/,'base route displays its default view');
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
-  assert.match(css,/CERIUM SIDE-BRACKET NAV/);
-  assert.match(css,/clip-path:polygon\(10px 0,calc\(100% - 10px\) 0,100% 100%,0 100%\)/);
+  assert.match(css,/CERIUM WORKSPACE TABS/);
+  assert.match(css,/\.workspace-feature-tab\.active::after/);
+  assert.doesNotMatch(css,/clip-path:polygon\(10px 0,calc\(100% - 10px\) 0,100% 100%,0 100%\)/);
   assert.match(css,/\.workspace-angular-navigation\+\.workspace-feature-panel\{/);
 });
 
