@@ -2,6 +2,9 @@
 const {test,before,after} = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const {createServer} = require('../server.js');
 let server,port;
 before(async()=>{server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));port=server.address().port;});
@@ -15,3 +18,44 @@ test('server and tests are not public web assets',async()=>{for(const p of ['/se
 test('only GET and HEAD are allowed',async()=>{const r=await request('/app.html','POST');assert.equal(r.status,405);assert.equal(r.headers.allow,'GET, HEAD');});
 test('assets have correct MIME types and security headers',async()=>{const r=await request('/js/api.js');assert.equal(r.status,200);assert.match(r.headers['content-type'],/javascript/);assert.equal(r.headers['x-content-type-options'],'nosniff');assert.equal((await request('/css/refinements.css')).status,200);assert.equal((await request('/favicon.svg')).status,200);});
 test('unknown routes and directories produce 404',async()=>{for(const p of ['/missing','/css/','/api/me'])assert.equal((await request(p)).status,404);});
+
+test('Windows filename casing does not block a valid static page', {skip:process.platform!=='win32'}, async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-demo-case-'));
+  const doc=path.join(root,'MixedCase.html');
+  fs.writeFileSync(doc,'<!doctype html><title>Case test</title>');
+  const srv=createServer(root);
+  try {
+    await new Promise(resolve=>srv.listen(0,'127.0.0.1',resolve));
+    const response=await new Promise((resolve,reject)=>{
+      const req=http.get({host:'127.0.0.1',port:srv.address().port,path:'/mixedcase.html'},res=>{
+        let body='';res.on('data',data=>body+=data);res.on('end',()=>resolve({status:res.statusCode,body}));
+      });
+      req.on('error',reject);
+    });
+    assert.equal(response.status,200);
+    assert.match(response.body,/Case test/);
+  } finally {
+    if(srv.listening)await new Promise(resolve=>srv.close(resolve));
+    fs.rmSync(root,{recursive:true,force:true});
+  }
+});
+
+test('local symlink aliases are still forbidden', {skip:process.platform==='win32'}, async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-demo-symlink-'));
+  fs.writeFileSync(path.join(root,'real.html'),'<!doctype html><title>Real</title>');
+  fs.symlinkSync('real.html',path.join(root,'alias.html'));
+  const srv=createServer(root);
+  try {
+    await new Promise(resolve=>srv.listen(0,'127.0.0.1',resolve));
+    const response=await new Promise((resolve,reject)=>{
+      const req=http.get({host:'127.0.0.1',port:srv.address().port,path:'/alias.html'},res=>{
+        res.resume();res.on('end',()=>resolve(res.statusCode));
+      });
+      req.on('error',reject);
+    });
+    assert.equal(response,403);
+  } finally {
+    if(srv.listening)await new Promise(resolve=>srv.close(resolve));
+    fs.rmSync(root,{recursive:true,force:true});
+  }
+});
