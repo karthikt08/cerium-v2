@@ -68,7 +68,7 @@ const quoteRow=(quote,currency,ro)=>{
 export function renderQuotesPage(ws,ro=false){
   const quotes=ws.quotes||[],currency=ws.account?.currency;
   return '<div class="quotes-view"><div class="page-heading"><div>'+
-    '<p class="eyebrow">SALES PIPELINE</p><h1><span class="ac">Estimates &amp; quotes<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5bff"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>'+
+    '<p class="eyebrow">SALES PIPELINE</p><h1><span class="ac">Estimates &amp; quotes<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".55" stop-color="#1d5bf0"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1>'+
     '<p class="page-description">Price the work, share a secure approval link, then turn an accepted estimate into a scheduled job.</p>'+
     '</div><div class="heading-actions"><button class="button primary" type="button" data-quote-action="new" '+(ro?'disabled':'')+'>+ Create estimate</button></div></div>'+
     '<div class="quotes-progress"><span><b>1</b> Draft the price</span><span><b>2</b> Copy approval link</span>'+

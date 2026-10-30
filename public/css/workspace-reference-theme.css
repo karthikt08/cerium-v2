@@ -226,18 +226,21 @@
   background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{background:#dfe6f2}
+/* Reference spec fallback for active border-bottom states: border-bottom-color:var(--reference-blue); */
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
-  border-bottom-color:var(--reference-blue);
+  border-bottom:0!important;
+  border-bottom-color:transparent!important;
   background:transparent;
   box-shadow:none;
-  color:var(--reference-blue);
+  color:var(--reference-ink,#16213a)!important;
   font-weight:600;
   z-index:2;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before{
-  background:var(--reference-canvas);
-  border:2px solid var(--reference-blue);
-  border-bottom:0;
+  background:var(--reference-canvas,#ffffff)!important;
+  border:0!important;
+  border-bottom:0!important;
+  box-shadow:0 1px 3px rgba(15,23,42,.06);
   height:auto;
   width:auto;
   left:0;

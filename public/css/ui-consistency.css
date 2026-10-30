@@ -254,11 +254,11 @@
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   text-shadow: none !important;
-  background-image: linear-gradient(100deg, #3b5bff 0%, #7c3aed 35%, #d946ef 65%, #3b5bff 100%);
+  background-image: linear-gradient(100deg, #1e3a8a 0%, #1d5bf0 50%, #3b82f6 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text !important;
   background-clip: text !important;
-  filter: drop-shadow(0 4px 14px rgba(124, 58, 237, 0.28));
+  filter: drop-shadow(0 4px 14px rgba(29, 91, 240, 0.28));
   animation: ac-shift 8s ease-in-out infinite alternate;
 }
 @keyframes ac-shift {
@@ -275,7 +275,7 @@
   overflow: visible;
   display: block !important;
   pointer-events: none;
-  filter: drop-shadow(0 3px 8px rgba(124, 58, 237, 0.32));
+  filter: drop-shadow(0 3px 8px rgba(29, 91, 240, 0.32));
 }
 .ul path {
   fill: none;

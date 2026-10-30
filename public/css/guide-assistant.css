@@ -6,7 +6,7 @@
 .guide-trigger{display:flex;align-items:center;gap:10px;margin-left:auto;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#f8fafc;padding:12px 18px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;box-shadow:0 14px 34px -8px rgba(15,23,42,.45),0 0 20px rgba(59,91,255,.16);cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.2,1)}
 .guide-trigger:hover{border-color:rgba(255,255,255,.28);box-shadow:0 18px 42px -6px rgba(15,23,42,.55),0 0 28px rgba(59,91,255,.28);transform:translateY(-1px)}
 .guide-trigger:focus-visible,.cerium-guide button:focus-visible,.cerium-guide input:focus-visible{outline:2px solid #3b82f6;outline-offset:3px}
-.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#3b5bff 0%,#7c3aed 100%);color:#fff;font-size:14px;box-shadow:0 2px 8px rgba(59,91,255,.35)}
+.guide-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#1e3a8a 0%,#1d5bf0 100%);color:#fff;font-size:14px;box-shadow:0 2px 8px rgba(59,91,255,.35)}
 
 /* Luminous Architectural Modal Container */
 .guide-panel{position:absolute;right:0;bottom:66px;display:flex;flex-direction:column;width:min(440px,calc(100vw - 28px));height:min(600px,calc(100dvh - 100px));min-height:340px;background:#ffffff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 24px 60px -12px rgba(15,23,42,.18),0 8px 24px -6px rgba(15,23,42,.08),0 0 0 1px rgba(255,255,255,.9) inset;overflow:hidden}
@@ -37,7 +37,7 @@
 /* Welcome Card */
 .guide-welcome-card{background:linear-gradient(180deg,#f8fafc 0%,#ffffff 100%);border:1px solid #e2e8f0;border-radius:12px;padding:13px 15px;box-shadow:0 2px 8px rgba(15,23,42,.03);display:flex;flex-direction:column;gap:8px}
 .guide-welcome-header{display:flex;align-items:flex-start;gap:10px}
-.guide-welcome-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);color:#fff;display:grid;place-items:center;font-size:13px;flex-shrink:0;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.guide-welcome-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#1d5bf0 0%,#3b82f6 100%);color:#fff;display:grid;place-items:center;font-size:13px;flex-shrink:0;box-shadow:0 2px 8px rgba(37,99,235,.28)}
 .guide-welcome-header strong{display:block;font-size:13px;color:#0f172a;font-weight:700;line-height:1.3}
 .guide-welcome-sub{margin:2px 0 0;font-size:11.5px;color:#64748b;line-height:1.45}
 .guide-welcome-features{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
@@ -169,6 +169,6 @@
 .guide-thought-body{padding:8px 11px 9px;border-top:1px solid #e2e8f0;color:#475569;line-height:1.5;font-size:11px;background:#ffffff;white-space:pre-wrap}
 
 /* Signature Landing Glow and Underline for Copilot Header */
-.guide-header h2 .ac{position:relative;display:inline-block;white-space:nowrap;font-weight:800;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background-image:linear-gradient(100deg,#3b5bff 0%,#7c3aed 35%,#d946ef 65%,#3b5bff 100%)!important;background-size:220% 100%;-webkit-background-clip:text!important;background-clip:text!important;filter:drop-shadow(0 8px 18px rgba(124,58,237,.32))!important;animation:ac-shift 8s ease-in-out infinite alternate}
-.guide-header h2 .ul{position:absolute;left:0;bottom:-.22em;width:100%;height:auto;overflow:visible;display:block!important;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(124,58,237,.38))!important}
+.guide-header h2 .ac{position:relative;display:inline-block;white-space:nowrap;font-weight:800;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background-image:linear-gradient(100deg,#1e3a8a 0%,#1d5bf0 50%,#3b82f6 100%)!important;background-size:220% 100%;-webkit-background-clip:text!important;background-clip:text!important;filter:drop-shadow(0 6px 16px rgba(29,91,240,.32)) drop-shadow(0 2px 5px rgba(37,99,235,.2))!important;animation:ac-shift 8s ease-in-out infinite alternate}
+.guide-header h2 .ul{position:absolute;left:0;bottom:-.22em;width:100%;height:auto;overflow:visible;display:block!important;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(29,91,240,.35)) drop-shadow(0 2px 4px rgba(37,99,235,.22))!important}
 .guide-header h2 .ul path{fill:none;stroke:url(#ug)!important;stroke:url(#ug-copilot)!important;stroke-width:8.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.1s .3s cubic-bezier(.6,0,.2,1) both}
