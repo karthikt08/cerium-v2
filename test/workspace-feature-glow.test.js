@@ -24,7 +24,7 @@ test('all feature pages render shared tiered navigation without changing records
     {account:{country:'IN',timeZone:'Asia/Kolkata'},leads:[{id:1}],followUps:[]});
   assert.match(leads,/aria-label="Leads · 1 lead"/,'real counts are accessible without bulky visual badges');
   assert.match(css,/CERIUM WORKSPACE TABS/);
-  assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{content:none!important/,'decorative double-glow stays off the navigation');
+  assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{\s*content:none!important/,'decorative double-glow stays off the navigation');
 });
 
 test('all selected labels get a glowing gradient and inline underline, inactive labels retain contrast',()=>{
