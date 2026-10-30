@@ -1,17 +1,16 @@
-/* CERIUM page-title signature: one thick, hand-drawn violet glow on every
-   authenticated workspace page. Follows the Job schedule reference stroke.
-   Leave Design D tabs, record content, action buttons and marketing site alone.
-   Imported after the reference theme; no extra stylesheet link is required. */
+/* CERIUM page headings: one curve, one physical line weight, one quiet glow.
+   The original inline .ul SVG scaled its stroke with each heading's width.
+   Use a single fixed-height background SVG instead on every workspace title.
+   Do not change Design D navigation, normal cards, marketing pages or print. */
 @media screen {
   .app-page {
     --cerium-page-title-violet:#7c3aed;
     --cerium-page-title-magenta:#d946ef;
-    --cerium-page-title-stroke:8.5;
-    --cerium-page-title-underline:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ceriumTitle' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='.48' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ceriumTitle)' stroke-width='8.5' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E");
+    --cerium-page-title-stroke:5.5px;
+    --cerium-page-title-underline:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ceriumTitle' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='.48' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ceriumTitle)' stroke-width='5.5' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E");
   }
 
-  /* Plain workspace headings (including independently rendered subviews).
-     The app also decorates most headings with .ac/.ul; either path matches. */
+  /* Keep the violet text from the prior release, with softer shadows. */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
   .app-page #page-body .workspace-feature-panel .page-heading .ac {
@@ -21,7 +20,7 @@
     -webkit-background-clip:text!important;
     background-clip:text!important;
     -webkit-text-fill-color:transparent!important;
-    filter:drop-shadow(0 5px 14px rgba(124,58,237,.35)) drop-shadow(0 2px 5px rgba(217,70,239,.2))!important;
+    filter:drop-shadow(0 3px 9px rgba(124,58,237,.22))!important;
     animation:cerium-title-violet-shift 8s ease-in-out infinite alternate;
   }
   @keyframes cerium-title-violet-shift {
@@ -29,67 +28,73 @@
     to {background-position:100% 50%}
   }
 
-  /* All SVG-backed headings, including the supplied Job schedule example.
-     Reuse the same 8.5-unit stroke in the shared document gradient. */
-  .app-page #page-body .page-heading .ul {
-    filter:drop-shadow(0 4px 9px rgba(124,58,237,.52))
-      drop-shadow(0 1px 4px rgba(217,70,239,.28))!important;
-  }
-  .app-page #page-body .page-heading .ul path {
-    stroke:url(#cerium-title-purple)!important;
-    stroke-width:8.5!important;
-    stroke-linecap:round!important;
+  /* Prevent the old inline SVG from drawing a variable-thickness second line.
+     Keep the markup intact so feature pages and accessible labels do not change. */
+  .app-page #page-body .page-heading .ac > svg.ul {
+    display:none!important;
   }
 
-  /* A fallback for headings rendered before JS wraps them in .ac/.ul. */
-  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after {
+  /* All headings now render the very same 14px image containing a non-scaling
+     5.5px stroke. Width stretches the curve, never the stroke thickness. */
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
+  .app-page #page-body .page-heading .ac::after,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
+  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
+    content:"";
+    position:absolute;
+    left:0;
     width:100%;
     height:14px;
-    background:var(--cerium-page-title-underline) no-repeat left bottom / 100% 100%;
-    filter:drop-shadow(0 4px 9px rgba(124,58,237,.52))
-      drop-shadow(0 1px 4px rgba(217,70,239,.28))!important;
+    pointer-events:none;
+    background:var(--cerium-page-title-underline) left bottom / 100% 100% no-repeat!important;
+    filter:drop-shadow(0 2px 6px rgba(124,58,237,.28))!important;
+    animation:cerium-title-underline-in .7s .12s ease-out both!important;
+  }
+  .app-page #page-body .page-heading .ac::after {bottom:-.22em;}
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after {
+    bottom:-4px;
+  }
+  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
+    bottom:-.22em;
+  }
+  @keyframes cerium-title-underline-in {
+    from {clip-path:inset(-20px 100% -20px 0)}
+    to {clip-path:inset(-20px 0 -20px 0)}
   }
 
-  /* Marketing's smaller panel heading uses the same stroke weight rather
-     than a narrower, blue-only line. */
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2 {
     color:#6d28d9;
     background:linear-gradient(100deg,#6d28d9,#7c3aed 52%,#d946ef 100%);
     -webkit-background-clip:text;
     background-clip:text;
     -webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 2px 7px rgba(124,58,237,.27));
-  }
-  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after {
-    height:14px;
-    background:var(--cerium-page-title-underline) no-repeat left bottom / 100% 100%;
-    filter:drop-shadow(0 3px 7px rgba(124,58,237,.38));
+    filter:drop-shadow(0 2px 6px rgba(124,58,237,.19));
   }
 
-  /* Overview is a dark hero. Keep its title readable with light lilac and
-     orchid while using the same hand-drawn, 8.5-unit purple underline. */
+  /* Dark Overview panel: lilac text stays legible while using the same line. */
   .app-page #page-body .overview-stage-unified .overview-title-accent {
     background-image:linear-gradient(100deg,#e9d5ff 0%,#c4b5fd 38%,#f0abfc 78%,#e9d5ff 100%)!important;
     -webkit-background-clip:text;
     background-clip:text;
     -webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 4px 13px rgba(167,139,250,.46))!important;
+    filter:drop-shadow(0 3px 9px rgba(167,139,250,.28))!important;
   }
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
-    height:14px;
-    background:var(--cerium-page-title-underline) no-repeat left bottom / 100% 100%;
-    filter:drop-shadow(0 3px 9px rgba(167,139,250,.57));
+    filter:drop-shadow(0 2px 6px rgba(167,139,250,.3))!important;
   }
 }
 
-/* Reduced-motion pages show the complete heading and underline immediately. */
 @media screen and (prefers-reduced-motion:reduce) {
-  .app-page #page-body .page-heading :is(h1,.ac,.ul path),
-  .app-page #page-body .overview-stage-unified .overview-title-accent {
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
+  .app-page #page-body .page-heading .ac,
+  .app-page #page-body .page-heading h1::after,
+  .app-page #page-body .page-heading .ac::after,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
+  .app-page #page-body .overview-stage-unified .overview-title-accent,
+  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     animation:none!important;
-  }
-  .app-page #page-body .page-heading .ul path {
-    stroke-dashoffset:0!important;
+    clip-path:none!important;
   }
 }
-/* All accent changes are screen-only; printable documents stay monochrome. */
+/* All rules are screen-only: printable invoices, reports and PDFs are intact. */
