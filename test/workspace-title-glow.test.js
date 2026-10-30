@@ -49,8 +49,12 @@ test('violet-magenta hue stays, while heading and underline radiation are reduce
     assert.ok(css.includes(color),'missing purple gradient stop '+color);
   }
   assert.match(css, /stroke='url\(%23ceriumTitle\)'/);
-  assert.match(css, /filter:drop-shadow\(0 3px 9px rgba\(124,58,237,\.22\)\)!important/);
-  assert.match(css, /filter:drop-shadow\(0 2px 6px rgba\(124,58,237,\.28\)\)!important/);
+  assert.match(css, /filter:drop-shadow\(0 3px 12px rgba\(124,58,237,\.38\)\)\s+drop-shadow\(0 1px 5px rgba\(217,70,239,\.22\)\)!important/,'lettering gets a visible but bounded violet halo');
+  assert.match(css, /filter:drop-shadow\(0 2px 5px rgba\(124,58,237,\.56\)\)\s+drop-shadow\(0 3px 12px rgba\(124,58,237,\.35\)\)!important/,'underline receives a distinct near-edge glow and diffused halo');
+  assert.match(css, /filter:drop-shadow\(0 2px 6px rgba\(167,139,250,\.54\)\)\s+drop-shadow\(0 3px 12px rgba\(167,139,250,\.28\)\)!important/,'dark Overview title has a legible halo');
+  assert.match(css, /--cerium-page-title-stroke:5\.5px;/,'same stroke weight across every heading');
+  assert.match(css, /vector-effect='non-scaling-stroke'/);
+  assert.doesNotMatch(css, /drop-shadow\(0 3px 9px rgba\(124,58,237,\.22\)\)/,'old nearly invisible text halo is gone');
   assert.doesNotMatch(css, /drop-shadow\(0 4px 9px rgba\(124,58,237,\.52\)\)/);
   assert.doesNotMatch(css, /drop-shadow\(0 5px 14px rgba\(124,58,237,\.35\)\)/);
   assert.match(css, /@media screen and \(prefers-reduced-motion:reduce\)/);
