@@ -26,23 +26,26 @@ function createServer(root = __dirname) {
     if (!path.extname(pathname)) pathname += '.html';
     if (!/^\/[\w-]+\.html$/.test(pathname) && !/^\/(css|js|img)\/[\w./-]+$/.test(pathname) && !/^\/favicon\.(ico|svg)$/.test(pathname)) return finish(404, 'Not found');
     let target = path.resolve(root, '.' + pathname);
-    if (pathname==='/mixedcase.html') console.log('CASE_SERVER',JSON.stringify({root,pathname,target,reqRel:path.relative(root,target),ext:path.extname(target)}));
     const ext = path.extname(target).toLowerCase();
     if (!MIME[ext]) return finish(404, 'Not found');
     try {
-      // Check each requested path component directly: realpath can change
-      // casing on Windows, but symlink or junction traversal is never allowed.
+      // Reject symlinks/junctions in any requested path component, including
+      // aliases that would otherwise resolve to another file inside this root.
       const requested = path.relative(root, target);
-      if (requested.startsWith('..') || path.isAbsolute(requested)) { console.log('CASE_DENIED_requested',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
+      if (requested.startsWith('..') || path.isAbsolute(requested)) return finish(403, 'Access denied');
       let component = root;
       for (const segment of requested.split(path.sep)) {
         component = path.join(component, segment);
-        if ((await fs.promises.lstat(component)).isSymbolicLink()) { console.log('CASE_DENIED_symlink',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
+        if ((await fs.promises.lstat(component)).isSymbolicLink()) return finish(403, 'Access denied');
       }
-      const realTarget = await fs.promises.realpath(target);
-      // Containment is checked on the resolved path, independent of case.
-      const relative = path.relative(root, realTarget);
-      if (relative.startsWith('..') || path.isAbsolute(relative)) { console.log('CASE_DENIED_resolved',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
+      // On Windows, sync realpath may use a DOS short directory name (RUNNER~1)
+      // while async realpath expands it (runneradmin). Resolve both with the same
+      // API before checking whether the requested file stays inside the root.
+      const [realTarget, realRoot] = await Promise.all([
+        fs.promises.realpath(target), fs.promises.realpath(root)
+      ]);
+      const relative = path.relative(realRoot, realTarget);
+      if (relative.startsWith('..') || path.isAbsolute(relative)) return finish(403, 'Access denied');
       target = realTarget;
       const stat = await fs.promises.stat(target);
       if (!stat.isFile()) return finish(404, 'Not found');
