@@ -42,17 +42,17 @@ test('Design D tabs do not trigger rectangular magnetic selection', () => {
 
   // Both workspace navigation and multi-section dialog navigation have their
   // own selected-tab geometry; the cursor must remain a small pointer ring.
-  assert.match(code, /overDesignDNavigation=.*workspace-angular-navigation,\\.cerium-dialog-navigation/);
-  assert.match(code, /target=!inDropdown&&!overDesignDNavigation\\?/);
-  assert.match(code, /c\\.classList\\.toggle\\('over-control',snapped&&!down\\)/);
+  assert.match(code, /overDesignDNavigation=.*workspace-angular-navigation,\.cerium-dialog-navigation/);
+  assert.match(code, /target=!inDropdown&&!overDesignDNavigation\?/);
+  assert.match(code, /c\.classList\.toggle\('over-control',snapped&&!down\)/);
   assert.match(code, /tw=14,th=14,tr=7,snapped=false/);
   assert.match(workspaceCSS, /Design D side-bracketed two-tier navigation/);
   assert.match(dialogCSS, /Design D side-bracketed primary/);
 
   // Focus indicators remain available to keyboard users; only the mouse's
   // rectangular magnetic selection effect is disabled.
-  assert.match(workspaceCSS, /workspace-angular-navigation :is\\(\\.workspace-feature-tab,\\.workspace-subfeature-tab\\):focus-visible/);
-  assert.match(dialogCSS, /\\.cerium-dialog-tier-tab:focus-visible/);
+  assert.match(workspaceCSS, /workspace-angular-navigation :is\(\.workspace-feature-tab,\.workspace-subfeature-tab\):focus-visible/);
+  assert.match(dialogCSS, /\.cerium-dialog-tier-tab:focus-visible/);
 });
 
 test('every modal popup across app templates and modules pairs with cursor controls', () => {
