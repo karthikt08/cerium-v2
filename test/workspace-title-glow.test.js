@@ -1,13 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+
 const read=path=>readFileSync(new URL('../public/'+path,import.meta.url),'utf8');
 const css=read('css/workspace-title-glow.css');
 const base=read('css/workspace-navigation.css');
 const page=read('app.html');
 const typography=read('css/typography.css');
 
-test('all workspace pages load violet title styling without altering public stylesheets',()=>{
+test('all authenticated workspace pages load a shared title treatment',()=>{
   assert.ok(typography.startsWith('@import url("./workspace-reference-theme.css");'));
   for(const name of ['workspace-outlines.css','workspace-title-glow.css']){
     assert.ok(typography.includes('@import url("./'+name+'");'));
@@ -20,33 +21,39 @@ test('all workspace pages load violet title styling without altering public styl
   assert.doesNotMatch(css, /\.pg\.home|\.sidebar|\.invoice-document/);
 });
 
-test('Job schedule stroke thickness and purple glow match all other headings',()=>{
+test('all title lengths render the same physical stroke width rather than scaling inline SVGs',()=>{
   assert.match(read('js/jobs-page.js'), /Job schedule<svg class="ul"/);
   assert.match(read('js/app.js'), /const brandHeadingSVG = '<svg class="ul"/);
-  assert.match(css, /--cerium-page-title-stroke:8\.5;/);
-  assert.match(css, /stroke-width='8\.5'/);
-  assert.match(css, /stroke-width:8\.5!important/);
-  assert.match(css, /viewBox='0 0 300 14'/);
-  assert.match(css, /d='M3 9C60 3 120 12 180 6s90 3 117 0'/);
   assert.ok(base.includes('h1:not(:has(.ac)):not(:has(.overview-title-accent))'));
-  assert.match(css, /h1:not\(:has\(\.ac\)\):not\(:has\(\.overview-title-accent\)\)::after/);
-  assert.match(css, /\.page-heading \.ul path/);
-  assert.match(css, /\.marketing-feature-header \.panel-title h2::after/);
-  assert.match(css, /\.overview-stage-unified \.overview-title-accent::after/);
-  assert.match(css, /height:14px/);
-  assert.match(css, /drop-shadow\(0 4px 9px rgba\(124,58,237,\.52\)\)/);
+  assert.match(css, /--cerium-page-title-stroke:5\.5px;/);
+  assert.match(css, /viewBox='0 0 300 14'/);
+  assert.match(css, /preserveAspectRatio='none'/);
+  assert.match(css, /stroke-width='5\.5'/);
+  assert.match(css, /vector-effect='non-scaling-stroke'/);
+  assert.match(css, /d='M3 9C60 3 120 12 180 6s90 3 117 0'/);
+  assert.match(css, /\.page-heading \.ac > svg\.ul \{\s*display:none!important/);
+  const unified=css.slice(css.indexOf('/* All headings now render'));
+  for(const selector of [
+    '.page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after',
+    '.page-heading .ac::after',
+    '.marketing-feature-header .panel-title h2::after',
+    '.overview-stage-unified .overview-title-accent::after'
+  ])assert.ok(unified.includes(selector),'missing shared line geometry: '+selector);
+  assert.match(unified, /height:14px/);
+  assert.match(unified, /background:var\(--cerium-page-title-underline\) left bottom \/ 100% 100% no-repeat!important;/);
+  assert.doesNotMatch(css, /stroke:url\(#cerium-title-purple\)!important/,'inline SVG is no longer the visible stroke');
 });
 
-test('all SVG headings use the same in-document violet to magenta gradient',()=>{
-  assert.match(page, /id="cerium-title-purple"/);
-  assert.match(page, /id="cerium-title-purple"[^>]*>[\s\S]*?stop-color="#6d28d9"/);
-  assert.match(page, /stop-color="#7c3aed"/);
-  assert.match(page, /stop-color="#d946ef"/);
-  assert.match(css, /stroke:url\(#cerium-title-purple\)!important/);
+test('violet-magenta hue stays, while heading and underline radiation are reduced',()=>{
+  for(const color of ["%236d28d9","%237c3aed","%23d946ef"]){
+    assert.ok(css.includes(color),'missing purple gradient stop '+color);
+  }
   assert.match(css, /stroke='url\(%23ceriumTitle\)'/);
-  assert.match(css, /stop-color='%237c3aed'/);
-  assert.match(css, /stop-color='%23d946ef'/);
+  assert.match(css, /filter:drop-shadow\(0 3px 9px rgba\(124,58,237,\.22\)\)!important/);
+  assert.match(css, /filter:drop-shadow\(0 2px 6px rgba\(124,58,237,\.28\)\)!important/);
+  assert.doesNotMatch(css, /drop-shadow\(0 4px 9px rgba\(124,58,237,\.52\)\)/);
+  assert.doesNotMatch(css, /drop-shadow\(0 5px 14px rgba\(124,58,237,\.35\)\)/);
   assert.match(css, /@media screen and \(prefers-reduced-motion:reduce\)/);
-  assert.match(css, /stroke-dashoffset:0!important/);
+  assert.match(css, /clip-path:none!important/);
   assert.doesNotMatch(css, /color-scheme:dark|background:#10131a/);
 });
