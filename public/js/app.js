@@ -70,7 +70,9 @@ const cleanTitle = (t) => typeof t === 'string' ? t.replace(/<[^>]*>/g, '').trim
 const pageHeading = (title,description,action='',eyebrow='') => `<div class="page-heading"><div>${eyebrow?`<p class="eyebrow">${esc(eyebrow)}</p>`:''}<h1>${typeof title === 'string' && title.startsWith('<span class="ac">') && title.endsWith('</span>') && !title.slice(17, -7).includes('<span') ? title : brandHeadingWrap(cleanTitle(title) || title)}</h1><p class="page-description">${esc(description)}</p></div><div class="heading-actions">${action}</div></div>`;
 function decorateHeadingAccents(root) {
   if (!root) return;
-  const headings = root.querySelectorAll('.page-heading h1:not(:has(.overview-title-accent))');
+  // Include direct subview titles that are mounted outside the standard page-heading.
+  // All route renderers use this one normalization pass; Overview keeps its own accent.
+  const headings = root.querySelectorAll('.page-heading h1:not(:has(.overview-title-accent)), .workspace-feature-content > h1:not(:has(.overview-title-accent))');
   for (const h1 of headings) {
     const raw = h1.textContent.trim();
     if (!raw) continue;
