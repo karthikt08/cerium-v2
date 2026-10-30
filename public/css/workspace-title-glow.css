@@ -130,3 +130,109 @@
     animation:none!important;
   }
 }
+
+/* Public-page hero accents share the workspace's animated neon underline.
+   Earlier fixes stopped at .app-page and left Benefits, Pricing, About,
+   Contact, Help, sign-in, and onboarding on their older uncapped inline SVGs.
+   Restrict this to actual headline accents, not every card title or form label.
+   The landing page's .wd word entrance stays intact. */
+@media screen {
+  :is(.pg,.onboarding-page) {
+    --cerium-title-neon-gap:14px;
+    --cerium-title-neon-gradient:linear-gradient(
+      100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
+    );
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3Ccircle cx='12' cy='12' r='3.5' fill='white'/%3E%3Ccircle cx='288' cy='10' r='3.5' fill='white'/%3E%3C/svg%3E");
+  }
+
+  :is(.pg :is(h1,h2),.onboarding-page h1) .ac {
+    position:relative;
+    display:inline-block;
+    max-width:100%;
+    padding-bottom:var(--cerium-title-neon-gap)!important;
+    overflow:visible;
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
+    -webkit-background-clip:text!important;
+    background-clip:text!important;
+    -webkit-text-fill-color:transparent!important;
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
+      drop-shadow(0 0 15px rgba(124,58,237,.56))
+      drop-shadow(0 0 24px rgba(217,70,239,.32))!important;
+  }
+
+  /* Static public headings gain flow; the landing hero's .wd.ac retains its
+     separate staggered word-entry motion while its underline still flows. */
+  :is(.pg :is(h1,h2),.onboarding-page h1) .ac:not(.wd) {
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+  }
+
+  /* Benefits wraps the accent in .ac-wrap and places the SVG beside it.
+     The wrapper, not its text span, must own the underline. */
+  .pg h1 .ac-wrap {
+    position:relative;
+    display:inline-block;
+    max-width:100%;
+    padding-bottom:var(--cerium-title-neon-gap);
+    overflow:visible;
+  }
+  .pg h1 .ac-wrap > .ac {padding-bottom:0!important;}
+
+  /* Retain markup but hide the old static, varying-width SVG underlines. */
+  .pg :is(h1,h2) .ac > svg.ul,
+  .pg h1 .ac-wrap > svg.ul,
+  .onboarding-page h1 .ac > svg.ul {display:none!important;}
+
+  .pg :is(h1,h2) .ac::after,
+  .pg h1 .ac-wrap::after,
+  .onboarding-page h1 .ac::after {
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-11px;
+    width:100%;
+    height:20px;
+    pointer-events:none;
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
+    background-repeat:no-repeat!important;
+    -webkit-mask-image:var(--cerium-title-neon-mask);
+    mask-image:var(--cerium-title-neon-mask);
+    -webkit-mask-position:left center;
+    mask-position:left center;
+    -webkit-mask-size:100% 100%;
+    mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+  }
+  .pg h1 .ac-wrap > .ac::after {content:none!important;display:none!important;}
+
+  /* Preserve the light violet hero lettering on existing dark panels. */
+  .pg .en :is(h1,h2) .ac {
+    background-image:linear-gradient(
+      100deg,#9db2ff 0%,#c4b5fd 32%,#f0abfc 67%,#9db2ff 100%
+    )!important;
+  }
+}
+@media screen and (prefers-reduced-motion:reduce) {
+  :is(.pg :is(h1,h2),.onboarding-page h1) .ac,
+  .pg h1 .ac-wrap::after,
+  .pg :is(h1,h2) .ac::after,
+  .onboarding-page h1 .ac::after {animation:none!important;}
+}
+@media screen and (forced-colors:active) {
+  :is(.pg :is(h1,h2),.onboarding-page h1) .ac {
+    color:CanvasText!important;
+    -webkit-text-fill-color:CanvasText!important;
+    background-image:none!important;
+    filter:none!important;
+    animation:none!important;
+  }
+  .pg :is(h1,h2) .ac::after,
+  .pg h1 .ac-wrap::after,
+  .onboarding-page h1 .ac::after {
+    background:Highlight!important;
+    animation:none!important;
+  }
+}
