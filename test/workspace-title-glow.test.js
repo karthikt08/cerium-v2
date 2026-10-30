@@ -30,7 +30,7 @@ test('Job schedule and every workspace page use the same thick non-scaling curve
   assert.match(css, /stroke-width='7'/);
   assert.match(css, /vector-effect='non-scaling-stroke'/);
   assert.match(css, /d='M5 12C58 6 120 16 179 9S266 12 295 10'/);
-  assert.match(css, /\.page-heading \.ac > svg\.ul \{\s*display:none!important/);
+  assert.match(css, /:is\(\.page-heading,\.workspace-feature-content\) \.ac > svg\.ul \{\s*display:none!important/);
   const underlines=css.slice(css.indexOf('/* ONE shape/weight'));
   for(const selector of [
     '.page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after',
@@ -42,6 +42,36 @@ test('Job schedule and every workspace page use the same thick non-scaling curve
   assert.match(underlines, /mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(underlines, /-webkit-mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(underlines, /mask-size:100% 100%/);
+});
+
+test('every core feature page and direct subview receives neon titles with a visible text-to-line gap',()=>{
+  const app=read('js/app.js');
+  const files=[
+    'js/app.js','js/jobs-page.js','js/quotes-page.js','js/reminders-page.js',
+    'js/marketing-page.js','js/payment-dues-page.js','js/migration-page.js',
+    'js/workspace-insights.js','js/workspace-view-panels.js'
+  ];
+  for(const file of files){
+    assert.ok(read(file).includes('page-heading'),'page-heading expected for '+file);
+  }
+  assert.match(app, /function decorateHeadingAccents\(root\)/);
+  assert.match(app, /querySelectorAll\('\.page-heading h1:not\(:has\(\.overview-title-accent\)\), \.workspace-feature-content > h1/);
+  assert.match(app, /decorateHeadingAccents\(\$\('page-body'\)\)/);
+  assert.match(css, /--cerium-title-neon-gap:14px/);
+  assert.match(css, /padding-bottom:var\(--cerium-title-neon-gap\)!important/);
+  assert.match(css, /bottom:-11px/);
+  for(const selector of [
+    '.page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))',
+    '.page-heading .ac',
+    '.workspace-feature-content > h1:not(:has(.ac))',
+    '.workspace-feature-content > h1 .ac',
+    '.marketing-feature-header .panel-title h2',
+    '.overview-stage-unified .overview-title-accent'
+  ]){
+    assert.ok(css.includes(selector),'shared neon heading missing '+selector);
+  }
+  assert.match(css, /\.workspace-feature-content > h1 \.ac::after/,'custom subview underline');
+  assert.match(css, /\.overview-stage-unified \.overview-title-accent::after/,'Overview underline');
 });
 
 test('neon text and underline have visibly moving blue-violet-magenta colors',()=>{

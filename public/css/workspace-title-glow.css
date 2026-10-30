@@ -7,6 +7,7 @@
 @media screen {
   .app-page {
     --cerium-page-title-stroke:7px;
+    --cerium-title-neon-gap:14px;
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
@@ -17,11 +18,14 @@
      accents as the landing reference, not merely a colored shadow. */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac)),
+  .app-page #page-body .workspace-feature-content > h1 .ac,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
   .app-page #page-body .overview-stage-unified .overview-title-accent {
     position:relative;
     display:inline-block;
     max-width:100%;
+    padding-bottom:var(--cerium-title-neon-gap)!important;
     color:#7c3aed!important;
     background-image:var(--cerium-title-neon-gradient)!important;
     background-size:220% 100%!important;
@@ -35,7 +39,7 @@
   }
 
   /* Keep old SVG markup for compatibility, but never draw two underlines. */
-  .app-page #page-body .page-heading .ac > svg.ul {
+  .app-page #page-body :is(.page-heading,.workspace-feature-content) .ac > svg.ul {
     display:none!important;
   }
 
@@ -44,12 +48,14 @@
      bloom around the actual stroke (rather than being cut off by the mask). */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
   .app-page #page-body .page-heading .ac::after,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac))::after,
+  .app-page #page-body .workspace-feature-content > h1 .ac::after,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     content:"";
     position:absolute;
     left:0;
-    bottom:-.28em;
+    bottom:-11px;
     width:100%;
     height:20px;
     pointer-events:none;
@@ -86,10 +92,14 @@
 @media screen and (prefers-reduced-motion:reduce) {
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac)),
+  .app-page #page-body .workspace-feature-content > h1 .ac,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
   .app-page #page-body .overview-stage-unified .overview-title-accent,
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
   .app-page #page-body .page-heading .ac::after,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac))::after,
+  .app-page #page-body .workspace-feature-content > h1 .ac::after,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     animation:none!important;
@@ -100,6 +110,8 @@
 @media screen and (forced-colors:active) {
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac)),
+  .app-page #page-body .workspace-feature-content > h1 .ac,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
   .app-page #page-body .overview-stage-unified .overview-title-accent {
     color:CanvasText!important;
@@ -109,6 +121,8 @@
     animation:none!important;
   }
   .app-page #page-body .page-heading :is(h1,.ac)::after,
+  .app-page #page-body .workspace-feature-content > h1::after,
+  .app-page #page-body .workspace-feature-content > h1 .ac::after,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     background:Highlight!important;
