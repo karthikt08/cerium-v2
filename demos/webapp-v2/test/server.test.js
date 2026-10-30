@@ -23,10 +23,6 @@ test('Windows filename casing does not block a valid static page', {skip:process
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'cerium-demo-case-'));
   const doc=path.join(root,'MixedCase.html');
   fs.writeFileSync(doc,'<!doctype html><title>Case test</title>');
-  // CI diagnostics for the Windows case-alias behavior.
-  const base=fs.realpathSync(root),requestTarget=path.resolve(base,'.\\\\mixedcase.html');
-  const physical=fs.realpathSync(path.join(base,'mixedcase.html'));
-  console.log('CASE_DIAGNOSTIC',JSON.stringify({root,base,requestTarget,physical,requested:path.relative(base,requestTarget),resolved:path.relative(base,physical),relativeTarget:path.relative(requestTarget,physical),leafSymlink:fs.lstatSync(path.join(base,'mixedcase.html')).isSymbolicLink()}));
   const srv=createServer(root);
   try {
     await new Promise(resolve=>srv.listen(0,'127.0.0.1',resolve));
