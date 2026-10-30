@@ -52,7 +52,7 @@ test('Design D workspace and dialog navigation match the landing-page purple glo
   const design = workspace.slice(workspace.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
   assert.match(landing, /#7c3aed/);
   assert.match(landing, /#d946ef/);
-  assert.match(landing, /drop-shadow\\(0 10px 18px rgba\\(124,58,237,\\.28\\)\\)/);
+  assert.match(landing, /drop-shadow\(0 10px 18px rgba\(124,58,237,\.28\)\)/);
   assert.ok(design.startsWith('/* CERIUM WORKSPACE TABS — Design D'));
   assert.ok(design.includes('--cerium-tab-accent:#7c3aed;'));
   assert.ok(css.includes('--dialog-nav-accent: #7c3aed;'));
@@ -65,13 +65,13 @@ test('Design D workspace and dialog navigation match the landing-page purple glo
     assert.ok(source.includes("stop-color='%23d946ef'"), 'magenta stroke endpoint');
     assert.ok(source.includes("stroke='url(%23purple)'"), 'gradient outlined bracket');
     assert.doesNotMatch(source, /stroke='%231d5bf0'/, 'no old blue primary bracket');
-    assert.match(source, /drop-shadow\\(0 2px 7px/, 'bracket glow');
-    assert.match(source, /box-shadow:\\s*0 0 8px/, 'secondary underline glow');
+    assert.match(source, /drop-shadow\(0 2px 7px/, 'bracket glow');
+    assert.match(source, /box-shadow:\s*0 0 8px/, 'secondary underline glow');
     assert.match(source, /:focus-visible/, 'preserve keyboard focus indication');
   }
-  assert.match(design, /workspace-subfeature-tab\\.active::after/);
-  assert.match(css, /cerium-dialog-tier-two \\.cerium-dialog-tier-tab\\.active::after/);
-  assert.match(design, /@media\\(forced-colors:active\\)/);
-  assert.match(design, /@media\\(prefers-reduced-motion:reduce\\)/);
-  assert.match(css, /@media \\(prefers-reduced-motion:reduce\\)/);
+  assert.match(design, /workspace-subfeature-tab\.active::after/);
+  assert.match(css, /cerium-dialog-tier-two \.cerium-dialog-tier-tab\.active::after/);
+  assert.match(design, /@media\(forced-colors:active\)/);
+  assert.match(design, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 });
