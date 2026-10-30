@@ -8,56 +8,66 @@ const base=read('css/workspace-navigation.css');
 const page=read('app.html');
 const typography=read('css/typography.css');
 
-test('all authenticated workspace pages load a shared title treatment',()=>{
+test('all workspace pages load the shared neon heading theme without public page changes',()=>{
   assert.ok(typography.startsWith('@import url("./workspace-reference-theme.css");'));
-  for(const name of ['workspace-outlines.css','workspace-title-glow.css']){
-    assert.ok(typography.includes('@import url("./'+name+'");'));
+  for(const file of ['workspace-outlines.css','workspace-title-glow.css']){
+    assert.ok(typography.includes('@import url("./'+file+'");'));
   }
-  assert.ok(typography.indexOf('workspace-outlines.css')<typography.indexOf('workspace-title-glow.css'));
+  assert.ok(typography.indexOf('workspace-title-glow.css')>typography.indexOf('workspace-outlines.css'));
   assert.ok(page.includes('<link rel="stylesheet" href="css/typography.css">'));
-  assert.doesNotMatch(page,/<link rel="stylesheet" href="css\/workspace-title-glow\.css">/);
+  assert.doesNotMatch(page, /<link rel="stylesheet" href="css\/workspace-title-glow\.css">/);
   assert.match(css, /@media screen/);
   assert.match(css, /\.app-page #page-body \.page-heading/);
   assert.doesNotMatch(css, /\.pg\.home|\.sidebar|\.invoice-document/);
 });
 
-test('all title lengths render the same physical stroke width rather than scaling inline SVGs',()=>{
+test('Job schedule and every workspace page use the same thick non-scaling curved underline',()=>{
   assert.match(read('js/jobs-page.js'), /Job schedule<svg class="ul"/);
   assert.match(read('js/app.js'), /const brandHeadingSVG = '<svg class="ul"/);
   assert.ok(base.includes('h1:not(:has(.ac)):not(:has(.overview-title-accent))'));
-  assert.match(css, /--cerium-page-title-stroke:5\.5px;/);
-  assert.match(css, /viewBox='0 0 300 14'/);
-  assert.match(css, /preserveAspectRatio='none'/);
-  assert.match(css, /stroke-width='5\.5'/);
+  assert.match(css, /--cerium-page-title-stroke:7px;/);
+  assert.match(css, /viewBox='0 0 300 20'/);
+  assert.match(css, /stroke-width='7'/);
   assert.match(css, /vector-effect='non-scaling-stroke'/);
-  assert.match(css, /d='M3 9C60 3 120 12 180 6s90 3 117 0'/);
+  assert.match(css, /d='M5 12C58 6 120 16 179 9S266 12 295 10'/);
   assert.match(css, /\.page-heading \.ac > svg\.ul \{\s*display:none!important/);
-  const unified=css.slice(css.indexOf('/* All headings now render'));
+  const underlines=css.slice(css.indexOf('/* ONE shape/weight'));
   for(const selector of [
     '.page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after',
     '.page-heading .ac::after',
     '.marketing-feature-header .panel-title h2::after',
     '.overview-stage-unified .overview-title-accent::after'
-  ])assert.ok(unified.includes(selector),'missing shared line geometry: '+selector);
-  assert.match(unified, /height:14px/);
-  assert.match(unified, /background:var\(--cerium-page-title-underline\) left bottom \/ 100% 100% no-repeat!important;/);
-  assert.doesNotMatch(css, /stroke:url\(#cerium-title-purple\)!important/,'inline SVG is no longer the visible stroke');
+  ])assert.ok(underlines.includes(selector),'missing shared underline '+selector);
+  assert.match(underlines, /height:20px;/);
+  assert.match(underlines, /mask-image:var\(--cerium-title-neon-mask\)/);
+  assert.match(underlines, /-webkit-mask-image:var\(--cerium-title-neon-mask\)/);
+  assert.match(underlines, /mask-size:100% 100%/);
 });
 
-test('violet-magenta hue stays, while heading and underline radiation are reduced',()=>{
-  for(const color of ["%236d28d9","%237c3aed","%23d946ef"]){
-    assert.ok(css.includes(color),'missing purple gradient stop '+color);
+test('neon text and underline have visibly moving blue-violet-magenta colors',()=>{
+  for(const c of ['#3b5bff','#7c3aed','#d946ef']){
+    assert.ok(css.includes(c),'missing landing neon color '+c);
   }
-  assert.match(css, /stroke='url\(%23ceriumTitle\)'/);
-  assert.match(css, /filter:drop-shadow\(0 3px 12px rgba\(124,58,237,\.38\)\)\s+drop-shadow\(0 1px 5px rgba\(217,70,239,\.22\)\)!important/,'lettering gets a visible but bounded violet halo');
-  assert.match(css, /filter:drop-shadow\(0 2px 5px rgba\(124,58,237,\.56\)\)\s+drop-shadow\(0 3px 12px rgba\(124,58,237,\.35\)\)!important/,'underline receives a distinct near-edge glow and diffused halo');
-  assert.match(css, /filter:drop-shadow\(0 2px 6px rgba\(167,139,250,\.54\)\)\s+drop-shadow\(0 3px 12px rgba\(167,139,250,\.28\)\)!important/,'dark Overview title has a legible halo');
-  assert.match(css, /--cerium-page-title-stroke:5\.5px;/,'same stroke weight across every heading');
-  assert.match(css, /vector-effect='non-scaling-stroke'/);
-  assert.doesNotMatch(css, /drop-shadow\(0 3px 9px rgba\(124,58,237,\.22\)\)/,'old nearly invisible text halo is gone');
-  assert.doesNotMatch(css, /drop-shadow\(0 4px 9px rgba\(124,58,237,\.52\)\)/);
-  assert.doesNotMatch(css, /drop-shadow\(0 5px 14px rgba\(124,58,237,\.35\)\)/);
+  assert.match(css, /--cerium-title-neon-gradient:linear-gradient/);
+  assert.match(css, /background-image:var\(--cerium-title-neon-gradient\)!important/);
+  assert.match(css, /background-size:220% 100%!important/);
+  assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
+  assert.match(css, /@keyframes cerium-title-neon-flow/);
+  assert.match(css, /filter:drop-shadow\(0 0 6px rgba\(59,91,255,\.45\)\)/);
+  assert.match(css, /drop-shadow\(0 0 15px rgba\(124,58,237,\.56\)\)/);
+  assert.match(css, /drop-shadow\(0 0 24px rgba\(217,70,239,\.32\)\)!important/);
+  assert.match(css, /filter:none!important;/,'masked underline should receive glow via its parent, not lose it to clipping');
+  assert.match(css, /-webkit-background-clip:text!important/);
+  assert.match(css, /-webkit-text-fill-color:transparent!important/);
+  assert.match(css, /Overview/);
+});
+
+test('animation remains accessible and keeps printed business documents neutral',()=>{
   assert.match(css, /@media screen and \(prefers-reduced-motion:reduce\)/);
-  assert.match(css, /clip-path:none!important/);
-  assert.doesNotMatch(css, /color-scheme:dark|background:#10131a/);
+  assert.match(css, /animation:none!important/);
+  assert.match(css, /@media screen and \(forced-colors:active\)/);
+  assert.match(css, /-webkit-text-fill-color:CanvasText!important/);
+  assert.match(css, /background:Highlight!important/);
+  assert.doesNotMatch(css, /@media print[\s\S]*color-scheme:dark/);
+  assert.doesNotMatch(css, /\.app-page \.workspace-angular-navigation|\.cerium-dialog-tier-tab/,'Design D navigation not changed');
 });
