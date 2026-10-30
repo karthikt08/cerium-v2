@@ -28,7 +28,7 @@ test('every feature has a trusted AI destination and accessible shared navigatio
   }
   assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
 });
-test('shared workspace tabs use the same compact, accessible design across categories',()=>{
+test('shared workspace tabs use the Design D brackets and underlines across categories',()=>{
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
   assert.match(css,/CERIUM WORKSPACE TABS/);
   assert.match(css,/\.workspace-feature-tab\.active::after/);
@@ -39,10 +39,10 @@ test('shared workspace tabs use the same compact, accessible design across categ
   assert.match(css,/:focus-visible/);
   const design=css.slice(css.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
   assert.ok(design.startsWith('/* CERIUM WORKSPACE TABS — Design D side-bracketed'));
-  assert.match(design,/transform:skewX\\(-14deg\\)/);
-  assert.match(design,/workspace-feature-tab\\.active::after/);
-  assert.match(design,/workspace-subfeature-tab\\.active,/);
-  assert.match(design,/border-bottom:3px solid var\\(--cerium-tab-accent\\)/);
+  assert.match(design,/transform:skewX\(-14deg\)/);
+  assert.match(design,/workspace-feature-tab\.active::after/);
+  assert.match(design,/workspace-subfeature-tab\.active,/);
+  assert.match(design,/border-bottom:3px solid var\(--cerium-tab-accent\)/);
   assert.match(design,/overflow-x:auto;overflow-y:hidden/);
   assert.doesNotMatch(design,/border:1px solid #e0e7f2;border-radius:9px/);
 });
@@ -113,11 +113,11 @@ test('workspace tabs share the Design D bracket geometry used by enhanced dialog
   const bracket="%3Cpath d='M 1.5 52 L 1.5 10";
   assert.ok(modern.includes(bracket),'workspace active primary tab has the side-bracket outline');
   assert.ok(dialog.includes(bracket),'dialog primary tab has the same side-bracket outline');
-  assert.match(modern,/workspace-feature-tab\\[aria-current="page"\\]::after/);
-  assert.match(modern,/workspace-subfeature-tab\\[aria-current="page"\\]/);
-  assert.match(modern,/@media\\(max-width:760px\\)/);
-  assert.match(modern,/@media\\(prefers-reduced-motion:reduce\\)/);
-  assert.match(modern,/@media\\(forced-colors:active\\)/);
+  assert.match(modern,/workspace-feature-tab\[aria-current="page"\]::after/);
+  assert.match(modern,/workspace-subfeature-tab\[aria-current="page"\]/);
+  assert.match(modern,/@media\(max-width:760px\)/);
+  assert.match(modern,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(modern,/@media\(forced-colors:active\)/);
   assert.match(modern,/@media print/);
 });
 
