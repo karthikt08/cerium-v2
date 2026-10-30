@@ -29,11 +29,24 @@ function createServer(root = __dirname) {
     const ext = path.extname(target).toLowerCase();
     if (!MIME[ext]) return finish(404, 'Not found');
     try {
-      const realTarget = await fs.promises.realpath(target);
-      if (realTarget !== target) return finish(403, 'Access denied');
-      target = realTarget;
-      const relative = path.relative(root, target);
+      // Reject symlinks/junctions in any requested path component, including
+      // aliases that would otherwise resolve to another file inside this root.
+      const requested = path.relative(root, target);
+      if (requested.startsWith('..') || path.isAbsolute(requested)) return finish(403, 'Access denied');
+      let component = root;
+      for (const segment of requested.split(path.sep)) {
+        component = path.join(component, segment);
+        if ((await fs.promises.lstat(component)).isSymbolicLink()) return finish(403, 'Access denied');
+      }
+      // On Windows, sync realpath may use a DOS short directory name (RUNNER~1)
+      // while async realpath expands it (runneradmin). Resolve both with the same
+      // API before checking whether the requested file stays inside the root.
+      const [realTarget, realRoot] = await Promise.all([
+        fs.promises.realpath(target), fs.promises.realpath(root)
+      ]);
+      const relative = path.relative(realRoot, realTarget);
       if (relative.startsWith('..') || path.isAbsolute(relative)) return finish(403, 'Access denied');
+      target = realTarget;
       const stat = await fs.promises.stat(target);
       if (!stat.isFile()) return finish(404, 'Not found');
       res.writeHead(200, { 'Content-Type': MIME[ext], 'Content-Length': stat.size });
