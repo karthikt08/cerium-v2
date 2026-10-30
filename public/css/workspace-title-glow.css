@@ -1,43 +1,47 @@
-/* CERIUM page headings: one curve, one physical line weight, visible soft glow.
-   The original inline .ul SVG scaled its stroke with each heading's width.
-   Use a single fixed-height background SVG instead on every workspace title.
-   Do not change Design D navigation, normal cards, marketing pages or print. */
+/* CERIUM animated neon page headings — reference-aligned, workspace only.
+   Use one physical 7px hand-drawn stroke for titles of every length. The CSS
+   gradient moves behind a monochrome SVG mask, so the line itself animates.
+   Applying drop-shadow to the title (which owns the masked pseudo-element)
+   creates real bloom around BOTH the glyphs and stroke, without masking it off.
+   No changes to Design D tabs, other UI surfaces, printable documents or site. */
 @media screen {
   .app-page {
-    --cerium-page-title-violet:#7c3aed;
-    --cerium-page-title-magenta:#d946ef;
-    --cerium-page-title-stroke:5.5px;
-    --cerium-page-title-underline:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 14' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='ceriumTitle' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='.48' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='none' stroke='url(%23ceriumTitle)' stroke-width='5.5' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M3 9C60 3 120 12 180 6s90 3 117 0'/%3E%3C/svg%3E");
+    --cerium-page-title-stroke:7px;
+    --cerium-title-neon-gradient:linear-gradient(
+      100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
+    );
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M5 12C58 6 120 16 179 9S266 12 295 10'/%3E%3C/svg%3E");
   }
 
-  /* Visible but restrained violet halo around the text; the underline has a
-     brighter edge and wider, softer radiation rather than a flat stroke. */
+  /* Animated lettering: same bright glow and moving blue/violet/magenta
+     accents as the landing reference, not merely a colored shadow. */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
-  .app-page #page-body .workspace-feature-panel .page-heading .ac {
-    color:#6d28d9!important;
-    background-image:linear-gradient(100deg,#6d28d9 0%,#7c3aed 45%,#d946ef 80%,#7c3aed 100%)!important;
-    background-size:220% 100%;
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
+  .app-page #page-body .overview-stage-unified .overview-title-accent {
+    position:relative;
+    display:inline-block;
+    max-width:100%;
+    color:#7c3aed!important;
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
     -webkit-background-clip:text!important;
     background-clip:text!important;
     -webkit-text-fill-color:transparent!important;
-    filter:drop-shadow(0 3px 12px rgba(124,58,237,.38))
-      drop-shadow(0 1px 5px rgba(217,70,239,.22))!important;
-    animation:cerium-title-violet-shift 8s ease-in-out infinite alternate;
-  }
-  @keyframes cerium-title-violet-shift {
-    from {background-position:0% 50%}
-    to {background-position:100% 50%}
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
+      drop-shadow(0 0 15px rgba(124,58,237,.56))
+      drop-shadow(0 0 24px rgba(217,70,239,.32))!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
   }
 
-  /* Prevent the old inline SVG from drawing a variable-thickness second line.
-     Keep the markup intact so feature pages and accessible labels do not change. */
+  /* Keep old SVG markup for compatibility, but never draw two underlines. */
   .app-page #page-body .page-heading .ac > svg.ul {
     display:none!important;
   }
 
-  /* All headings now render the very same 14px image containing a non-scaling
-     5.5px stroke. Width stretches the curve, never the stroke thickness. */
+  /* ONE shape/weight for normal, rich, Marketing and Overview headings.
+     The CSS gradient scrolls behind a crisp SVG mask. Parent drop-shadows
+     bloom around the actual stroke (rather than being cut off by the mask). */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
   .app-page #page-body .page-heading .ac::after,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
@@ -45,60 +49,69 @@
     content:"";
     position:absolute;
     left:0;
+    bottom:-.28em;
     width:100%;
-    height:14px;
+    height:20px;
     pointer-events:none;
-    background:var(--cerium-page-title-underline) left bottom / 100% 100% no-repeat!important;
-    filter:drop-shadow(0 2px 5px rgba(124,58,237,.56))
-      drop-shadow(0 3px 12px rgba(124,58,237,.35))!important;
-    animation:cerium-title-underline-in .7s .12s ease-out both!important;
-  }
-  .app-page #page-body .page-heading .ac::after {bottom:-.22em;}
-  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
-  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after {
-    bottom:-4px;
-  }
-  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
-    bottom:-.22em;
-  }
-  @keyframes cerium-title-underline-in {
-    from {clip-path:inset(-20px 100% -20px 0)}
-    to {clip-path:inset(-20px 0 -20px 0)}
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
+    background-repeat:no-repeat!important;
+    -webkit-mask-image:var(--cerium-title-neon-mask);
+    mask-image:var(--cerium-title-neon-mask);
+    -webkit-mask-position:left center;
+    mask-position:left center;
+    -webkit-mask-size:100% 100%;
+    mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    filter:none!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
   }
 
-  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2 {
-    color:#6d28d9;
-    background:linear-gradient(100deg,#6d28d9,#7c3aed 52%,#d946ef 100%);
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 2px 8px rgba(124,58,237,.31));
-  }
-
-  /* Dark Overview panel: lilac text stays legible while using the same line. */
+  /* Light lilac text remains readable on the intentionally dark Overview;
+     the underline retains the exact same animated neon gradient as elsewhere. */
   .app-page #page-body .overview-stage-unified .overview-title-accent {
-    background-image:linear-gradient(100deg,#e9d5ff 0%,#c4b5fd 38%,#f0abfc 78%,#e9d5ff 100%)!important;
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 3px 11px rgba(167,139,250,.4))!important;
+    background-image:linear-gradient(
+      100deg,#9db2ff 0%,#c4b5fd 32%,#f0abfc 67%,#9db2ff 100%
+    )!important;
   }
-  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
-    filter:drop-shadow(0 2px 6px rgba(167,139,250,.54))
-      drop-shadow(0 3px 12px rgba(167,139,250,.28))!important;
+
+  @keyframes cerium-title-neon-flow {
+    from {background-position:0% 50%}
+    to {background-position:100% 50%}
   }
 }
 
+/* Preserve a complete, still neon appearance when animation is disabled. */
 @media screen and (prefers-reduced-motion:reduce) {
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
   .app-page #page-body .page-heading .ac,
-  .app-page #page-body .page-heading h1::after,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
+  .app-page #page-body .overview-stage-unified .overview-title-accent,
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
   .app-page #page-body .page-heading .ac::after,
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
-  .app-page #page-body .overview-stage-unified .overview-title-accent,
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     animation:none!important;
-    clip-path:none!important;
   }
 }
-/* All rules are screen-only: printable invoices, reports and PDFs are intact. */
+
+/* Respect user high-contrast colors instead of hiding text with a clip. */
+@media screen and (forced-colors:active) {
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent)),
+  .app-page #page-body .page-heading .ac,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2,
+  .app-page #page-body .overview-stage-unified .overview-title-accent {
+    color:CanvasText!important;
+    -webkit-text-fill-color:CanvasText!important;
+    background-image:none!important;
+    filter:none!important;
+    animation:none!important;
+  }
+  .app-page #page-body .page-heading :is(h1,.ac)::after,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
+  .app-page #page-body .overview-stage-unified .overview-title-accent::after {
+    background:Highlight!important;
+    animation:none!important;
+  }
+}
