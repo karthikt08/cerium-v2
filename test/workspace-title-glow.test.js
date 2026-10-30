@@ -8,7 +8,7 @@ const base=read('css/workspace-navigation.css');
 const page=read('app.html');
 const typography=read('css/typography.css');
 
-test('all workspace pages load the shared neon heading theme without public page changes',()=>{
+test('workspace themes load shared neon and isolate their navigation styles',()=>{
   assert.ok(typography.startsWith('@import url("./workspace-reference-theme.css");'));
   for(const file of ['workspace-outlines.css','workspace-title-glow.css']){
     assert.ok(typography.includes('@import url("./'+file+'");'));
@@ -89,6 +89,45 @@ test('every core feature page and direct subview receives neon titles with a vis
   }
   assert.match(css, /\.workspace-feature-content > h1 \.ac::after/,'custom subview underline');
   assert.match(css, /\.overview-stage-unified \.overview-title-accent::after/,'Overview underline');
+});
+
+
+test('all public primary heading accents load identical animated rounded neon underlines',()=>{
+  const publicPages=[
+    'index.html','benefits.html','pricing.html','about.html','contact.html',
+    'faq.html','terms.html','privacy.html','login.html','signup.html',
+    'waitlist.html','verify.html'
+  ];
+  for(const pageName of publicPages){
+    const html=read(pageName);
+    assert.ok(html.includes('typography.css'),'title theme stylesheet missing on '+pageName);
+    assert.ok(html.includes('class="ac"')||html.includes('wd ac"'),'accent title absent on '+pageName);
+    assert.ok(html.includes('class="ul"'),'original title SVG unexpectedly removed on '+pageName);
+  }
+
+  const publicStyle=css.slice(css.indexOf('/* Public-page hero accents'));
+  assert.ok(publicStyle.startsWith('/* Public-page hero accents'));
+  assert.match(publicStyle, /:is\(\.pg,\.onboarding-page\)/,'public and onboarding host selectors');
+  assert.match(publicStyle, /:is\(\.pg :is\(h1,h2\),\.onboarding-page h1\) \.ac/);
+  assert.match(publicStyle, /-webkit-mask-image:var\(--cerium-title-neon-mask\)/);
+  assert.match(publicStyle, /mask-image:var\(--cerium-title-neon-mask\)/);
+  assert.match(publicStyle, /bottom:-11px;/,'consistent text-to-line gap');
+  assert.match(publicStyle, /--cerium-title-neon-gap:14px;/);
+  assert.match(publicStyle, /stroke-width='7'/,'same line thickness as workspace');
+  for(const cap of ["<circle cx='12' cy='12' r='3.5' fill='white'/>",
+    "<circle cx='288' cy='10' r='3.5' fill='white'/>"]){
+    assert.ok(publicStyle.includes(cap),'public SVG mask missing '+cap);
+    assert.ok(css.slice(0,css.indexOf('/* Public-page hero accents')).includes(cap),
+      'workspace mask missing matching end cap');
+  }
+  assert.match(publicStyle, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
+  assert.match(publicStyle, /:not\(\.wd\)/,'landing word-entry animation is not overridden');
+  assert.match(publicStyle, /\.pg h1 \.ac-wrap::after/,'Benefits sibling underline uses wrapper');
+  assert.match(publicStyle, /\.pg h1 \.ac-wrap > \.ac::after \{content:none!important;display:none!important;\}/);
+  assert.match(publicStyle, /@media screen and \(prefers-reduced-motion:reduce\)/);
+  assert.match(publicStyle, /@media screen and \(forced-colors:active\)/);
+  assert.doesNotMatch(publicStyle, /\.pg \.panel h2|\.pg \.cd h3|\.invoice-document/,
+    'do not add neon to every business card or invoice heading');
 });
 
 test('neon text and underline have visibly moving blue-violet-magenta colors',()=>{
