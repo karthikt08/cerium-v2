@@ -21,17 +21,20 @@ test('reference theme imports from the existing final typography layer without m
   assert.equal(css.includes('.app-page .sidebar{'),false);
   assert.equal(css.includes('.app-page .sidebar .'),false);
 });
-test('reference design palette and side-bracket states apply with horizontal overflow',()=>{
+test('reference theme preserves the workspace palette without overriding the shared tab design',()=>{
   for(const color of ['#1d5bf0','#0e1c3a','#16213a','#e3e8f1','#fafbfe','#e7ecf5','#eaf1ff'])
     assert.ok(css.includes(color),'Missing palette color '+color);
-  assert.match(css,/\.workspace-feature-tab\.active::before/);
-  assert.match(css,/\.workspace-subfeature-tab\.active::before/);
-  assert.match(css,/border-bottom-color:var\(--reference-blue\)/);
-  assert.match(css,/overflow-x:auto/);
-  assert.match(css,/:focus-visible/);
-  assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.match(css,/@media print/);
-  assert.match(css,/\.workspace-angular-navigation\+\.workspace-feature-panel/);
+  const navigation=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
+  assert.ok(html.indexOf('css/workspace-navigation.css')<html.indexOf('css/typography.css'));
+  assert.doesNotMatch(css,/workspace-angular-navigation|workspace-feature-tab|workspace-subfeature-tab/,
+    'the later-loaded reference theme must never reinstate the old tab design');
+  assert.match(navigation,/CERIUM WORKSPACE TABS/);
+  assert.match(navigation,/\.workspace-angular-navigation \.workspace-tab-scroll\{/);
+  assert.match(navigation,/\.workspace-feature-tab\.active::after/);
+  assert.match(navigation,/\.workspace-subfeature-tab\.active,/);
+  assert.match(navigation,/:focus-visible/);
+  assert.match(navigation,/prefers-reduced-motion:reduce/);
+  assert.match(navigation,/@media print/);
 });
 
 test('every workspace category preserves real routes and one or two-tier navigation',()=>{
