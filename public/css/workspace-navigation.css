@@ -338,10 +338,12 @@
 
 /* CERIUM WORKSPACE TABS — Design D side-bracketed two-tier navigation.
    Match the form-dialog component: a slanted primary rail with the asymmetric
-   blue active bracket, and quieter slanted secondary tabs with an underline.
+   violet-to-magenta active bracket, and matching softly glowing underlines.
    The real hash links, focus behavior and flat workspace canvas are unchanged. */
 .app-page #page-body .workspace-angular-navigation{
-  --cerium-tab-accent:#1d5bf0;
+  --cerium-tab-accent:#7c3aed;
+  --cerium-tab-magenta:#d946ef;
+  --cerium-tab-glow:rgba(124,58,237,.35);
   --cerium-tab-ink:#16213a;
   --cerium-tab-border:#e3e8f1;
   min-width:0;margin:0 0 18px;
@@ -373,14 +375,14 @@
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-2;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:9px 9px 0 0;background:#e9eef6;
+  border-radius:9px 9px 0 0;background:#eeeaf5;
   pointer-events:none;transition:background-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{
-  color:#244476;background:transparent;
+  color:#6d28d9;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{
-  background:#dfe6f2;
+  background:#e7def4;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]{
@@ -397,7 +399,8 @@
   transform:skewX(-14deg);transform-origin:bottom center;
   pointer-events:none;
   /* Open-ended upper/right bracket copied from Design D's dialog navigation. */
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 52' preserveAspectRatio='none'%3E%3Cpath d='M 1.5 52 L 1.5 10 Q 1.5 1.5 10 1.5 L 170 1.5 Q 178.5 1.5 178.5 10 L 178.5 23' fill='none' stroke='%231d5bf0' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 52' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='purple' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 1.5 52 L 1.5 10 Q 1.5 1.5 10 1.5 L 170 1.5 Q 178.5 1.5 178.5 10 L 178.5 23' fill='none' stroke='url(%23purple)' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  filter:drop-shadow(0 2px 7px var(--cerium-tab-glow));
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:not(.active):not([aria-current="page"])::after{
   content:none;display:none;
@@ -414,7 +417,7 @@
   content:none!important;display:none!important;
 }
 
-/* Tier 2 — the same slant, reduced contrast and a precise blue active line.
+/* Tier 2 — the same slant, reduced contrast and a glowing gradient active line.
    Long row labels scroll horizontally instead of squeezing or wrapping. */
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{
   display:block;min-width:0;margin:14px 0 20px;padding:0 6px;
@@ -441,7 +444,7 @@
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-1;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:8px 8px 0 0;background:#f3f6fb;
+  border-radius:8px 8px 0 0;background:#f4f1f9;
   pointer-events:none;transition:background-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{
@@ -451,7 +454,7 @@
   color:#244476;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
-  background:#e8edf6;
+  background:#ece6f6;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]{
@@ -461,7 +464,14 @@
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::before{
-  background:#f6f9ff;
+  background:#f8f4ff;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::after,
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::after{
+  content:"";display:block;position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+  z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,var(--cerium-tab-accent),var(--cerium-tab-magenta));
+  box-shadow:0 0 8px var(--cerium-tab-glow);
 }
 .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
   outline:2px solid var(--cerium-tab-accent);outline-offset:-4px;
