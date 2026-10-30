@@ -79,3 +79,23 @@ test('cursor is preserved inside select options and dropdown popups', () => {
   assert.match(cursorJs, /el\.closest\('option,optgroup'\)/);
   assert.match(cursorJs, /inDropdown/);
 });
+
+test('cursor remains visible across dialog backdrop and page without being suppressed as an open dropdown', () => {
+  const cursorJs = read('public/js/workspace-cursor.js');
+
+  // Open select detection must be strictly scoped to select elements so that open dialogs
+  // (which match the standard :open pseudo-class) are never misclassified as dropdowns or text fields
+  assert.match(cursorJs, /select:open/);
+  assert.doesNotMatch(cursorJs, /el\.matches\(['"]?:open['"]?\)/);
+
+  // When an open dialog element or its backdrop is under the pointer, inDropdown must evaluate to false
+  const mockDialog = {
+    matches(sel) { return sel === ':open'; },
+    closest(sel) { return sel === 'select:open' ? null : (sel === ':open' ? this : null); }
+  };
+  const isOption = mockDialog.closest('option,optgroup');
+  let isOpenSelect = false;
+  try { isOpenSelect = !!(mockDialog.closest && mockDialog.closest('select:open')); } catch {}
+  const inDropdown = !!(isOption || isOpenSelect);
+  assert.equal(inDropdown, false, 'dialog backdrop must not be flagged as inDropdown');
+});

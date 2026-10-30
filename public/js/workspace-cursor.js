@@ -9,7 +9,7 @@
     const el=fromEl||document.elementFromPoint(x,y);if(!el)return;
     const isOption=el.closest?el.closest('option,optgroup'):null;
     let isOpenSelect=false;
-    try{isOpenSelect=!!(el.closest&&(el.matches(':open')||el.closest('select:open')));}catch{}
+    try{isOpenSelect=!!(el.closest&&el.closest('select:open'));}catch{}
     const inDropdown=!!(isOption||isOpenSelect);
     const moduleCard=el.closest?el.closest('.ws-pick-module'):null;
     target=!inDropdown?(moduleCard||(el.closest?el.closest(controls):null)):null;
