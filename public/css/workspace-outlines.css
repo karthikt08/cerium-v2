@@ -118,7 +118,7 @@
     }
   }
   /* Dark accent cards are intentionally dark, with a visible LIGHT outline. */
-  .app-page :is(
+  .app-page #page-body :is(
     .metrics-grid>.metric:nth-child(3),
     .jobs-stats>.jobs-stat:first-child,
     .quotes-summary>div:first-child,
@@ -143,6 +143,10 @@
     outline-offset:1px;
   }
   .app-page :is(.button.secondary,.view-toggle,.filter-pill,.filter-button,.filter-chips button,.icon-button) {
+    border:1px solid var(--workspace-outline);
+  }
+  .app-page .marketing-page .marketing-panel-links .marketing-link {
+    background:#fff;
     border-color:var(--workspace-outline);
   }
   .app-page #page-body :is(.button.secondary,.filter-pill,.filter-button,.filter-chips button,.icon-button):is(:hover,:focus-visible) {
