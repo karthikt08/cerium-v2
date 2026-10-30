@@ -29,14 +29,20 @@ function createServer(root = __dirname) {
     const ext = path.extname(target).toLowerCase();
     if (!MIME[ext]) return finish(404, 'Not found');
     try {
+      // Check each requested path component directly: realpath can change
+      // casing on Windows, but symlink or junction traversal is never allowed.
+      const requested = path.relative(root, target);
+      if (requested.startsWith('..') || path.isAbsolute(requested)) return finish(403, 'Access denied');
+      let component = root;
+      for (const segment of requested.split(path.sep)) {
+        component = path.join(component, segment);
+        if ((await fs.promises.lstat(component)).isSymbolicLink()) return finish(403, 'Access denied');
+      }
       const realTarget = await fs.promises.realpath(target);
-      // Compare filesystem paths, not their literal spelling: Windows realpath()
-      // can canonicalize letter casing. Different paths (including symlinks)
-      // must still be rejected.
-      if (path.relative(target, realTarget) !== '') return finish(403, 'Access denied');
-      target = realTarget;
-      const relative = path.relative(root, target);
+      // Containment is checked on the resolved path, independent of case.
+      const relative = path.relative(root, realTarget);
       if (relative.startsWith('..') || path.isAbsolute(relative)) return finish(403, 'Access denied');
+      target = realTarget;
       const stat = await fs.promises.stat(target);
       if (!stat.isFile()) return finish(404, 'Not found');
       res.writeHead(200, { 'Content-Type': MIME[ext], 'Content-Length': stat.size });
