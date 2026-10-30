@@ -336,56 +336,68 @@
 @media(max-width:760px){.app-page .workspace-category-actions{width:100%;justify-content:space-between}.app-page .workspace-view-picker{flex:1}.app-page .workspace-view-picker select{min-width:0;width:100%;max-width:100%}}
 @media print{.app-page .workspace-view-picker{display:none!important}}
 
-/* CERIUM WORKSPACE TABS — One shared visual language for every category.
-   Tier 1 uses an understated navigation rail; Tier 2 uses compact view chips.
-   Links, hash routes, keyboard behavior, and page content remain unchanged. */
+/* CERIUM WORKSPACE TABS — Design D side-bracketed two-tier navigation.
+   Match the form-dialog component: a slanted primary rail with the asymmetric
+   blue active bracket, and quieter slanted secondary tabs with an underline.
+   The real hash links, focus behavior and flat workspace canvas are unchanged. */
 .app-page #page-body .workspace-angular-navigation{
-  --cerium-tab-accent:#2458dc;
-  --cerium-tab-ink:#243650;
-  --cerium-tab-border:#dbe3ef;
-  min-width:0;
-  margin:0 0 24px;
+  --cerium-tab-accent:#1d5bf0;
+  --cerium-tab-ink:#16213a;
+  --cerium-tab-border:#e3e8f1;
+  min-width:0;margin:0 0 24px;
   background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-tab-scroll{
-  position:relative;min-width:0;padding:3px 0 0;
-  overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
-  scroll-padding-inline:12px;border-bottom:1px solid var(--cerium-tab-border);
+  position:relative;min-width:0;padding:5px 0 0;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;overscroll-behavior-x:contain;
+  scroll-padding-inline:14px;
+  border-bottom:1px solid var(--cerium-tab-border);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{
-  display:flex;align-items:stretch;gap:8px;
-  min-width:max-content;padding:0 3px;
+  display:flex;align-items:flex-end;gap:10px;
+  min-width:max-content;padding:0 18px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
   position:relative;isolation:isolate;box-sizing:border-box;
   display:inline-flex;align-items:center;justify-content:center;
-  flex:0 0 auto;width:auto;min-width:104px;max-width:none;
-  height:48px;min-height:48px;margin:0;padding:0 17px;
-  border:0;border-radius:9px 9px 0 0;
+  flex:0 0 auto;min-width:126px;max-width:none;
+  height:50px;min-height:50px;margin:0 0 -1px;
+  padding:0 24px;border:0;border-radius:0;
   background:transparent;box-shadow:none;
-  color:#64748b;font-size:13px;font-weight:600;line-height:1.3;
+  color:#526178;font-size:13.5px;font-weight:600;line-height:1.3;
   white-space:nowrap;text-align:center;text-decoration:none;
   cursor:pointer;transform:none;
-  transition:background-color .16s ease,color .16s ease;
+  transition:color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
-  content:none;display:none;
+  content:"";display:block;position:absolute;inset:0;z-index:-2;
+  transform:skewX(-14deg);transform-origin:bottom center;
+  border-radius:9px 9px 0 0;background:#e9eef6;
+  pointer-events:none;transition:background-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{
-  color:#244476;background:#f3f6fd;transform:none;
+  color:#244476;background:transparent;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{
+  background:#dfe6f2;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]{
   color:var(--cerium-tab-accent);font-weight:700;
-  background:linear-gradient(180deg,rgba(36,88,220,0) 15%,rgba(36,88,220,.055) 100%);
-  box-shadow:none;transform:none;
+  background:transparent;box-shadow:none;z-index:2;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::before,
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]::before{
+  background:#fff;bottom:-2px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::after,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]::after{
-  content:"";display:block;position:absolute;
-  left:15px;right:15px;bottom:0;height:3px;z-index:2;
-  border-radius:3px 3px 0 0;
-  background:var(--cerium-tab-accent);box-shadow:none;pointer-events:none;
+  content:"";display:block;position:absolute;inset:0;z-index:-1;
+  transform:skewX(-14deg);transform-origin:bottom center;
+  pointer-events:none;
+  /* Open-ended upper/right bracket copied from Design D's dialog navigation. */
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 52' preserveAspectRatio='none'%3E%3Cpath d='M 1.5 52 L 1.5 10 Q 1.5 1.5 10 1.5 L 170 1.5 Q 178.5 1.5 178.5 10 L 178.5 23' fill='none' stroke='%231d5bf0' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:not(.active):not([aria-current="page"])::after{
   content:none;display:none;
@@ -402,46 +414,57 @@
   content:none!important;display:none!important;
 }
 
-/* Contextual views sit below the category tabs, without a second tab frame. */
+/* Tier 2 — the same slant, reduced contrast and a precise blue active line.
+   Long row labels scroll horizontally instead of squeezing or wrapping. */
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{
-  display:block;min-width:0;margin:15px 0 0;padding:0 0 3px;
+  display:block;min-width:0;margin:14px 0 0;padding:0 0 2px;
   overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
-  scroll-padding-inline:8px;border:0;background:transparent;
+  overscroll-behavior-x:contain;scroll-padding-inline:12px;
+  border-bottom:1px solid var(--cerium-tab-border);background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{
-  display:flex;align-items:center;gap:8px;
-  width:max-content;min-width:max-content;padding:0 2px;
+  display:flex;align-items:flex-end;gap:8px;
+  width:max-content;min-width:max-content;padding:0 15px;
   background:transparent;border:0;border-radius:0;box-shadow:none;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
-  position:relative;box-sizing:border-box;isolation:isolate;
+  position:relative;isolation:isolate;box-sizing:border-box;
   display:inline-flex;align-items:center;justify-content:center;
-  flex:0 0 auto;min-width:0;height:36px;min-height:36px;
-  margin:0;padding:0 14px;border:1px solid #e0e7f2;border-radius:9px;
-  background:#f6f8fc;box-shadow:none;transform:none;
-  color:#50617c;font-size:12px;font-weight:600;line-height:1.3;
+  flex:0 0 auto;min-width:116px;min-height:40px;height:40px;
+  margin:0 0 -1px;padding:0 18px;
+  border:0;border-bottom:3px solid transparent;border-radius:0;
+  background:transparent;box-shadow:none;transform:none;
+  color:#58667a;font-size:12.5px;font-weight:600;line-height:1.3;
   text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;
-  transition:background-color .16s ease,border-color .16s ease,color .16s ease;
+  transition:color .16s ease;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before,
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
+  content:"";display:block;position:absolute;inset:0;z-index:-1;
+  transform:skewX(-14deg);transform-origin:bottom center;
+  border-radius:8px 8px 0 0;background:#f3f6fb;
+  pointer-events:none;transition:background-color .16s ease;
+}
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{
-  content:none!important;display:none!important;
+  content:none;display:none;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{
-  color:#244476;background:#edf2fc;border-color:#cbd8ec;
+  color:#244476;background:transparent;
+}
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
+  background:#e8edf6;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]{
-  color:#1f4fbf!important;background:#eaf1ff;
-  border:1px solid #adc2f3!important;border-radius:9px;
-  font-weight:700;transform:none;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  color:var(--cerium-tab-accent);background:transparent;
+  border:0;border-bottom:3px solid var(--cerium-tab-accent);
+  border-radius:0;font-weight:700;box-shadow:none;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active .workspace-subfeature-label{
-  text-shadow:none;
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before,
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::before{
+  background:#f6f9ff;
 }
 .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
-  outline:2px solid #2357e2;outline-offset:-3px;
+  outline:2px solid var(--cerium-tab-accent);outline-offset:-4px;
 }
 .app-page #page-body .workspace-angular-navigation+.workspace-feature-panel{
   min-width:0;margin:0;padding:0!important;border:0;border-radius:0;
@@ -449,26 +472,32 @@
 }
 @media(max-width:760px){
   .app-page #page-body .workspace-angular-navigation{margin-bottom:18px}
-  .app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{gap:3px}
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{gap:8px;padding:0 15px}
   .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
-    min-width:0;height:44px;min-height:44px;padding:0 14px;font-size:12px;
+    min-width:106px;height:44px;min-height:44px;padding:0 18px;font-size:12px;
   }
-  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{margin-top:13px}
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{margin-top:12px}
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{gap:6px;padding:0 12px}
   .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
-    min-height:40px;height:40px;padding:0 13px;font-size:12px;
+    min-width:94px;min-height:40px;height:40px;padding:0 13px;font-size:12px;
   }
 }
 @media(prefers-reduced-motion:reduce){
-  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab){
-    transition:none;transform:none!important;
+  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab),
+  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab)::before{
+    transition:none;transform:none;
+  }
+  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab)::before,
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::after{
+    transform:skewX(-14deg);
   }
 }
 @media(forced-colors:active){
   .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active{
-    border-bottom:3px solid Highlight;
+    border:2px solid Highlight;border-bottom:0;
   }
   .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
-    border:2px solid Highlight!important;
+    border-bottom:3px solid Highlight;
   }
 }
 @media print{
