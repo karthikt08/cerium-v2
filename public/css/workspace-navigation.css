@@ -375,14 +375,14 @@
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-2;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:9px 9px 0 0;background:#eeeaf5;
+  border-radius:9px 9px 0 0;background:#edf1f7;
   pointer-events:none;transition:background-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{
   color:#6d28d9;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{
-  background:#e7def4;
+  background:#e4eaf3;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]{
@@ -391,7 +391,7 @@
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::before,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]::before{
-  background:#fafbfe;bottom:-2px;
+  background:#fff;bottom:-2px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::after,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]::after{
@@ -417,7 +417,7 @@
   content:none!important;display:none!important;
 }
 
-/* Tier 2 — the same slant, reduced contrast and a glowing gradient active line.
+/* Tier 2 — neutral unfilled slants and a glowing gradient active outline.
    Long row labels scroll horizontally instead of squeezing or wrapping. */
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{
   display:block;min-width:0;margin:14px 0 20px;padding:0 6px;
@@ -444,17 +444,17 @@
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-1;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:8px 8px 0 0;background:#f4f1f9;
+  border-radius:8px 8px 0 0;background:#f2f5f9;
   pointer-events:none;transition:background-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{
   content:none;display:none;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{
-  color:#244476;background:transparent;
+  color:#6d28d9;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
-  background:#ece6f6;
+  background:#e9edf3;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]{
@@ -464,7 +464,7 @@
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::before{
-  background:#f8f4ff;
+  background:#fff;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::after,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::after{
