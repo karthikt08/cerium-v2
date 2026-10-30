@@ -26,22 +26,23 @@ function createServer(root = __dirname) {
     if (!path.extname(pathname)) pathname += '.html';
     if (!/^\/[\w-]+\.html$/.test(pathname) && !/^\/(css|js|img)\/[\w./-]+$/.test(pathname) && !/^\/favicon\.(ico|svg)$/.test(pathname)) return finish(404, 'Not found');
     let target = path.resolve(root, '.' + pathname);
+    if (pathname==='/mixedcase.html') console.log('CASE_SERVER',JSON.stringify({root,pathname,target,reqRel:path.relative(root,target),ext:path.extname(target)}));
     const ext = path.extname(target).toLowerCase();
     if (!MIME[ext]) return finish(404, 'Not found');
     try {
       // Check each requested path component directly: realpath can change
       // casing on Windows, but symlink or junction traversal is never allowed.
       const requested = path.relative(root, target);
-      if (requested.startsWith('..') || path.isAbsolute(requested)) return finish(403, 'Access denied');
+      if (requested.startsWith('..') || path.isAbsolute(requested)) { console.log('CASE_DENIED_requested',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
       let component = root;
       for (const segment of requested.split(path.sep)) {
         component = path.join(component, segment);
-        if ((await fs.promises.lstat(component)).isSymbolicLink()) return finish(403, 'Access denied');
+        if ((await fs.promises.lstat(component)).isSymbolicLink()) { console.log('CASE_DENIED_symlink',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
       }
       const realTarget = await fs.promises.realpath(target);
       // Containment is checked on the resolved path, independent of case.
       const relative = path.relative(root, realTarget);
-      if (relative.startsWith('..') || path.isAbsolute(relative)) return finish(403, 'Access denied');
+      if (relative.startsWith('..') || path.isAbsolute(relative)) { console.log('CASE_DENIED_resolved',JSON.stringify({root,target,requested:typeof requested==='string'?requested:'',component:typeof component==='string'?component:'',realTarget:typeof realTarget==='string'?realTarget:'',relative:typeof relative==='string'?relative:''})); return finish(403, 'Access denied'); }
       target = realTarget;
       const stat = await fs.promises.stat(target);
       if (!stat.isFile()) return finish(404, 'Not found');
