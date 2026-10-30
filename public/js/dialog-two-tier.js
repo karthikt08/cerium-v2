@@ -147,7 +147,10 @@
     if (!config) return;
     const previous = enhanced.get(dialog);
     const firstControl = config.root.querySelector('input,select,textarea,button');
-    if (previous && previous.root === config.root && previous.firstControl === firstControl) return;
+    if (previous && previous.root === config.root && previous.firstControl === firstControl) {
+      previous.refresh?.();
+      return;
+    }
     previous?.nav.remove();
     previous?.targets.forEach(node => node.classList.remove('cerium-dialog-tier-hidden'));
 
@@ -187,26 +190,48 @@
       if (tier === 2) el.classList.add('cerium-dialog-subtab');
       return el;
     };
-    const activate = (primaryIndex, subIndex = 0) => {
+    const primaryButtons = groups.map((g, index) =>
+      button(g.label, index === 0, () => activate(index, 0, true), 1));
+    primary.replaceChildren(...primaryButtons);
+    let secondaryButtons = [];
+    let secondaryFor = -1;
+    const setActive = (buttons, index) => buttons.forEach((el, i) => {
+      el.classList.toggle('active', i === index);
+      el.setAttribute('aria-pressed', String(i === index));
+    });
+    const available = node => !node.hidden && !node.closest('[hidden]');
+    const refresh = () => {
+      if (!current.jump) return;
+      secondaryButtons.forEach((el, i) => {
+        el.disabled = !groups[current.primaryIndex].views[i].nodes.some(available);
+      });
+      primaryButtons.forEach((el, i) => {
+        el.disabled = !groups[i].views.some(v => v.nodes.some(available));
+      });
+    };
+    const activate = (primaryIndex, subIndex = 0, fromClick = false) => {
+      if (secondaryFor !== primaryIndex) {
+        secondaryButtons = groups[primaryIndex].views.map((v, index) =>
+          button(v.label, index === subIndex, () => activate(primaryIndex, index, true), 2));
+        secondary.replaceChildren(...secondaryButtons);
+        secondaryFor = primaryIndex;
+      }
       current.primaryIndex = primaryIndex;
       current.subIndex = subIndex;
+      setActive(primaryButtons, primaryIndex);
+      setActive(secondaryButtons, subIndex);
       const active = groups[primaryIndex].views[subIndex];
-      primary.replaceChildren(...groups.map((g, index) =>
-        button(g.label, index === primaryIndex, () => activate(index), 1)));
-      secondary.replaceChildren(...groups[primaryIndex].views.map((v, index) =>
-        button(v.label, index === subIndex, () => activate(primaryIndex, index), 2)));
       if (!current.jump) {
         const visible = new Set(active.nodes);
-        // A matching child of a selected section is already visible through its parent.
         current.targets.forEach(node => node.classList.toggle('cerium-dialog-tier-hidden', !visible.has(node)));
-      } else {
-        const first = active.nodes.find(node => !node.hidden && !node.closest('[hidden]'));
-        if (first && document.activeElement?.closest('.cerium-dialog-navigation')) {
-          first.scrollIntoView({block: 'nearest', behavior: 'smooth'});
-        }
+      } else if (fromClick) {
+        const first = active.nodes.find(available);
+        first?.scrollIntoView({block: 'nearest', behavior: 'smooth'});
       }
+      refresh();
     };
     current.activate = activate;
+    current.refresh = refresh;
     // Preserve the field focused by the module when its dialog first opens.
     const focused = document.activeElement;
     let initial = [0, 0];
@@ -249,7 +274,7 @@
     requestAnimationFrame(scan);
   };
   new MutationObserver(schedule).observe(document.documentElement, {
-    childList: true, subtree: true, attributes: true, attributeFilter: ['open']
+    childList: true, subtree: true, attributes: true, attributeFilter: ['open', 'hidden']
   });
   schedule();
 })();
