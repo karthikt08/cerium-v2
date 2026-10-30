@@ -1,0 +1,125 @@
+/* CERIUM workspace outline system.
+   Surface geometry and status colors stay intact; make component boundaries
+   legible without adding purple fills, doubling card shadows or touching print.
+   Loaded after the reference theme and scoped to the authenticated app. */
+@media screen {
+  .app-page {
+    --cerium-outline:#b4bfd1;
+    --cerium-outline-soft:#c5cedd;
+    --cerium-outline-hover:#9988c0;
+    --cerium-outline-focus:#7c3aed;
+  }
+
+  /* Workspace shell: a continuous, unobtrusive structure. */
+  .app-page .sidebar {border-right-color:var(--cerium-outline);}
+  .app-page .main-frame>.topbar {border-bottom-color:var(--cerium-outline-soft);}
+  .app-page .sidebar .nav-link {border:1px solid transparent;}
+  .app-page .sidebar .nav-link:is(:hover,[aria-current="page"]) {
+    border-color:var(--cerium-outline-soft);
+  }
+  .app-page .sidebar .sidebar-collapse-toggle,
+  .app-page .topbar-right .icon-button {
+    border:1px solid var(--cerium-outline-soft);
+  }
+
+  /* Real cards, nested features and record surfaces receive one consistent
+     slate edge. Never outline plain text, every table row or whole page shells. */
+  .app-page #page-body :is(
+    .panel,.card,.data-panel,.table-panel,.jobs-panel,
+    .metric,.jobs-stat,.quotes-summary>div,.quote-card,
+    .reminders-stats>div,.report-stat,.marketing-stat,
+    .marketing-composer,.marketing-next-moves,.marketing-main,
+    .due-summary-card,.settings-content,.settings-grid .panel,
+    .board-column,.lead-card,.job-day,.job-tile,
+    .invoice-billing-section,.job-billing-row
+  ):not(.overview-stage-unified) {
+    border:1px solid var(--cerium-outline);
+  }
+
+  /* Deliberate dark feature cards keep a contrasting, lighter stroke. */
+  .app-page #page-body :is(
+    .metrics-grid>.metric:nth-child(3),
+    .jobs-stats>.jobs-stat:first-child,
+    .quotes-summary>div:first-child,
+    .reminders-stats>div:first-child,
+    .report-stats>.report-stat:first-child,
+    .marketing-insight-grid>.marketing-stat:first-child
+  ) {border-color:#677492;}
+  .app-page .overview-stage.overview-stage-unified {border-color:#6e7e9d;}
+
+  /* Tables get readable header and row separators without nested boxes. */
+  .app-page #page-body :is(
+    .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+  ) :is(th,thead td) {border-bottom-color:var(--cerium-outline);}
+  .app-page #page-body :is(
+    .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+  ) tbody td {border-top-color:#d6ddea;border-bottom-color:#d6ddea;}
+
+  /* Controls: consistent boundaries, while keeping browser-native behavior. */
+  .app-page .content-scroll :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]),
+    select,textarea,.search-field,.view-toggle,.filter-chips,
+    .pill,.filter-pill,.filter-button,.filter-chips button
+  ) {border-color:var(--cerium-outline);}
+  .app-page :is(
+    dialog.dialog,dialog.c-modal,dialog.jobs-dialog,
+    dialog.quotes-dialog,dialog.workspace-config-dialog
+  ) :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]),
+    select,textarea
+  ) {border-color:var(--cerium-outline);}
+  .app-page .content-scroll :is(
+    .button.secondary,
+    .button:not(.primary):not(.danger):not(.icon-button):not(.text-button):not(.small-button),
+    .btn.gh
+  ),
+  .app-page :is(
+    dialog.dialog,dialog.c-modal,dialog.jobs-dialog,
+    dialog.quotes-dialog,dialog.workspace-config-dialog
+  ) .button.secondary {border-color:var(--cerium-outline);}
+  .app-page :is(
+    dialog.dialog,dialog.c-modal,dialog.jobs-dialog,
+    dialog.quotes-dialog,dialog.workspace-config-dialog
+  ) {border:1.5px solid #9ca8bf;}
+  .app-page :is(.guide-panel,.quote-more-menu,.dial-panel) {
+    border:1px solid var(--cerium-outline);
+  }
+
+  /* Touch surfaces keep their neutral interior; edges signal interaction. */
+  @media (hover:hover) and (pointer:fine) {
+    .app-page #page-body :is(.panel,.card,.quote-card,.lead-card,.job-tile):hover {
+      border-color:var(--cerium-outline-hover);
+    }
+    .app-page .content-scroll :is(
+      .button.secondary,.pill,.filter-pill,.filter-button
+    ):hover:not(:disabled) {
+      border-color:var(--cerium-outline-hover);
+    }
+  }
+
+  /* Focus is more distinct than hover and does not rely on color alone. */
+  .app-page .content-scroll :is(
+    input:not([type=checkbox]):not([type=radio]),select,textarea
+  ):focus-visible,
+  .app-page :is(dialog.dialog,dialog.c-modal,dialog.jobs-dialog,
+    dialog.quotes-dialog,dialog.workspace-config-dialog)
+    :is(input,select,textarea):focus-visible {
+    border-color:var(--cerium-outline-focus);
+    outline:2px solid rgba(124,58,237,.3);
+    outline-offset:1px;
+  }
+
+  /* The search field owns its own border; avoid a double outline on its input. */
+  .app-page .content-scroll .search-field:focus-within {
+    border-color:var(--cerium-outline-focus);
+    box-shadow:0 0 0 2px rgba(124,58,237,.15);
+  }
+  .app-page .content-scroll .search-field input {
+    border:0!important;outline:0!important;
+  }
+}
+@media (forced-colors:active){
+  .app-page #page-body :is(.panel,.metric,.card,.jobs-panel,.quote-card,.marketing-stat) {
+    border-color:CanvasText;
+  }
+}
