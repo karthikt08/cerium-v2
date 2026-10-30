@@ -35,6 +35,26 @@ test('workspace-cursor.js includes all modal popup controls, actions and select 
   assert.match(code, /tw=th=side\+6/);
 });
 
+test('Design D tabs do not trigger rectangular magnetic selection', () => {
+  const code = read('public/js/workspace-cursor.js');
+  const workspaceCSS = read('public/css/workspace-navigation.css');
+  const dialogCSS = read('public/css/dialog-two-tier.css');
+
+  // Both workspace navigation and multi-section dialog navigation have their
+  // own selected-tab geometry; the cursor must remain a small pointer ring.
+  assert.match(code, /overDesignDNavigation=.*workspace-angular-navigation,\\.cerium-dialog-navigation/);
+  assert.match(code, /target=!inDropdown&&!overDesignDNavigation\\?/);
+  assert.match(code, /c\\.classList\\.toggle\\('over-control',snapped&&!down\\)/);
+  assert.match(code, /tw=14,th=14,tr=7,snapped=false/);
+  assert.match(workspaceCSS, /Design D side-bracketed two-tier navigation/);
+  assert.match(dialogCSS, /Design D side-bracketed primary/);
+
+  // Focus indicators remain available to keyboard users; only the mouse's
+  // rectangular magnetic selection effect is disabled.
+  assert.match(workspaceCSS, /workspace-angular-navigation :is\\(\\.workspace-feature-tab,\\.workspace-subfeature-tab\\):focus-visible/);
+  assert.match(dialogCSS, /\\.cerium-dialog-tier-tab:focus-visible/);
+});
+
 test('every modal popup across app templates and modules pairs with cursor controls', () => {
   const appHtml = read('public/app.html');
   const customizer = read('public/js/workspace-customizer.js');
