@@ -108,6 +108,10 @@
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab.active::before {
   background: #f6f9ff;
 }
+.app-page .cerium-dialog-tier-tab:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
 .app-page .cerium-dialog-tier-tab:focus-visible {
   outline: 2px solid var(--dialog-nav-blue, #1d5bf0);
   outline-offset: -4px;
