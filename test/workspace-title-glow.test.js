@@ -29,7 +29,7 @@ test('Job schedule and every workspace page use the same thick non-scaling curve
   assert.match(css, /viewBox='0 0 300 20'/);
   assert.match(css, /stroke-width='7'/);
   assert.match(css, /vector-effect='non-scaling-stroke'/);
-  assert.match(css, /d='M5 12C58 6 120 16 179 9S266 12 295 10'/);
+  assert.match(css, /d='M12 12C64 6 120 16 179 9S257 12 288 10'/);
   assert.match(css, /:is\(\.page-heading,\.workspace-feature-content\) \.ac > svg\.ul \{\s*display:none!important/);
   const underlines=css.slice(css.indexOf('/* ONE shape/weight'));
   for(const selector of [
@@ -42,6 +42,23 @@ test('Job schedule and every workspace page use the same thick non-scaling curve
   assert.match(underlines, /mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(underlines, /-webkit-mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(underlines, /mask-size:100% 100%/);
+});
+
+test('both neon underline endpoints have actual filled circular caps in the SVG mask',()=>{
+  // Chromium can render stroke-linecap=round as flat for an SVG used as a
+  // CSS mask. Paint explicit circles so both animated ends remain round.
+  const mask=css.match(/--cerium-title-neon-mask:url\("data:image\/svg\+xml,([^"]+)"\)/)?.[1];
+  assert.ok(mask,'shared neon underline mask exists');
+  const svg=decodeURIComponent(mask);
+  assert.match(svg, /stroke-width='7'/,'preserve the shared stroke thickness');
+  assert.match(svg, /vector-effect='non-scaling-stroke'/);
+  assert.match(svg, /stroke-linecap='round'/);
+  assert.match(svg, /d='M12 12C64 6 120 16 179 9S257 12 288 10'/);
+  assert.match(svg, /<circle cx='12' cy='12' r='3\.5' fill='white'\/>/,'left cap is a filled circle');
+  assert.match(svg, /<circle cx='288' cy='10' r='3\.5' fill='white'\/>/,'right cap is a filled circle');
+  assert.match(css, /-webkit-mask-size:100% 100%/);
+  assert.match(css, /mask-size:100% 100%/);
+  assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
 });
 
 test('every core feature page and direct subview receives neon titles with a visible text-to-line gap',()=>{
