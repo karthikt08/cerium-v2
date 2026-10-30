@@ -1,6 +1,7 @@
 /* CERIUM animated neon page headings — reference-aligned, workspace only.
    Use one physical 7px hand-drawn stroke for titles of every length. The CSS
    gradient moves behind a monochrome SVG mask, so the line itself animates.
+   Explicit circular end caps prevent Chromium clipping the stroke ends.
    Applying drop-shadow to the title (which owns the masked pseudo-element)
    creates real bloom around BOTH the glyphs and stroke, without masking it off.
    No changes to Design D tabs, other UI surfaces, printable documents or site. */
@@ -11,7 +12,7 @@
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
-    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M5 12C58 6 120 16 179 9S266 12 295 10'/%3E%3C/svg%3E");
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3Ccircle cx='12' cy='12' r='3.5' fill='white'/%3E%3Ccircle cx='288' cy='10' r='3.5' fill='white'/%3E%3C/svg%3E");
   }
 
   /* Animated lettering: same bright glow and moving blue/violet/magenta
