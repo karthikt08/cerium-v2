@@ -175,8 +175,14 @@
     max-width:100%;
     padding-bottom:var(--cerium-title-neon-gap);
     overflow:visible;
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
+      drop-shadow(0 0 15px rgba(124,58,237,.56))
+      drop-shadow(0 0 24px rgba(217,70,239,.32));
   }
-  .pg h1 .ac-wrap > .ac {padding-bottom:0!important;}
+  .pg h1 .ac-wrap > .ac {
+    padding-bottom:0!important;
+    filter:none!important; /* wrapper blooms both text and underline once */
+  }
 
   /* Retain markup but hide the old static, varying-width SVG underlines. */
   .pg :is(h1,h2) .ac > svg.ul,
