@@ -101,7 +101,7 @@
       if (!root) return null;
       return {root, groups: [
         group('Setup', [
-          view('Business type', [], ['.ws-custom-field:not(.ws-recommender .ws-custom-field)']),
+          view('Business type', [], ['.ws-config-form > .ws-custom-field']),
           view('Assistant', [], ['.ws-recommender'])
         ]),
         group('Workspace', [
@@ -207,14 +207,26 @@
       }
     };
     current.activate = activate;
-    activate(0);
+    // Preserve the field focused by the module when its dialog first opens.
+    const focused = document.activeElement;
+    let initial = [0, 0];
+    if (focused && config.root.contains(focused)) {
+      groups.some((g, i) => g.views.some((v, j) => {
+        if (!v.nodes.some(node => node === focused || node.contains(focused))) return false;
+        initial = [i, j];
+        return true;
+      }));
+    }
+    activate(...initial);
     if (!bound.has(dialog)) {
       bound.add(dialog);
       // Native constraint validation fires before submit. Reveal the input's
       // original section so browser errors can be focused and understood.
       dialog.addEventListener('invalid', event => {
         const state = enhanced.get(dialog);
-        if (!state || state.jump) return;
+        if (!state || state.jump || state.validationScheduled) return;
+        state.validationScheduled = true;
+        queueMicrotask(() => {state.validationScheduled = false;});
         for (let i = 0; i < state.groups.length; i++) {
           const index = state.groups[i].views.findIndex(v =>
             v.nodes.some(node => node === event.target || node.contains(event.target)));
