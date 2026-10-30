@@ -336,128 +336,112 @@
 @media(max-width:760px){.app-page .workspace-category-actions{width:100%;justify-content:space-between}.app-page .workspace-view-picker{flex:1}.app-page .workspace-view-picker select{min-width:0;width:100%;max-width:100%}}
 @media print{.app-page .workspace-view-picker{display:none!important}}
 
-/* CERIUM SIDE-BRACKET NAV — Design D. Only the two navigation rows change.
-   Leave the existing navigation rail and page content untouched. */
-.app-page #page-body .workspace-angular-navigation{min-width:0;margin:0 0 24px;background:transparent}
-/* clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 100%,0 100%); */
+/* CERIUM WORKSPACE TABS — One shared visual language for every category.
+   Tier 1 uses an understated navigation rail; Tier 2 uses compact view chips.
+   Links, hash routes, keyboard behavior, and page content remain unchanged. */
+.app-page #page-body .workspace-angular-navigation{
+  --cerium-tab-accent:#2458dc;
+  --cerium-tab-ink:#243650;
+  --cerium-tab-border:#dbe3ef;
+  min-width:0;
+  margin:0 0 24px;
+  background:transparent;
+}
 .app-page #page-body .workspace-angular-navigation .workspace-tab-scroll{
-  padding:6px 0 0;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
-  border-bottom:2px solid #e3e8f1;scroll-padding-inline:14px;position:relative;z-index:1;
+  position:relative;min-width:0;padding:3px 0 0;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
+  scroll-padding-inline:12px;border-bottom:1px solid var(--cerium-tab-border);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{
-  display:flex;align-items:flex-end;position:relative;z-index:1;min-width:max-content;padding:0 6px;gap:8px;
+  display:flex;align-items:stretch;gap:8px;
+  min-width:max-content;padding:0 3px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
-  flex:0 0 160px;width:160px;min-width:160px;max-width:160px;box-sizing:border-box;
-  position:relative;isolation:isolate;height:52px;min-height:52px;
-  margin:0;padding:0 16px;display:inline-flex;align-items:center;
-  justify-content:center;text-align:center;
-  color:#5d687e;font-size:14.5px;font-weight:500;
-  white-space:nowrap;text-decoration:none;border:0;border-radius:12px 12px 0 0;box-shadow:none;
-  cursor:pointer;transition:all .22s cubic-bezier(.2,.8,.2,1);
+  position:relative;isolation:isolate;box-sizing:border-box;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;width:auto;min-width:104px;max-width:none;
+  height:48px;min-height:48px;margin:0;padding:0 17px;
+  border:0;border-radius:9px 9px 0 0;
+  background:transparent;box-shadow:none;
+  color:#64748b;font-size:13px;font-weight:600;line-height:1.3;
+  white-space:nowrap;text-align:center;text-decoration:none;
+  cursor:pointer;transform:none;
+  transition:background-color .16s ease,color .16s ease;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:first-child{margin-left:0}
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
-  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(180deg,#f8fafd 0%,#eaf0f9 100%);
-  border:1px solid #dce4f2;border-bottom:none;
-  border-radius:12px 12px 0 0;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 2px 4px rgba(15,23,42,.04);
-  transition:all .22s cubic-bezier(.2,.8,.2,1);
+  content:none;display:none;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{
-  color:#16213a;transform:translateY(-2px);
+  color:#244476;background:#f3f6fd;transform:none;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{
-  background:linear-gradient(180deg,#ffffff 0%,#f1f5fd 100%);
-  border-color:#cbd5e1;
-  box-shadow:inset 0 1px 0 #ffffff, 0 4px 14px rgba(124,58,237,.14);
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active,
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]{
+  color:var(--cerium-tab-accent);font-weight:700;
+  background:linear-gradient(180deg,rgba(36,88,220,0) 15%,rgba(36,88,220,.055) 100%);
+  box-shadow:none;transform:none;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active{
-  z-index:2;color:#1e1b4b;font-weight:600;
-  transform:translateY(-2px);
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::after,
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]::after{
+  content:"";display:block;position:absolute;
+  left:15px;right:15px;bottom:0;height:3px;z-index:2;
+  border-radius:3px 3px 0 0;
+  background:var(--cerium-tab-accent);box-shadow:none;pointer-events:none;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::before{
-  background:linear-gradient(180deg,#ffffff 0%,#fafbff 100%);
-  border:1px solid rgba(124,58,237,.28);border-bottom:none;
-  border-radius:12px 12px 0 0;
-  box-shadow:inset 0 1.5px 0 #ffffff, inset 0 0 0 1px rgba(255,255,255,.9), 0 -2px 8px -2px rgba(124,58,237,.14), 0 8px 24px -4px rgba(124,58,237,.35), 0 2px 5px rgba(15,23,42,.06);
+.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:not(.active):not([aria-current="page"])::after{
+  content:none;display:none;
 }
-/* 3D Purple Glow Neon Bottom Accent Indicator */
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active::after{
-  content:"";position:absolute;bottom:-2px;left:14px;right:14px;height:3.5px;
-  border-radius:3px 3px 0 0;z-index:3;pointer-events:none;
-  background:linear-gradient(90deg,#3b5bff 0%,#7c3aed 50%,#d946ef 100%);
-  box-shadow:0 0 14px rgba(124,58,237,.85), 0 0 5px rgba(217,70,239,.65);
-}
-.app-page #page-body .workspace-angular-navigation .workspace-feature-tab:not(.active)::after{
-  display:none;content:none;
-}
+.app-page #page-body .workspace-angular-navigation .workspace-feature-label,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active .workspace-feature-label{
-  background:linear-gradient(135deg,#1e3a8a 0%,#4338ca 42%,#7c3aed 100%)!important;
-  -webkit-background-clip:text!important;background-clip:text!important;
-  -webkit-text-fill-color:transparent!important;
-  filter:drop-shadow(0 2px 8px rgba(124,58,237,.28))!important;
-  font-weight:700!important;
+  display:inline-block;position:relative;max-width:100%;padding:0;
+  color:inherit!important;background:none!important;
+  -webkit-text-fill-color:currentColor!important;
+  filter:none!important;font-weight:inherit!important;
+  line-height:1.35;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-label{
-  display:inline-block;position:relative;max-width:100%;padding:0;line-height:1.3;
-  color:inherit!important;background:none!important;-webkit-text-fill-color:currentColor!important;
-  filter:none!important;
+.app-page #page-body .workspace-angular-navigation .workspace-feature-label::after{
+  content:none!important;display:none!important;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-feature-label::after{content:none!important;display:none!important}
 
-/* Sub-tabs (Tier 2): 3D Floating Segmented Control with Ambient Purple Glow */
+/* Contextual views sit below the category tabs, without a second tab frame. */
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{
-  display:flex;margin:18px 0 24px;border:0;
-  background:transparent;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
-  scroll-padding-inline:14px;
+  display:block;min-width:0;margin:15px 0 0;padding:0 0 3px;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
+  scroll-padding-inline:8px;border:0;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-bar{
-  display:inline-flex;align-items:center;gap:5px;min-width:max-content;
-  background:linear-gradient(180deg,#edf1f8 0%,#e3e9f4 100%);
-  border:1px solid rgba(203,213,225,.85);border-radius:12px;padding:4px 5px;
-  box-shadow:inset 0 2px 4px rgba(15,23,42,.07), 0 1px 2px rgba(255,255,255,.9);
+  display:flex;align-items:center;gap:8px;
+  width:max-content;min-width:max-content;padding:0 2px;
+  background:transparent;border:0;border-radius:0;box-shadow:none;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
-  position:relative;isolation:isolate;min-width:96px;height:38px;min-height:38px;margin:0;padding:0 18px;
-  display:inline-flex;align-items:center;justify-content:center;text-align:center;
-  border:0;border-bottom:0;border-radius:8px;box-sizing:border-box;
-  color:#55627a;font-size:13px;font-weight:500;white-space:nowrap;
-  text-decoration:none;box-shadow:none;background:transparent;
-  cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.2,1);
+  position:relative;box-sizing:border-box;isolation:isolate;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;min-width:0;height:36px;min-height:36px;
+  margin:0;padding:0 14px;border:1px solid #e0e7f2;border-radius:9px;
+  background:#f6f8fc;box-shadow:none;transform:none;
+  color:#50617c;font-size:12px;font-weight:600;line-height:1.3;
+  text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:first-child{margin-left:0}
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
-  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  border:0;border-radius:8px;background:transparent;
-  transition:all .2s cubic-bezier(.2,.8,.2,1);
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before,
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{
+  content:none!important;display:none!important;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover{
-  color:#0f172a;
+  color:#244476;background:#edf2fc;border-color:#cbd8ec;
 }
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
-  background:rgba(255,255,255,.65);
-  box-shadow:0 2px 6px rgba(15,23,42,.06), inset 0 1px 0 rgba(255,255,255,.9);
-}
-/* Reference spec fallback for active border-bottom states: border-bottom-color:var(--reference-blue); */
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
-  border-bottom:0!important;border-bottom-color:transparent!important;
-  color:#1e1b4b!important;font-weight:600;z-index:2;
-  transform:translateY(-1px);
-}
-.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active::before{
-  background:linear-gradient(180deg,#ffffff 0%,#fafbff 100%)!important;
-  border:1px solid rgba(124,58,237,.32)!important;
-  border-bottom:1px solid rgba(124,58,237,.32)!important;
-  border-radius:8px!important;
-  box-shadow:0 3px 10px -1px rgba(15,23,42,.1), 0 4px 16px -2px rgba(124,58,237,.36), inset 0 1.5px 0 #ffffff!important;
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active,
+.app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]{
+  color:#1f4fbf!important;background:#eaf1ff;
+  border:1px solid #adc2f3!important;border-radius:9px;
+  font-weight:700;transform:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active .workspace-subfeature-label{
-  text-shadow:0 0 14px rgba(124,58,237,.28);
+  text-shadow:none;
 }
 .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab):focus-visible{
-  outline:3px solid #7c3aed;outline-offset:2px;
+  outline:2px solid #2357e2;outline-offset:-3px;
 }
 .app-page #page-body .workspace-angular-navigation+.workspace-feature-panel{
   min-width:0;margin:0;padding:0!important;border:0;border-radius:0;
@@ -465,12 +449,27 @@
 }
 @media(max-width:760px){
   .app-page #page-body .workspace-angular-navigation{margin-bottom:18px}
-  .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{flex:0 0 auto;min-width:110px;height:44px;min-height:44px;padding:8px 14px;font-size:12px}
-  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{height:34px;min-height:34px;padding:6px 12px;font-size:12px}
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tabs{gap:3px}
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tab{
+    min-width:0;height:44px;min-height:44px;padding:0 14px;font-size:12px;
+  }
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-strip{margin-top:13px}
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab{
+    min-height:40px;height:40px;padding:0 13px;font-size:12px;
+  }
 }
 @media(prefers-reduced-motion:reduce){
-  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab){transition:none;transform:none!important}
-  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab)::before{transition:none}
+  .app-page #page-body .workspace-angular-navigation :is(.workspace-feature-tab,.workspace-subfeature-tab){
+    transition:none;transform:none!important;
+  }
+}
+@media(forced-colors:active){
+  .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active{
+    border-bottom:3px solid Highlight;
+  }
+  .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active{
+    border:2px solid Highlight!important;
+  }
 }
 @media print{
   .app-page #page-body .workspace-angular-navigation{display:none!important}

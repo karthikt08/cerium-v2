@@ -9,7 +9,7 @@ const css=read('css/workspace-navigation.css');
 const shell=read('css/workspace.css');
 const midnight=read('css/workspace-midnight.css');
 
-test('all feature pages render the requested angular navigation without changing records',()=>{
+test('all feature pages render shared tiered navigation without changing records',()=>{
   for(const route of WORKSPACE_FEATURES.filter(f=>!['overview','settings','assistant','support'].includes(f.category))){
     const html=renderFeatureWorkspace(route,undefined,'<p>Feature content</p>');
     assert.match(html,/workspace-angular-navigation/);
@@ -23,8 +23,8 @@ test('all feature pages render the requested angular navigation without changing
     '<div class="page-heading"><h1>Leads</h1></div>',
     {account:{country:'IN',timeZone:'Asia/Kolkata'},leads:[{id:1}],followUps:[]});
   assert.match(leads,/aria-label="Leads · 1 lead"/,'real counts are accessible without bulky visual badges');
-  assert.match(css,/CERIUM SIDE-BRACKET NAV/);
-  assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{content:none!important/,'decorative double-glow stays off the navigation');
+  assert.match(css,/CERIUM WORKSPACE TABS/);
+  assert.match(css,/\.workspace-angular-navigation \.workspace-feature-label::after\{\s*content:none!important/,'decorative double-glow stays off the navigation');
 });
 
 test('all selected labels get a glowing gradient and inline underline, inactive labels retain contrast',()=>{

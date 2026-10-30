@@ -9,7 +9,7 @@ import {businessInsights,renderInsightsPage} from '../public/js/workspace-insigh
 import {trustedGuideLink,guideNavigationLinks} from '../public/js/guide-links.js';
 import {answerGuide} from '../server/guide-assistant.js';
 
-test('every feature has a trusted AI destination and accessible side-bracket navigation',()=>{
+test('every feature has a trusted AI destination and accessible shared navigation',()=>{
   assert.equal(new Set(WORKSPACE_FEATURES.map(f=>f.href)).size,WORKSPACE_FEATURES.length);
   for(const f of WORKSPACE_FEATURES){
     assert.equal(resolveWorkspaceRoute(f.href),f);
@@ -28,6 +28,18 @@ test('every feature has a trusted AI destination and accessible side-bracket nav
   }
   assert.equal((renderCategoryNavigation().match(/class="nav-link"/g)||[]).length,7);
 });
+test('shared workspace tabs use the same compact, accessible design across categories',()=>{
+  const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
+  assert.match(css,/CERIUM WORKSPACE TABS/);
+  assert.match(css,/\.workspace-feature-tab\.active::after/);
+  assert.match(css,/\.workspace-subfeature-tab\.active,/);
+  assert.match(css,/\.workspace-tab-scroll\{/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(css,/:focus-visible/);
+  assert.doesNotMatch(css,/CERIUM SIDE-BRACKET NAV/);
+});
+
 test('all saved module combinations hide empty categories and preserve valid last-used destinations',()=>{
   const ids=WORKSPACE_MODULES.map(x=>x.id);
   for(let mask=1;mask<(1<<ids.length);mask++){
@@ -87,7 +99,7 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
-test('side-bracketed feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
+test('shared feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
   for(const [href,featureLinks,subLinks] of [
     ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes'],['#customers/leads/list','#customers/leads/board','#customers/leads/active']],
     ['#billing/invoices',['#billing/invoices','#billing/payments','#billing/reminders'],['#billing/invoices/All','#billing/invoices/Sent','#billing/invoices/Paid']],
@@ -110,8 +122,9 @@ test('side-bracketed feature tabs, context-specific subviews and deep links shar
   const base=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Base');
   assert.match(base,/data-subfeature="list" aria-current="page"/,'base route displays its default view');
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
-  assert.match(css,/CERIUM SIDE-BRACKET NAV/);
-  assert.match(css,/clip-path:polygon\(10px 0,calc\(100% - 10px\) 0,100% 100%,0 100%\)/);
+  assert.match(css,/CERIUM WORKSPACE TABS/);
+  assert.match(css,/\.workspace-feature-tab\.active::after/);
+  assert.doesNotMatch(css,/clip-path:polygon\(10px 0,calc\(100% - 10px\) 0,100% 100%,0 100%\)/);
   assert.match(css,/\.workspace-angular-navigation\+\.workspace-feature-panel\{/);
 });
 
