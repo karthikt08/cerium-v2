@@ -45,3 +45,33 @@ test('Design D primary bracket and secondary underline are responsive and access
   assert.match(css, /@media print/);
   assert.match(css, /cerium-dialog-tier-hidden/);
 });
+
+test('Design D workspace and dialog navigation match the landing-page purple glow', () => {
+  const landing = read('css/home.css');
+  const workspace = read('css/workspace-navigation.css');
+  const design = workspace.slice(workspace.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
+  assert.match(landing, /#7c3aed/);
+  assert.match(landing, /#d946ef/);
+  assert.match(landing, /drop-shadow\\(0 10px 18px rgba\\(124,58,237,\\.28\\)\\)/);
+  assert.ok(design.startsWith('/* CERIUM WORKSPACE TABS — Design D'));
+  assert.ok(design.includes('--cerium-tab-accent:#7c3aed;'));
+  assert.ok(css.includes('--dialog-nav-accent: #7c3aed;'));
+  assert.ok(design.includes('--cerium-tab-magenta:#d946ef;'));
+  assert.ok(css.includes('--dialog-nav-magenta: #d946ef;'));
+
+  for (const source of [design, css]) {
+    assert.ok(source.includes("%3Cpath d='M 1.5 52 L 1.5 10"), 'preserve the original side-bracket geometry');
+    assert.ok(source.includes("stop-color='%237c3aed'"), 'violet stroke endpoint');
+    assert.ok(source.includes("stop-color='%23d946ef'"), 'magenta stroke endpoint');
+    assert.ok(source.includes("stroke='url(%23purple)'"), 'gradient outlined bracket');
+    assert.doesNotMatch(source, /stroke='%231d5bf0'/, 'no old blue primary bracket');
+    assert.match(source, /drop-shadow\\(0 2px 7px/, 'bracket glow');
+    assert.match(source, /box-shadow:\\s*0 0 8px/, 'secondary underline glow');
+    assert.match(source, /:focus-visible/, 'preserve keyboard focus indication');
+  }
+  assert.match(design, /workspace-subfeature-tab\\.active::after/);
+  assert.match(css, /cerium-dialog-tier-two \\.cerium-dialog-tier-tab\\.active::after/);
+  assert.match(design, /@media\\(forced-colors:active\\)/);
+  assert.match(design, /@media\\(prefers-reduced-motion:reduce\\)/);
+  assert.match(css, /@media \\(prefers-reduced-motion:reduce\\)/);
+});
