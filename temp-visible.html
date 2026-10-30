@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body { margin: 0; width: 800px; height: 600px; background: #eef0f5; }
+.dialog {
+  width: 400px;
+  height: 200px;
+  margin: 100px auto;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  background: white;
+  overflow: visible;
+}
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  background: rgb(0, 0, 255);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100000;
+  transform: translate3d(50px, 50px, 0); /* outside the dialog */
+}
+</style>
+</head>
+<body>
+<dialog class="dialog" id="dlg">
+  <p>Dialog Content</p>
+  <div class="cursor" id="c"></div>
+</dialog>
+<script>
+  document.getElementById('dlg').showModal();
+</script>
+</body>
+</html>
