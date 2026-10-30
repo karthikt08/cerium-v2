@@ -37,7 +37,14 @@ test('shared workspace tabs use the same compact, accessible design across categ
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css,/:focus-visible/);
-  assert.doesNotMatch(css,/CERIUM SIDE-BRACKET NAV/);
+  const design=css.slice(css.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
+  assert.ok(design.startsWith('/* CERIUM WORKSPACE TABS — Design D side-bracketed'));
+  assert.match(design,/transform:skewX\\(-14deg\\)/);
+  assert.match(design,/workspace-feature-tab\\.active::after/);
+  assert.match(design,/workspace-subfeature-tab\\.active,/);
+  assert.match(design,/border-bottom:3px solid var\\(--cerium-tab-accent\\)/);
+  assert.match(design,/overflow-x:auto;overflow-y:hidden/);
+  assert.doesNotMatch(design,/border:1px solid #e0e7f2;border-radius:9px/);
 });
 
 test('all saved module combinations hide empty categories and preserve valid last-used destinations',()=>{
@@ -99,6 +106,21 @@ test('assistant describes payment allocation and the existing bank-match limitat
   assert.match(undo.reply,/no Undo match control/i);
 });
 
+test('workspace tabs share the Design D bracket geometry used by enhanced dialogs',()=>{
+  const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
+  const dialog=fs.readFileSync(new URL('../public/css/dialog-two-tier.css',import.meta.url),'utf8');
+  const modern=css.slice(css.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
+  const bracket="%3Cpath d='M 1.5 52 L 1.5 10";
+  assert.ok(modern.includes(bracket),'workspace active primary tab has the side-bracket outline');
+  assert.ok(dialog.includes(bracket),'dialog primary tab has the same side-bracket outline');
+  assert.match(modern,/workspace-feature-tab\\[aria-current="page"\\]::after/);
+  assert.match(modern,/workspace-subfeature-tab\\[aria-current="page"\\]/);
+  assert.match(modern,/@media\\(max-width:760px\\)/);
+  assert.match(modern,/@media\\(prefers-reduced-motion:reduce\\)/);
+  assert.match(modern,/@media\\(forced-colors:active\\)/);
+  assert.match(modern,/@media print/);
+});
+
 test('shared feature tabs, context-specific subviews and deep links share one flat canvas',()=>{
   for(const [href,featureLinks,subLinks] of [
     ['#customers/leads',['#customers/leads','#customers/followups','#customers/quotes'],['#customers/leads/list','#customers/leads/board','#customers/leads/active']],
@@ -148,9 +170,9 @@ test('seven pre-PR99 sidebar sections and standalone utility pages retain modern
   assert.equal(resolveWorkspaceRoute('#assistant/workflow-guidance').section,'assistant');
   assert.equal(resolveWorkspaceRoute('#support/support-requests').section,'support');
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
-  assert.match(css,/border-radius:5px 5px 0 0;background:#e9edf6/);
+  assert.match(css,/Design D side-bracketed two-tier navigation/);
   assert.match(css,/\.app-page #page-body \.workspace-feature-panel\{[^}]*box-shadow:none!important/);
-  assert.match(css,/border-radius:7px;padding:3px;gap:0/);
+  assert.match(css,/border-radius:8px 8px 0 0;background:#f3f6fb/);
   assert.doesNotMatch(css,/workspace-panel-chrome|workspace-chrome-dots|border-top:3\.5px solid #2f5bff/);
   const ordinary=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Leads');
   assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status/);
