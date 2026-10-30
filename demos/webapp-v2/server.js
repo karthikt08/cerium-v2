@@ -30,7 +30,10 @@ function createServer(root = __dirname) {
     if (!MIME[ext]) return finish(404, 'Not found');
     try {
       const realTarget = await fs.promises.realpath(target);
-      if (realTarget !== target) return finish(403, 'Access denied');
+      // Compare filesystem paths, not their literal spelling: Windows realpath()
+      // can canonicalize letter casing. Different paths (including symlinks)
+      // must still be rejected.
+      if (path.relative(target, realTarget) !== '') return finish(403, 'Access denied');
       target = realTarget;
       const relative = path.relative(root, target);
       if (relative.startsWith('..') || path.isAbsolute(relative)) return finish(403, 'Access denied');
