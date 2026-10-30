@@ -112,6 +112,18 @@
   outline: 2px solid var(--dialog-nav-blue, #1d5bf0);
   outline-offset: -4px;
 }
+/* Component-specific editors have their own header/body padding. */
+.app-page .jobs-dialog > .cerium-dialog-navigation,
+.app-page .quotes-dialog form > .cerium-dialog-navigation,
+.app-page .workspace-config-dialog > .cerium-dialog-navigation,
+.app-page .lead-import-dialog > .cerium-dialog-navigation {
+  width: calc(100% - 48px);
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.app-page .lead-import-dialog.cerium-has-dialog-tabs .import-content {
+  max-height: min(49vh, 590px);
+}
 .app-page .cerium-dialog-tier-hidden {
   display: none !important;
 }
@@ -121,7 +133,11 @@
   align-content: start;
 }
 @media (max-width: 600px) {
-  .app-page .cerium-dialog-navigation {margin: 12px 0 15px;}
+  .app-page .cerium-dialog-navigation {margin-top: 12px;margin-bottom: 15px;}
+  .app-page .jobs-dialog > .cerium-dialog-navigation,
+  .app-page .quotes-dialog form > .cerium-dialog-navigation,
+  .app-page .workspace-config-dialog > .cerium-dialog-navigation,
+  .app-page .lead-import-dialog > .cerium-dialog-navigation {width:calc(100% - 32px);margin-left:16px;margin-right:16px;}
   .app-page .cerium-dialog-tier-tab {min-width: 110px;padding: 7px 17px;font-size: 12.5px;}
   .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab {min-width: 95px;padding: 6px 12px;}
 }
