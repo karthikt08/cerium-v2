@@ -12,7 +12,10 @@
     try{isOpenSelect=!!(el.closest&&el.closest('select:open'));}catch{}
     const inDropdown=!!(isOption||isOpenSelect);
     const moduleCard=el.closest?el.closest('.ws-pick-module'):null;
-    target=!inDropdown?(moduleCard||(el.closest?el.closest(controls):null)):null;
+    // Design D has its own slanted active-state treatment. Keep the small
+    // pointer ring, but never morph it into a rectangular box around its tabs.
+    const overDesignDNavigation=!!(el.closest&&el.closest('.workspace-angular-navigation,.cerium-dialog-navigation'));
+    target=!inDropdown&&!overDesignDNavigation?(moduleCard||(el.closest?el.closest(controls):null)):null;
     const text=el.closest?el.closest('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]):not([type="color"]),textarea,[contenteditable="true"]'):null;
     c.classList.toggle('text-input',!!(text||inDropdown));
     if(text||inDropdown)target=null;
