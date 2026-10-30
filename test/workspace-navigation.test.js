@@ -42,7 +42,7 @@ test('shared workspace tabs use the Design D brackets and underlines across cate
   assert.match(design,/transform:skewX\(-14deg\)/);
   assert.match(design,/workspace-feature-tab\.active::after/);
   assert.match(design,/workspace-subfeature-tab\.active,/);
-  assert.match(design,/border-bottom:3px solid var\(--cerium-tab-accent\)/);
+  assert.match(design,/border-bottom:2.5px solid var\(--cerium-tab-accent\)/);
   assert.match(design,/overflow-x:auto;overflow-y:hidden/);
   assert.doesNotMatch(design,/border:1px solid #e0e7f2;border-radius:9px/);
 });
