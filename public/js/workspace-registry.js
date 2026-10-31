@@ -23,6 +23,7 @@ export const WORKSPACE_FEATURES=Object.freeze([
   feature('schedule','field','Job Schedule','jobs','schedule',['jobs']),
   feature('dispatch','field','Dispatch','jobs','dispatch',['jobs']),
   feature('crew-assignments','field','Crew Assignments','jobs','assignments',['jobs']),
+  feature('trade-workflows','field','Trade Workflows','jobs','verticals',['jobs']),
   feature('invoices','billing','Invoices','invoices','',['invoices']),
   feature('payments','billing','Payments','payments','paid',['payments']),
   feature('reminders','billing','Payment Reminders','reminders','',['reminders']),
