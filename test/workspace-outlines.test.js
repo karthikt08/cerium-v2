@@ -12,8 +12,7 @@ const html=read('app.html');
 test('Design D keeps its purple outline but no longer fills the tabs lavender',()=>{
   const design=workspace.slice(workspace.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
   for(const css of [design,dialog]){
-    assert.match(css, /#edf1f7/,'neutral Tier 1 surface');
-    assert.match(css, /#f2f5f9/,'neutral Tier 2 surface');
+    assert.ok((css.match(/#f8faff/g)||[]).length>=2,'both inactive tab tiers have the new neutral near-white surface');
     assert.match(css, /background:\s*#fff;/,'white active tab interior');
     for(const tinted of ['#eeeaf5','#e7def4','#f4f1f9','#ece6f6','#f8f4ff']){
       assert.ok(!css.includes('background:'+tinted+';')&&!css.includes('background: '+tinted+';'),
