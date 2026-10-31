@@ -3,7 +3,9 @@ import {escapeHTML as esc} from './workspace-model.js';
 import {lineItemsTotal} from './money.js';
 import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
 import {VERTICAL_WORKFLOWS,verticalProgress} from './vertical-workflows.js';
-import {renderVerticalEditor,renderVerticalFields,readVerticalEditor,renderVerticalWorkflowsPage} from './vertical-workflows-ui.js';
+import {renderVerticalEditor,renderVerticalFields,readVerticalEditor} from './vertical-workflows-ui.js';
+import {renderPersonalizedOperationsPage} from './personalized-operations-page.js';
+import {activeBusinessPersonalization} from './business-personalization.js';
 
 let weekShift = 0;
 let filter = 'all';
@@ -50,9 +52,10 @@ function card(job,ws,ro=false) {
     <small>${esc(workerName(ws,job.workerId))}</small></button>`;
 }
 export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false,subview='overview') {
-  if(view==='verticals')return renderVerticalWorkflowsPage(ws,readOnly,subview);
+  if(view==='verticals')return renderPersonalizedOperationsPage(ws,readOnly,subview);
   if(scoped)filter='all';
   if(view!=='schedule')return renderOperationsPage(ws,readOnly,view);
+  const business=activeBusinessPersonalization(ws);
   const jobs=ws.jobs||[],crew=ws.crew||[],start=monday(),end=new Date(start);end.setDate(start.getDate()+6);
   const week=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);week.push(d);}
   const selected=jobs.filter(j=>filter==='all'?true:filter==='unassigned'?!j.workerId:filter==='active'?active(j):j.status===filter);
@@ -62,8 +65,8 @@ export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false,su
   const assigned=weekJobs.filter(j=>j.workerId).length;
   const open=jobs.filter(j=>active(j)&&!j.workerId).length;
   return `<div class="jobs">
-    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1><span class="ac">Job schedule<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".55" stop-color="#1d5bf0"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">Plan the week, assign your crew, and keep every job on track.</p></div>
-      <div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''}>+ Schedule a job</button></div></div>
+    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1><span class="ac">${esc(business?.features.schedule||'Job schedule')}<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".55" stop-color="#1d5bf0"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">${business?esc(business.tagline):'Plan the week, assign your crew, and keep every job on track.'}</p></div>
+      <div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''} >${esc(business?.createLabel||'+ Schedule a job')}</button></div></div>
     <div class="jobs-stats">
       <div class="jobs-stat"><span>Jobs today</span><strong>${count}</strong><small>Active appointments</small></div>
       <div class="jobs-stat"><span>Assigned this week</span><strong>${assigned}</strong><small>${weekJobs.length} jobs on the board</small></div>
@@ -125,12 +128,12 @@ function openDialog(markup) {
   d.innerHTML=markup;d.showModal();d.querySelector('input,select,button')?.focus();
 }
 const dialogTop=(title,detail)=>`<div class="jobs-modal-header"><h2>${title}</h2><p>${detail}</p><button type="button" aria-label="Close" data-job-action="close">×</button></div>`;
-function formJob(ws,id='',date=today(),industryOverride='') {
+function formJob(ws,id='',date=today(),industryOverride='',serviceOverride='') {
   if(dispatch.isReadOnly())return dispatch.toast('Trial ended. Jobs are read-only.',true);
   const j=id?ws.jobs.find(x=>x.id===id):null;
   if(id&&!j)return dispatch.toast('Job not found.',true);
   const category=industryOverride||(!id?ws.account?.workspacePreferences?.category:'');
-  const vertical=j?.verticalWorkflow||(VERTICAL_WORKFLOWS[category]?{industry:category}:null);
+  const vertical=j?.verticalWorkflow||(VERTICAL_WORKFLOWS[category]?{industry:category,...(serviceOverride?{serviceType:serviceOverride}:{})}:null);
   const items = j?.billableItems?.length ? j.billableItems : [{description:'Service labor',qty:1,rate:0}];
   const start=j?.startAt||date+'T09:00',end=j?.endAt||date+'T10:00';
   const workers=[{value:'',label:'Unassigned'},...ws.crew.filter(c=>c.active||c.id===j?.workerId).map(c=>({value:c.id,label:c.name+(c.active?'':' (archived)')}))];
@@ -211,7 +214,7 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
       return;
     }
     if(isReadOnly())return toast('Your trial has ended. Business records are read-only.',true);
-    if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today(),el.dataset.jobVertical||'');
+    if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today(),el.dataset.jobVertical||'',el.dataset.jobServiceType||'');
     if(action==='followup'){
       const job=ws.jobs.find(j=>j.id===el.dataset.jobId);
       const due=job?.verticalWorkflow?.nextVisit;
