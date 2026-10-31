@@ -59,6 +59,6 @@ export function activeBusinessViews(route,workspace){
   return activeBusinessPersonalization(workspace)?.views||[];
 }
 export function businessFeatureVisible(feature,workspace){
-  if(feature.id!=='trade-workflows')return true;
+  if(feature.id!=='trade-workflows'||!workspace)return true;
   return Boolean(activeBusinessId(workspace));
 }
