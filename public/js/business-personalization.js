@@ -67,7 +67,7 @@ export function businessFeatureLabel(feature,workspace){
   return activeBusinessPersonalization(workspace)?.features[feature]||null;
 }
 export function activeBusinessViews(route,workspace){
-  if(route?.id!=='trade-workflows')return null;
+  if(route?.id!=='trade-workflows'||!workspace)return null;
   return activeBusinessPersonalization(workspace)?.views||[];
 }
 export function businessFeatureVisible(feature,workspace){
