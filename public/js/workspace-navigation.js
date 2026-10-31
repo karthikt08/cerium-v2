@@ -1,4 +1,5 @@
-import {WORKSPACE_CATEGORIES,WORKSPACE_UTILITIES,categoryFeatures,categoryDestination,featureEnabled,workspacePathLabel} from './workspace-registry.js';
+import {WORKSPACE_CATEGORIES,WORKSPACE_UTILITIES,categoryFeatures,categoryDestination,featureEnabled,workspacePathLabel,resolveWorkspaceRoute} from './workspace-registry.js';
+import {activeBusinessId,businessFeatureVisible,businessCategoryLabel,businessFeatureLabel,activeBusinessViews} from './business-personalization.js';
 import {escapeHTML as esc} from './workspace-model.js';
 import {featureRecordCount} from './workspace-counts.js';
 const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"></use></svg>';
@@ -25,22 +26,23 @@ const TAB_SHORT_LABELS=Object.freeze({
 // remain ordinary links, so old bookmarks, keyboard users and no-JS fallbacks
 // keep their canonical hash routes. No feature content is wrapped in tab chrome.
 function renderBracketNavigation(route,features,workspace){
-  const first=features.map(feature=>{
+  const first=features.filter(feature=>businessFeatureVisible(feature,workspace)).map(feature=>{
     const active=feature.id===route.id;
+    const visibleLabel=businessFeatureLabel(feature.id,workspace)||feature.label;
     const count=featureRecordCount(feature,workspace);
-    const aria=feature.label+(count?.count?' · '+count.label:'');
-    const tabLabel=feature.tabLabel||TAB_SHORT_LABELS[feature.id]||feature.label;
+    const aria=visibleLabel+(count?.count?' · '+count.label:'');
+    const tabLabel=businessFeatureLabel(feature.id,workspace)||feature.tabLabel||TAB_SHORT_LABELS[feature.id]||feature.label;
     return `<a class="workspace-feature-tab${active?' active':''}" href="${feature.href}" data-nav="${feature.href.slice(1)}" data-feature="${feature.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-feature-label">${esc(tabLabel)}</span></a>`;
   }).join('');
-  const subfeatures=subfeaturesFor(route);
-  const selected=selectedSubview(route);
+  const subfeatures=activeBusinessViews(route,workspace)||subfeaturesFor(route);
+  const selected=subfeatures.some(v=>v.id===route.subview)?route.subview:subfeatures[0]?.id||'';
   const second=subfeatures.map(sub=>{
     const href=subviewHref(route,sub.id),active=sub.id===selected;
     const count=subviewCount({...route,subview:sub.id},workspace);
     const aria=sub.label+(count!==null?' · '+count+' records':'');
     return `<a class="workspace-subfeature-tab${active?' active':''}" href="${href}" data-nav="${href.slice(1)}" data-subfeature="${sub.id}" ${active?'aria-current="page"':''} aria-label="${esc(aria)}"><span class="workspace-subfeature-label">${esc(sub.label)}</span></a>`;
   }).join('');
-  return `<div class="workspace-angular-navigation" aria-label="${esc(route.label)} navigation">
+  return `<div class="workspace-angular-navigation" aria-label="${esc(businessFeatureLabel(route.id,workspace)||route.label)} navigation">
     <div class="workspace-tab-scroll"><nav class="workspace-feature-tabs" aria-label="${esc(route.category)} subfeatures">${first}</nav></div>
     ${second?`<div class="workspace-subfeature-strip"><nav class="workspace-subfeature-bar" aria-label="${esc(route.label)} views">${second}</nav></div>`:''}
   </div>`;
@@ -56,8 +58,12 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
   for(const link of root.querySelectorAll('[data-category]')){
     const category=link.dataset.category,active=category===route.category;
     link.hidden=!categoryFeatures(category,modules).length&&!active;
-    const destination=active?route:categoryDestination(category,modules,lastUsed);
+    const defaultDestination=categoryDestination(category,modules,lastUsed);
+    const destination=!active&&category==='field'&&activeBusinessId(workspace)&&!lastUsed.field&&Array.isArray(modules)&&modules.includes('jobs')?
+      resolveWorkspaceRoute('#field/trade-workflows'):active?route:defaultDestination;
     link.href=destination.href;
+    const selectedLabel=businessCategoryLabel(category,workspace)||WORKSPACE_CATEGORIES.find(c=>c.id===category)?.label||category;
+    const text=link.querySelector('span:not(.nav-count)');if(text)text.textContent=selectedLabel;
     if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
     const recordCount=featureRecordCount(destination,workspace);
     const badge=link.querySelector('[data-category-count]');
@@ -67,7 +73,7 @@ export function updateCategoryNavigation(root,{modules,route,lastUsed,workspace}
       badge.title=recordCount?.label||'';
       badge.setAttribute('aria-hidden','true');
     }
-    const categoryLabel=WORKSPACE_CATEGORIES.find(c=>c.id===category)?.label||category;
+    const categoryLabel=selectedLabel;
     const details=recordCount?.count?' · '+recordCount.label+' in '+destination.label:'';
     link.setAttribute('aria-label',categoryLabel+details);
     link.title=categoryLabel+details;
@@ -78,17 +84,18 @@ export function renderFeatureWorkspace(route,modules,content,workspace){
   if(!route.category||['overview','settings','assistant','support'].includes(route.category))return content;
   const features=categoryFeatures(route.category,modules,route.id);
   const category=WORKSPACE_CATEGORIES.find(c=>c.id===route.category);
+  const categoryLabel=businessCategoryLabel(route.category,workspace)||category.label;
   const hidden=!featureEnabled(route,modules);
-  return `<section class="category-workspace" aria-label="${esc(category.label)}">
+  return `<section class="category-workspace" aria-label="${esc(categoryLabel)}">
     <div class="workspace-category-heading">
       <div class="workspace-category-meta">
-        <p class="eyebrow">${esc(category.label)}</p>
+        <p class="eyebrow">${esc(categoryLabel)}</p>
         ${category.description?`<p class="workspace-category-desc">${esc(category.description)}</p>`:''}
       </div>
       <div class="workspace-category-actions"><a class="text-button" href="#settings/tools" data-nav="settings/tools">Customize tools ${icon('arrow')}</a></div>
     </div>
     ${renderBracketNavigation(route,features,workspace)}
-    <section id="workspace-feature-panel" class="workspace-feature-panel" role="region" aria-label="${esc(route.label)} content">
+    <section id="workspace-feature-panel" class="workspace-feature-panel" role="region" aria-label="${esc(businessFeatureLabel(route.id,workspace)||route.label)} content">
       <div class="workspace-feature-content">
         ${hidden?`<div class="notice hidden-tool-notice" role="status"><p>This tool is hidden from your workspace. Your saved records remain available through this link. <a href="#settings/tools" data-nav="settings/tools">Show it in Customize Tools →</a></p></div>`:''}${content}
       </div>
