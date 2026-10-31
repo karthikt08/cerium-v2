@@ -5,6 +5,7 @@ import {INDIA_STATE_OPTIONS} from './india-market.js';
 import {businessSetupSteps,BUSINESS_SETUP_FIELDS} from './business-profile.js';
 import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules,suggestIndustry} from './industry-workspaces.js';
 import {recommendBusinessTools} from './business-tool-advisor.js';
+import {businessSelectionDescription} from './business-personalization.js';
 
 const markup=`<form id="business-form" class="business-wizard" hidden>
 <p class="wizard-required">REQUIRED BUSINESS SETUP</p>
@@ -20,6 +21,7 @@ const markup=`<form id="business-form" class="business-wizard" hidden>
         <label>Industry / main service<input id="biz-trade" name="trade" list="business-trades" maxlength="120" placeholder="e.g. Plumbing, consulting, retail" required></label>
         <datalist id="business-trades"><option value="Home repairs"><option value="Plumbing"><option value="Electrical services"><option value="Cleaning"><option value="Landscaping"><option value="Consulting"><option value="Retail"><option value="Professional services"></datalist>
          <label class="business-wide">Choose your business type<select id="biz-industry" name="industryCategory" required></select></label>
+         <p class="hint business-wide" id="biz-industry-preview" role="status"></p>
          <div class="business-wide workspace-picker">
            <h3>Your CERIUM tools</h3>
            <p class="hint">Choose the tools you use. Overview, Marketing and Ask Cerium are included for everyone.</p>
@@ -76,6 +78,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
     for(const key of Object.values(BUSINESS_SETUP_FIELDS).flat())if(form.elements[key])form.elements[key].value=p[key]||'';
     const category=p.industryCategory||suggestIndustry(p.trade).category;
     select('biz-industry',INDUSTRY_OPTIONS,category);
+    el('biz-industry-preview').textContent=businessSelectionDescription(category);
     el('biz-modules-value').value=p.workspaceModules||defaultModules(category).join(',');
     renderModuleChoices();
     select('biz-invoice-currency',(ind?['INR']:us?['USD']:INVOICE_CURRENCIES).map(value=>({value,label:value+(value===invoiceCurrencyHint(country)?' — local currency':'')})),p.invoiceCurrency||(ind?'INR':'USD'));
@@ -154,6 +157,7 @@ export function mountBusinessSetup(root,{api,onComplete,editing=false}){
   }
   el('biz-industry').addEventListener('change',()=>{
     const category=el('biz-industry').value;
+    el('biz-industry-preview').textContent=businessSelectionDescription(category);
     el('biz-modules-value').value=(category==='other'?['jobs','invoices','payments']:defaultModules(category)).join(',');
     el('biz-recommendation').textContent=category==='other'?'Pick the tools your business needs; you can change them later.':'Recommended for this industry.';
     renderModuleChoices();
