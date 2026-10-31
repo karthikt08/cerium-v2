@@ -1,7 +1,7 @@
 /* CERIUM animated neon page headings — reference-aligned, workspace only.
    Use one physical 7px hand-drawn stroke for titles of every length. The CSS
    gradient moves behind a monochrome SVG mask, so the line itself animates.
-   Explicit circular end caps prevent Chromium clipping the stroke ends.
+   Actual round caps are painted as separate circular CSS mask layers.
    Applying drop-shadow to the title (which owns the masked pseudo-element)
    creates real bloom around BOTH the glyphs and stroke, without masking it off.
    No changes to Design D tabs, other UI surfaces, printable documents or site. */
@@ -12,7 +12,10 @@
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
-    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3Ccircle cx='12' cy='12' r='3.5' fill='white'/%3E%3Ccircle cx='288' cy='10' r='3.5' fill='white'/%3E%3C/svg%3E");
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='butt' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
+    --cerium-title-neon-endcaps:
+      radial-gradient(circle 3.5px at 4% 60%,#000 98%,transparent 100%),
+      radial-gradient(circle 3.5px at 96% 50%,#000 98%,transparent 100%);
   }
 
   /* Animated lettering: same bright glow and moving blue/violet/magenta
@@ -63,12 +66,17 @@
     background-image:var(--cerium-title-neon-gradient)!important;
     background-size:220% 100%!important;
     background-repeat:no-repeat!important;
-    -webkit-mask-image:var(--cerium-title-neon-mask);
-    mask-image:var(--cerium-title-neon-mask);
+    /* A stretched SVG viewBox can turn its circles into flattened ovals.
+       Add physical 3.5px-radius discs as mask layers at the path endpoints.
+       CSS radial-gradient circles stay round regardless of heading width. */
+    -webkit-mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
+    mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
+    -webkit-mask-composite:source-over,source-over;
+    mask-composite:add,add;
     -webkit-mask-position:left center;
     mask-position:left center;
-    -webkit-mask-size:100% 100%;
-    mask-size:100% 100%;
+    -webkit-mask-size:100% 100%,100% 100%,100% 100%;
+    mask-size:100% 100%,100% 100%,100% 100%;
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
     filter:none!important;
@@ -142,7 +150,10 @@
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
-    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3Ccircle cx='12' cy='12' r='3.5' fill='white'/%3E%3Ccircle cx='288' cy='10' r='3.5' fill='white'/%3E%3C/svg%3E");
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='butt' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
+    --cerium-title-neon-endcaps:
+      radial-gradient(circle 3.5px at 4% 60%,#000 98%,transparent 100%),
+      radial-gradient(circle 3.5px at 96% 50%,#000 98%,transparent 100%);
   }
 
   :is(.pg :is(h1,h2),.onboarding-page h1) .ac {
@@ -202,12 +213,17 @@
     background-image:var(--cerium-title-neon-gradient)!important;
     background-size:220% 100%!important;
     background-repeat:no-repeat!important;
-    -webkit-mask-image:var(--cerium-title-neon-mask);
-    mask-image:var(--cerium-title-neon-mask);
+    /* A stretched SVG viewBox can turn its circles into flattened ovals.
+       Add physical 3.5px-radius discs as mask layers at the path endpoints.
+       CSS radial-gradient circles stay round regardless of heading width. */
+    -webkit-mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
+    mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
+    -webkit-mask-composite:source-over,source-over;
+    mask-composite:add,add;
     -webkit-mask-position:left center;
     mask-position:left center;
-    -webkit-mask-size:100% 100%;
-    mask-size:100% 100%;
+    -webkit-mask-size:100% 100%,100% 100%,100% 100%;
+    mask-size:100% 100%,100% 100%,100% 100%;
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
     animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;

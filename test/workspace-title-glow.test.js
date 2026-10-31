@@ -44,20 +44,31 @@ test('Job schedule and every workspace page use the same thick non-scaling curve
   assert.match(underlines, /mask-size:100% 100%/);
 });
 
-test('both neon underline endpoints have actual filled circular caps in the SVG mask',()=>{
-  // Chromium can render stroke-linecap=round as flat for an SVG used as a
-  // CSS mask. Paint explicit circles so both animated ends remain round.
-  const mask=css.match(/--cerium-title-neon-mask:url\("data:image\/svg\+xml,([^"]+)"\)/)?.[1];
-  assert.ok(mask,'shared neon underline mask exists');
-  const svg=decodeURIComponent(mask);
-  assert.match(svg, /stroke-width='7'/,'preserve the shared stroke thickness');
-  assert.match(svg, /vector-effect='non-scaling-stroke'/);
-  assert.match(svg, /stroke-linecap='round'/);
-  assert.match(svg, /d='M12 12C64 6 120 16 179 9S257 12 288 10'/);
-  assert.match(svg, /<circle cx='12' cy='12' r='3\.5' fill='white'\/>/,'left cap is a filled circle');
-  assert.match(svg, /<circle cx='288' cy='10' r='3\.5' fill='white'\/>/,'right cap is a filled circle');
-  assert.match(css, /-webkit-mask-size:100% 100%/);
-  assert.match(css, /mask-size:100% 100%/);
+test('neon underline caps are true circular CSS masks at any title width',()=>{
+  // An SVG rasterized with preserveAspectRatio=none stretches its circles
+  // into distorted end caps. Render the stroke as an SVG, but use CSS circles
+  // in physical pixels for the endpoints, at the matching relative positions.
+  const masks=[...css.matchAll(/--cerium-title-neon-mask:url\("data:image\/svg\+xml,([^"]+)"\)/g)]
+    .map(match=>decodeURIComponent(match[1]));
+  assert.equal(masks.length,2,'workspace and public page share the mask geometry');
+  assert.equal(masks[0],masks[1],'SVG body remains identical across surfaces');
+  assert.match(masks[0], /stroke-width='7'/);
+  assert.match(masks[0], /vector-effect='non-scaling-stroke'/);
+  assert.match(masks[0], /stroke-linecap='butt'/,'rounded cap is made by CSS, not a scaled SVG');
+  assert.match(masks[0], /d='M12 12C64 6 120 16 179 9S257 12 288 10'/);
+  assert.doesNotMatch(masks[0], /<circle /,'avoid stretched and overlapping SVG circles');
+
+  const caps=[...css.matchAll(/--cerium-title-neon-endcaps:\s*([^;]+);/g)]
+    .map(match=>match[1].replace(/\s+/g,' '));
+  assert.equal(caps.length,2,'workspace and public-page caps defined separately');
+  assert.equal(caps[0],caps[1],'caps use identical shapes and positions');
+  assert.match(caps[0], /radial-gradient\(circle 3\.5px at 4% 60%,#000 98%,transparent 100%\)/);
+  assert.match(caps[0], /radial-gradient\(circle 3\.5px at 96% 50%,#000 98%,transparent 100%\)/);
+  const layeredMasks=css.match(/-webkit-mask-image:var\(--cerium-title-neon-mask\),var\(--cerium-title-neon-endcaps\);/g)||[];
+  assert.equal(layeredMasks.length,2,'both underlines composite SVG body with physical CSS caps');
+  assert.equal((css.match(/mask-composite:add,add;/g)||[]).length,2);
+  assert.equal((css.match(/-webkit-mask-composite:source-over,source-over;/g)||[]).length,2);
+  assert.equal((css.match(/^\s+mask-size:100% 100%,100% 100%,100% 100%;$/gm)||[]).length,2);
   assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
 });
 
@@ -118,10 +129,10 @@ test('all public primary heading accents load identical animated rounded neon un
     .map(match=>decodeURIComponent(match[1]));
   assert.equal(masks.length,2,'one rounded SVG mask for workspace and one for public pages');
   assert.equal(masks[0],masks[1],'workspace and public pages render identical cap geometry');
-  for(const cap of ["<circle cx='12' cy='12' r='3.5' fill='white'/>",
-    "<circle cx='288' cy='10' r='3.5' fill='white'/>"]){
-    assert.ok(masks[0].includes(cap),'shared SVG mask missing '+cap);
-  }
+  assert.match(publicStyle, /--cerium-title-neon-endcaps:/);
+  assert.match(publicStyle, /radial-gradient\(circle 3\.5px at 4% 60%/);
+  assert.match(publicStyle, /radial-gradient\(circle 3\.5px at 96% 50%/);
+  assert.match(publicStyle, /mask-image:var\(--cerium-title-neon-mask\),var\(--cerium-title-neon-endcaps\)/);
   assert.match(publicStyle, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
   assert.match(publicStyle, /:not\(\.wd\)/,'landing word-entry animation is not overridden');
   assert.match(publicStyle, /\.pg h1 \.ac-wrap::after/,'Benefits sibling underline uses wrapper');
