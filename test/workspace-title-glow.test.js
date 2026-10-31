@@ -68,7 +68,7 @@ test('neon underline caps are true circular CSS masks at any title width',()=>{
   assert.equal(layeredMasks.length,2,'both underlines composite SVG body with physical CSS caps');
   assert.equal((css.match(/mask-composite:add,add;/g)||[]).length,2);
   assert.equal((css.match(/-webkit-mask-composite:source-over,source-over;/g)||[]).length,2);
-  assert.equal((css.match(/mask-size:100% 100%,100% 100%,100% 100%/g)||[]).length,2);
+  assert.equal((css.match(/^\s+mask-size:100% 100%,100% 100%,100% 100%;$/gm)||[]).length,2);
   assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
 });
 
