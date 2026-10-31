@@ -74,3 +74,10 @@ export function businessFeatureVisible(feature,workspace){
   if(feature.id!=='trade-workflows'||!workspace)return true;
   return Boolean(activeBusinessId(workspace));
 }
+
+export function businessSelectionDescription(category){
+  const profile=INDUSTRY_WORKSPACE_PERSONALIZATIONS[category];
+  if(!profile)return 'Choose your tools freely. Cerium keeps the standard configurable workspace.';
+  const depth=BUSINESS_PERSONALIZATIONS[category]?' Dedicated records, service checklists and business-specific work queues are included.':' Your existing Cerium tools will use terminology for this business.';
+  return profile.title+' — '+profile.tagline+depth;
+}
