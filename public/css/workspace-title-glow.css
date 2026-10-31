@@ -51,6 +51,7 @@
      The CSS gradient scrolls behind a crisp SVG mask. Parent drop-shadows
      bloom around the actual stroke (rather than being cut off by the mask). */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
+  .app-page #page-body .page-heading .ac::before,
   .app-page #page-body .page-heading .ac::after,
   .app-page #page-body .workspace-feature-content > h1:not(:has(.ac))::after,
   .app-page #page-body .workspace-feature-content > h1 .ac::after,
@@ -66,19 +67,50 @@
     background-image:var(--cerium-title-neon-gradient)!important;
     background-size:220% 100%!important;
     background-repeat:no-repeat!important;
-    /* A stretched SVG viewBox can turn its circles into flattened ovals.
-       Add physical 3.5px-radius discs as mask layers at the path endpoints.
-       CSS radial-gradient circles stay round regardless of heading width. */
-    -webkit-mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
-    mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
-    -webkit-mask-composite:source-over,source-over;
-    mask-composite:add,add;
+    /* The stretched SVG is ONLY the curved body. Physically round end caps
+       are drawn on an independent ::before layer below. Keeping them on a
+       separate pseudo-element avoids Chromium flattening or losing caps while
+       compositing three masks on one element. */
+    -webkit-mask-image:var(--cerium-title-neon-mask);
+    mask-image:var(--cerium-title-neon-mask);
     -webkit-mask-position:left center;
     mask-position:left center;
-    -webkit-mask-size:100% 100%,100% 100%,100% 100%;
-    mask-size:100% 100%,100% 100%,100% 100%;
+    -webkit-mask-size:100% 100%;
+    mask-size:100% 100%;
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
+    filter:none!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+  }
+
+  /* Physical, fully circular caps. They use the same background gradient and
+     timeline as the wavy ::after but render on their own mask layer. */
+  .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::before,
+  .app-page #page-body .page-heading .ac::before,
+  .app-page #page-body .workspace-feature-content > h1:not(:has(.ac))::before,
+  .app-page #page-body .workspace-feature-content > h1 .ac::before,
+  .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::before,
+  .app-page #page-body .overview-stage-unified .overview-title-accent::before {
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-11px;
+    width:100%;
+    height:20px;
+    pointer-events:none;
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
+    background-repeat:no-repeat!important;
+    -webkit-mask-image:var(--cerium-title-neon-endcaps);
+    mask-image:var(--cerium-title-neon-endcaps);
+    -webkit-mask-position:left center;
+    mask-position:left center;
+    -webkit-mask-size:100% 100%,100% 100%;
+    mask-size:100% 100%,100% 100%;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    -webkit-mask-composite:source-over;
+    mask-composite:add;
     filter:none!important;
     animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
   }
@@ -129,6 +161,7 @@
     filter:none!important;
     animation:none!important;
   }
+  .app-page #page-body .page-heading :is(h1,.ac)::before,
   .app-page #page-body .page-heading :is(h1,.ac)::after,
   .app-page #page-body .workspace-feature-content > h1::after,
   .app-page #page-body .workspace-feature-content > h1 .ac::after,
@@ -213,21 +246,47 @@
     background-image:var(--cerium-title-neon-gradient)!important;
     background-size:220% 100%!important;
     background-repeat:no-repeat!important;
-    /* A stretched SVG viewBox can turn its circles into flattened ovals.
-       Add physical 3.5px-radius discs as mask layers at the path endpoints.
-       CSS radial-gradient circles stay round regardless of heading width. */
-    -webkit-mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
-    mask-image:var(--cerium-title-neon-mask),var(--cerium-title-neon-endcaps);
-    -webkit-mask-composite:source-over,source-over;
-    mask-composite:add,add;
+    /* The stretched SVG is ONLY the curved body. Physically round end caps
+       are drawn on an independent ::before layer below. Keeping them on a
+       separate pseudo-element avoids Chromium flattening or losing caps while
+       compositing three masks on one element. */
+    -webkit-mask-image:var(--cerium-title-neon-mask);
+    mask-image:var(--cerium-title-neon-mask);
     -webkit-mask-position:left center;
     mask-position:left center;
-    -webkit-mask-size:100% 100%,100% 100%,100% 100%;
-    mask-size:100% 100%,100% 100%,100% 100%;
+    -webkit-mask-size:100% 100%;
+    mask-size:100% 100%;
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
     animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
   }
+  .pg :is(h1,h2) .ac::before,
+  .pg h1 .ac-wrap::before,
+  .onboarding-page h1 .ac::before {
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-11px;
+    width:100%;
+    height:20px;
+    pointer-events:none;
+    background-image:var(--cerium-title-neon-gradient)!important;
+    background-size:220% 100%!important;
+    background-repeat:no-repeat!important;
+    -webkit-mask-image:var(--cerium-title-neon-endcaps);
+    mask-image:var(--cerium-title-neon-endcaps);
+    -webkit-mask-position:left center;
+    mask-position:left center;
+    -webkit-mask-size:100% 100%,100% 100%;
+    mask-size:100% 100%,100% 100%;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    -webkit-mask-composite:source-over;
+    mask-composite:add;
+    filter:none!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+  }
+  .pg h1 .ac-wrap > .ac::before,
   .pg h1 .ac-wrap > .ac::after {content:none!important;display:none!important;}
 
   /* Preserve the light violet hero lettering on existing dark panels. */
@@ -239,8 +298,11 @@
 }
 @media screen and (prefers-reduced-motion:reduce) {
   :is(.pg :is(h1,h2),.onboarding-page h1) .ac,
+  .pg h1 .ac-wrap::before,
   .pg h1 .ac-wrap::after,
+  .pg :is(h1,h2) .ac::before,
   .pg :is(h1,h2) .ac::after,
+  .onboarding-page h1 .ac::before,
   .onboarding-page h1 .ac::after {animation:none!important;}
 }
 @media screen and (forced-colors:active) {
@@ -251,8 +313,11 @@
     filter:none!important;
     animation:none!important;
   }
+  .pg :is(h1,h2) .ac::before,
   .pg :is(h1,h2) .ac::after,
+  .pg h1 .ac-wrap::before,
   .pg h1 .ac-wrap::after,
+  .onboarding-page h1 .ac::before,
   .onboarding-page h1 .ac::after {
     background:Highlight!important;
     animation:none!important;
