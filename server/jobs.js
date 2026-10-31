@@ -1,5 +1,6 @@
 import {workerAvailability} from './operation-records.js';
 import {randomUUID} from 'node:crypto';
+import {normalizeVerticalWorkflow} from '../public/js/vertical-workflows.js';
 
 // Job times are local business wall-clock values: YYYY-MM-DDTHH:mm.
 // This module has no external scheduler, notifications or paid dependencies.
@@ -23,6 +24,7 @@ const normalizeDateTime = (v) => {
 };
 const jobOut = r => ({id:r.id,leadId:r.lead_id || null,workerId:r.worker_id || null,title:r.title,
   billableItems: JSON.parse(r.billable_items_json || '[]'), invoiceGenerated: Boolean(r.invoice_generated),
+  verticalWorkflow: JSON.parse(r.vertical_workflow_json || 'null'),
   customerName:r.customer_name,customerPhone:r.customer_phone,customerEmail:r.customer_email||'',address:r.address,notes:r.notes,
   startAt:r.starts_at,endAt:r.ends_at,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at});
 const crewOut = r => ({id:r.id,name:r.name,role:r.role,phone:r.phone,active:Boolean(r.active)});
@@ -48,6 +50,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
   const columns = new Set(db.prepare('PRAGMA table_info(jobs)').all().map(c => c.name));
   if (!columns.has('billable_items_json')) db.exec("ALTER TABLE jobs ADD COLUMN billable_items_json TEXT NOT NULL DEFAULT '[]'");
   if (!columns.has('invoice_generated')) db.exec('ALTER TABLE jobs ADD COLUMN invoice_generated INTEGER NOT NULL DEFAULT 0');
+  if (!columns.has('vertical_workflow_json')) db.exec("ALTER TABLE jobs ADD COLUMN vertical_workflow_json TEXT NOT NULL DEFAULT 'null'");
   if (!columns.has('customer_email')) {
     db.exec("ALTER TABLE jobs ADD COLUMN customer_email TEXT NOT NULL DEFAULT ''");
     // Recover contact information on existing converted jobs once, without
@@ -65,8 +68,8 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     assigned:db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE user_id=? AND worker_id=? AND status IN ('Scheduled','Confirmed','In progress')"),
     newCrew:db.prepare('INSERT INTO crew_members(id,user_id,name,role,phone,created_at) VALUES(?,?,?,?,?,?)'),
     archive:db.prepare('UPDATE crew_members SET active=0 WHERE id=? AND user_id=?'),
-    newJob:db.prepare('INSERT INTO jobs(id,user_id,lead_id,worker_id,title,customer_name,customer_phone,customer_email,address,notes,starts_at,ends_at,status,created_at,updated_at,billable_items_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
-    editJob:db.prepare('UPDATE jobs SET lead_id=?,worker_id=?,title=?,customer_name=?,customer_phone=?,customer_email=?,address=?,notes=?,starts_at=?,ends_at=?,status=?,billable_items_json=?,updated_at=? WHERE id=? AND user_id=?'),
+    newJob:db.prepare('INSERT INTO jobs(id,user_id,lead_id,worker_id,title,customer_name,customer_phone,customer_email,address,notes,starts_at,ends_at,status,created_at,updated_at,billable_items_json,vertical_workflow_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
+    editJob:db.prepare('UPDATE jobs SET lead_id=?,worker_id=?,title=?,customer_name=?,customer_phone=?,customer_email=?,address=?,notes=?,starts_at=?,ends_at=?,status=?,billable_items_json=?,vertical_workflow_json=?,updated_at=? WHERE id=? AND user_id=?'),
     generated:db.prepare('UPDATE jobs SET invoice_generated=1 WHERE id=? AND user_id=?'),
     deleteJob:db.prepare('DELETE FROM jobs WHERE id=? AND user_id=?'),
     detachInvoice:db.prepare('UPDATE invoices SET job_id=NULL WHERE user_id=? AND job_id=?'),
@@ -79,7 +82,9 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       customerPhone:opt(p.customerPhone,'Phone',40),customerEmail:opt(p.customerEmail,'Email',254),address:opt(p.address,'Service address',240),
       notes:opt(p.notes,'Notes',1500),startAt:normalizeDateTime(p.startAt),endAt:normalizeDateTime(p.endAt),
       status:p.status === undefined ? 'Scheduled' : p.status,workerId:p.workerId || null,leadId:p.leadId || null,
-      billableItems: p.billableItems === undefined ? [] : p.billableItems};
+      billableItems: p.billableItems === undefined ? [] : p.billableItems,verticalWorkflow:null};
+    try { j.verticalWorkflow=normalizeVerticalWorkflow(p.verticalWorkflow); }
+    catch(e) { throw new JobsError('invalid_trade_workflow',e.message); }
     if (!Array.isArray(j.billableItems) || j.billableItems.length > 20)
       throw new JobsError('invalid_items','Add no more than 20 billing line items.');
     j.billableItems = j.billableItems.map(item => {
@@ -147,7 +152,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
     },
     createJob(userId,p,{historical=false}={}){return db.transaction(()=>{
       const j=normalize(p,userId),id=randomUUID(),now=new Date().toISOString();
-      q.newJob.run(id,userId,j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,now,now,JSON.stringify(j.billableItems));
+      q.newJob.run(id,userId,j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,now,now,JSON.stringify(j.billableItems),JSON.stringify(j.verticalWorkflow));
       if (j.status==='Completed') { if(!historical)onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},
@@ -156,7 +161,7 @@ export function createJobsStore(db, { onCompleted = () => {} } = {}) {
       if(!previous)throw new JobsError('not_found','Job not found.',404);
       if (!p || typeof p!=='object' || Array.isArray(p))throw new JobsError('invalid_job','Enter valid job changes.');
       const j=normalize({...jobOut(previous),...p},userId,id);
-      q.editJob.run(j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,JSON.stringify(j.billableItems),new Date().toISOString(),id,userId);
+      q.editJob.run(j.leadId,j.workerId,j.title,j.customerName,j.customerPhone,j.customerEmail,j.address,j.notes,j.startAt,j.endAt,j.status,JSON.stringify(j.billableItems),JSON.stringify(j.verticalWorkflow),new Date().toISOString(),id,userId);
       if (j.status==='Completed' && !previous.invoice_generated) { onCompleted(userId,jobOut(q.job.get(id,userId)));q.generated.run(id,userId); }
       return jobOut(q.job.get(id,userId));
     })();},
