@@ -145,14 +145,8 @@
     border-color:#7687aa;
   }
 
-  /* Keep business status colours and the trade-specific left rule.
-     Their coloured border is an information channel, not decoration. */
-  .app-page #page-body :is(
-    .job-tile,.job-status,.due-status,.quote-pill,.badge,
-    .notice,.form-error,.reminders-error
-  ) {
-    /* Intentionally unchanged. */
-  }
+  /* Business status badges, trade-specific job tile left stripes and error
+     notices are intentionally excluded: their border colours convey meaning. */
 
   @media (hover:hover) and (pointer:fine) {
     .app-page #page-body :is(
@@ -190,10 +184,4 @@
     border-color:CanvasText;
   }
 }
-/* Print must not draw dashboard card chrome around invoices and reports. */
-@media print {
-  .app-page #page-body :is(.panel,.card,.metric,.jobs-panel,.quote-card) {
-    border-color:transparent!important;
-    box-shadow:none!important;
-  }
-}
+/* Styling above is screen-only; print/export layout is not modified. */
