@@ -1,0 +1,199 @@
+/* Cerium / unified boundaries.
+   One consistent edge hierarchy for real components across every authenticated
+   workspace route. This final pass runs after module styles, the reference
+   theme, and landing ambience. Do not outline text, every cell, tab silhouettes,
+   the full canvas, or the printable invoice sheet. */
+@media screen {
+  .app-page {
+    --cerium-boundary-strong:#9daec8;
+    --cerium-boundary-card:#aab8cf;
+    --cerium-boundary-control:#aebbd0;
+    --cerium-boundary-divider:#c5cedd;
+    --cerium-boundary-hover:#8c77ba;
+    --cerium-boundary-focus:#7c3aed;
+  }
+
+  /* Major structural surfaces must remain distinct from the ambient backdrop.
+     Keep existing radius, background and elevation: only define their edges. */
+  .app-page #page-body :is(
+    .panel,.card,.data-panel,.table-panel,.jobs-panel,
+    .workspace-customizer,.marketing-main,
+    .marketing-composer,.marketing-next-moves,
+    .marketing-relationship-summary,.settings-content
+  ):not(.overview-stage-unified) {
+    border:1.5px solid var(--cerium-boundary-strong);
+  }
+
+  /* Secondary/cards: still clear, slightly quieter than their parent panels.
+     Deliberately excludes coloured job tiles and status pills. */
+  .app-page #page-body :is(
+    .metric,.jobs-stat,.quotes-summary>div,.quote-card,
+    .reminders-stats>div,.report-stat,.marketing-stat,
+    .due-summary-card,.board-column,.lead-card,.job-day,
+    .quotes-progress>span,.overview-tool-link,
+    .workspace-customizer .ws-recommender,
+    .workspace-customizer .ws-pick-module,
+    .marketing-empty,.due-empty
+  ) {
+    border:1.25px solid var(--cerium-boundary-card);
+  }
+
+  /* Feature panes are intentionally flat and borderless (Design D);
+     do NOT draw a rectangle around the navigation or make a second full
+     white screen over the soft landing backdrop. Distinguish its strip. */
+  .app-page #page-body .workspace-subfeature-strip {
+    border-bottom:1.5px solid var(--cerium-boundary-divider);
+  }
+  .app-page .main-frame>.topbar {
+    border-bottom:1.5px solid var(--cerium-boundary-strong);
+  }
+  .app-page .workspace .sidebar {
+    border-right:1.5px solid var(--cerium-boundary-strong);
+  }
+  .app-page .sidebar .nav-link:is(:hover,[aria-current="page"]) {
+    border-color:var(--cerium-boundary-control);
+  }
+  .app-page :is(.sidebar-collapse-toggle,.topbar-right .icon-button) {
+    border-color:var(--cerium-boundary-control);
+  }
+
+  /* Table headings/rows should read as a cohesive table, not many small boxes. */
+  .app-page #page-body :is(
+    .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+  ) :is(th,thead td) {
+    border-bottom:1.5px solid var(--cerium-boundary-strong);
+  }
+  .app-page #page-body :is(
+    .data-table,.jobs-table,.quote-table,.payment-table,.report-table
+  ) tbody tr:not(:last-child) td {
+    border-bottom:1px solid var(--cerium-boundary-divider);
+  }
+  .app-page #page-body :is(
+    .panel-header,.reminders-heading,.marketing-feature-header,
+    .jobs-section-head,.quotes-modal-head
+  ) {
+    border-bottom-color:var(--cerium-boundary-divider);
+  }
+  .app-page #page-body :is(
+    .panel-footer,.quote-actions,.result-footer
+  ) {
+    border-top-color:var(--cerium-boundary-divider);
+  }
+
+  /* All normal editable fields, including job, quote, marketing and import
+     editors. Avoid checkboxes, radios, hidden inputs, custom date toggle
+     graphics and the inner input of a bordered search field. */
+  .app-page :is(#page-body,dialog) :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+    select,textarea
+  ):not(.search-field input) {
+    border:1.25px solid var(--cerium-boundary-control);
+  }
+  .app-page #page-body :is(
+    .search-field,.view-toggle,.filter-chips,.filter-pill,.filter-button,
+    .workspace-view-picker select,.marketing-link
+  ),
+  .app-page :is(#page-body,dialog) :is(
+    .button.secondary,.btn.gh,.quote-more summary
+  ) {
+    border:1.25px solid var(--cerium-boundary-control);
+  }
+  .app-page #page-body .search-field input {
+    border:0!important;
+  }
+
+  /* Dialogs and their nested controls should be clearly separated from the
+     dimmed app. Do not modify backdrop, widths or form-grid geometry. */
+  .app-page :is(
+    dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,
+    dialog.workspace-config-dialog
+  ) {
+    border:1.5px solid var(--cerium-boundary-strong);
+  }
+  .app-page :is(
+    dialog.dialog,dialog.c-modal,dialog.jobs-dialog,dialog.quotes-dialog,
+    dialog.workspace-config-dialog
+  ) :is(
+    .invoice-billing-section,.job-billing-row,.jobs-linked-invoice,
+    .ws-recommender,.ws-pick-module,.ws-included-tools,
+    .quotes-convert-summary,.jobs-trade,.vertical-check
+  ),
+  .app-page #page-body :is(
+    .invoice-billing-section,.job-billing-row,.jobs-linked-invoice,
+    .jobs-trade,.vertical-check
+  ) {
+    border-color:var(--cerium-boundary-card);
+  }
+
+  /* Popup/menu boundaries float above work regions. */
+  .app-page :is(.guide-panel,.quote-more-menu,.dial-panel) {
+    border:1.5px solid var(--cerium-boundary-strong);
+  }
+
+  /* Dark summary cards must not inherit a dark-on-dark slate boundary. */
+  .app-page #page-body :is(
+    .metrics-grid>.metric:nth-child(3),
+    .jobs-stats>.jobs-stat:first-child,
+    .quotes-summary>div:first-child,
+    .reminders-stats>div:first-child,
+    .report-stats>.report-stat:first-child,
+    .marketing-insight-grid>.marketing-stat:first-child
+  ) {
+    border-color:#7687aa;
+  }
+  .app-page #page-body .overview-stage.overview-stage-unified {
+    border-color:#7687aa;
+  }
+
+  /* Keep business status colours and the trade-specific left rule.
+     Their coloured border is an information channel, not decoration. */
+  .app-page #page-body :is(
+    .job-tile,.job-status,.due-status,.quote-pill,.badge,
+    .notice,.form-error,.reminders-error
+  ) {
+    /* Intentionally unchanged. */
+  }
+
+  @media (hover:hover) and (pointer:fine) {
+    .app-page #page-body :is(
+      .panel,.card,.metric,.quote-card,.lead-card,
+      .report-stat,.due-summary-card,.overview-tool-link
+    ):hover {
+      border-color:var(--cerium-boundary-hover);
+    }
+    .app-page :is(#page-body,dialog) :is(
+      .button.secondary,.btn.gh,.filter-button,.filter-pill
+    ):hover:not(:disabled) {
+      border-color:var(--cerium-boundary-hover);
+    }
+  }
+  /* A visible focus state cannot be mistaken for the ordinary border.
+     Native keyboard focus on Design D tabs is preserved by its own rules. */
+  .app-page :is(#page-body,dialog) :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,textarea,.button.secondary,.filter-button
+  ):focus-visible {
+    border-color:var(--cerium-boundary-focus);
+    outline:2px solid rgba(124,58,237,.58);
+    outline-offset:2px;
+  }
+  .app-page #page-body .search-field:focus-within {
+    border-color:var(--cerium-boundary-focus);
+    box-shadow:0 0 0 2px rgba(124,58,237,.17);
+  }
+}
+@media (forced-colors:active) {
+  .app-page #page-body :is(
+    .panel,.card,.metric,.quote-card,.marketing-main,.jobs-panel
+  ),
+  .app-page :is(dialog.dialog,dialog.jobs-dialog,dialog.quotes-dialog) {
+    border-color:CanvasText;
+  }
+}
+/* Print must not draw dashboard card chrome around invoices and reports. */
+@media print {
+  .app-page #page-body :is(.panel,.card,.metric,.jobs-panel,.quote-card) {
+    border-color:transparent!important;
+    box-shadow:none!important;
+  }
+}
