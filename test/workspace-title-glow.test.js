@@ -54,7 +54,7 @@ test('neon underline caps are true circular CSS masks at any title width',()=>{
   assert.equal(masks[0],masks[1],'SVG body remains identical across surfaces');
   assert.match(masks[0], /stroke-width='7'/);
   assert.match(masks[0], /vector-effect='non-scaling-stroke'/);
-  assert.match(masks[0], /stroke-linecap='butt'/,'rounded cap is made by CSS, not a scaled SVG');
+  assert.match(masks[0], /stroke-linecap='round'/,'smooth rounded stroke caps at any title width');
   assert.match(masks[0], /d='M12 12C64 6 120 16 179 9S257 12 288 10'/);
   assert.doesNotMatch(masks[0], /<circle /,'avoid stretched and overlapping SVG circles');
 
@@ -95,7 +95,7 @@ test('every core feature page and direct subview receives neon titles with a vis
   assert.match(app, /function decorateHeadingAccents\(root\)/);
   assert.match(app, /querySelectorAll\('\.page-heading h1:not\(:has\(\.overview-title-accent\)\), \.workspace-feature-content > h1/);
   assert.match(app, /decorateHeadingAccents\(\$\('page-body'\)\)/);
-  assert.match(css, /--cerium-title-neon-gap:14px/);
+  assert.match(css, /--cerium-title-neon-gap:7px/);
   assert.match(css, /padding-bottom:var\(--cerium-title-neon-gap\)!important/);
   assert.match(css, /bottom:-11px/);
   for(const selector of [
@@ -133,7 +133,7 @@ test('all public primary heading accents load identical animated rounded neon un
   assert.match(publicStyle, /-webkit-mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(publicStyle, /mask-image:var\(--cerium-title-neon-mask\)/);
   assert.match(publicStyle, /bottom:-11px;/,'consistent text-to-line gap');
-  assert.match(publicStyle, /--cerium-title-neon-gap:14px;/);
+  assert.match(publicStyle, /--cerium-title-neon-gap:7px;/);
   assert.match(publicStyle, /stroke-width='7'/,'same line thickness as workspace');
   const masks=[...css.matchAll(/--cerium-title-neon-mask:url\("data:image\/svg\+xml,([^"]+)"\)/g)]
     .map(match=>decodeURIComponent(match[1]));

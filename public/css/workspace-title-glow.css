@@ -8,11 +8,11 @@
 @media screen {
   .app-page {
     --cerium-page-title-stroke:7px;
-    --cerium-title-neon-gap:14px;
+    --cerium-title-neon-gap:7px;
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
-    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='butt' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
     --cerium-title-neon-endcaps:
       radial-gradient(circle 3.5px at 4% 60%,#000 98%,transparent 100%),
       radial-gradient(circle 3.5px at 96% 50%,#000 98%,transparent 100%);
@@ -51,7 +51,6 @@
      The CSS gradient scrolls behind a crisp SVG mask. Parent drop-shadows
      bloom around the actual stroke (rather than being cut off by the mask). */
   .app-page #page-body .page-heading h1:not(:has(.ac)):not(:has(.overview-title-accent))::after,
-  .app-page #page-body .page-heading .ac::before,
   .app-page #page-body .page-heading .ac::after,
   .app-page #page-body .workspace-feature-content > h1:not(:has(.ac))::after,
   .app-page #page-body .workspace-feature-content > h1 .ac::after,
@@ -179,11 +178,11 @@
    The landing page's .wd word entrance stays intact. */
 @media screen {
   :is(.pg,.onboarding-page) {
-    --cerium-title-neon-gap:14px;
+    --cerium-title-neon-gap:7px;
     --cerium-title-neon-gradient:linear-gradient(
       100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
     );
-    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='butt' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
+    --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
     --cerium-title-neon-endcaps:
       radial-gradient(circle 3.5px at 4% 60%,#000 98%,transparent 100%),
       radial-gradient(circle 3.5px at 96% 50%,#000 98%,transparent 100%);
