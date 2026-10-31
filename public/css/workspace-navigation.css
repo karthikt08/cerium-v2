@@ -456,7 +456,7 @@
   content:"";display:block;position:absolute;inset:0;z-index:-1;
   transform:skewX(-14deg);transform-origin:bottom center;
   border-radius:8px;background:#f8faff;
-  box-sizing:border-box;border:1.75px solid var(--cerium-tab-outline);
+  box-sizing:border-box;border:2px solid var(--cerium-tab-outline);
   pointer-events:none;transition:background-color .16s ease,border-color .16s ease;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::after{
