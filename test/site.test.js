@@ -49,9 +49,22 @@ describe('old services are gone', () => {
   it('no page stores personal data in the browser', () => {
     for (const f of [...pages.map((p) => `public/${p}`), ...listFiles(path.join(PUBLIC, 'js')).map((p) => path.relative(ROOT, p))]) {
       let text = read(f);
+      if (f.split(path.sep).join('/') === 'public/js/sidebar-resize.js') {
+        // The only additional saved browser value is a bounded numeric sidebar
+        // width. Do not permit business data, identifiers or session records.
+        assert.match(text, /export const SIDEBAR_WIDTH_KEY='cerium\.sidebar\.width'/);
+        assert.match(text, /MIN_SIDEBAR_WIDTH=200/);
+        assert.match(text, /MAX_SIDEBAR_WIDTH=420/);
+        const reads = [...text.matchAll(/localStorage\.getItem\(([^)]*)\)/g)].map(m => m[1]);
+        const writes = [...text.matchAll(/localStorage\.setItem\(([^)]*)\)/g)].map(m => m[1]);
+        assert.deepEqual(reads, ['SIDEBAR_WIDTH_KEY']);
+        assert.deepEqual(writes, ['SIDEBAR_WIDTH_KEY,String(preferred']);
+        assert.match(text, /localStorage\.removeItem\(SIDEBAR_WIDTH_KEY\)/);
+        text = text.replace(/localStorage\.(?:getItem|setItem)\([^)]*\)/g, '');
+      }
       if (f.split(path.sep).join('/') === 'public/js/app.js') {
-        // Only a boolean sidebar layout preference may be stored locally.
-        // No business records, PII, session data, or other browser storage.
+        // Only a boolean collapsed/expanded layout preference may be stored
+        // here. No business records, PII, session data or other storage.
         assert.match(text, /const SIDEBAR_COLLAPSE_KEY='cerium\.sidebar\.collapsed'/);
         const reads = [...text.matchAll(/localStorage\.getItem\(([^)]*)\)/g)].map(m => m[1]);
         const writes = [...text.matchAll(/localStorage\.setItem\(([^)]*)\)/g)].map(m => m[1]);
