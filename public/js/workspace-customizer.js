@@ -2,6 +2,7 @@
 import {INDUSTRY_OPTIONS,WORKSPACE_MODULES,defaultModules} from './industry-workspaces.js';
 import {WORKSPACE_CATEGORIES,workspaceDestination} from './workspace-registry.js';
 import {recommendBusinessTools} from './business-tool-advisor.js';
+import {businessSelectionDescription} from './business-personalization.js';
 import {escapeHTML as esc} from './workspace-model.js';
 
 export function renderWorkspaceCustomizer(preferences={}) {
@@ -34,6 +35,7 @@ export function renderWorkspaceCustomizer(preferences={}) {
       <label class="ws-custom-field">Your business type
         <select name="category" id="workspace-category">${options}</select>
       </label>
+      <p class="ws-business-preview" id="workspace-business-preview" role="status">${esc(businessSelectionDescription(category))}</p>
       <div class="ws-recommender">
         <div class="ws-recommend-title"><span aria-hidden="true" class="ws-spark">✦</span><strong>Smart setup assistant</strong><span class="ws-privacy-badge">Private &amp; local</span></div>
         <label class="ws-custom-field">What does your working day look like? (optional)
@@ -148,6 +150,7 @@ export function wireWorkspaceCustomizer({api,refresh,toast,getTrade}) {
   document.addEventListener('change',e=>{
     if(e.target.id==='workspace-category'){
       const category=e.target.value;
+      const preview=document.getElementById('workspace-business-preview');if(preview)preview.textContent=businessSelectionDescription(category);
       apply(defaultModules(category),category==='other'?'Choose the tools you want; CERIUM will keep other modules available.':'Industry defaults applied. You can adjust them below.');
     }
   });
