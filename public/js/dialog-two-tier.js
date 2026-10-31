@@ -76,6 +76,9 @@
           view('Appointment', ['startAt','endAt','workerId']),
           view('Status & notes', ['status','notes'])
         ]),
+        group('Trade', [
+          view('Service record', [], ['.jobs-trade'])
+        ]),
         group('Billing', [
           view('Line items', [], ['.jobs-billing']),
           view('Linked invoice', [], ['.jobs-linked-invoice'])
