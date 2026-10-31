@@ -2,6 +2,8 @@
 import {escapeHTML as esc} from './workspace-model.js';
 import {lineItemsTotal} from './money.js';
 import {businessLocalDate,US_TIME_ZONES,formatUSPhone} from './us-market.js';
+import {VERTICAL_WORKFLOWS,verticalProgress} from './vertical-workflows.js';
+import {renderVerticalEditor,renderVerticalFields,readVerticalEditor,renderVerticalWorkflowsPage} from './vertical-workflows-ui.js';
 
 let weekShift = 0;
 let filter = 'all';
@@ -47,7 +49,8 @@ function card(job,ws,ro=false) {
     <strong>${esc(job.title)}</strong><span>${esc(job.customerName)}</span>
     <small>${esc(workerName(ws,job.workerId))}</small></button>`;
 }
-export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false) {
+export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false,subview='overview') {
+  if(view==='verticals')return renderVerticalWorkflowsPage(ws,readOnly,subview);
   if(scoped)filter='all';
   if(view!=='schedule')return renderOperationsPage(ws,readOnly,view);
   const jobs=ws.jobs||[],crew=ws.crew||[],start=monday(),end=new Date(start);end.setDate(start.getDate()+6);
@@ -122,10 +125,12 @@ function openDialog(markup) {
   d.innerHTML=markup;d.showModal();d.querySelector('input,select,button')?.focus();
 }
 const dialogTop=(title,detail)=>`<div class="jobs-modal-header"><h2>${title}</h2><p>${detail}</p><button type="button" aria-label="Close" data-job-action="close">×</button></div>`;
-function formJob(ws,id='',date=today()) {
+function formJob(ws,id='',date=today(),industryOverride='') {
   if(dispatch.isReadOnly())return dispatch.toast('Trial ended. Jobs are read-only.',true);
   const j=id?ws.jobs.find(x=>x.id===id):null;
   if(id&&!j)return dispatch.toast('Job not found.',true);
+  const category=industryOverride||(!id?ws.account?.workspacePreferences?.category:'');
+  const vertical=j?.verticalWorkflow||(VERTICAL_WORKFLOWS[category]?{industry:category}:null);
   const items = j?.billableItems?.length ? j.billableItems : [{description:'Service labor',qty:1,rate:0}];
   const start=j?.startAt||date+'T09:00',end=j?.endAt||date+'T10:00';
   const workers=[{value:'',label:'Unassigned'},...ws.crew.filter(c=>c.active||c.id===j?.workerId).map(c=>({value:c.id,label:c.name+(c.active?'':' (archived)')}))];
@@ -143,6 +148,7 @@ function formJob(ws,id='',date=today()) {
     <label class="jobs-wide">Customer email<input name="customerEmail" type="email" maxlength="254" value="${esc(j?.customerEmail||'')}" placeholder="customer@example.com"></label>
     <label class="jobs-wide">Service address<input name="address" maxlength="240" value="${esc(j?.address||'')}" placeholder="${ws.account?.country==='IN'?'Street, area, city, state, PIN':ws.account?.country==='US'?'Street, city, state, ZIP':'Street, city, region, postal code'}"></label>
     <label class="jobs-wide">Notes<textarea name="notes" maxlength="1500" rows="3" placeholder="Access instructions, equipment, materials...">${esc(j?.notes||'')}</textarea></label>
+    ${renderVerticalEditor(vertical,category)}
     <p class="muted jobs-wide">Appointment times use your business time zone: ${esc((ws.account?.timeZone==='Asia/Kolkata'?'India Standard Time':US_TIME_ZONES[ws.account?.timeZone]||ws.account?.timeZone)||'not set — browser clock until configured in Settings')}.</p>
     <div class="jobs-billing jobs-wide"><div class="jobs-billing-header"><strong>Invoice line items</strong><span>Saved with this job and used to prepare its draft invoice on completion.</span></div>
       <div data-billing-rows>${items.map(item=>billingItemRow(item,!!j?.invoiceGenerated)).join('')}</div>
@@ -205,7 +211,23 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
       return;
     }
     if(isReadOnly())return toast('Your trial has ended. Business records are read-only.',true);
-    if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today());
+    if(action==='new'||action==='edit')return formJob(ws,el.dataset.jobId||'',el.dataset.jobDate||today(),el.dataset.jobVertical||'');
+    if(action==='followup'){
+      const job=ws.jobs.find(j=>j.id===el.dataset.jobId);
+      const due=job?.verticalWorkflow?.nextVisit;
+      if(!due)return toast('Set a recommended next-visit date in the service report.',true);
+      const task='Revisit: '+job.title.slice(0,190);
+      if((ws.followUps||[]).some(f=>f.contactName===job.customerName&&f.task===task&&f.dueDate===due&&f.status!=='Done'))
+        return toast('A matching open follow-up already exists.',true);
+      if(!confirm('Add a manual customer follow-up for '+due+'? No message will be sent.'))return;
+      if(busy)return;
+      busy=true;
+      try{
+        await API.createFollowUp({contactName:job.customerName,task,dueDate:due,channel:'Call',phone:job.customerPhone||''});
+        await refresh();toast('Return-visit follow-up added. Schedule a new appointment separately.');
+      }catch(e){toast(e.message,true);}finally{busy=false;}
+      return;
+    }
     if(busy)return;
     if(action==='replace-invoice') {
       busy=true;try{await API.createJobInvoice(el.dataset.jobId);await refresh();formJob(getWorkspace(),el.dataset.jobId);toast('Replacement draft is ready to review.');}
@@ -222,6 +244,11 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
   });
   document.addEventListener('input',event=>{if(event.target.matches('[data-billing-field]'))updateJobBillingTotal(event.target.closest('form'));});
   document.addEventListener('change',event=>{
+    if(event.target.matches('[name="verticalIndustry"]')){
+      const root=event.target.closest('.jobs-trade');
+      const target=root?.querySelector('[data-vertical-fields]');
+      if(target)target.innerHTML=renderVerticalFields({industry:event.target.value});
+    }
     if(event.target.matches('[data-jobs-filter]')){filter=event.target.value;refresh().catch(e=>toast(e.message,true));}
   });
   document.addEventListener('submit',async event=>{
@@ -238,6 +265,7 @@ export function initializeJobsUI({API,refresh,getWorkspace,isReadOnly,toast}) {
           return {description:val('description'),qty:Number(val('qty')),rate:Number(val('rate'))};
         }).filter(row=>row.description || row.rate);
         if(data.billableItems.some(item=>!item.description))throw Error('Enter a description for each priced line item.');
+        data.verticalWorkflow=readVerticalEditor(form);
         if(data.endAt<=data.startAt)throw Error('The end time must be after the start time.');
         if(form.dataset.jobId)await API.updateJob(form.dataset.jobId,data);else await API.createJob(data);
       }else if(data.id)await API.updateCrew(data.id,{...data,active:data.active==='true'});else await API.addCrew({...data,active:data.active==='true'});

@@ -1,0 +1,34 @@
+/* Trade service reports blend into Cerium's existing light workspace. */
+.vertical-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.vertical-templates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.vertical-template{padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.vertical-template h2{font-size:17px;line-height:1.35;color:#202c45;letter-spacing:-.02em}
+.vertical-template p{font-size:12px;color:#56637a;line-height:1.55}
+.vertical-template .button{align-self:flex-start;margin-top:auto;white-space:normal;text-align:left}
+.vertical-list{display:grid;min-width:0}
+.vertical-job{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(180px,.85fr) auto;gap:16px;align-items:center;padding:17px 21px;border-bottom:1px solid #e7eaf2;min-width:0}
+.vertical-job:last-child{border-bottom:0}
+.vertical-job-main{display:grid;gap:4px;min-width:0}
+.vertical-job-main h3{font-size:14px;font-weight:750;color:#202d47;overflow-wrap:anywhere}
+.vertical-job-main p,.vertical-job-main small,.vertical-job-meta{font-size:12px;color:#54647a;overflow-wrap:anywhere}
+.vertical-kind{font-size:10px;font-weight:800;letter-spacing:.06em;color:#7055ad;text-transform:uppercase}
+.vertical-job-meta{display:grid;gap:8px}
+.vertical-job-meta span{padding:3px 0}
+.vertical-late{color:#a34430}
+.vertical-job-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.vertical-job-actions .button{font-size:12px}
+.vertical-disclaimer{font-size:12px;line-height:1.6;color:#64748b;margin-top:18px}
+.jobs-trade{border:1px solid #d8d2f1;border-radius:14px;background:#faf9ff;padding:16px;display:grid;gap:14px;min-width:0}
+.vertical-heading{display:grid;gap:5px}.vertical-heading h3{font-size:15px;font-weight:800;color:#342b57}
+.vertical-heading p,.vertical-help{font-size:12px;line-height:1.55;color:#615a78}
+.jobs-modal-body .jobs-trade>label{width:100%}
+.vertical-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;min-width:0}
+.vertical-fields>.vertical-help{grid-column:1/-1}
+.vertical-fields label{min-width:0}
+.vertical-checks{border-top:1px solid #e1ddf2;padding-top:14px;display:grid;gap:7px}
+.vertical-checks h4{font-size:13px;color:#372f55;margin-bottom:4px}
+.jobs-modal-body .vertical-check{display:grid;grid-template-columns:minmax(0,1fr) 145px;gap:10px;align-items:center;min-height:46px;padding:6px 9px;border:1px solid #e2def1;border-radius:9px;background:white;font-weight:550;font-size:12px;line-height:1.35}
+.vertical-check select{font-size:12px}
+.jobs-trade :is(input,select,textarea):focus-visible{outline:2px solid #7c5bc8;outline-offset:2px}
+@media(max-width:1100px){.vertical-templates{grid-template-columns:1fr}.vertical-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.vertical-job{grid-template-columns:minmax(0,1fr) auto}.vertical-job-meta{grid-column:1}.vertical-job-actions{grid-column:2;grid-row:1 / span 2}}
+@media(max-width:680px){.vertical-stats{grid-template-columns:1fr}.vertical-job{grid-template-columns:1fr;gap:8px}.vertical-job-actions,.vertical-job-meta{grid-column:1;grid-row:auto;justify-content:flex-start}.vertical-fields{grid-template-columns:1fr}.jobs-modal-body .vertical-check{grid-template-columns:1fr}.vertical-check select{width:100%}}

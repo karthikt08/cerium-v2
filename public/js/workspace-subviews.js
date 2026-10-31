@@ -52,6 +52,13 @@ export const FEATURE_SUBFEATURES = Object.freeze({
     { id: 'active', label: 'Active Jobs' },
     { id: 'unassigned', label: 'Unassigned Work' }
   ]),
+  'trade-workflows': Object.freeze([
+    { id: 'overview', label: 'All Trade Workflows' },
+    { id: 'hvac', label: 'HVAC Service' },
+    { id: 'cleaning', label: 'Cleaning Services' },
+    { id: 'landscaping', label: 'Landscaping' },
+    { id: 'revisits', label: 'Return Visits' }
+  ]),
   'crew-assignments': Object.freeze([
     { id: 'crew', label: 'Crew Workload' },
     { id: 'unassigned', label: 'Unassigned Work' }
