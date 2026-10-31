@@ -322,3 +322,66 @@
     animation:none!important;
   }
 }
+
+
+  /* Neatly organize text and titles across all software places with clean alignment */
+  .app-page #page-body .page-heading {
+    margin-bottom:18px;
+  }
+  .app-page #page-body .page-heading h1 {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 6px;
+    padding-bottom:0!important;
+    line-height:1.2;
+  }
+  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent)::after,
+  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent)::before {
+    display:none!important;
+    content:none!important;
+  }
+  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent) {
+    padding-bottom:0!important;
+  }
+  .app-page #page-body .page-heading p,
+  .app-page #page-body .page-description {
+    margin:0;
+    font-size:13.5px;
+    line-height:1.5;
+    color:#5d687e;
+  }
+  .app-page #page-body .marketing-feature-header {
+    padding:20px 24px;
+    gap:16px;
+  }
+  .app-page #page-body .marketing-feature-header .panel-title {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+    min-width:0;
+  }
+  .app-page #page-body .marketing-feature-header .panel-title .icon {
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+    color:#7c3aed;
+  }
+  .app-page #page-body .marketing-feature-header .panel-title h2 {
+    margin:0;
+    font-size:17px;
+    font-weight:700;
+    line-height:1.25;
+    padding-bottom:0!important;
+  }
+  .app-page #page-body .marketing-feature-header .panel-subtitle {
+    margin:0;
+    font-size:12.5px;
+    line-height:1.5;
+    color:#5d687e;
+  }
+  .app-page #page-body :is(svg.ul, .ul) {
+    display:none!important;
+  }
+
