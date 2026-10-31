@@ -1,6 +1,6 @@
 // Trade workflows UI: one saved service report per existing Cerium job.
 // Checklists are operational notes, not statutory inspection certificates.
-import {VERTICAL_WORKFLOWS,VERTICAL_IDS,verticalProgress} from './vertical-workflows.js';
+import {VERTICAL_WORKFLOWS,VERTICAL_IDS,verticalProgress,SERVICE_CADENCES} from './vertical-workflows.js';
 import {escapeHTML as esc} from './workspace-model.js';
 import {businessLocalDate} from './us-market.js';
 
@@ -14,6 +14,7 @@ export function renderVerticalFields(workflow={}){
   return '<div class="vertical-fields">'+
     '<p class="vertical-help">Document the work performed. Mark checklist items Done, Not applicable or To review; these are internal records, not certifications.</p>'+
     '<label>Service type<select data-vertical-service>'+spec.types.map(v=>option(v,v,workflow.serviceType||spec.types[0])).join('')+'</select></label>'+
+    '<label>Service cadence (manual plan)<select data-vertical-cadence>'+SERVICE_CADENCES.map(v=>option(v,v,workflow.cadence||'One-time')).join('')+'</select></label>'+ 
     '<label>Next recommended visit<input data-vertical-next type="date" value="'+esc(workflow.nextVisit||'')+'"></label>'+
     spec.fields.map(f=>'<label>'+esc(f.label)+'<input data-vertical-field="'+esc(f.id)+'" maxlength="'+f.max+'" placeholder="'+esc(f.placeholder)+'" value="'+esc(values[f.id]||'')+'"></label>').join('')+
     '<label class="jobs-wide">Work performed / customer handover<textarea data-vertical-notes maxlength="1000" rows="3" placeholder="Work completed, exceptions, recommendations...">'+esc(workflow.workNotes||'')+'</textarea></label>'+
@@ -30,7 +31,7 @@ export function renderVerticalEditor(workflow=null,preferred=''){
   return '<section class="jobs-trade jobs-wide" aria-label="Trade service record">'+
     '<div class="vertical-heading"><h3>Trade service record</h3><p>Trade-specific equipment, site details, checklists and revisit tracking are saved with this job.</p></div>'+
     '<label>Service workflow<select name="verticalIndustry">'+option('','General job — no trade record',selected)+
-       kinds.map(([id,s])=>option(id,s.label,selected)).join('')+'</select></label>'+
+       kinds.filter(([id])=>id===preferred||id===workflow?.industry).map(([id,s])=>option(id,s.label,selected)).join('')+'</select></label>'+
     '<div data-vertical-fields>'+renderVerticalFields(current)+'</div></section>';
 }
 export function readVerticalEditor(form){
@@ -44,6 +45,7 @@ export function readVerticalEditor(form){
     values:collect('[data-vertical-field]','data-vertical-field'),
     checks:collect('[data-vertical-check]','data-vertical-check'),
     nextVisit:root.querySelector('[data-vertical-next]')?.value||'',
+    cadence:root.querySelector('[data-vertical-cadence]')?.value||'One-time',
     workNotes:root.querySelector('[data-vertical-notes]')?.value||''
   };
 }

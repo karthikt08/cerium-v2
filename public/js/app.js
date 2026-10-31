@@ -12,6 +12,8 @@ import {COUNTRY_OPTIONS,countryName,editionLabel,phonePlaceholder,matchesBilling
 import {INDIA_STATE_OPTIONS,INDIAN_STATES,validGSTIN,validIndianState,validUpiVpa} from './india-market.js';
 import {indiaInvoiceMode,prepareIndiaInvoicePayload} from './india-invoice-mode.js';
 import {renderJobsPage,initializeJobsUI} from './jobs-page.js';
+import {renderPersonalizedOverview} from './personalized-operations-page.js';
+import {businessFeatureLabel,businessCategoryLabel,activeBusinessId} from './business-personalization.js';
 import {renderRemindersPage,initializeRemindersUI} from './reminders-page.js';
 import {renderPaymentDuesPage,initializePaymentDuesUI} from './payment-dues-page.js';
 import {renderQuotesPage,initializeQuotesUI} from './quotes-page.js';
@@ -116,14 +118,17 @@ function renderChrome() {
   $('edition-label').textContent=editionLabel(a.country);
   $('edition-chip').textContent=india?'India · INR':a.country==='US'?'US · USD':countryName(a.country)+' · '+a.currency;
   document.body.dataset.edition=india?'in':a.country==='US'?'us':'global';
+  document.body.dataset.business=activeBusinessId(state.ws)||'general';
   // Per-feature badge totals are refreshed by setNavigation() from the same
   // workspace records displayed by the destination, not dashboard action KPIs.
 }
 function setNavigation() {
   const route=state.route;
-  $('current-section').textContent=route.label;
-  $('current-category').textContent=WORKSPACE_CATEGORIES.find(c=>c.id===route.category&&c.id!=='overview')?.label||'Workspace';
-  document.title=`${featureTitle(route)} — CERIUM`;
+  const featureLabel=businessFeatureLabel(route.id,state.ws)||route.label;
+  const categoryLabel=businessCategoryLabel(route.category,state.ws)||WORKSPACE_CATEGORIES.find(c=>c.id===route.category&&c.id!=='overview')?.label||'Workspace';
+  $('current-section').textContent=featureLabel;
+  $('current-category').textContent=categoryLabel;
+  document.title=`${categoryLabel} · ${featureLabel} — CERIUM`;
   document.querySelectorAll('[data-nav]').forEach(a=>{if(resolveWorkspaceRoute(a.dataset.nav).href===route.href)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   updateCategoryNavigation(document,{modules:state.ws?.account.workspacePreferences?.modules,route,lastUsed:lastUsedTabs,workspace:state.ws});
 }
@@ -165,6 +170,7 @@ function overview() {
   const preference=ws.account.workspacePreferences||{};
   const industryName=INDUSTRY_OPTIONS.find(x=>x.value===preference.category)?.label;
   const workspaceTitle=preference.category==='other'?'Your custom workspace':industryName?`Your ${industryName} workspace`:'Your workspace';
+  const jobShortcutLabel={hvac:'HVAC service calls',cleaning:'Cleaning visits',landscaping:'Landscape sites'}[preference.category]||'Jobs & dispatch';
   // The business-specific tool notice becomes a compact utility row inside
   // the Overview hero instead of occupying a second full-width card.
   const workspaceRow=`<section class="overview-workspace-row" aria-label="Your selected workspace">
@@ -196,7 +202,7 @@ function overview() {
         <p class="page-description">Here's what needs your attention today.</p>
       </div><div class="heading-actions">${addButton('lead','New lead')}</div></div>
       <nav class="overview-shortcuts" aria-label="Quick workspace shortcuts">
-        <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}Jobs & dispatch ${icon('arrow')}</a>
+        <a class="overview-shortcut" href="#jobs" data-nav="jobs">${icon('jobs')}${esc(jobShortcutLabel)} ${icon('arrow')}</a>
         <a class="overview-shortcut" href="#invoices" data-nav="invoices">${icon('invoices')}Invoices ${icon('arrow')}</a>
         <a class="overview-shortcut" href="#marketing" data-nav="marketing">${icon('marketing')}Marketing ${icon('arrow')}</a>
       </nav>
@@ -204,7 +210,8 @@ function overview() {
     ${workspaceRow}
     ${indiaRow}
   </section>`;
-  return overviewHero+
+  const personalizedPanel=typeof renderPersonalizedOverview==='function'?renderPersonalizedOverview(ws):'';
+  return overviewHero+personalizedPanel+
     (!currencyMismatch()?'':'<div class="notice" role="status"><div><strong>Previous currency records</strong><p>Your workspace still contains earlier amounts in '+esc(ws.account.currency)+'. They are preserved as originally recorded; see Settings before creating new dollar invoices.</p></div></div>')+
     `<div class="metrics-grid">${metric('Active leads',m.leads,'New and quoted inquiries','leads','leads')}${metric('Follow-ups due',m.due,'Ready for your next call','followups','followups')}${metric('Outstanding',dashboardCash(m.outstanding),'Across unpaid invoices','invoices','invoices')}${metric('Overdue',dashboardCash(m.overdue),'Payments past their due date','invoices','payments',true)}</div>`+
     `<div class="dashboard-grid"><section class="panel" data-workspace-module="followups">${panelHeader('followups','Today’s follow-ups',tasks.length?`${tasks.length} ${tasks.length===1?'customer needs':'customers need'} a check-in`:'Your next conversations, in one place',viewLink('followups'))}<div class="panel-body">${tasks.length?tasks.slice(0,4).map(taskRow).join(''):empty('You’re all caught up','Add a follow-up when a customer needs a call or message.',button('Add follow-up','new','data-kind="followup"','secondary'))}</div><div class="panel-footer"><span>${tasks.length>4?`Showing 4 of ${tasks.length} due`:'A small follow-up can make a big difference.'}</span>${button(icon('plus')+'Add','new','data-kind="followup"','secondary')}</div></section>`+
