@@ -102,3 +102,5 @@
 .workspace-config-dialog .ws-included-tools{padding:13px 15px;border:1px solid #dce6f3;border-radius:11px;background:#f7f9fd;color:#334766}
 .workspace-config-dialog .ws-included-tools>strong{display:block;font-size:12px;font-weight:750;margin-bottom:4px}
 .workspace-config-dialog .ws-included-tools p{margin:0;font-size:11.5px;line-height:1.65;color:#566a85}
+
+.ws-business-preview{background:#f6f4ff;border:1px solid #e0d8f3;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;color:#51466c}
