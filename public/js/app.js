@@ -23,6 +23,7 @@ import {renderMarketingPage,initializeMarketingUI} from './marketing-page.js';
 import {WORKSPACE_CATEGORIES,resolveWorkspaceRoute,categoryDestination} from './workspace-registry.js';
 import {renderCategoryNavigation,renderUtilityNavigation,updateCategoryNavigation,renderFeatureWorkspace,featureTitle,revealActiveFeature} from './workspace-navigation.js';
 import {createWorkspaceDrafts} from './workspace-drafts.js';
+import {initializeSidebarResize} from './sidebar-resize.js';
 import {selectedSubview,subviewWorkspace,subviewHref} from './workspace-subviews.js';
 import {applySubviewLayout,renderGuidancePage,renderReminderDrafts} from './workspace-view-panels.js';
 import {businessInsights,renderInsightsPage} from './workspace-insights.js';
@@ -622,6 +623,7 @@ function initializeSidebarCollapse(){
   });
 }
 initializeSidebarCollapse();
+initializeSidebarResize({workspace:$('workspace'),handle:$('sidebar-resize-handle')});
 $('menu-toggle').addEventListener('click',openNavigation);$('nav-backdrop').addEventListener('click',closeNavigation);
 window.addEventListener('resize',()=>{if(innerWidth>760||!$('sidebar').classList.contains('is-open'))closeNavigation();setSidebarCollapsed($('workspace').classList.contains('sidebar-collapsed'));revealActiveFeature($('page-body'));});
 window.addEventListener('hashchange',()=>navigate(location.hash,true));
