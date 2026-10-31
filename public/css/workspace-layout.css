@@ -1,0 +1,130 @@
+/* CERIUM adaptive workspace: draggable desktop rail + landing-page ambience.
+   Readable work surfaces and selective midnight cards stay untouched.
+   The three coloured radial lights come from the landing page's spatial skin. */
+@media screen {
+  .app-page .workspace {
+    --cerium-sidebar-width:224px;
+    background:
+      radial-gradient(38% 42% at 20% 16%,rgba(117,83,255,.25),transparent 70%),
+      radial-gradient(42% 40% at 84% 60%,rgba(237,124,255,.17),transparent 70%),
+      radial-gradient(32% 32% at 40% 95%,rgba(89,203,219,.14),transparent 70%),
+      linear-gradient(180deg,#eef0f5 0%,#e3e7ee 100%);
+  }
+
+  /* Make the shared ambient backdrop visible on EVERY workspace feature page,
+     instead of losing it under the reference theme's solid white scroll pane. */
+  .app-page .workspace .main-frame {
+    min-width:0;
+    background:transparent!important;
+  }
+  .app-page .workspace .content-scroll {
+    min-width:0;
+    background:transparent!important;
+  }
+  .app-page .workspace .content-scroll .page-width {
+    min-width:0;
+  }
+  .app-page .workspace .sidebar {
+    position:relative;
+    min-width:0;
+    background:linear-gradient(165deg,rgba(255,255,255,.94),rgba(250,249,255,.89) 75%,rgba(255,255,255,.92))!important;
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+  .app-page .workspace .main-frame>.topbar {
+    background:rgba(255,255,255,.77)!important;
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+
+  .app-page .sidebar .workspace-label strong {
+    max-width:100%;
+    min-width:0;
+  }
+
+  /* A subtle landing-gradient grip belongs to the edge, not inside the cards.
+     It uses pointer capture for drag and also accepts keyboard arrow presses. */
+  .app-page .sidebar-resize-handle {
+    display:none;
+  }
+  @media(min-width:761px) {
+    .app-page .workspace:not(.sidebar-collapsed) {
+      grid-template-columns:var(--cerium-sidebar-width) minmax(0,1fr);
+    }
+    .app-page .workspace .sidebar-resize-handle {
+      position:absolute;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      top:72px;
+      bottom:16px;
+      right:-6px;
+      width:12px;
+      padding:0;
+      z-index:48;
+      cursor:col-resize;
+      touch-action:none;
+      outline-offset:-2px;
+      user-select:none;
+      -webkit-user-select:none;
+      background:transparent;
+      border:0;
+    }
+    .app-page .workspace .sidebar-resize-handle::after {
+      content:"";
+      display:block;
+      width:3px;
+      height:54px;
+      max-height:32%;
+      border-radius:999px;
+      opacity:.38;
+      background:linear-gradient(180deg,#3b5bff,#7c3aed,#d946ef);
+      transition:opacity .18s ease,box-shadow .18s ease;
+      pointer-events:none;
+    }
+    .app-page .workspace .sidebar-resize-handle:is(:hover,:focus-visible)::after,
+    .app-page .workspace.sidebar-resizing .sidebar-resize-handle::after {
+      opacity:1;
+      box-shadow:0 0 10px rgba(124,58,237,.35);
+    }
+    .app-page .workspace .sidebar-resize-handle:focus-visible {
+      outline:2px solid #7c3aed;
+      border-radius:9px;
+    }
+    .app-page .workspace.sidebar-collapsed .sidebar-resize-handle {
+      display:none;
+    }
+    .app-page .workspace.sidebar-resizing {
+      transition:none!important;
+      cursor:col-resize;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    .app-page .workspace.sidebar-resizing :is(.sidebar,.main-frame) {
+      pointer-events:none;
+    }
+    .app-page .workspace.sidebar-resizing .sidebar-resize-handle {
+      pointer-events:auto;
+    }
+  }
+  @media(min-width:761px) and (max-width:1150px) {
+    .app-page .workspace {--cerium-sidebar-width:200px;}
+  }
+  @media(max-width:760px) {
+    /* The pre-existing off-canvas mobile drawer never becomes draggable. */
+    .app-page .workspace .sidebar {
+      position:fixed;
+      background:rgba(255,255,255,.97)!important;
+    }
+    .app-page .workspace .sidebar-resize-handle {
+      display:none!important;
+    }
+  }
+}
+@media print {
+  /* No landing light or resize grip in printed reports or invoice documents. */
+  .app-page .workspace .sidebar-resize-handle {display:none!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-page .workspace .sidebar-resize-handle::after {transition:none!important;}
+}
