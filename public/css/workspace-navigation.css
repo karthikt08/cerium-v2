@@ -346,8 +346,8 @@
   --cerium-tab-glow:rgba(124,58,237,.35);
   --cerium-tab-ink:#16213a;
   --cerium-tab-border:#e3e8f1;
-  --cerium-tab-outline:#aebdd3;
-  --cerium-tab-outline-hover:#8c9fb9;
+  --cerium-tab-outline:#94a6c0;
+  --cerium-tab-outline-hover:#766b9d;
   min-width:0;margin:0 0 18px;
   background:transparent;
 }
@@ -377,15 +377,23 @@
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-2;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:9px 9px 0 0;background:#edf1f7;
-  box-sizing:border-box;border:1.75px solid var(--cerium-tab-outline);
+  border-radius:9px;background:#f8faff;
+  box-sizing:border-box;border:2px solid var(--cerium-tab-outline);
   pointer-events:none;transition:background-color .16s ease,border-color .16s ease;
+}
+/* Keep the last edge of each inactive slant above the scroll clipping edge;
+   active tabs still sit flush against the rail to preserve Design D's bracket. */
+.app-page #page-body .workspace-angular-navigation
+  .workspace-feature-tab:not(.active):not([aria-current="page"]),
+.app-page #page-body .workspace-angular-navigation
+  .workspace-subfeature-tab:not(.active):not([aria-current="page"]){
+  margin-bottom:2px;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover{
   color:#6d28d9;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab:hover::before{
-  background:#e4eaf3;border-color:var(--cerium-tab-outline-hover);
+  background:#fff;border-color:var(--cerium-tab-outline-hover);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-feature-tab[aria-current="page"]{
@@ -447,7 +455,7 @@
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab::before{
   content:"";display:block;position:absolute;inset:0;z-index:-1;
   transform:skewX(-14deg);transform-origin:bottom center;
-  border-radius:8px 8px 0 0;background:#f2f5f9;
+  border-radius:8px;background:#f8faff;
   box-sizing:border-box;border:1.75px solid var(--cerium-tab-outline);
   pointer-events:none;transition:background-color .16s ease,border-color .16s ease;
 }
@@ -458,7 +466,7 @@
   color:#6d28d9;background:transparent;
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab:hover::before{
-  background:#e9edf3;border-color:var(--cerium-tab-outline-hover);
+  background:#fff;border-color:var(--cerium-tab-outline-hover);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab.active,
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]{
