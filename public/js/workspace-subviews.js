@@ -52,12 +52,22 @@ export const FEATURE_SUBFEATURES = Object.freeze({
     { id: 'active', label: 'Active Jobs' },
     { id: 'unassigned', label: 'Unassigned Work' }
   ]),
+  // Keep the previous trade URLs as legacy bookmarks. The visible second
+  // navigation row is selected from the saved business profile.
   'trade-workflows': Object.freeze([
-    { id: 'overview', label: 'All Trade Workflows' },
-    { id: 'hvac', label: 'HVAC Service' },
-    { id: 'cleaning', label: 'Cleaning Services' },
-    { id: 'landscaping', label: 'Landscaping' },
-    { id: 'revisits', label: 'Return Visits' }
+    { id: 'overview', label: 'Operations Desk' },
+    { id: 'assets', label: 'Equipment Register' },
+    { id: 'maintenance', label: 'Maintenance Due' },
+    { id: 'reports', label: 'Service History' },
+    { id: 'properties', label: 'Client Properties' },
+    { id: 'quality', label: 'Quality Checks' },
+    { id: 'plans', label: 'Service Plans' },
+    { id: 'irrigation', label: 'Irrigation Work' },
+    { id: 'seasonal', label: 'Seasonal Care' },
+    { id: 'revisits', label: 'Return Visits' },
+    { id: 'hvac', label: 'Previous HVAC View' },
+    { id: 'cleaning', label: 'Previous Cleaning View' },
+    { id: 'landscaping', label: 'Previous Landscaping View' }
   ]),
   'crew-assignments': Object.freeze([
     { id: 'crew', label: 'Crew Workload' },
