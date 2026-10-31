@@ -5,6 +5,8 @@
   --dialog-nav-magenta: #d946ef;
   --dialog-nav-glow: rgba(124, 58, 237, .35);
   --dialog-nav-line: #e3e8f1;
+  --dialog-nav-outline: #aebdd3;
+  --dialog-nav-outline-hover: #8c9fb9;
   --dialog-nav-ink: #16213a;
 }
 .app-page dialog.dialog.cerium-has-dialog-tabs:not(.lead-import-dialog):not(.invoice-dialog) {
@@ -63,11 +65,15 @@
   transform: skewX(-14deg);
   transform-origin: bottom center;
   border-radius: 9px 9px 0 0;
+  box-sizing: border-box;
+  border: 1.75px solid var(--dialog-nav-outline);
   background: #edf1f7;
   pointer-events: none;
+  transition: border-color .16s ease, background-color .16s ease;
 }
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab:hover::before {
   background: #e4eaf3;
+  border-color: var(--dialog-nav-outline-hover);
 }
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab.active {
   z-index: 2;
@@ -77,6 +83,7 @@
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab.active::before {
   background: #fff;
   bottom: -2px;
+  border: 0;
 }
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab.active::after {
   content: "";
@@ -102,6 +109,7 @@
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab:hover::before {
   background: #e9edf3;
+  border-color: var(--dialog-nav-outline-hover);
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab.active {
   color: var(--dialog-nav-accent, #7c3aed);
@@ -110,6 +118,7 @@
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab.active::before {
   background: #fff;
+  border: 0;
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab.active::after {
   content: "";
