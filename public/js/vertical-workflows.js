@@ -76,15 +76,17 @@ export const VERTICAL_WORKFLOWS=Object.freeze({
   })
 });
 export const VERTICAL_IDS=Object.freeze(Object.keys(VERTICAL_WORKFLOWS));
+export const SERVICE_CADENCES=Object.freeze(['One-time','Weekly','Every 2 weeks','Monthly','Quarterly','Every 6 months','Annually','Custom']);
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
 export function normalizeVerticalWorkflow(value){
   if(value===null||value===undefined)return null;
   if(!object(value))throw new Error('Trade workflow must be an object or null.');
-  const {industry,serviceType,values={},checks={},workNotes='',nextVisit=''}=value;
+  const {industry,serviceType,values={},checks={},workNotes='',nextVisit='',cadence='One-time'}=value;
   const spec=VERTICAL_WORKFLOWS[industry];
   if(!spec)throw new Error('Choose a supported trade workflow.');
   if(!spec.types.includes(serviceType))throw new Error('Choose a valid trade service type.');
+  if(!SERVICE_CADENCES.includes(cadence))throw new Error('Choose a valid service cadence.');
   if(!object(values)||!object(checks))throw new Error('Invalid trade service fields.');
   if(typeof workNotes!=='string'||workNotes.length>1000)throw new Error('Trade work notes must be 1000 characters or fewer.');
   if(typeof nextVisit!=='string'||(nextVisit!==''&&!validDate(nextVisit)))throw new Error('Enter a valid next-visit date.');
@@ -103,7 +105,7 @@ export function normalizeVerticalWorkflow(value){
     if(!['todo','done','na'].includes(input))throw new Error('Invalid service checklist status.');
     cleanChecks[item.id]=input;
   }
-  return {industry,serviceType,values:cleanValues,checks:cleanChecks,workNotes:workNotes.trim(),nextVisit};
+  return {industry,serviceType,values:cleanValues,checks:cleanChecks,workNotes:workNotes.trim(),nextVisit,cadence};
 }
 export function verticalProgress(value){
   const spec=VERTICAL_WORKFLOWS[value?.industry];
