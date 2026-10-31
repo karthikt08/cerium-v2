@@ -163,9 +163,12 @@ test('neon text and underline have visibly moving blue-violet-magenta colors',()
   assert.match(css, /background-size:220% 100%!important/);
   assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
   assert.match(css, /@keyframes cerium-title-neon-flow/);
-  assert.match(css, /filter:drop-shadow\(0 0 6px rgba\(59,91,255,\.45\)\)/);
-  assert.match(css, /drop-shadow\(0 0 15px rgba\(124,58,237,\.56\)\)/);
-  assert.match(css, /drop-shadow\(0 0 24px rgba\(217,70,239,\.32\)\)!important/);
+  assert.match(css, /@keyframes cerium-title-underline-in/);
+  assert.match(css, /cerium-title-underline-in 1.1s .2s cubic-bezier/);
+  assert.match(css, /clip-path:\s*inset\(-20px/);
+  assert.match(css, /filter:drop-shadow\(0 0 6px rgba\(59,91,255,\.3375\)\)/);
+  assert.match(css, /drop-shadow\(0 0 15px rgba\(124,58,237,\.42\)\)/);
+  assert.match(css, /drop-shadow\(0 0 24px rgba\(217,70,239,\.24\)\)!important/);
   assert.match(css, /filter:none!important;/,'masked underline should receive glow via its parent, not lose it to clipping');
   assert.match(css, /-webkit-background-clip:text!important/);
   assert.match(css, /-webkit-text-fill-color:transparent!important/);

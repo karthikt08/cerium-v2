@@ -352,7 +352,7 @@
   min-width:0;margin:0 0 20px;
   padding:24px 20px 20px;
   border-radius:12px;
-  background:linear-gradient(90deg,#dcd7f8 0%,#ebe7fa 20%,#f4f3fb 45%,#f8fafc 75%,#f8fafc 100%);
+  background:linear-gradient(90deg,#f8fafc 0%,#f4f3fb 25%,#ebe7fa 55%,#dcd7f8 100%);
 }
 .app-page #page-body .workspace-angular-navigation .workspace-tab-scroll{
   position:relative;min-width:0;padding:4px 6px;
@@ -485,7 +485,7 @@
 .app-page #page-body .workspace-angular-navigation .workspace-subfeature-tab[aria-current="page"]::after{
   content:"";display:block;position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
   z-index:1;pointer-events:none;
-  background:linear-gradient(90deg,var(--cerium-tab-accent),var(--cerium-tab-magenta));
+  background:linear-gradient(90deg,var(--cerium-tab-magenta),var(--cerium-tab-accent));
   box-shadow:0 0 8px var(--cerium-tab-glow);
   border-radius:2px;
 }

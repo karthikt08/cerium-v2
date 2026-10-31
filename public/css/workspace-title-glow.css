@@ -10,7 +10,7 @@
     --cerium-page-title-stroke:7px;
     --cerium-title-neon-gap:7px;
     --cerium-title-neon-gradient:linear-gradient(
-      100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
+      100deg,#d946ef 0%,#824cff 24%,#3b5bff 50%,#7c3aed 76%,#d946ef 100%
     );
     --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
     --cerium-title-neon-endcaps:
@@ -36,9 +36,9 @@
     -webkit-background-clip:text!important;
     background-clip:text!important;
     -webkit-text-fill-color:transparent!important;
-    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
-      drop-shadow(0 0 15px rgba(124,58,237,.56))
-      drop-shadow(0 0 24px rgba(217,70,239,.32))!important;
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.3375))
+      drop-shadow(0 0 15px rgba(124,58,237,.42))
+      drop-shadow(0 0 24px rgba(217,70,239,.24))!important;
     animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
   }
 
@@ -79,7 +79,7 @@
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
     filter:none!important;
-    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate,cerium-title-underline-in 1.1s .2s cubic-bezier(.6,0,.2,1) both!important;
   }
 
   /* Physical, fully circular caps. They use the same background gradient and
@@ -111,7 +111,7 @@
     -webkit-mask-composite:source-over;
     mask-composite:add;
     filter:none!important;
-    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate,cerium-title-underline-in 1.1s .2s cubic-bezier(.6,0,.2,1) both!important;
   }
 
   /* Light lilac text remains readable on the intentionally dark Overview;
@@ -125,6 +125,11 @@
   @keyframes cerium-title-neon-flow {
     from {background-position:0% 50%}
     to {background-position:100% 50%}
+  }
+
+  @keyframes cerium-title-underline-in {
+    from { clip-path: inset(-20px 100% -20px 0); }
+    to { clip-path: inset(-20px 0 -20px 0); }
   }
 }
 
@@ -143,6 +148,7 @@
   .app-page #page-body .workspace-feature-panel .marketing-feature-header .panel-title h2::after,
   .app-page #page-body .overview-stage-unified .overview-title-accent::after {
     animation:none!important;
+    clip-path:none!important;
   }
 }
 
@@ -180,7 +186,7 @@
   :is(.pg,.onboarding-page) {
     --cerium-title-neon-gap:7px;
     --cerium-title-neon-gradient:linear-gradient(
-      100deg,#3b5bff 0%,#7c3aed 24%,#d946ef 50%,#824cff 76%,#3b5bff 100%
+      100deg,#d946ef 0%,#824cff 24%,#3b5bff 50%,#7c3aed 76%,#d946ef 100%
     );
     --cerium-title-neon-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath fill='none' stroke='white' stroke-width='7' vector-effect='non-scaling-stroke' stroke-linecap='round' d='M12 12C64 6 120 16 179 9S257 12 288 10'/%3E%3C/svg%3E");
     --cerium-title-neon-endcaps:
@@ -199,9 +205,9 @@
     -webkit-background-clip:text!important;
     background-clip:text!important;
     -webkit-text-fill-color:transparent!important;
-    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
-      drop-shadow(0 0 15px rgba(124,58,237,.56))
-      drop-shadow(0 0 24px rgba(217,70,239,.32))!important;
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.3375))
+      drop-shadow(0 0 15px rgba(124,58,237,.42))
+      drop-shadow(0 0 24px rgba(217,70,239,.24))!important;
   }
 
   /* Static public headings gain flow; the landing hero's .wd.ac retains its
@@ -218,9 +224,9 @@
     max-width:100%;
     padding-bottom:var(--cerium-title-neon-gap);
     overflow:visible;
-    filter:drop-shadow(0 0 6px rgba(59,91,255,.45))
-      drop-shadow(0 0 15px rgba(124,58,237,.56))
-      drop-shadow(0 0 24px rgba(217,70,239,.32));
+    filter:drop-shadow(0 0 6px rgba(59,91,255,.3375))
+      drop-shadow(0 0 15px rgba(124,58,237,.42))
+      drop-shadow(0 0 24px rgba(217,70,239,.24));
   }
   .pg h1 .ac-wrap > .ac {
     padding-bottom:0!important;
@@ -257,7 +263,7 @@
     mask-size:100% 100%;
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
-    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate,cerium-title-underline-in 1.1s .2s cubic-bezier(.6,0,.2,1) both!important;
   }
   .pg :is(h1,h2) .ac::before,
   .pg h1 .ac-wrap::before,
@@ -283,7 +289,7 @@
     -webkit-mask-composite:source-over;
     mask-composite:add;
     filter:none!important;
-    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important;
+    animation:cerium-title-neon-flow 5s ease-in-out infinite alternate,cerium-title-underline-in 1.1s .2s cubic-bezier(.6,0,.2,1) both!important;
   }
   .pg h1 .ac-wrap > .ac::before,
   .pg h1 .ac-wrap > .ac::after {content:none!important;display:none!important;}
@@ -303,6 +309,8 @@
   .pg :is(h1,h2) .ac::after,
   .onboarding-page h1 .ac::before,
   .onboarding-page h1 .ac::after {animation:none!important;}
+  :is(.pg :is(h1,h2),.onboarding-page h1) :is(.ac,.ac-wrap)::before,
+  :is(.pg :is(h1,h2),.onboarding-page h1) :is(.ac,.ac-wrap)::after {clip-path:none!important;}
 }
 @media screen and (forced-colors:active) {
   :is(.pg :is(h1,h2),.onboarding-page h1) .ac {
@@ -322,66 +330,3 @@
     animation:none!important;
   }
 }
-
-
-  /* Neatly organize text and titles across all software places with clean alignment */
-  .app-page #page-body .page-heading {
-    margin-bottom:18px;
-  }
-  .app-page #page-body .page-heading h1 {
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    margin:0 0 6px;
-    padding-bottom:0!important;
-    line-height:1.2;
-  }
-  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent)::after,
-  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent)::before {
-    display:none!important;
-    content:none!important;
-  }
-  .app-page #page-body :is(h1, h2, h3, .ac, .overview-title-accent) {
-    padding-bottom:0!important;
-  }
-  .app-page #page-body .page-heading p,
-  .app-page #page-body .page-description {
-    margin:0;
-    font-size:13.5px;
-    line-height:1.5;
-    color:#5d687e;
-  }
-  .app-page #page-body .marketing-feature-header {
-    padding:20px 24px;
-    gap:16px;
-  }
-  .app-page #page-body .marketing-feature-header .panel-title {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:6px;
-    min-width:0;
-  }
-  .app-page #page-body .marketing-feature-header .panel-title .icon {
-    width:20px;
-    height:20px;
-    flex-shrink:0;
-    color:#7c3aed;
-  }
-  .app-page #page-body .marketing-feature-header .panel-title h2 {
-    margin:0;
-    font-size:17px;
-    font-weight:700;
-    line-height:1.25;
-    padding-bottom:0!important;
-  }
-  .app-page #page-body .marketing-feature-header .panel-subtitle {
-    margin:0;
-    font-size:12.5px;
-    line-height:1.5;
-    color:#5d687e;
-  }
-  .app-page #page-body :is(svg.ul, .ul) {
-    display:none!important;
-  }
-
