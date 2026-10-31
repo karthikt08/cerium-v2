@@ -75,3 +75,49 @@ test('Design D workspace and dialog navigation match the landing-page purple glo
   assert.match(design, /@media\(prefers-reduced-motion:reduce\)/);
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 });
+
+
+test('inactive Design D tabs remain recognizable against landing ambience in both navigation rows', () => {
+  const workspace = read('css/workspace-navigation.css');
+  const design = workspace.slice(workspace.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
+  const dialogs = read('css/dialog-two-tier.css');
+
+  assert.match(design, /--cerium-tab-outline:#aebdd3;/);
+  assert.match(dialogs, /--dialog-nav-outline: #aebdd3;/);
+  assert.match(design, /--cerium-tab-outline-hover:#8c9fb9;/);
+  assert.match(dialogs, /--dialog-nav-outline-hover: #8c9fb9;/);
+
+  // Actual border on each skewed background pseudo-element, not a rectangular
+  // box on the anchor/button: the parallelogram shape must stay unchanged.
+  const workspaceShapes = [
+    '.workspace-feature-tab::before{',
+    '.workspace-subfeature-tab::before{'
+  ];
+  for (const shape of workspaceShapes) {
+    const start = design.indexOf(shape);
+    assert.ok(start !== -1, 'missing workspace shape ' + shape);
+    const rule = design.slice(start, design.indexOf('}', start));
+    assert.match(rule, /transform:skewX\(-14deg\)/);
+    assert.match(rule, /border:1\.75px solid var\(--cerium-tab-outline\)/);
+    assert.match(rule, /box-sizing:border-box/);
+    assert.match(rule, /pointer-events:none/);
+  }
+  assert.match(dialogs, /border: 1\.75px solid var\(--dialog-nav-outline\)/);
+  assert.match(dialogs, /transform: skewX\(-14deg\)/);
+
+  // Selection still belongs exclusively to purple: gray inactive outlines
+  // disappear under both the active primary bracket and active secondary rule.
+  assert.match(design, /background:#fff;bottom:-2px;border:0;/);
+  assert.match(design, /background:#fff;border:0;/);
+  assert.match(dialogs, /background: #fff;\s+bottom: -2px;\s+border: 0;/);
+  assert.match(dialogs, /background: #fff;\s+border: 0;/);
+  for (const source of [design, dialogs]) {
+    assert.match(source, /stop-color='%237c3aed'/);
+    assert.match(source, /stop-color='%23d946ef'/);
+    assert.match(source, /:focus-visible/);
+  }
+  assert.match(design, /@media\(max-width:760px\)/);
+  assert.match(dialogs, /@media \(max-width: 600px\)/);
+  assert.match(design, /@media print/);
+  assert.match(dialogs, /@media print/);
+});
