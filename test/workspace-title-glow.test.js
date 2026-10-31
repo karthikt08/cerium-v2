@@ -64,11 +64,21 @@ test('neon underline caps are true circular CSS masks at any title width',()=>{
   assert.equal(caps[0],caps[1],'caps use identical shapes and positions');
   assert.match(caps[0], /radial-gradient\(circle 3\.5px at 4% 60%,#000 98%,transparent 100%\)/);
   assert.match(caps[0], /radial-gradient\(circle 3\.5px at 96% 50%,#000 98%,transparent 100%\)/);
-  const layeredMasks=css.match(/-webkit-mask-image:var\(--cerium-title-neon-mask\),var\(--cerium-title-neon-endcaps\);/g)||[];
-  assert.equal(layeredMasks.length,2,'both underlines composite SVG body with physical CSS caps');
-  assert.equal((css.match(/mask-composite:add,add;/g)||[]).length,2);
-  assert.equal((css.match(/-webkit-mask-composite:source-over,source-over;/g)||[]).length,2);
-  assert.equal((css.match(/^\s+mask-size:100% 100%,100% 100%,100% 100%;$/gm)||[]).length,2);
+  const waveformLayers=css.match(/-webkit-mask-image:var\(--cerium-title-neon-mask\);/g)||[];
+  const capLayers=css.match(/-webkit-mask-image:var\(--cerium-title-neon-endcaps\);/g)||[];
+  assert.equal(waveformLayers.length,2,'workspace and public waveform draw on their own ::after');
+  assert.equal(capLayers.length,2,'workspace and public use independent ::before circular layers');
+  assert.doesNotMatch(css, /mask-image:var\(--cerium-title-neon-mask\),var\(--cerium-title-neon-endcaps\)/,
+    'never combine waveform and caps into a single pseudo-element mask');
+  assert.equal((css.match(/^\s+mask-composite:add;$/gm)||[]).length,2);
+  assert.equal((css.match(/^\s+-webkit-mask-composite:source-over;$/gm)||[]).length,2);
+  assert.equal((css.match(/^\s+mask-size:100% 100%,100% 100%;$/gm)||[]).length,2);
+  assert.equal((css.match(/^\s+mask-size:100% 100%;$/gm)||[]).length,2);
+  for(const element of [
+    '.page-heading .ac::before','.page-heading .ac::after',
+    '.pg :is(h1,h2) .ac::before','.pg :is(h1,h2) .ac::after',
+    '.pg h1 .ac-wrap::before','.pg h1 .ac-wrap::after'
+  ]) assert.ok(css.includes(element),'separate cap and wave selectors needed: '+element);
   assert.match(css, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
 });
 
@@ -132,11 +142,12 @@ test('all public primary heading accents load identical animated rounded neon un
   assert.match(publicStyle, /--cerium-title-neon-endcaps:/);
   assert.match(publicStyle, /radial-gradient\(circle 3\.5px at 4% 60%/);
   assert.match(publicStyle, /radial-gradient\(circle 3\.5px at 96% 50%/);
-  assert.match(publicStyle, /mask-image:var\(--cerium-title-neon-mask\),var\(--cerium-title-neon-endcaps\)/);
+  assert.match(publicStyle, /-webkit-mask-image:var\(--cerium-title-neon-mask\);/);
+  assert.match(publicStyle, /-webkit-mask-image:var\(--cerium-title-neon-endcaps\);/);
   assert.match(publicStyle, /animation:cerium-title-neon-flow 5s ease-in-out infinite alternate!important/);
   assert.match(publicStyle, /:not\(\.wd\)/,'landing word-entry animation is not overridden');
   assert.match(publicStyle, /\.pg h1 \.ac-wrap::after/,'Benefits sibling underline uses wrapper');
-  assert.match(publicStyle, /\.pg h1 \.ac-wrap > \.ac::after \{content:none!important;display:none!important;\}/);
+  assert.match(publicStyle, /\.pg h1 \.ac-wrap > \.ac::before,\s+\.pg h1 \.ac-wrap > \.ac::after \{content:none!important;display:none!important;\}/);
   assert.match(publicStyle, /@media screen and \(prefers-reduced-motion:reduce\)/);
   assert.match(publicStyle, /@media screen and \(forced-colors:active\)/);
   assert.doesNotMatch(publicStyle, /\.pg \.panel h2|\.pg \.cd h3|\.invoice-document/,
