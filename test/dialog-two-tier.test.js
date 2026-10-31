@@ -82,10 +82,10 @@ test('inactive Design D tabs remain recognizable against landing ambience in bot
   const design = workspace.slice(workspace.indexOf('/* CERIUM WORKSPACE TABS — Design D'));
   const dialogs = read('css/dialog-two-tier.css');
 
-  assert.match(design, /--cerium-tab-outline:#aebdd3;/);
-  assert.match(dialogs, /--dialog-nav-outline: #aebdd3;/);
-  assert.match(design, /--cerium-tab-outline-hover:#8c9fb9;/);
-  assert.match(dialogs, /--dialog-nav-outline-hover: #8c9fb9;/);
+  assert.match(design, /--cerium-tab-outline:#94a6c0;/);
+  assert.match(dialogs, /--dialog-nav-outline: #94a6c0;/);
+  assert.match(design, /--cerium-tab-outline-hover:#766b9d;/);
+  assert.match(dialogs, /--dialog-nav-outline-hover: #766b9d;/);
 
   // Actual border on each skewed background pseudo-element, not a rectangular
   // box on the anchor/button: the parallelogram shape must stay unchanged.
@@ -98,12 +98,24 @@ test('inactive Design D tabs remain recognizable against landing ambience in bot
     assert.ok(start !== -1, 'missing workspace shape ' + shape);
     const rule = design.slice(start, design.indexOf('}', start));
     assert.match(rule, /transform:skewX\(-14deg\)/);
-    assert.match(rule, /border:1\.75px solid var\(--cerium-tab-outline\)/);
+    assert.match(rule, /border:2px solid var\(--cerium-tab-outline\)/);
     assert.match(rule, /box-sizing:border-box/);
     assert.match(rule, /pointer-events:none/);
   }
-  assert.match(dialogs, /border: 1\.75px solid var\(--dialog-nav-outline\)/);
+  assert.match(dialogs, /border: 2px solid var\(--dialog-nav-outline\)/);
   assert.match(dialogs, /transform: skewX\(-14deg\)/);
+
+  // A neutral fill and closed, rounded outline distinguish inactive tabs
+  // against the pale landing background. Their lower edge is not clipped.
+  assert.match(design, /border-radius:9px;background:#f8faff/);
+  assert.match(design, /border-radius:8px;background:#f8faff/);
+  assert.match(dialogs, /border-radius: 9px;[\s\S]*?background: #f8faff/);
+  assert.match(dialogs, /border-radius: 8px;/);
+  assert.match(design, /workspace-feature-tab:not\(\.active\):not\(\[aria-current="page"\]\)/);
+  assert.match(design, /workspace-subfeature-tab:not\(\.active\):not\(\[aria-current="page"\]\)/);
+  assert.match(design, /margin-bottom:2px;/);
+  assert.match(dialogs, /cerium-dialog-tier-tab:not\(\.active\)[\s\S]*?margin-bottom: 2px;/);
+
 
   // Selection still belongs exclusively to purple: gray inactive outlines
   // disappear under both the active primary bracket and active secondary rule.

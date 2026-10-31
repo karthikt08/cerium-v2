@@ -5,8 +5,8 @@
   --dialog-nav-magenta: #d946ef;
   --dialog-nav-glow: rgba(124, 58, 237, .35);
   --dialog-nav-line: #e3e8f1;
-  --dialog-nav-outline: #aebdd3;
-  --dialog-nav-outline-hover: #8c9fb9;
+  --dialog-nav-outline: #94a6c0;
+  --dialog-nav-outline-hover: #766b9d;
   --dialog-nav-ink: #16213a;
 }
 .app-page dialog.dialog.cerium-has-dialog-tabs:not(.lead-import-dialog):not(.invoice-dialog) {
@@ -64,15 +64,20 @@
   z-index: -1;
   transform: skewX(-14deg);
   transform-origin: bottom center;
-  border-radius: 9px 9px 0 0;
+  border-radius: 9px;
   box-sizing: border-box;
-  border: 1.75px solid var(--dialog-nav-outline);
-  background: #edf1f7;
+  border: 2px solid var(--dialog-nav-outline);
+  background: #f8faff;
   pointer-events: none;
   transition: border-color .16s ease, background-color .16s ease;
 }
+/* Inactive dialog tabs need the full bottom border visible above the
+   scrolling rail; active Design D brackets remain open-ended and flush. */
+.app-page .cerium-dialog-tier-tab:not(.active) {
+  margin-bottom: 2px;
+}
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab:hover::before {
-  background: #e4eaf3;
+  background: #fff;
   border-color: var(--dialog-nav-outline-hover);
 }
 .app-page .cerium-dialog-tier-one .cerium-dialog-tier-tab.active {
@@ -104,11 +109,11 @@
   border-bottom: 3px solid transparent;
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab::before {
-  background: #f2f5f9;
-  border-radius: 8px 8px 0 0;
+  background: #f8faff;
+  border-radius: 8px;
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab:hover::before {
-  background: #e9edf3;
+  background: #fff;
   border-color: var(--dialog-nav-outline-hover);
 }
 .app-page .cerium-dialog-tier-two .cerium-dialog-tier-tab.active {

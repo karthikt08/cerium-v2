@@ -41,10 +41,11 @@
   content:"";position:absolute;pointer-events:none;
   clip-path:polygon(0 0,calc(100% - var(--angle)) 0,100% 100%,0 100%);
 }
-.marketing-tab::before{inset:0;background:#dfe4ed;z-index:-2}
-.marketing-tab::after{inset:1px 1px 0 1px;background:#f5f6fa;z-index:-1}
+.marketing-tab::before{inset:0;background:#94a6c0;z-index:-2}
+.marketing-tab::after{inset:2px;background:#f8faff;z-index:-1}
 .marketing-tab:hover:not(.active){z-index:2;color:#474b6d}
-.marketing-tab:hover:not(.active)::after{background:#eef1f8}
+.marketing-tab:hover:not(.active)::before{background:#766b9d}
+.marketing-tab:hover:not(.active)::after{background:#fff}
 .marketing-tab.active{z-index:3;color:#433a8e}
 .marketing-tab.active::before{background:#c6c3e6}
 .marketing-tab.active::after{

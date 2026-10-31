@@ -172,7 +172,7 @@ test('seven pre-PR99 sidebar sections and standalone utility pages retain modern
   const css=fs.readFileSync(new URL('../public/css/workspace-navigation.css',import.meta.url),'utf8');
   assert.match(css,/Design D side-bracketed two-tier navigation/);
   assert.match(css,/\.app-page #page-body \.workspace-feature-panel\{[^}]*box-shadow:none!important/);
-  assert.match(css,/border-radius:8px 8px 0 0;background:#f2f5f9/);
+  assert.match(css,/border-radius:8px;background:#f8faff/);
   assert.doesNotMatch(css,/workspace-panel-chrome|workspace-chrome-dots|border-top:3\.5px solid #2f5bff/);
   const ordinary=renderFeatureWorkspace(resolveWorkspaceRoute('#customers/leads'),undefined,'Leads');
   assert.doesNotMatch(ordinary,/workspace-panel-chrome|workspace-chrome-status/);

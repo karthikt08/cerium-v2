@@ -129,3 +129,13 @@ test('Ask Cerium still links to all three Marketing feature panes',()=>{
   assert.ok(links.some(link=>link.href==='#marketing/performance'));
   assert.ok(!links.some(link=>link.href.startsWith('https://')));
 });
+
+
+test('standalone marketing tab buttons have full, contrasting slanted outlines',()=>{
+  assert.match(css, /\.marketing-tab::before\{inset:0;background:#94a6c0;z-index:-2\}/);
+  assert.match(css, /\.marketing-tab::after\{inset:2px;background:#f8faff;z-index:-1\}/);
+  assert.match(css, /\.marketing-tab:hover:not\(\.active\)::before\{background:#766b9d\}/);
+  assert.match(css, /\.marketing-tab\.active::before\{background:#c6c3e6\}/);
+  assert.match(css, /\.marketing-tab\.active::after\{/);
+  assert.match(css, /clip-path:polygon\(0 0,calc\(100% - var\(--angle\)\) 0,100% 100%,0 100%\)/);
+});
