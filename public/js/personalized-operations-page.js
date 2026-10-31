@@ -72,7 +72,31 @@ export function personalizedBusinessSnapshot(ws){
 }
 export function renderPersonalizedOverview(ws){
   const data=personalizedBusinessSnapshot(ws);
-  if(!data)return '';
+  if(!data){
+    const spec=activeBusinessPersonalization(ws);
+    if(!spec)return '';
+    // The seven shared-tool verticals still have a personalized home using real
+    // record totals. They are not advertised as full trade-specific products.
+    const enabled=new Set(ws.account.workspacePreferences?.modules||[]);
+    const links=[
+      {id:'leads',href:'#customers/leads',label:spec.features.leads||'Customer enquiries'},
+      {id:'quotes',href:'#customers/quotes',label:spec.features.quotes||'Estimates'},
+      {id:'jobs',href:'#field/schedule',label:spec.features.schedule||'Job schedule'},
+      {id:'followups',href:'#customers/followups',label:'Follow-ups'},
+      {id:'invoices',href:'#billing/invoices',label:'Invoices'}
+    ].filter(item=>enabled.has(item.id));
+    const openJobs=(ws.jobs||[]).filter(statusOpen).length;
+    const liveLeads=(ws.leads||[]).filter(l=>['New','Quoted'].includes(l.stage)).length;
+    const pendingQuotes=(ws.quotes||[]).filter(q=>['Draft','Sent'].includes(q.status)).length;
+    return '<section class="vertical-home-snapshot" aria-label="'+esc(spec.title)+' workspace">'+
+      '<div class="vertical-home-header"><div><p class="eyebrow">YOUR BUSINESS · '+esc(spec.title.toUpperCase())+'</p>'+
+      '<h2>'+esc(spec.title)+'</h2><p>'+esc(spec.tagline)+'</p></div>'+
+      link('#settings/tools','Personalize my tools')+'</div>'+
+      '<div class="vertical-home-metrics">'+count('Active work',openJobs,'Recorded scheduled jobs')+
+      count('Open enquiries',liveLeads,'New and quoted leads')+
+      count('Quotes in progress',pendingQuotes,'Draft or sent estimates')+'</div>'+
+      '<div class="vertical-home-links">'+links.map(item=>link(item.href,item.label)).join('')+'</div></section>';
+  }
   const {id,spec,jobs,pending,due,activeToday,sites}=data;
   const labels=id==='hvac'?['Service calls today','Equipment tracked','Maintenance callbacks due']:
     id==='cleaning'?['Cleaning visits today','Properties tracked','Quality reviews pending']:
