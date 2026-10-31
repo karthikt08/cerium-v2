@@ -415,6 +415,11 @@
 @media print{
   .app-page .content-scroll{background:#fff!important}
   .app-page .content-scroll :is(.button.primary,.button.secondary){box-shadow:none!important}
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip){
+    background:transparent!important;color:#1e293b!important;border:1px solid #cbd5e1!important;box-shadow:none!important;
+  }
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip)::before{display:none!important}
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip) :is(strong,p,span,a){color:#1e293b!important}
 }
 @media(max-width:760px){
   .app-page .content-scroll .page-width{padding:20px 12px 82px}
@@ -426,7 +431,27 @@
 @media screen{
   .app-page .view-toggle button{font-size:12px;padding:6px 12px}
   .app-page .result-footer{font-size:12px}
-  .app-page .field small,.app-page .muted,.app-page .notice{font-size:12.5px}
+  .app-page .field small,.app-page .muted{font-size:12.5px}
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip){
+    font-size:12.5px;
+    color:#d1dbee;
+    border-color:#46517c;
+  }
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip) strong{
+    color:#f6f7ff;
+    font-size:13px;
+  }
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip) p{
+    color:#d1dbee;
+  }
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip) a:not(.button):not(.btn){
+    color:#9cb5ff!important;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .app-page :is(.notice,.marketing-callout,.edition-save-hint,.billing-dev-tip) a:not(.button):not(.btn):hover{
+    color:#d8d2ff!important;
+  }
   .app-page .data-table .subline{font-size:12px}
 
   /* Page intro: the section name is already in the breadcrumb, so the label

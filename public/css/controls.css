@@ -13,13 +13,22 @@
   text-decoration-color:currentColor;
 }
 /* Key workspace actions stand out without giving every link a filled button. */
-.app-page .notice a:not(.button):not(.btn),.app-page .text-button{
+.app-page .notice a:not(.button):not(.btn){
+  color:#9cb5ff;text-decoration:underline;text-underline-offset:3px;font-weight:600;
+  display:inline-block;margin:2px 0;max-width:100%;
+  background:rgba(59,91,255,.18);border-radius:5px;padding:3px 7px;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  transition:all .15s ease;
+}
+.app-page .notice a:not(.button):not(.btn):is(:hover,:focus-visible){
+  color:#d8d2ff;background:rgba(124,58,237,.28);text-decoration-color:#d8d2ff;
+}
+.app-page .text-button{
   background:color-mix(in srgb,var(--accent) 9%,transparent);
   border-radius:5px;padding:4px 7px;
   box-decoration-break:clone;-webkit-box-decoration-break:clone;
 }
-.app-page .notice a:not(.button):not(.btn){display:inline-block;margin:2px 0;max-width:100%}
-.app-page .notice a:not(.button):not(.btn):is(:hover,:focus-visible),.app-page .text-button:is(:hover,:focus-visible){
+.app-page .text-button:is(:hover,:focus-visible){
   background:color-mix(in srgb,var(--accent) 16%,transparent);
 }
 @media(prefers-reduced-motion:reduce){.text-button{transition:none}}
