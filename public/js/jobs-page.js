@@ -64,8 +64,8 @@ export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false,su
   const count=jobs.filter(j=>j.startAt.slice(0,10)===today()&&active(j)).length;
   const assigned=weekJobs.filter(j=>j.workerId).length;
   const open=jobs.filter(j=>active(j)&&!j.workerId).length;
-  return `<div class="jobs">
-    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1><span class="ac">${esc(business?.features.schedule||'Job schedule')}<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".55" stop-color="#1d5bf0"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">${business?esc(business.tagline):'Plan the week, assign your crew, and keep every job on track.'}</p></div>
+  const markup=`<div class="jobs">
+    <div class="page-heading"><div><p class="eyebrow">FIELD SERVICE</p><h1><span class="ac">Job schedule<svg class="ul" viewBox="0 0 300 14" aria-hidden="true"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".55" stop-color="#1d5bf0"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><path pathLength="1" stroke-width="8.5" d="M3 9C60 3 120 12 180 6s90 3 117 0"/></svg></span></h1><p class="page-description">${business?esc(business.tagline):'Plan the week, assign your crew, and keep every job on track.'}</p></div>
       <div class="heading-actions"><button class="button secondary" data-job-action="crew">Manage crew</button><button class="button primary" data-job-action="new" ${readOnly?'disabled':''} >${esc(business?.createLabel||'+ Schedule a job')}</button></div></div>
     <div class="jobs-stats">
       <div class="jobs-stat"><span>Jobs today</span><strong>${count}</strong><small>Active appointments</small></div>
@@ -105,6 +105,7 @@ export function renderJobsPage(ws,readOnly=false,view='schedule',scoped=false,su
     </div>
     ${readOnly?'<p class="jobs-readonly">Trial ended — you can view schedules, but changes require an active plan.</p>':''}
   </div>`;
+  return business?.features.schedule?markup.replace('Job schedule<svg',esc(business.features.schedule)+'<svg'):markup;
 }
 function renderOperationsPage(ws,readOnly,view){
   const jobs=ws.jobs||[],crew=ws.crew||[];
